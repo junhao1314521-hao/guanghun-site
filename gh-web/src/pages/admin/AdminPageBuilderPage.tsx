@@ -461,6 +461,38 @@ function AddBlocksDrawer({
 }
 
 /* ============================================================
+   发布状态与自动保存（本地记忆）
+   ============================================================ */
+/** 发布签名 storage key（按页面）：用于区分「已发布 / 有未发布变更」 */
+const publishedSigKey = (pageKey: string) => `gh-builder-published:${pageKey}`
+const AUTOSAVE_KEY = 'gh-builder-autosave'
+
+function readPublishedSig(pageKey: string): string {
+  try {
+    return window.localStorage.getItem(publishedSigKey(pageKey)) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function writePublishedSig(pageKey: string, sig: string): void {
+  try {
+    window.localStorage.setItem(publishedSigKey(pageKey), sig)
+  } catch {
+    // 忽略隐私模式等写入失败
+  }
+}
+
+/** 自动保存开关（默认开启） */
+function readAutoSave(): boolean {
+  try {
+    return window.localStorage.getItem(AUTOSAVE_KEY) !== '0'
+  } catch {
+    return true
+  }
+}
+
+/* ============================================================
    装修器主体
    ============================================================ */
 function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
@@ -475,7 +507,7 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const addRef = useRef<HTMLDivElement>(null)
   // 已保存基线签名：dirty = 当前草稿与基线不一致（撤销回到已保存态即自动清除 dirty）
-  const [savedSig, setSavedSig] = useState(() => JSON.stringify(initial.blocks))
+  const [savedSig, setSavedSig] = useState(() => JSON.stringify(normalizeLayouts(initial.blocks)))
   const [saving, setSaving] = useState(false)
   // 布局形态：左＝区块结构（可收起）｜中＝大预览（可全屏）｜右＝属性面板（可收起）
   // 左右收束状态持久化（localStorage），刷新后保持
@@ -494,11 +526,62 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
   const [tab, setTab] = useState<'library' | 'props' | 'style'>('props')
   const [typeQuery, setTypeQuery] = useState('')
   const [publishing, setPublishing] = useState(false)
+  // 发布状态（本地记忆）：已发布 / 有未发布变更；草稿自动保存
+  const [publishedSig, setPublishedSig] = useState(() => readPublishedSig(pageKey))
+  const [autoSave, setAutoSave] = useState(() => readAutoSave())
+  const [autoSaving, setAutoSaving] = useState(false)
+  const [autoSavedAt, setAutoSavedAt] = useState<number | null>(null)
 
-  const dirty = useMemo(() => JSON.stringify(blocks) !== savedSig, [blocks, savedSig])
+  // 与「将发送给服务端的内容」比较，避免布局归一化导致的假 dirty
+  // （自动保存只更新基线、不清空撤销历史，故 dirty 用归一化签名）
+  const draftSig = useMemo(() => JSON.stringify(normalizeLayouts(blocks)), [blocks])
+
+  const dirty = draftSig !== savedSig
+
+  /** 顶栏状态：有未保存修改 > 有未发布变更 > 已发布 / 已保存 */
+  const publishState = dirty
+    ? { tone: 'dirty', label: '有未保存修改' }
+    : publishedSig && publishedSig === savedSig
+      ? { tone: 'published', label: '已发布' }
+      : publishedSig
+        ? { tone: 'unpublished', label: '有未发布变更' }
+        : { tone: 'saved', label: '已保存' }
 
   // 未保存修改：刷新 / 关闭标签页、以及站内路由离开均拦截（useUnsavedGuard）
   useUnsavedGuard(dirty)
+
+  // 自动保存开关记忆
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(AUTOSAVE_KEY, autoSave ? '1' : '0')
+    } catch {
+      // 忽略隐私模式等写入失败
+    }
+  }, [autoSave])
+
+  // 草稿自动保存：停止编辑 2.5s 后静默保存（只更新基线，**不清空撤销历史**，不弹提示）
+  useEffect(() => {
+    if (!autoSave || !dirty || saving || publishing) return
+    const timer = window.setTimeout(() => {
+      setAutoSaving(true)
+      const sentBlocks = normalizeLayouts(blocks)
+      saveAdminPage(pageKey, {
+        path: page.path,
+        title: page.title,
+        description: page.description,
+        blocks: sentBlocks,
+      })
+        .then(() => {
+          setSavedSig(JSON.stringify(sentBlocks))
+          setAutoSavedAt(Date.now())
+        })
+        .catch(() => {
+          // 自动保存失败保持静默，交由用户手动保存
+        })
+        .finally(() => setAutoSaving(false))
+    }, 2500)
+    return () => window.clearTimeout(timer)
+  }, [autoSave, dirty, saving, publishing, blocks, pageKey, page.path, page.title, page.description])
 
   // 记忆左右面板收束状态（刷新后保持）
   useEffect(() => {
@@ -578,7 +661,7 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
       })
       setPage(saved)
       hist.reset(saved.blocks)
-      setSavedSig(JSON.stringify(saved.blocks))
+      setSavedSig(JSON.stringify(normalizeLayouts(saved.blocks)))
       toast.success('已保存，前台刷新即可生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '保存失败，请稍后重试')
@@ -593,7 +676,10 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
     try {
       if (dirty) await onSave()
       await createRelease('后台装修器 · 页面发布')
-      setSavedSig(JSON.stringify(blocks))
+      const sig = JSON.stringify(normalizeLayouts(blocks))
+      setSavedSig(sig)
+      setPublishedSig(sig)
+      writePublishedSig(pageKey, sig)
       toast.success('已发布，前台立即生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '发布失败，请稍后重试')
@@ -765,9 +851,14 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
         desc={`页面 key：${page.key} · 前台路径：${page.path}${dirty ? ' · 有未保存修改' : ''}`}
         actions={
           <>
-            {dirty && (
-              <span className="builder-dirty" role="status">
-                未保存修改
+            <span className={`builder-status builder-status--${publishState.tone}`} role="status">
+              {publishState.label}
+            </span>
+            {autoSave && (autoSaving || autoSavedAt) && (
+              <span className="builder-autosave" role="status">
+                {autoSaving
+                  ? '自动保存中…'
+                  : `已自动保存 ${new Date(autoSavedAt as number).toLocaleTimeString('zh-CN', { hour12: false })}`}
               </span>
             )}
             <button
@@ -848,6 +939,18 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
                 '发布'
               )}
             </button>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              aria-pressed={autoSave}
+              title="开启后：停止编辑 2.5 秒自动保存草稿（不清空撤销历史）"
+              onClick={() => setAutoSave((value) => !value)}
+            >
+              自动保存：{autoSave ? '开' : '关'}
+            </button>
+            <Link className="btn btn--secondary btn--sm" to="/admin/publish">
+              定时发布 / 版本
+            </Link>
           </>
         }
       />
