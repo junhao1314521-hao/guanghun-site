@@ -62,21 +62,25 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   border-bottom: 1px solid var(--color-border-subtle);
   flex-shrink: 0;
 }
-.admin-side__mark {
-  width: 22px;
-  height: 22px;
-  border-radius: var(--gh-radius-sm);
-  background: linear-gradient(135deg, var(--gh-blue-500), var(--gh-cyan-400));
+/* 后台 LOGO：与前台同款（图形 mark + 字标，随主题 currentColor 适配） */
+.admin-side__logo {
+  gap: var(--gh-space-2);
+  font-size: var(--gh-font-size-body);
+  color: var(--color-text-primary);
+  /* 不可压缩：否则字标会溢出容器，导致右侧「管理端」标签压上去 */
+  flex: none;
+}
+.admin-side__logo .admin-side__mark { width: 26px; height: 26px; flex-shrink: 0; }
+.admin-side__word { width: 3.2em; height: 0.92em; }
+/* 「管理端」标签：紧贴 LOGO，并与字标垂直居中对齐 */
+.admin-side__badge {
+  margin-left: var(--gh-space-2);
+  align-self: center;
+  line-height: 1;
   flex-shrink: 0;
 }
-.admin-side__title {
-  font-weight: var(--gh-weight-semibold);
-  font-size: var(--gh-font-size-body);
-  letter-spacing: -0.01em;
-}
-.admin-side__badge {
-  margin-left: auto;
-}
+/* 收束按钮始终贴右端（原先靠 badge 的 auto margin 撑开，现改为按钮自身） */
+.admin-side__collapse { margin-left: auto; }
 /* 移动端抽屉关闭按钮（桌面隐藏） */
 .admin-side__close {
   display: none;
@@ -598,8 +602,9 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 @media (min-width: 1024px) {
   .admin-shell.is-collapsed { grid-template-columns: var(--gh-sidebar-width-collapsed) minmax(0, 1fr); }
   .admin-shell.is-collapsed .admin-side__brand { justify-content: space-between; padding: 0 var(--gh-space-2); gap: 0; }
-  .admin-shell.is-collapsed .admin-side__title,
+  .admin-shell.is-collapsed .admin-side__word,
   .admin-shell.is-collapsed .admin-side__badge { display: none; }
+  .admin-shell.is-collapsed .admin-side__logo { gap: 0; }
   /* 收束后仅剩 logo 与「展开」按钮；按钮贴右，仍在窄条顶部可点 */
   .admin-shell.is-collapsed .admin-side__collapse { margin-left: auto; }
   .admin-shell.is-collapsed .admin-nav { padding-left: var(--gh-space-2); padding-right: var(--gh-space-2); }

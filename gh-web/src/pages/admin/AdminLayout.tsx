@@ -11,6 +11,7 @@ import { ADMIN_NAV, ANALYTICS_SCOPES, adminResource, type AdminNavItem } from '.
 // 「栏目 key → 所需 scope」的单一映射源（与后端 rbac.ts / roles.ts 对照，见该文件头注释）
 import { hasScope, requiredScope } from '../../data/adminScopes'
 import { AdminIcon } from '../../components/admin/AdminIcon'
+import { BrandMark } from '../../components/site/BrandMark'
 import { useAdminAuth } from '../../components/admin/AdminAuth'
 import { AdminTourButton, AdminTourProvider } from '../../components/admin/AdminTour'
 import { ErrorBoundary } from '../../components/site/ErrorBoundary'
@@ -279,8 +280,10 @@ export function AdminLayout() {
         <div className={`admin-shell${sideCollapsed ? ' is-collapsed' : ''}`} style={shellStyle}>
         <aside className={`admin-side${navOpen ? ' is-open' : ''}`} aria-label="后台导航">
           <div className="admin-side__brand">
-            <span className="admin-side__mark" aria-hidden="true" />
-            <span className="admin-side__title">光魂后台</span>
+            <Link className="logo admin-side__logo" to="/admin" aria-label="光魂后台首页">
+              <BrandMark className="logo__mark admin-side__mark" />
+              <span className="logo__word admin-side__word" role="img" aria-label="光魂" />
+            </Link>
             <span className="tag admin-side__badge">管理端</span>
             <button
               type="button"

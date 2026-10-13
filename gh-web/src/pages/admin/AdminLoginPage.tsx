@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../components/admin/AdminAuth'
+import { BrandMark } from '../../components/site/BrandMark'
 
 type LoginState = { from?: string } | null
 
@@ -75,8 +76,11 @@ export function AdminLoginPage() {
     <div className="admin-root admin-login">
       <div className="admin-login__card">
         <div className="admin-login__brand">
-          <span className="admin-side__mark" aria-hidden="true" />
-          <span className="admin-side__title">光魂后台管理系统</span>
+          <span className="logo admin-side__logo">
+            <BrandMark className="logo__mark admin-side__mark" />
+            <span className="logo__word admin-side__word" role="img" aria-label="光魂" />
+          </span>
+          <span className="tag admin-side__badge">管理端</span>
         </div>
 
         <div className="card">
