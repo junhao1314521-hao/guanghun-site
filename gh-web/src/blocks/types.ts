@@ -196,6 +196,42 @@ export type ShowcaseProps = {
   }[]
 }
 
+/** 21. productHero 产品详情 · 展示台（读取当前产品；props 为模板级配置，作用于所有产品） */
+export type ProductHeroProps = {
+  /** 主按钮文案 / 链接（留空则不渲染） */
+  primaryLabel?: string
+  primaryHref?: string
+  /** 次按钮文案 / 链接（留空则不渲染） */
+  secondaryLabel?: string
+  secondaryHref?: string
+  showBadges?: boolean
+  showPrice?: boolean
+  /** 是否展示「标称 / 实测」参数摘要 */
+  showSummary?: boolean
+}
+
+/** 22. productDetailSpecs 产品详情 · 参数规格表 */
+export type ProductDetailSpecsProps = {
+  title?: string
+  /** 是否显示详情分区标签（参数 / 实测 / 视频…） */
+  showTabs?: boolean
+  /** 是否显示底部「下载资料 / 需要帮助」引导卡 */
+  showGuides?: boolean
+  guideDownloadLabel?: string
+  guideContactLabel?: string
+}
+
+/** 23. productBuy 产品详情 · 购买 / 咨询收口 */
+export type ProductBuyProps = {
+  title?: string
+  primaryLabel?: string
+  primaryHref?: string
+  secondaryLabel?: string
+  secondaryHref?: string
+  /** 保障要点（每行一条；留空使用默认） */
+  points?: string[]
+}
+
 /** 类型名 → props 类型映射（区块组件用） */
 export type BlockPropsMap = {
   hero: HeroProps
@@ -218,4 +254,7 @@ export type BlockPropsMap = {
   html: HtmlProps
   embed: EmbedProps
   showcase: ShowcaseProps
+  productHero: ProductHeroProps
+  productSpecs: ProductDetailSpecsProps
+  productBuy: ProductBuyProps
 }

@@ -79,6 +79,10 @@ const BLOCK_DATA_SOURCE: Partial<Record<BlockType, { label: string; href: string
   ranking: { label: '天梯榜集合', href: '/admin/rankings' },
   downloadList: { label: '下载资源集合', href: '/admin/downloads' },
   faqList: { label: '常见问题集合', href: '/admin/faqs' },
+  // 产品详情主体区块：数据来自「当前产品」（同一套模板作用于所有产品）
+  productHero: { label: '当前产品（产品集合）', href: '/admin/products' },
+  productSpecs: { label: '当前产品 · 参数与实测（产品集合）', href: '/admin/products' },
+  productBuy: { label: '当前产品（产品集合）', href: '/admin/products' },
 }
 
 /** 空区块类型目录常量（保持引用稳定，避免每次渲染新建数组） */

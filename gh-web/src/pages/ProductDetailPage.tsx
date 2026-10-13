@@ -1,7 +1,10 @@
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
+import { BlockRenderer } from '../blocks/BlockRenderer'
+import { ProductDetailContext } from '../blocks/ProductDetailContext'
 import { fetchProductDetail } from '../api/products'
+import { fetchPage } from '../api/content'
 import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
 import { MediaImg } from '../components/ui/MediaImg'
@@ -20,6 +23,8 @@ const VIEW_COUNT = 4
 export function ProductDetailPage() {
   const { id = '' } = useParams()
   const { data: detail, loading, error } = useApi((signal) => fetchProductDetail(id, signal), [id])
+  // 产品详情模板（内容库）：若模板包含「产品展示台」区块，则详情页主体由模板区块渲染（主体区块化）
+  const { data: template } = useApi((signal) => fetchPage('template-product', signal), [])
 
   const rootRef = useRef<HTMLDivElement>(null)
   const [thumb, setThumb] = useState(0)
@@ -81,6 +86,28 @@ export function ProductDetailPage() {
 
   const variant = PRODUCTS.find((item) => item.id === detail.id)?.variant ?? 'mouse'
   const views = MEDIA.views[variant] ?? MEDIA.views.mouse
+
+  const templateBlocks = (template?.blocks ?? []).filter((block) => block.enabled)
+  // 主体区块化：模板含「产品展示台」时，整页主体由模板区块渲染（不再走旧版硬编码骨架）
+  if (templateBlocks.some((block) => block.type === 'productHero')) {
+    return (
+      <div ref={rootRef}>
+        <JsonLdNode node={productJsonLd(detail, ogImage)} />
+        <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
+          <nav className="breadcrumb" aria-label="面包屑">
+            <Link to="/">首页</Link>
+            <span>/</span>
+            <Link to="/products">产品</Link>
+            <span>/</span>
+            <span>{detail.name}</span>
+          </nav>
+        </div>
+        <ProductDetailContext.Provider value={detail}>
+          <BlockRenderer blocks={templateBlocks} />
+        </ProductDetailContext.Provider>
+      </div>
+    )
+  }
 
   return (
     <div ref={rootRef}>

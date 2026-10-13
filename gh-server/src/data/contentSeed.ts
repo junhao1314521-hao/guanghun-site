@@ -674,10 +674,63 @@ function buildInquiry(): Page {
 /** 模板页：仅描述装修区，明细主体由结构化模板组件渲染（契约 §5） */
 function buildTemplates(): Page[] {
   return [
-    toPage('template-product', '/products/:id', '产品详情模板', '产品详情装修区。', [
-      { type: 'text', props: { title: '产品详情', body: '本模板的装修区；明细主体由产品数据渲染。', align: 'left' } },
-      { type: 'productGrid', props: { title: '相关产品', source: 'featured', limit: 4, columns: 4 } },
-      { type: 'articleList', props: { title: '相关评测', source: 'review', limit: 3 } },
+    toPage('template-product', '/products/:id', '产品详情模板', '产品详情装修区（主体区块化：所有产品共用此模板，数据来自产品集合）。', [
+      {
+        type: 'productHero',
+        props: {
+          primaryLabel: '加入对比',
+          primaryHref: '/compare',
+          secondaryLabel: '咨询咨询师',
+          secondaryHref: '/support#contact',
+          showBadges: true,
+          showPrice: true,
+          showSummary: true,
+        },
+      },
+      {
+        type: 'productSpecs',
+        props: {
+          title: '参数规格',
+          showTabs: true,
+          showGuides: true,
+          guideDownloadLabel: '前往下载中心',
+          guideContactLabel: '提交咨询',
+        },
+      },
+      {
+        type: 'productBuy',
+        props: {
+          title: '准备入手？',
+          subtitle: '先把参数看明白，再决定也不迟。',
+          primaryLabel: '加入对比',
+          primaryHref: '/compare',
+          secondaryLabel: '咨询咨询师',
+          secondaryHref: '/support#contact',
+        },
+      },
+      {
+        type: 'productGrid',
+        props: {
+          title: '相关产品',
+          subtitle: '同品类、可一起对比的机型。',
+          ctaLabel: '查看全部产品',
+          ctaHref: '/products',
+          source: 'featured',
+          limit: 4,
+          columns: 4,
+        },
+      },
+      {
+        type: 'articleList',
+        props: {
+          title: '相关评测',
+          subtitle: '参数与实测的完整过程。',
+          ctaLabel: '查看全部评测',
+          ctaHref: '/articles',
+          source: 'review',
+          limit: 3,
+        },
+      },
     ]),
     toPage('template-series', '/products/series/:slug', '产品系列模板', '产品系列装修区。', [
       { type: 'text', props: { title: '产品系列', body: '按系列浏览产品。', align: 'left' } },

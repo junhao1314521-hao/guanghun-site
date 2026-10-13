@@ -30,6 +30,9 @@ import { RichTextBlock } from './RichTextBlock'
 import { HtmlBlock } from './HtmlBlock'
 import { EmbedBlock } from './EmbedBlock'
 import { ShowcaseBlock } from './ShowcaseBlock'
+import { ProductHeroBlock } from './ProductHeroBlock'
+import { ProductSpecsBlock } from './ProductSpecsBlock'
+import { ProductBuyBlock } from './ProductBuyBlock'
 
 /** 按区块类型分派到对应组件；未知类型返回 null（向前兼容后台新增类型） */
 function renderBlock(block: Block): ReactNode {
@@ -75,6 +78,13 @@ function renderBlock(block: Block): ReactNode {
       return <EmbedBlock props={props} />
     case 'showcase':
       return <ShowcaseBlock props={props} />
+    // 产品详情主体区块（依赖 ProductDetailContext 提供的当前产品数据）
+    case 'productHero':
+      return <ProductHeroBlock props={props} />
+    case 'productSpecs':
+      return <ProductSpecsBlock props={props} />
+    case 'productBuy':
+      return <ProductBuyBlock props={props} />
     default:
       return null
   }

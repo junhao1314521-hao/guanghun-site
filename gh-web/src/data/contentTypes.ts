@@ -26,6 +26,8 @@ export type BlockType =
   | 'richText' | 'html' | 'embed'
   // 通栏产品展示（首页「重点产品」分段式；扩展 §4 新增类型）
   | 'showcase'
+  // 产品详情主体区块（详情页「主体区块化」：读取当前产品数据，模板级配置统一生效）
+  | 'productHero' | 'productSpecs' | 'productBuy'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {

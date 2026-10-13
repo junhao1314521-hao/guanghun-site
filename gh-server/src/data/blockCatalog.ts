@@ -521,6 +521,46 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'cta', label: '按钮', kind: 'link' },
     ],
   },
+  // —— 产品详情主体区块（详情页「主体区块化」）：读取当前产品数据，模板级配置统一作用于所有产品 ——
+  {
+    type: 'productHero',
+    name: '产品展示台',
+    group: '数据',
+    fields: [
+      { name: 'primaryLabel', label: '主按钮文案', kind: 'text', placeholder: '如：加入对比（留空则不显示）' },
+      { name: 'primaryHref', label: '主按钮链接', kind: 'text', placeholder: '如：/compare' },
+      { name: 'secondaryLabel', label: '次按钮文案', kind: 'text', placeholder: '如：咨询咨询师' },
+      { name: 'secondaryHref', label: '次按钮链接', kind: 'text', placeholder: '如：/support#contact' },
+      { name: 'showBadges', label: '显示角标 / 状态', kind: 'switch' },
+      { name: 'showPrice', label: '显示参考价', kind: 'switch' },
+      { name: 'showSummary', label: '显示参数摘要（标称 / 实测）', kind: 'switch' },
+    ],
+  },
+  {
+    type: 'productSpecs',
+    name: '产品参数规格',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      { name: 'showTabs', label: '显示详情分区标签', kind: 'switch' },
+      { name: 'showGuides', label: '显示下载 / 咨询引导卡', kind: 'switch' },
+      { name: 'guideDownloadLabel', label: '下载按钮文案', kind: 'text' },
+      { name: 'guideContactLabel', label: '咨询按钮文案', kind: 'text' },
+    ],
+  },
+  {
+    type: 'productBuy',
+    name: '产品购买咨询',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      { name: 'primaryLabel', label: '主按钮文案', kind: 'text' },
+      { name: 'primaryHref', label: '主按钮链接', kind: 'text' },
+      { name: 'secondaryLabel', label: '次按钮文案', kind: 'text' },
+      { name: 'secondaryHref', label: '次按钮链接', kind: 'text' },
+      { name: 'points', label: '保障要点（每行一条）', kind: 'list' },
+    ],
+  },
 ]
 
 /**
@@ -540,7 +580,10 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
 const TITLE_GROUP_TYPES: BlockType[] = [
   'imageGrid', 'stats', 'cards', 'timeline', 'video',
   'productGrid', 'articleList', 'ranking', 'downloadList', 'faqList', 'showcase',
+  // 详情页收口区块同样支持「主标题 / 子标题 / 右侧按钮」
+  'productBuy',
 ]
+
 const COPY_FIELDS: BlockFieldMeta[] = [
   { name: 'subtitle', label: '子标题', kind: 'text', placeholder: '可选：标题下的一句话说明' },
   { name: 'ctaLabel', label: '右侧按钮文案', kind: 'text', placeholder: '如：查看全部产品' },

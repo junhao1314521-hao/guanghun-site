@@ -212,6 +212,15 @@
 .blk-stats__footnote { margin: var(--gh-space-5) 0 0; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 @media (prefers-reduced-motion: reduce) { .blk-stats__item, .blk-spotlight__main, .blk-spotlight__row { transition: none; } }
 
+/* —— productBuy · 购买 / 咨询保障要点 —— */
+.buy-points { list-style: none; margin: var(--gh-space-5) 0 0; padding: 0; display: grid; gap: var(--gh-space-3); }
+.buy-points li { position: relative; padding-left: var(--gh-space-6); color: var(--color-text-secondary); }
+.buy-points li::before {
+  content: ''; position: absolute; left: 0; top: 0.45em;
+  width: 14px; height: 8px; border-left: 2px solid var(--color-accent-solid); border-bottom: 2px solid var(--color-accent-solid);
+  transform: rotate(-45deg);
+}
+
 /* hero 区块（.stage 皮肤）通栏：同样去圆角描边并给足高度 */
 .blk--full .stage {
   border: 0;

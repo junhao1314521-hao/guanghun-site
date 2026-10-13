@@ -15,6 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { createApp } from '../src/app'
+import { BLOCK_TYPES } from '../src/data/blockCatalog'
 import { buildSeed } from '../src/data/contentSeed'
 import { getDb } from '../src/data/db'
 
@@ -110,11 +111,11 @@ describe('公开端点（契约 §6.1）', () => {
     assert.ok(Array.isArray(body.footer) && body.footer.length > 0)
   })
 
-  it('GET /api/content/blocks/types → { items } 覆盖 16 类区块 + 自定义模块 3 类 + showcase', async () => {
+  it('GET /api/content/blocks/types → { items } 覆盖全部区块类型（与目录数量一致）', async () => {
     const res = await get('/api/content/blocks/types')
     assert.equal(res.status, 200)
     const { items } = (await res.json()) as { items: Array<{ type: string; name: string; group: string; fields: unknown[] }> }
-    assert.equal(items.length, 20)
+    assert.equal(items.length, BLOCK_TYPES.length)
     for (const item of items) {
       assert.ok(item.type && item.name && item.group, '目录项应含 type / name / group')
       assert.ok(Array.isArray(item.fields), '目录项应含 fields 数组')
@@ -283,7 +284,7 @@ describe('后台页面读写与持久化（契约 §6.2 / §7）', () => {
     const after = (await (await get('/api/content/blocks/types')).json()) as {
       items: Array<{ type: string; enabled?: boolean }>
     }
-    assert.equal(after.items.length, 20, '目录仍返回全部 20 类')
+    assert.equal(after.items.length, BLOCK_TYPES.length, '目录仍返回全部区块类型')
     assert.equal(after.items.find((item) => item.type === 'embed')?.enabled, false, '停用的 embed 应为 enabled:false')
     assert.equal(after.items.find((item) => item.type === 'video')?.enabled, true, '未停用的 video 仍为 enabled:true')
 
