@@ -11,9 +11,97 @@
  */
 import { useState } from 'react'
 import type { Block, BlockFieldMeta, BlockTypeMeta } from '../../data/contentTypes'
+import { fetchProducts } from '../../api/products'
+import { useApi } from '../../hooks/useApi'
 import { emptyItem, isStringList, resolveItemFields } from './blockBuilderUtils'
 import { ImageField } from './ImageField'
 import { RichTextField } from './RichTextField'
+
+/**
+ * 集合挑选器（kind: 'ref'）：直接从集合里勾选条目，值以「ID 列表」保存。
+ * 当前来源支持 `products`（产品）。已选项可上移/下移/移除——顺序即前台展示顺序。
+ */
+function RefPicker({
+  field,
+  value,
+  onChange,
+}: {
+  field: BlockFieldMeta
+  value: unknown
+  onChange: (value: unknown) => void
+}) {
+  const ids = Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+  const [query, setQuery] = useState('')
+  const { data, loading, error } = useApi((signal) => fetchProducts(signal), [])
+  const items = data?.items ?? []
+  const keyword = query.trim().toLowerCase()
+  const list = keyword ? items.filter((item) => `${item.model}${item.name}`.toLowerCase().includes(keyword)) : items
+  const labelOf = (id: string) => {
+    const hit = items.find((item) => item.id === id)
+    return hit ? hit.model : id
+  }
+  const toggle = (id: string) => onChange(ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id])
+  const move = (index: number, delta: number) => {
+    const target = index + delta
+    if (target < 0 || target >= ids.length) return
+    const next = ids.slice()
+    ;[next[index], next[target]] = [next[target], next[index]]
+    onChange(next)
+  }
+
+  return (
+    <div className="ref-picker">
+      <input
+        className="input"
+        type="text"
+        placeholder={field.placeholder ?? '搜索型号 / 名称'}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      {loading ? (
+        <p className="field__hint">正在加载{field.source === 'products' ? '产品' : '条目'}…</p>
+      ) : error ? (
+        <p className="field__hint">加载失败：{error.message}</p>
+      ) : (
+        <div className="ref-picker__list">
+          {list.length === 0 ? (
+            <p className="field__hint">没有匹配的条目。</p>
+          ) : (
+            list.map((item) => (
+              <label className="ref-picker__item" key={item.id}>
+                <input type="checkbox" checked={ids.includes(item.id)} onChange={() => toggle(item.id)} />
+                <span className="ref-picker__model">{item.model}</span>
+                <span className="ref-picker__name">{item.name}</span>
+                <span className="ref-picker__cat">{item.category}</span>
+              </label>
+            ))
+          )}
+        </div>
+      )}
+      {ids.length > 0 && (
+        <div className="ref-picker__chosen">
+          <p className="field__hint">已选 {ids.length} 个（顺序即前台展示顺序）</p>
+          <div className="ref-picker__chosen-list">
+            {ids.map((id, index) => (
+              <span className="chip chip--removable" key={id}>
+                {labelOf(id)}
+                <button type="button" aria-label="上移" onClick={() => move(index, -1)}>
+                  ↑
+                </button>
+                <button type="button" aria-label="下移" onClick={() => move(index, 1)}>
+                  ↓
+                </button>
+                <button type="button" aria-label={`移除 ${labelOf(id)}`} onClick={() => toggle(id)}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 /** 字符串行列表（hero.title「每行一句」等）：每行一个输入框 */
 function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines: string[]) => void }) {
@@ -98,6 +186,10 @@ function FieldControl({
         />
       </div>
     )
+  }
+
+  if (field.kind === 'ref') {
+    return <RefPicker field={field} value={value} onChange={onChange} />
   }
 
   if (field.kind === 'select') {

@@ -808,6 +808,26 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .builder-lines { display: flex; flex-direction: column; gap: var(--gh-space-2); }
 .builder-lines__row { display: flex; align-items: center; gap: var(--gh-space-2); }
 
+/* 集合挑选器（kind: 'ref'）：从产品等集合勾选条目，值以 ID 列表保存，顺序可调 */
+.ref-picker { display: flex; flex-direction: column; gap: var(--gh-space-3); }
+.ref-picker__list {
+  max-height: 260px; overflow: auto;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-surface);
+}
+.ref-picker__item {
+  display: grid; grid-template-columns: auto 1fr 1.4fr auto; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-3) var(--gh-space-4); cursor: pointer;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.ref-picker__item:last-child { border-bottom: 0; }
+.ref-picker__item:hover { background: var(--color-bg-muted); }
+.ref-picker__model { font-variant-numeric: tabular-nums; color: var(--color-text-tertiary); font-size: var(--gh-font-size-body-sm); }
+.ref-picker__name { color: var(--color-text-primary); }
+.ref-picker__cat { color: var(--color-text-tertiary); font-size: var(--gh-font-size-body-sm); }
+.ref-picker__chosen { display: flex; flex-direction: column; gap: var(--gh-space-2); }
+.ref-picker__chosen-list { display: flex; flex-wrap: wrap; gap: var(--gh-space-2); }
+
 /* 轻量富文本编辑器（richText）：图标工具栏 + 分组 / 分隔线 + 激活态 */
 .builder-rich { position: relative; border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md); background: var(--color-bg-surface); }
 .builder-rich:focus-within { border-color: var(--color-accent); box-shadow: var(--focus-ring); }

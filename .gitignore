@@ -23,3 +23,6 @@ gh-server/*.sqlite-*
 *.log
 .env
 .env.*
+# 本地临时凭据（切勿提交）
+.gh-token
+.git-credentials

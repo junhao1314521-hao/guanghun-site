@@ -225,7 +225,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '配件', value: '配件' },
         ],
       },
-      { name: 'ids', label: '手动挑选的产品 ID', kind: 'list', placeholder: '每行一个，如 gh-m900-pro；顺序即展示顺序' },
+      {
+        name: 'ids',
+        label: '手动挑选的产品',
+        kind: 'ref',
+        source: 'products',
+        placeholder: '勾选产品即可；已选顺序即展示顺序',
+      },
       { name: 'seriesId', label: '系列 ID（范围 = 按系列）', kind: 'text' },
       {
         name: 'layout',
