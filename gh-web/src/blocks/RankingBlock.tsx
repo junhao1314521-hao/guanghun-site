@@ -143,7 +143,11 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   // 列表页（showFilter）：指标 / 产品线筛选由 URL 驱动，供导航深链直达；区块本身不参与筛选
   const canFilter = showFilter
   const metric = metrics.find((item) => item.id === (canFilter ? (params.get('metric') ?? metricId) : metricId)) ?? metrics[0]
-  const typeKeyword = canFilter ? TYPE_KEYWORDS[params.get('type') ?? ''] : undefined
+  // 范围（产品线）：列表页 URL `?type=` 优先，未选时以区块配置（props.type）作为默认；非列表页直接用区块配置
+  const urlType = params.get('type') ?? ''
+  const typeScope = asString(props.type)
+  const typeKey = canFilter ? urlType || typeScope : typeScope
+  const typeKeyword = TYPE_KEYWORDS[typeKey]
   const scoped = canFilter && metric ? metric.id !== 'overall' || Boolean(typeKeyword) : false
   const rows = metric ? metric.rows.filter((row) => matchesType(row, typeKeyword)) : []
   const tested = rows.filter((row) => row.score !== null)
@@ -236,7 +240,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                     <button
                       key={key}
                       type="button"
-                      className={params.get('type') === key ? 'is-active' : undefined}
+                      className={typeKey === key ? 'is-active' : undefined}
                       onClick={() => setParam('type', key)}
                     >
                       {label}

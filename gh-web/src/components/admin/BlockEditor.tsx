@@ -12,14 +12,44 @@
 import { useState } from 'react'
 import type { Block, BlockFieldMeta, BlockTypeMeta } from '../../data/contentTypes'
 import { fetchProducts } from '../../api/products'
+import { fetchArticles } from '../../api/articles'
+import { fetchDownloads, fetchFaqs } from '../../api/support-extra'
 import { useApi } from '../../hooks/useApi'
 import { emptyItem, isStringList, resolveItemFields } from './blockBuilderUtils'
 import { ImageField } from './ImageField'
 import { RichTextField } from './RichTextField'
 
+/** 挑选器条目：统一呈现（主文案 / 次文案 / 分类） */
+type RefItem = { id: string; primary: string; secondary?: string; meta?: string }
+
+/** 按 ref 字段的 source 从对应集合取数（值仍以 ID 列表保存） */
+async function loadRefItems(source: string | undefined, signal?: AbortSignal): Promise<RefItem[]> {
+  switch (source) {
+    case 'products': {
+      const { items } = await fetchProducts(signal)
+      return items.map((item) => ({ id: item.id, primary: item.model, secondary: item.name, meta: item.category }))
+    }
+    case 'articles': {
+      const { items } = await fetchArticles(signal)
+      return items.map((item) => ({ id: item.id, primary: item.title, secondary: item.tag, meta: item.categoryLabel }))
+    }
+    case 'downloads': {
+      const { items } = await fetchDownloads(signal)
+      return items.map((item) => ({ id: item.id, primary: item.name, secondary: item.version, meta: item.category }))
+    }
+    case 'faqs': {
+      const { items } = await fetchFaqs(signal)
+      return items.map((item) => ({ id: item.id, primary: item.q, secondary: item.category }))
+    }
+    default:
+      return []
+  }
+}
+
 /**
  * 集合挑选器（kind: 'ref'）：直接从集合里勾选条目，值以「ID 列表」保存。
- * 当前来源支持 `products`（产品）。已选项可上移/下移/移除——顺序即前台展示顺序。
+ * 来源由字段 `source` 指定（products / articles / downloads / faqs）；
+ * 已选项可上移/下移/移除——顺序即前台展示顺序。
  */
 function RefPicker({
   field,
@@ -32,14 +62,13 @@ function RefPicker({
 }) {
   const ids = Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
   const [query, setQuery] = useState('')
-  const { data, loading, error } = useApi((signal) => fetchProducts(signal), [])
-  const items = data?.items ?? []
+  const { data, loading, error } = useApi<RefItem[]>((signal) => loadRefItems(field.source, signal), [field.source])
+  const items = data ?? []
   const keyword = query.trim().toLowerCase()
-  const list = keyword ? items.filter((item) => `${item.model}${item.name}`.toLowerCase().includes(keyword)) : items
-  const labelOf = (id: string) => {
-    const hit = items.find((item) => item.id === id)
-    return hit ? hit.model : id
-  }
+  const list = keyword
+    ? items.filter((item) => `${item.primary}${item.secondary ?? ''}`.toLowerCase().includes(keyword))
+    : items
+  const labelOf = (id: string) => items.find((item) => item.id === id)?.primary ?? id
   const toggle = (id: string) => onChange(ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id])
   const move = (index: number, delta: number) => {
     const target = index + delta
@@ -54,12 +83,12 @@ function RefPicker({
       <input
         className="input"
         type="text"
-        placeholder={field.placeholder ?? '搜索型号 / 名称'}
+        placeholder={field.placeholder ?? '搜索条目'}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
       {loading ? (
-        <p className="field__hint">正在加载{field.source === 'products' ? '产品' : '条目'}…</p>
+        <p className="field__hint">正在加载条目…</p>
       ) : error ? (
         <p className="field__hint">加载失败：{error.message}</p>
       ) : (
@@ -70,9 +99,9 @@ function RefPicker({
             list.map((item) => (
               <label className="ref-picker__item" key={item.id}>
                 <input type="checkbox" checked={ids.includes(item.id)} onChange={() => toggle(item.id)} />
-                <span className="ref-picker__model">{item.model}</span>
-                <span className="ref-picker__name">{item.name}</span>
-                <span className="ref-picker__cat">{item.category}</span>
+                <span className="ref-picker__name">{item.primary}</span>
+                <span className="ref-picker__model">{item.secondary}</span>
+                <span className="ref-picker__cat">{item.meta}</span>
               </label>
             ))
           )}

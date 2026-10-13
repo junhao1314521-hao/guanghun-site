@@ -266,7 +266,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '手动挑选（按下方 ID 顺序）', value: 'manual' },
         ],
       },
-      { name: 'ids', label: '手动挑选的文章 ID', kind: 'list', placeholder: '每行一个，如 latency-end-to-end；顺序即展示顺序' },
+      {
+        name: 'ids',
+        label: '手动挑选的文章',
+        kind: 'ref',
+        source: 'articles',
+        placeholder: '勾选文章即可；已选顺序即展示顺序',
+      },
       {
         name: 'source',
         label: '来源',
@@ -309,6 +315,18 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
         ],
       },
       { name: 'limit', label: '数量', kind: 'number' },
+      {
+        name: 'type',
+        label: '范围（产品线）',
+        kind: 'select',
+        options: [
+          { label: '全部产品线', value: '' },
+          { label: '鼠标', value: 'mouse' },
+          { label: '键盘', value: 'keyboard' },
+          { label: '耳机', value: 'headset' },
+          { label: '配件', value: 'accessory' },
+        ],
+      },
     ],
   },
   {
@@ -326,7 +344,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '手动挑选（按下方 ID 顺序）', value: 'manual' },
         ],
       },
-      { name: 'ids', label: '手动挑选的下载 ID', kind: 'list', placeholder: '每行一个，如 center-win；顺序即展示顺序' },
+      {
+        name: 'ids',
+        label: '手动挑选的下载',
+        kind: 'ref',
+        source: 'downloads',
+        placeholder: '勾选资源即可；已选顺序即展示顺序',
+      },
       {
         name: 'category',
         label: '类别',
@@ -365,7 +389,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '手动挑选（按下方 ID 顺序）', value: 'manual' },
         ],
       },
-      { name: 'ids', label: '手动挑选的问答 ID', kind: 'list', placeholder: '每行一个（仅「服务支持」来源有条目 ID）' },
+      {
+        name: 'ids',
+        label: '手动挑选的问答',
+        kind: 'ref',
+        source: 'faqs',
+        placeholder: '勾选问答即可（仅「服务支持」来源有条目）；已选顺序即展示顺序',
+      },
       {
         name: 'source',
         label: '来源',
