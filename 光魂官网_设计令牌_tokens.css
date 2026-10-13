@@ -1,0 +1,327 @@
+/**
+ * 光魂官网 · 设计令牌（Design Tokens）
+ * ============================================
+ * 品牌色：#2040ED —— 仅作点缀 / 强调，不大面积使用
+ * 主题：浅色 + 暗色（同等重要，必须同步实现）
+ * 骨架：苹果风；皮肤：电竞感（局部，见《设计规格说明书》第二章）
+ *
+ * 三层结构（禁止跨层引用）：
+ *   ① 原子层  --gh-*        裸值，禁止在组件中直接使用
+ *   ② 语义层  --color-* 等   按用途命名，组件只能引用这一层
+ *   ③ 使用层                  组件内引用语义层
+ *
+ * 单一真源：本文件与 tokens.json 由同一份数据产出，不得单独修改其一
+ */
+
+/* ============================================================
+   ① 原子层
+   ============================================================ */
+:root {
+  /* —— 品牌蓝 —— */
+  --gh-blue-50:  #EEF1FE;
+  --gh-blue-100: #DCE3FD;
+  --gh-blue-200: #BAC6FB;
+  --gh-blue-300: #93A4F8;
+  --gh-blue-400: #5B75F5;  /* 暗色模式主用：已验证对 #0E0E10 达 4.5:1 */
+  --gh-blue-500: #2040ED;  /* 品牌原色。对白底 6.9:1；对暗底仅 2.6:1，不可用于暗色 UI */
+  --gh-blue-600: #1A33C4;
+  --gh-blue-700: #14289B;
+  --gh-blue-800: #0F1E73;
+  --gh-blue-900: #0A144D;
+
+  /* —— 中性阶 —— */
+  --gh-neutral-0:   #FFFFFF;
+  --gh-neutral-50:  #FAFAFB;
+  --gh-neutral-100: #F4F4F6;
+  --gh-neutral-200: #E8E8EC;
+  --gh-neutral-300: #D4D4DA;
+  --gh-neutral-400: #A8A8B3;
+  --gh-neutral-450: #6B6B75;  /* 次级文字专用：对 #F4F4F6 达 4.8:1，满足 WCAG AA */
+  --gh-neutral-500: #74747F;
+  --gh-neutral-600: #52525B;
+  --gh-neutral-700: #3A3A42;
+  --gh-neutral-800: #26262C;
+  --gh-neutral-900: #17171A;
+  --gh-neutral-950: #0E0E10;
+
+  /* —— 数据可视化（榜单条形渐变用）—— */
+  --gh-cyan-400: #22D3EE;
+  --gh-cyan-500: #06B6D4;
+
+  /* —— 字体族 —— */
+  --gh-font-sans: "Geist", "MiSans", "PingFang SC", "HarmonyOS Sans SC",
+                  "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gh-font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular",
+                  Menlo, Consolas, monospace;
+
+  /* —— 字号 / 行高 —— */
+  --gh-font-size-display:  56px;  --gh-line-height-display:  64px;
+  --gh-font-size-h1:       40px;  --gh-line-height-h1:       48px;
+  --gh-font-size-h2:       32px;  --gh-line-height-h2:       40px;
+  --gh-font-size-h3:       24px;  --gh-line-height-h3:       32px;
+  --gh-font-size-h4:       20px;  --gh-line-height-h4:       28px;
+  --gh-font-size-body-lg:  17px;  --gh-line-height-body-lg:  28px;
+  --gh-font-size-body:     15px;  --gh-line-height-body:     24px;
+  --gh-font-size-body-sm:  13px;  --gh-line-height-body-sm:  20px;
+  --gh-font-size-caption:  12px;  --gh-line-height-caption:  18px;
+
+  /* —— 字重 —— */
+  --gh-weight-regular:  400;
+  --gh-weight-medium:   500;
+  --gh-weight-semibold: 600;
+  --gh-weight-bold:     700;
+
+  /* —— 间距（8pt 网格，4 为最小修正单位）—— */
+  --gh-space-1:  4px;
+  --gh-space-2:  8px;
+  --gh-space-3:  12px;
+  --gh-space-4:  16px;
+  --gh-space-5:  24px;
+  --gh-space-6:  32px;
+  --gh-space-7:  48px;
+  --gh-space-8:  64px;
+  --gh-space-9:  96px;
+  --gh-space-10: 128px;
+
+  /* —— 圆角 —— */
+  --gh-radius-sm:   6px;
+  --gh-radius-md:   8px;
+  --gh-radius-lg:   12px;
+  --gh-radius-xl:   16px;
+  --gh-radius-2xl:  24px;
+  --gh-radius-full: 9999px;
+
+  /* —— 动效 —— */
+  --gh-duration-fast: 150ms;
+  --gh-duration-base: 200ms;
+  --gh-duration-slow: 300ms;
+  --gh-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);   /* 苹果风：克制 */
+  --gh-ease-out:      cubic-bezier(0, 0, 0.2, 1);
+  --gh-ease-accent:   cubic-bezier(0.16, 1, 0.3, 1);  /* 电竞感：爽快 */
+
+  /* —— 层级 —— */
+  --gh-z-base:    0;
+  --gh-z-sticky:  100;
+  --gh-z-drawer:  200;
+  --gh-z-modal:   300;
+  --gh-z-toast:   400;
+  --gh-z-tooltip: 500;
+
+  /* —— 断点（供文档参考；CSS 变量不能用于媒体查询，需在各端硬编码一致值）—— */
+  --gh-bp-sm: 640px;   /* ≥640 平板竖 */
+  --gh-bp-md: 768px;   /* ≥768 平板横 */
+  --gh-bp-lg: 1024px;  /* ≥1024 桌面小 */
+  --gh-bp-xl: 1440px;  /* ≥1440 桌面大 */
+
+  /* —— 栅格 —— */
+  --gh-container-max: 1440px;
+  --gh-container-pad: var(--gh-space-5);
+  --gh-grid-columns: 12;
+  --gh-grid-gutter: var(--gh-space-4);
+
+  /* —— 组件尺寸（控件高度，非间距）—— */
+  --gh-control-height-sm: 32px;
+  --gh-control-height-md: 40px;
+  --gh-control-height-lg: 48px;
+  --gh-control-pad-x:     var(--gh-space-4);
+  --gh-table-row-height:  44px;
+  --gh-table-header-height: 40px;
+  --gh-sidebar-width:     240px;
+  --gh-sidebar-width-collapsed: 64px;
+  --gh-topbar-height:     56px;
+  --gh-modal-width-sm:    400px;
+  --gh-modal-width-md:    560px;
+  --gh-modal-width-lg:    720px;
+  --gh-toast-width:       360px;
+}
+
+/* ============================================================
+   ② 语义层 · 浅色（默认）
+   ============================================================ */
+:root {
+  --color-bg-page:     var(--gh-neutral-0);
+  --color-bg-surface:  var(--gh-neutral-0);
+  --color-bg-raised:   var(--gh-neutral-0);
+  --color-bg-subtle:   var(--gh-neutral-50);
+  --color-bg-muted:    var(--gh-neutral-100);
+  --color-bg-disabled: var(--gh-neutral-100);
+  --color-bg-inverse:  var(--gh-neutral-900);
+
+  --color-text-primary:   var(--gh-neutral-900);
+  --color-text-secondary: var(--gh-neutral-600);  /* 对 #F4F4F6 达 7.0:1 */
+  --color-text-tertiary:  var(--gh-neutral-450);  /* 对 #F4F4F6 达 4.8:1 ✅ AA */
+  --color-text-disabled:  var(--gh-neutral-500);  /* 4.2:1；禁用态豁免强制对比度，但保持可辨认 */
+  --color-text-inverse:   var(--gh-neutral-0);
+  --color-text-on-accent: #FFFFFF;
+  --color-text-on-danger: #FFFFFF;
+
+  --color-border-default: var(--gh-neutral-200);
+  --color-border-subtle:  var(--gh-neutral-100);
+  --color-border-strong:  var(--gh-neutral-300);
+
+  /* 品牌色：点缀 / 强调 */
+  --color-accent:        var(--gh-blue-500);
+  --color-accent-hover:  var(--gh-blue-600);
+  --color-accent-active: var(--gh-blue-700);
+  --color-accent-subtle: var(--gh-blue-50);
+  --color-accent-text:   var(--gh-blue-600);
+
+  /* 状态色（浅色）：前景色对白底 #FFFFFF 须 ≥4.5:1（WCAG 2.1 AA 正文）
+     success #15803D=5.0:1、warning #B45309=5.0:1、info #0369A1=5.9:1、danger #DC2626=4.8:1 ✅ */
+  --color-success:        #15803D;
+  --color-success-bg:     #F0FDF4;
+  --color-success-border: #BBF7D0;
+  --color-warning:        #B45309;
+  --color-warning-bg:     #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-danger:         #DC2626;
+  --color-danger-bg:      #FEF2F2;
+  --color-danger-border:  #FECACA;
+  --color-info:           #0369A1;
+  --color-info-bg:        #F0F9FF;
+  --color-info-border:    #BAE6FD;
+
+  /* 填充态实色：专供「有色底 + 其上文字」使用
+     与上面的前景色分开维护——填充底色必须比文字色更深，白字才压得住 */
+  --color-accent-solid:        var(--gh-blue-500); /* 白字 6.9:1 ✅ */
+  --color-accent-solid-hover:  var(--gh-blue-600);
+  --color-accent-solid-active: var(--gh-blue-700);
+  --color-danger-solid:        #DC2626;            /* 白字 4.8:1 ✅ */
+  --color-danger-solid-hover:  #B91C1C;
+
+  /* 榜单条形渐变（电竞感，仅用于数据可视化） */
+  --color-data-gradient-from: var(--gh-blue-500);
+  --color-data-gradient-to:   var(--gh-cyan-400);
+
+  /* 阴影：苹果风柔和多层 */
+  --shadow-sm: 0 1px 2px rgba(16, 18, 35, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 18, 35, 0.08);
+  --shadow-lg: 0 12px 32px rgba(16, 18, 35, 0.12);
+  --shadow-xl: 0 24px 64px rgba(16, 18, 35, 0.16);
+  --shadow-glow-accent: 0 0 0 rgba(0, 0, 0, 0); /* 浅色模式不用发光 */
+
+  --focus-ring: 0 0 0 3px rgba(32, 64, 237, 0.35);
+}
+
+/* ============================================================
+   ② 语义层 · 暗色
+   关键差异：accent 提亮为 blue-400（blue-500 在暗底仅 2.6:1，不达标）
+   ============================================================ */
+[data-theme="dark"] {
+  --color-bg-page:     var(--gh-neutral-950);
+  --color-bg-surface:  var(--gh-neutral-900);
+  --color-bg-raised:   var(--gh-neutral-700);
+  --color-bg-subtle:   var(--gh-neutral-800);
+  --color-bg-muted:    var(--gh-neutral-800);
+  --color-bg-disabled: var(--gh-neutral-800);
+  --color-bg-inverse:  var(--gh-neutral-50);
+
+  --color-text-primary:   var(--gh-neutral-50);
+  --color-text-secondary: var(--gh-neutral-300);  /* 对最亮面 #26262C 达 10.2:1 */
+  --color-text-tertiary:  var(--gh-neutral-400);  /* 对最亮面 #26262C 达 6.4:1 ✅ AA */
+  --color-text-disabled:  var(--gh-neutral-500);  /* 3.3:1；禁用态豁免强制对比度，但保持可辨认 */
+  --color-text-inverse:   var(--gh-neutral-900);
+  --color-text-on-accent: #FFFFFF;
+  --color-text-on-danger: #FFFFFF;
+
+  --color-border-default: var(--gh-neutral-700);
+  --color-border-subtle:  var(--gh-neutral-800);
+  --color-border-strong:  var(--gh-neutral-600);
+
+  --color-accent:        var(--gh-blue-400);
+  --color-accent-hover:  var(--gh-blue-300);
+  --color-accent-active: var(--gh-blue-200);
+  --color-accent-subtle: rgba(91, 117, 245, 0.16);
+  --color-accent-text:   var(--gh-blue-300);
+
+  --color-success:        #34D399;
+  --color-success-bg:     rgba(52, 211, 153, 0.12);
+  --color-success-border: rgba(52, 211, 153, 0.30);
+  --color-warning:        #FBBF24;
+  --color-warning-bg:     rgba(251, 191, 36, 0.12);
+  --color-warning-border: rgba(251, 191, 36, 0.30);
+  --color-danger:         #F87171;
+  --color-danger-bg:      rgba(248, 113, 113, 0.12);
+  --color-danger-border:  rgba(248, 113, 113, 0.30);
+  --color-info:           #38BDF8;
+  --color-info-bg:        rgba(56, 189, 248, 0.12);
+  --color-info-border:    rgba(56, 189, 248, 0.30);
+
+  /* 填充态实色：暗色下必须比前景色更深，白字才达标
+     accent 前景 #5B75F5 作填充时白字仅 3.96:1，故填充改用 #4A63F2（4.8:1） */
+  --color-accent-solid:        #4A63F2; /* 白字 4.8:1 ✅ */
+  --color-accent-solid-hover:  #5B75F5;
+  --color-accent-solid-active: #6E85F7;
+  --color-danger-solid:        #DC2626; /* 白字 4.8:1 ✅ */
+  --color-danger-solid-hover:  #B91C1C;
+
+  --color-data-gradient-from: var(--gh-blue-400);
+  --color-data-gradient-to:   var(--gh-cyan-400);
+
+  /* 暗色下阴影几乎不可见，层次改由边框 + 微光承担 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.60);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.70);
+  --shadow-glow-accent: 0 0 24px rgba(91, 117, 245, 0.35); /* 电竞感 */
+
+  --focus-ring: 0 0 0 3px rgba(91, 117, 245, 0.45);
+}
+
+/* ============================================================
+   系统偏好说明
+   ------------------------------------------------------------
+   暗色令牌【只有 [data-theme="dark"] 一处定义】，此处刻意不写
+   @media (prefers-color-scheme) 重复块 —— 两处定义必然漂移。
+
+   跟随系统的正确做法：由 JS 读取 matchMedia('(prefers-color-scheme: dark)')
+   后设置 <html data-theme="dark|light">。示例：
+
+     const mq = matchMedia('(prefers-color-scheme: dark)');
+     const apply = () => document.documentElement
+       .setAttribute('data-theme', mq.matches ? 'dark' : 'light');
+     apply();
+     mq.addEventListener('change', apply);
+
+   用户在页面内的手动切换应写入 localStorage，优先级高于系统偏好。
+   ============================================================ */
+
+/* ============================================================
+   ③ 全局基线
+   ============================================================ */
+:root {
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--gh-font-sans);
+  font-size: var(--gh-font-size-body);
+  line-height: var(--gh-line-height-body);
+  font-weight: var(--gh-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 焦点可见性（无障碍必需，禁止全局 outline:none） */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--gh-radius-sm);
+}
+
+/* 尊重系统减弱动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

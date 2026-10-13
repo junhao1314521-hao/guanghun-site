@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 光魂官网站点地图（占位域名 www.guanghun.example，上线前替换为正式域名）。
+     双语：每个 URL 附 hreflang 变体（英文以 ?lang=en 表示，中文为默认 / x-default）。 -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://www.guanghun.example/</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/products</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/products"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/products?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/products"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/articles</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/articles"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/articles?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/articles"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/news</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/news"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/news?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/news"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/ladder</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/ladder"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/ladder?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/ladder"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/center</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/center"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/center?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/center"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/support</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/support"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/support?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/support"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/downloads</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/downloads"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/downloads?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/downloads"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/faq</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/faq"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/faq?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/faq"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/contact</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/contact"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/contact?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/contact"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/business</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/business"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/business?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/business"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/business/scenes</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/business/scenes"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/business/scenes?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/business/scenes"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/business/cases</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/business/cases"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/business/cases?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/business/cases"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/business/venues</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/business/venues"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/business/venues?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/business/venues"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/about</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/about"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/about?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/about"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/legal/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/legal/privacy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/legal/privacy?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/legal/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/legal/terms</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/legal/terms"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/legal/terms?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/legal/terms"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/legal/cookies</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/legal/cookies"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/legal/cookies?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/legal/cookies"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.guanghun.example/legal/records</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.guanghun.example/legal/records"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.guanghun.example/legal/records?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.guanghun.example/legal/records"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

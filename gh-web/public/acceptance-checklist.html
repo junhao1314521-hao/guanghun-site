@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>光魂官网 · 验收清单 v3</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #121722;
+    --panel-2: #171d2b;
+    --line: #263042;
+    --text: #e8edf7;
+    --muted: #98a4bb;
+    --brand: #4da3ff;
+    --brand-2: #7c5cff;
+    --ok: #2fbf71;
+    --warn: #ffb020;
+    --todo: #ff6b6b;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    padding-bottom: 120px;
+  }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11,14,20,.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 20px 12px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .top h1 { margin: 0 0 4px; font-size: 20px; }
+  .top .sub { color: var(--muted); font-size: 13px; }
+  .bar {
+    display: flex; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap;
+  }
+  .progress { flex: 1 1 320px; height: 10px; background: var(--panel-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+  .progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width .2s; }
+  .stat { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .stat b { color: var(--text); }
+  .actions { display: flex; gap: 8px; }
+  button.ghost {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+  }
+  button.ghost:hover { border-color: var(--brand); }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 20px; }
+  .intro {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 22px; color: var(--muted); font-size: 13.5px;
+  }
+  .intro b { color: var(--text); }
+  .intro ul { margin: 8px 0 0; padding-left: 20px; }
+  .intro li { margin: 3px 0; }
+
+  section.group { margin-bottom: 26px; }
+  .group > h2 {
+    font-size: 16px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px;
+  }
+  .group > .gdesc { color: var(--muted); font-size: 12.5px; margin: 0 0 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .item {
+    display: grid; grid-template-columns: 28px 1fr 300px; gap: 12px; align-items: start;
+    padding: 10px 14px; border-bottom: 1px solid var(--line);
+  }
+  .item:last-child { border-bottom: 0; }
+  .item:hover { background: var(--panel-2); }
+  .item.flagged { box-shadow: inset 3px 0 0 var(--todo); }
+  .item.passed .t { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(47,191,113,.6); }
+  .item input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--ok); cursor: pointer; }
+  .t { font-size: 14px; }
+  .t .path { color: var(--muted); font-size: 12px; margin-left: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .t .hint { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .item textarea {
+    width: 100%; min-height: 34px; resize: vertical; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font: inherit; font-size: 12.5px;
+  }
+  .item textarea:focus { outline: none; border-color: var(--brand); }
+  footer.note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 30px; }
+  @media (max-width: 720px) {
+    .item { grid-template-columns: 28px 1fr; }
+    .item textarea { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>光魂官网 · 验收清单 v3</h1>
+    <div class="sub">逐条勾选验收，逐条写要改的点；勾选与备注自动保存在本机浏览器。</div>
+    <div class="bar">
+      <div class="progress"><i id="bar"></i></div>
+      <div class="stat">已通过 <b id="passed">0</b> / <b id="total">0</b></div>
+      <div class="stat">待修改 <b id="flagged" style="color:var(--todo)">0</b></div>
+      <div class="actions">
+        <button class="ghost" id="clear">清空记录</button>
+        <button class="ghost" id="export">导出备注</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <b>怎么用：</b>在浏览器打开预览站点，逐页对照本清单。每条左侧勾选＝该页验收通过；右侧备注写上「要改什么」即可（写了备注会标红，并在顶部计数）。
+    <ul>
+      <li>预览入口：<a href="/" target="_blank">前台首页</a> ｜ <a href="/admin" target="_blank">后台登录</a>（<code>admin / admin123</code>、<code>operator / oper123</code>）</li>
+      <li>带 <code>:id</code> / <code>:slug</code> 的详情页，从对应列表页点击进入即可。</li>
+      <li>当前数据已持久化到 SQLite（`gh-server/data/gh.sqlite`），后台改动重启后仍在；「重置为初始」会把对应数据还原为种子。</li>
+    </ul>
+  </div>
+  <div id="app"></div>
+  <footer class="note">光魂官网 · 验收清单 v3 ｜ 勾选与备注存于 localStorage（键 <code>gh-acceptance-v1</code>）</footer>
+</main>
+
+<script>
+const BASE = '' // 相对当前站点，本地预览与沙箱预览均可用
+
+const SECTIONS = [
+  {
+    id: 'front-pages',
+    title: 'A. 前台 · 页面逐页验收',
+    desc: '每个路由逐页打开，看内容是否完整、布局是否正常、有无空白/报错。',
+    items: [
+      { id: 'f-home', title: '首页', path: '/', href: '/' },
+      { id: 'f-products', title: '产品列表', path: '/products', href: '/products' },
+      { id: 'f-series', title: '产品系列页', path: '/products/series/:slug', hint: '从产品列表进入系列聚合页' },
+      { id: 'f-product-detail', title: '产品详情', path: '/products/:id', hint: '从产品列表点击任一产品进入' },
+      { id: 'f-compare', title: '产品对比', path: '/compare', href: '/compare' },
+      { id: 'f-ladder', title: '天梯榜', path: '/ladder', href: '/ladder' },
+      { id: 'f-ladder-metric', title: '天梯榜 · 单指标页', path: '/ladder/:metric', href: '/ladder/overall', hint: '可用取值：overall(综合) / sensor(传感器) / battery(续航) / latency(延迟)；天梯榜首页也可用指标切换（?metric=）' },
+      { id: 'f-search', title: '站内搜索', path: '/search', href: '/search' },
+      { id: 'f-articles', title: '文章列表（评测/教程）', path: '/articles', href: '/articles' },
+      { id: 'f-article-detail', title: '文章详情', path: '/articles/:id', hint: '从文章列表进入' },
+      { id: 'f-news', title: '新闻动态（复用文章列表）', path: '/news', href: '/news' },
+      { id: 'f-support', title: '服务支持', path: '/support', href: '/support' },
+      { id: 'f-model-support', title: '型号支持页', path: '/support/model/:id', hint: '从服务支持页选择型号进入' },
+      { id: 'f-downloads', title: '下载中心', path: '/downloads', href: '/downloads' },
+      { id: 'f-download-detail', title: '下载详情', path: '/downloads/:id', hint: '从下载中心进入' },
+      { id: 'f-faq', title: '常见问题', path: '/faq', href: '/faq' },
+      { id: 'f-faq-detail', title: '问答详情', path: '/faq/:id', hint: '从常见问题进入' },
+      { id: 'f-inquiry', title: '售后咨询 / 提交工单', path: '/inquiry', href: '/inquiry' },
+      { id: 'f-contact', title: '联系我们', path: '/contact', href: '/contact' },
+      { id: 'f-business', title: '商业合作', path: '/business', href: '/business' },
+      { id: 'f-biz-scenes', title: '合作场景', path: '/business/scenes', href: '/business/scenes' },
+      { id: 'f-biz-cases', title: '合作案例列表', path: '/business/cases', href: '/business/cases' },
+      { id: 'f-biz-case-detail', title: '合作案例详情', path: '/business/cases/:id', hint: '从案例列表进入' },
+      { id: 'f-biz-venues', title: '体验点列表', path: '/business/venues', href: '/business/venues' },
+      { id: 'f-biz-venue-detail', title: '体验点详情', path: '/business/venues/:id', hint: '从体验点列表进入' },
+      { id: 'f-about', title: '关于我们', path: '/about', href: '/about' },
+      { id: 'f-brand', title: '品牌页', path: '/brand/:slug', hint: '从关于我们 / 首页品牌入口进入' },
+      { id: 'f-center', title: '内容 / 帮助中心', path: '/center', href: '/center' },
+      { id: 'f-account', title: '账号页', path: '/account', href: '/account' },
+      { id: 'f-legal', title: '法务页（隐私政策 / 条款）', path: '/legal/:slug', hint: '从页脚法务链接进入' },
+      { id: 'f-login', title: '登录', path: '/login', href: '/login' },
+      { id: 'f-register', title: '注册', path: '/register', href: '/register' },
+      { id: 'f-forgot', title: '找回密码', path: '/forgot', href: '/forgot' },
+      { id: 'f-me', title: '个人中心 · 总览', path: '/me', href: '/me' },
+      { id: 'f-me-inquiries', title: '个人中心 · 我的咨询', path: '/me/inquiries', href: '/me/inquiries' },
+      { id: 'f-me-inquiry-detail', title: '个人中心 · 咨询详情', path: '/me/inquiries/:id', hint: '从我的咨询进入' },
+      { id: 'f-me-devices', title: '个人中心 · 我的设备', path: '/me/devices', href: '/me/devices' },
+      { id: 'f-me-favorites', title: '个人中心 · 我的收藏', path: '/me/favorites', href: '/me/favorites' },
+      { id: 'f-me-notifications', title: '个人中心 · 我的通知', path: '/me/notifications', href: '/me/notifications' },
+      { id: 'f-me-settings', title: '个人中心 · 账号设置', path: '/me/settings', href: '/me/settings' },
+      { id: 'f-403', title: '无权限页 403', path: '/403', href: '/403' },
+      { id: 'f-500', title: '服务异常页 500', path: '/500', href: '/500' },
+      { id: 'f-404', title: '未知路径 404 兜底', path: '/不存在的路径', href: '/not-exist-xyz' },
+    ],
+  },
+  {
+    id: 'front-cross',
+    title: 'B. 前台 · 跨页通用核对',
+    desc: '不针对单页，而是每一页都要过的共性项。',
+    items: [
+      { id: 'c-loading', title: '加载态：切页 / 请求中有可见加载提示，无空白闪烁', hint: '弱网可放慢再看' },
+      { id: 'c-empty', title: '空态：搜索结果为空 / 无数据时有明确空态与引导' },
+      { id: 'c-error', title: '错误态：接口失败时有错误提示与「重试 / 返回」，非白屏' },
+      { id: 'c-theme', title: '双主题：明/暗主题逐页切换均正常，无对比度不足' },
+      { id: 'c-breakpoint-390', title: '响应式 390px：移动端布局、抽屉导航、无横向溢出' },
+      { id: 'c-breakpoint-768', title: '响应式 768px：平板布局正常' },
+      { id: 'c-breakpoint-1280', title: '响应式 1280px：桌面布局正常' },
+      { id: 'c-breakpoint-1440', title: '响应式 1440px：宽屏布局正常，无拉伸错位' },
+      { id: 'c-a11y-kb', title: '键盘可达：Tab 顺序合理、焦点可见、可完成主要操作' },
+      { id: 'c-i18n', title: '中英文切换：语言切换与提示正常（英文内容待补为既定项）' },
+      { id: 'c-seo', title: 'SEO：各页标题 / 描述 / canonical 正确，分享卡片正常' },
+      { id: 'c-demo', title: '占位提示：需真实素材/文案处有统一演示占位提示，不误导' },
+      { id: 'c-typo', title: '文案与错别字：逐页读一遍，指出需改的措辞' },
+      { id: 'c-image', title: '图片：占位图正常显示、无裂图、无变形' },
+      { id: 'c-img-lazy', title: '图片懒加载 / 防 CLS：图片位经 MediaImg 渲染，滚动到可视才加载，无布局跳动' },
+      { id: 'c-seo-jsonld', title: 'SEO 结构化数据：详情页含 JSON-LD（Product / BlogPosting / FAQPage 等）+ OG/Twitter 卡片 + canonical' },
+      { id: 'c-a11y-skip', title: '无障碍：跳过导航链接、焦点环可见、弹窗焦点归还、对比度达标、键盘可达' },
+      { id: 'c-tour-site', title: '新手指引（前台）：首次进入自动分步引导，可上一步/下一步/跳过/不再显示，Esc 关闭、可重开' },
+      { id: 'c-scene-rail', title: '首页场景卡片：图/视频/GIF + 图上浮字 + hover 放大 + 横向拖动/边缘自滑；场景 rail 约 4 张、可视约 2 张' },
+    ],
+  },
+  {
+    id: 'admin-shell',
+    title: 'C. 后台 · 登录与整体框架',
+    desc: '先验收登录与外壳，再逐栏目。',
+    items: [
+      { id: 'a-login', title: '登录页：账号密码登录、错误提示、成功后进入工作台', path: '/admin/login', href: '/admin/login' },
+      { id: 'a-guard', title: '会话守卫：未登录直接访问后台内部地址会被拦到登录页' },
+      { id: 'a-logout', title: '退出登录：清除会话并回到登录页；再访问内部地址仍被拦' },
+      { id: 'a-workbench', title: '工作台首页：概览 KPI + 待办 + 最近动态', path: '/admin', href: '/admin' },
+      { id: 'a-nav', title: '侧边导航：分组与高亮正确、当前栏目自动选中' },
+      { id: 'a-breadcrumb', title: '顶栏面包屑：随路径正确显示层级' },
+      { id: 'a-drawer', title: '≤1023px 侧栏收起为抽屉，可开合、可跳转' },
+      { id: 'a-404', title: '后台兜底页：未登记栏目 / 错误路径有提示，不空白' },
+      { id: 'a-sidebar-collapse', title: '侧栏收束：可折叠为图标模式 + 拖拽右边缘调宽（200–320px）+ 分组折叠 + 顶栏搜索过滤栏目' },
+      { id: 'a-scrollbar-hidden', title: '滚动条：后台滚动条完全隐藏，滚动能力（滚轮/触控板/键盘）保留' },
+      { id: 'a-dark', title: '暗色主题：顶栏可切换后台浅色/暗色，切换后全后台等价呈现、无对比度问题' },
+      { id: 'a-tour-admin', title: '新手指引（后台）：首次进入自动分步引导（侧栏/装修器/素材库/发布/样式），可跳过/不再显示/重开，Esc 关闭' },
+      { id: 'a-toast-confirm', title: '反馈与弹窗：右下角浮动 Toast；删除等危险操作为统一确认弹窗（非浏览器原生 confirm）+ 危险色按钮' },
+      { id: 'a-error-boundary', title: '错误边界：后台页面渲染异常时显示兜底 UI（可重试），不白屏' },
+    ],
+  },
+  {
+    id: 'admin-groups',
+    title: 'D. 后台 · 各栏目验收',
+    desc: '每个栏目都过一遍：列表展示、搜索、筛选、翻页、新建、编辑、删除、（行内动作）。',
+    items: [
+      { id: 'a-g-product', title: '分组「产品与评测」：产品列表 / 分类与参数 / 测试记录 / 榜单配置 / 测评方法', path: '/admin/products', href: '/admin/products' },
+      { id: 'a-g-content', title: '分组「内容与资源」：文章列表 / 分类与标签 / 下载资源 / 素材库（真实上传 / 删除 / 复制 URL）', path: '/admin/articles', href: '/admin/articles' },
+      { id: 'a-g-site', title: '分组「网站与装修」：页面列表（装修器）/ 导航与页脚 / 组件库 / 模板 / 样式 / 预览与发布', path: '/admin/pages', href: '/admin/pages' },
+      { id: 'a-g-service', title: '分组「客户与服务」：客户列表 / 咨询工单 / 设备管理 / 问答管理 / 型号支持 / 服务信息 / 通知管理', path: '/admin/customers', href: '/admin/customers' },
+      { id: 'a-g-business', title: '分组「商业合作」：合作内容 / 案例管理 / 体验点管理', path: '/admin/biz-content', href: '/admin/biz-content' },
+      { id: 'a-g-system', title: '分组「系统设置」：工作人员 / 角色与权限 / 语言管理 / 接入配置 / 操作日志 / 回收站 / 备份', path: '/admin/staff', href: '/admin/staff' },
+      { id: 'a-crud-create', title: '新建：任选一个栏目走通「新建 → 保存 → 列表出现该条」' },
+      { id: 'a-crud-edit', title: '编辑：任选一条记录走通「编辑 → 保存 → 列表值已更新」' },
+      { id: 'a-crud-delete', title: '删除：确认弹窗 → 删除成功 → 列表移除 + 提示' },
+      { id: 'a-search', title: '搜索：列表搜索框可用，结果正确' },
+      { id: 'a-filter', title: '筛选：分段筛选可用，切换后结果正确' },
+      { id: 'a-page', title: '翻页：分页可用，页码与总数正确' },
+      { id: 'a-rowaction', title: '行内动作：预览与发布「立即发布」、回收站「恢复 / 彻底删除」、备份「立即备份」有反馈' },
+      { id: 'a-form-validate', title: '表单：必填校验、开关 / 下拉 / 日期 / 数字等控件正常，提示文案到位' },
+      { id: 'a-save-feedback', title: '保存反馈：提交中有态、成功有 Toast、失败有错误提示' },
+      { id: 'a-list-sort-sticky', title: '列表体验：可按列排序；长表格滚动时表头/首列吸顶；超长文本以省略号收束' },
+      { id: 'a-list-batch-skeleton', title: '列表批量与加载：多选批量删除（显示已选数量）、分页窗口化（省略号）、加载骨架屏' },
+      { id: 'a-form-inline-errors', title: '表单校验：逐字段校验、字段下方内联报错、提交聚焦首个错误字段' },
+      { id: 'a-unsaved-guard', title: '离开保护：表单有未保存修改时，离开/刷新给出提醒（useUnsavedGuard）' },
+    ],
+  },
+  {
+    id: 'admin-builder',
+    title: 'D2. 后台 · 页面装修器（核心）',
+    desc: '进入「网站与装修 → 页面列表」，任选一页进入装修器，逐项验收区块装修能力。',
+    items: [
+      { id: 'b-open', title: '进入装修器：页面列表可进入任一页的装修器，草稿可保存 / 重置为初始', path: '/admin/pages', href: '/admin/pages' },
+      { id: 'b-list', title: '区块列表：显示该页全部区块，可选中、显示类型与摘要' },
+      { id: 'b-add', title: '新增区块：可从 20 类区块组件中挑选并插入' },
+      { id: 'b-delete', title: '删除区块：删除后有反馈，预览随之消失' },
+      { id: 'b-reorder-drag', title: '拖拽排序：拖动区块调整顺序，顺序即时生效' },
+      { id: 'b-reorder-key', title: '键盘可达：可用上移 / 下移按钮调整顺序（不用鼠标也能操作）' },
+      { id: 'b-duplicate', title: '复制区块：复制后生成新区块（独立 id），字段与样式一并拷贝' },
+      { id: 'b-toggle', title: '启用 / 停用：停用区块在预览中不渲染，列表中置灰标识' },
+      { id: 'b-edit-text', title: '编辑文字：标题 / 副标题 / 正文 / 按钮文案修改后预览即时更新' },
+      { id: 'b-edit-image', title: '编辑图片：区块图片可通过上传或素材库选择替换，预览即时更新' },
+      { id: 'b-style', title: '区块样式：背景 / 上下留白 / 对齐 / 内容宽度 / 明暗主题可调且预览生效' },
+      { id: 'b-layout', title: '布局容器：可设列数，列内子区块可增删与排序（仅一层嵌套）' },
+      { id: 'b-preview', title: '实时预览：未保存的改动即时反映在预览区，与前台一致' },
+      { id: 'b-openfront', title: '打开前台：可从装修器跳转到该页前台实际地址' },
+      { id: 'b-dirty', title: '未保存提示：有未保存改动时有明确提示，避免误丢' },
+      { id: 'b-persist', title: '保存生效：保存后回前台刷新，页面即按装修结果渲染' },
+      { id: 'b-preview-drag', title: '预览内拖拽排序：可在预览区内直接拖拽调整区块顺序，即时呈现' },
+      { id: 'b-preview-insert', title: '预览内插入模块：可在预览区内直接插入新模块' },
+      { id: 'b-undo-redo', title: '撤销 / 重做 / 历史快照：支持撤销、重做，并可查看历史版本（栈上限 30 步）' },
+      { id: 'b-width-fullscreen', title: '预览宽度档位与全屏：自适应 / 桌面 1440 / 平板 768 / 手机 390，可一键全屏（Esc 退出）' },
+      { id: 'b-block-copy-toggle', title: '区块复制 / 启停 / 删除：复制生成独立 id；停用区块预览不渲染；删除有反馈' },
+      { id: 'b-container-full', title: '通栏：区块内容宽度可切换「通栏」（container:full），破出容器铺满视口' },
+      { id: 'b-custom-richtext', title: '自定义模块（富文本 / HTML）：可编辑富文本与受限 HTML，注入 script/onerror 被净化不执行' },
+      { id: 'b-custom-embed', title: '自定义模块（代码嵌入沙箱）：嵌入内容在 sandbox iframe 内渲染（无 allow-same-origin），越权脚本被隔离' },
+      { id: 'b-showcase', title: 'showcase 通栏产品展示：分屏展示、图文左右交替，配合通栏铺满' },
+      { id: 'b-columns-collapse', title: '装修器左右面板收束：可收起/展开且状态持久化，收束后主预览变宽' },
+    ],
+  },
+  {
+    id: 'admin-content',
+    title: 'D3. 后台 · 单一数据源 / 素材库 / 嵌套字段',
+    desc: '验收「后台改 → 前台真变」这条链路，以及素材上传与嵌套字段编辑。',
+    items: [
+      { id: 's-single-product', title: '单一数据源（产品）：后台改一个产品名 → 前台产品页 / 详情立即变化' },
+      { id: 's-single-article', title: '单一数据源（文章）：后台改一篇文章 → 前台文章列表 / 详情立即变化' },
+      { id: 's-single-download', title: '单一数据源（下载）：后台改一个下载资源 → 前台下载中心立即变化' },
+      { id: 's-single-faq', title: '单一数据源（问答）：后台改一条问答 → 前台常见问题立即变化' },
+      { id: 's-single-model', title: '单一数据源（型号支持）：改「型号支持」记录 → 前台型号支持页立即变化' },
+      { id: 's-reset', title: '重置能力：装修页 / 集合可重置为初始（或恢复到期望状态）' },
+      { id: 's-nested-rows', title: '嵌套字段（榜单条目）：榜单配置的条目标行可增删改并保存生效' },
+      { id: 's-nested-products', title: '嵌套字段（合作内容产品）：可增删改并保存生效' },
+      { id: 's-nested-models', title: '嵌套字段（型号支持）：下载 / 问答 / 指南条目可增删改并保存生效' },
+      { id: 's-upload', title: '素材上传：素材库可上传图片，上传后可见缩略图与信息' },
+      { id: 's-upload-pick', title: '素材库选择：图片字段可「从素材库选择」并回填地址' },
+      { id: 's-upload-delete', title: '素材删除：删除素材有二次确认，删除后不再出现在选择弹窗' },
+      { id: 's-upload-url', title: '素材可访问：复制素材 URL，浏览器可直接打开且不裂图' },
+      { id: 's-image-front', title: '图片联通前台：把区块 / 内容的图片换成上传素材，前台正确显示' },
+      { id: 's-upload-folder', title: '素材库文件夹：可新建 / 重命名 / 删除文件夹；删除非空文件夹时文件移入「未分类」' },
+      { id: 's-upload-category', title: '素材库分类与筛选：按分类（图片/图标/文档/视频/其它）/文件夹筛选；可多选批量移动' },
+      { id: 's-rich-editor', title: '富文本编辑器：图标工具栏 + 快捷键（Ctrl/Cmd+B/I/U/K）+ 实时字数，链接以弹窗插入' },
+      { id: 's-article-body', title: '文章正文：文章可用富文本正文（body）编辑，前台文章详情经净化后渲染' },
+      { id: 's-download-file', title: '下载文件上传：下载资源可上传/选择 fileUrl 文件，前台下载按钮指向该地址' },
+    ],
+  },
+  {
+    id: 'admin-analytics',
+    title: 'E. 后台 · 数据分析',
+    desc: '四个分析范围逐个查看。',
+    items: [
+      { id: 'an-traffic', title: '访问分析', path: '/admin/analytics/traffic', href: '/admin/analytics/traffic' },
+      { id: 'an-products', title: '产品评测分析', path: '/admin/analytics/products', href: '/admin/analytics/products' },
+      { id: 'an-downloads', title: '下载服务分析', path: '/admin/analytics/downloads', href: '/admin/analytics/downloads' },
+      { id: 'an-content', title: '内容合作分析', path: '/admin/analytics/content', href: '/admin/analytics/content' },
+    ],
+  },
+  {
+    id: 'admin-capability',
+    title: 'E2. 后台 · 能力补全与上线收口（阶段 4/5）',
+    desc: '组件库 / 模板 / 样式真能力、权限与审计、发布与回滚、备份恢复、持久化。',
+    items: [
+      { id: 'g-components', title: '组件库（真能力）：区块类型目录（20 类），可启用 / 停用，停用后不出现在装修器选择器', path: '/admin/components', href: '/admin/components' },
+      { id: 'g-templates', title: '模板（真能力）：页面区块快照，可新建页面并从模板起步', path: '/admin/templates', href: '/admin/templates' },
+      { id: 'g-styles', title: '样式（真能力）：站点级设计令牌编辑，白名单变量注入后前台生效', path: '/admin/styles', href: '/admin/styles' },
+      { id: 'g-publish', title: '发布记录与回滚：可立即发布（记录内容版本）、按版本回滚内容、删除记录', path: '/admin/publish', href: '/admin/publish' },
+      { id: 'g-roles', title: '角色与权限（只读）：展示服务端 RBAC 的角色 / 权限集与「栏目 → 所需权限」对照', path: '/admin/roles', href: '/admin/roles' },
+      { id: 'g-rbac', title: '越权校验：用 operator 账号访问系统设置 / 备份 / 发布 / 重置 → 403；未登录访问 → 401' },
+      { id: 'g-audit', title: '操作审计日志：关键写操作与登录事件在「操作日志」真实记录操作人 / 时间 / 对象 / IP', path: '/admin/logs', href: '/admin/logs' },
+      { id: 'g-backup', title: '备份 / 恢复 / 重置：立即备份、下载、覆盖恢复（先留 pre-restore）、删除；可重置为初始 seed', path: '/admin/backups', href: '/admin/backups' },
+      { id: 'g-sqlite', title: '持久化（SQLite）：后台改动重启后仍在；库文件 gh-server/data/gh.sqlite（含 -wal/-shm）' },
+    ],
+  },
+  {
+    id: 'closing',
+    title: 'F. 全局收尾与上线前确认',
+    desc: '整体确认无误后，才进入部署发布。',
+    items: [
+      { id: 'z-console', title: '浏览器控制台逐页无红色报错、无接口 4xx/5xx' },
+      { id: 'z-perf', title: '首屏与切页感知流畅，无明显卡顿' },
+      { id: 'z-robot', title: '后台不被搜索引擎收录（robots 排除 /admin）' },
+      { id: 'z-sitemap', title: 'sitemap / 站点地图与页面实际一致' },
+      { id: 'z-deploy', title: '确认「可以部署」：以上全部通过后授权执行部署发布' },
+    ],
+  },
+]
+
+const KEY = 'gh-acceptance-v1'
+let store = {}
+try { store = JSON.parse(localStorage.getItem(KEY) || '{}') || {} } catch (e) { store = {} }
+
+const app = document.getElementById('app')
+const els = {}
+let total = 0
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
+SECTIONS.forEach((sec) => {
+  const wrap = document.createElement('section')
+  wrap.className = 'group'
+  wrap.innerHTML = '<h2>' + esc(sec.title) + '</h2><p class="gdesc">' + esc(sec.desc) + '</p>'
+  const card = document.createElement('div')
+  card.className = 'card'
+  sec.items.forEach((it) => {
+    total++
+    const st = store[it.id] || { pass: false, note: '' }
+    const row = document.createElement('div')
+    row.className = 'item' + (st.pass ? ' passed' : '') + (st.note ? ' flagged' : '')
+
+    const cb = document.createElement('input')
+    cb.type = 'checkbox'
+    cb.checked = !!st.pass
+    cb.setAttribute('aria-label', '通过：' + it.title)
+    cb.addEventListener('change', () => {
+      st.pass = cb.checked
+      persist(it.id, st)
+      els.update()
+    })
+
+    const body = document.createElement('div')
+    body.className = 't'
+    let label = esc(it.title)
+    if (it.href) {
+      label = '<a href="' + BASE + it.href + '" target="_blank" rel="noreferrer">' + esc(it.title) + '</a>'
+    }
+    let html = label
+    if (it.path) html += '<span class="path">' + esc(it.path) + '</span>'
+    if (it.hint) html += '<span class="hint">' + esc(it.hint) + '</span>'
+    body.innerHTML = html
+
+    const ta = document.createElement('textarea')
+    ta.placeholder = '要改什么？（可留空）'
+    ta.value = st.note || ''
+    ta.addEventListener('input', () => {
+      st.note = ta.value
+      persist(it.id, st)
+      els.update()
+    })
+
+    row.append(cb, body, ta)
+    card.append(row)
+  })
+  wrap.append(card)
+  app.append(wrap)
+})
+
+function persist(id, st) {
+  store[id] = { pass: !!st.pass, note: st.note || '' }
+  try { localStorage.setItem(KEY, JSON.stringify(store)) } catch (e) { /* 忽略写入失败 */ }
+}
+
+function refresh() {
+  let passed = 0, flagged = 0
+  document.querySelectorAll('.item').forEach((row) => {
+    const cb = row.querySelector('input[type=checkbox]')
+    const ta = row.querySelector('textarea')
+    const note = ta.value.trim()
+    if (cb.checked) passed++
+    if (note) flagged++
+    row.classList.toggle('passed', cb.checked)
+    row.classList.toggle('flagged', !!note)
+  })
+  els.passed.textContent = passed
+  els.total.textContent = total
+  els.flagged.textContent = flagged
+  els.bar.style.width = (total ? (passed / total) * 100 : 0) + '%'
+}
+
+document.getElementById('clear').addEventListener('click', () => {
+  if (!confirm('确定清空所有勾选与备注？')) return
+  store = {}
+  try { localStorage.removeItem(KEY) } catch (e) { /* 忽略 */ }
+  location.reload()
+})
+
+document.getElementById('export').addEventListener('click', () => {
+  const lines = []
+  SECTIONS.forEach((sec) => {
+    lines.push('## ' + sec.title, '')
+    sec.items.forEach((it) => {
+      const st = store[it.id] || {}
+      const mark = st.pass ? '[x]' : '[ ]'
+      lines.push('- ' + mark + ' ' + it.title + (it.path ? '（' + it.path + '）' : ''))
+      if (st.note && st.note.trim()) lines.push('    - 备注：' + st.note.trim())
+    })
+    lines.push('')
+  })
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = '光魂官网_验收清单_结果.md'
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+})
+
+els.passed = document.getElementById('passed')
+els.total = document.getElementById('total')
+els.flagged = document.getElementById('flagged')
+els.bar = document.getElementById('bar')
+els.update = refresh
+refresh()
+</script>
+</body>
+</html>

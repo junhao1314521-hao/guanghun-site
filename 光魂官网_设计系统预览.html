@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光魂官网 · 设计系统预览 v1.0</title>
+<link rel="stylesheet" href="./光魂官网_设计令牌_tokens.css">
+<style>
+/* ============================================================
+   本区域为「预览页自身布局」，不属于设计系统
+   ============================================================ */
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+.ds-layout { display: flex; align-items: flex-start; }
+
+.ds-nav {
+  position: sticky; top: 0;
+  width: var(--gh-sidebar-width);
+  height: 100vh;
+  flex-shrink: 0;
+  padding: var(--gh-space-5) var(--gh-space-4);
+  border-right: 1px solid var(--color-border-default);
+  background: var(--color-bg-subtle);
+  overflow-y: auto;
+}
+.ds-nav__title {
+  font-size: var(--gh-font-size-body);
+  font-weight: var(--gh-weight-semibold);
+  margin-bottom: var(--gh-space-4);
+}
+.ds-nav a {
+  display: block;
+  padding: var(--gh-space-2) var(--gh-space-3);
+  font-size: var(--gh-font-size-body-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--gh-radius-sm);
+}
+.ds-nav a:hover { background: var(--color-bg-muted); color: var(--color-text-primary); }
+
+.ds-main { flex: 1; min-width: 0; padding: var(--gh-space-7) var(--gh-space-8) var(--gh-space-10); max-width: 1200px; }
+
+.ds-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--gh-space-4);
+  margin-bottom: var(--gh-space-8);
+  padding-bottom: var(--gh-space-5);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.ds-topbar h1 { font-size: var(--gh-font-size-h3); margin: 0; }
+
+.ds-section { margin-bottom: var(--gh-space-9); scroll-margin-top: var(--gh-space-5); }
+.ds-section > h2 {
+  font-size: var(--gh-font-size-h4);
+  margin: 0 0 var(--gh-space-2);
+  padding-bottom: var(--gh-space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.ds-section > .ds-note {
+  font-size: var(--gh-font-size-body-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--gh-space-5);
+}
+.ds-row { display: flex; flex-wrap: wrap; gap: var(--gh-space-4); align-items: center; }
+.ds-grid { display: grid; gap: var(--gh-space-4); }
+.ds-grid--3 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.ds-label {
+  font-family: var(--gh-font-mono);
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--gh-space-2);
+}
+
+/* ============================================================
+   组件样式 —— 全部引用令牌，零硬编码
+   （若出现裸色值或裸 px，即为令牌缺口，需回到令牌层补齐）
+   ============================================================ */
+
+/* ---- 按钮 ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--gh-space-2);
+  height: var(--gh-control-height-md);
+  padding: 0 var(--gh-control-pad-x);
+  border: 1px solid transparent;
+  border-radius: var(--gh-radius-md);
+  font-family: inherit;
+  font-size: var(--gh-font-size-body);
+  font-weight: var(--gh-weight-medium);
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
+              border-color var(--gh-duration-fast) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.btn--sm { height: var(--gh-control-height-sm); font-size: var(--gh-font-size-body-sm); padding: 0 var(--gh-space-3); }
+.btn--lg { height: var(--gh-control-height-lg); font-size: var(--gh-font-size-body-lg); padding: 0 var(--gh-space-5); }
+
+.btn--primary { background: var(--color-accent-solid); color: var(--color-text-on-accent); }
+.btn--primary:hover { background: var(--color-accent-solid-hover); }
+.btn--primary:active { background: var(--color-accent-solid-active); }
+
+.btn--secondary { background: transparent; color: var(--color-text-primary); border-color: var(--color-border-default); }
+.btn--secondary:hover { background: var(--color-bg-subtle); border-color: var(--color-border-strong); }
+
+.btn--ghost { background: transparent; color: var(--color-accent-text); }
+.btn--ghost:hover { background: var(--color-accent-subtle); }
+
+.btn--danger { background: var(--color-danger-solid); color: var(--color-text-on-danger); }
+
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* 加载态 */
+.btn--loading { pointer-events: none; opacity: .75; }
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--gh-radius-full);
+  animation: spin 600ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--gh-control-height-md); height: var(--gh-control-height-md);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-md);
+  background: transparent; color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.icon-btn:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+
+/* ---- 表单 ---- */
+.field { display: flex; flex-direction: column; gap: var(--gh-space-2); }
+.field__label { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+.field__label .req { color: var(--color-danger); margin-left: 2px; }
+.field__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.field__error { font-size: var(--gh-font-size-caption); color: var(--color-danger); }
+
+.input, .select, .textarea {
+  width: 100%;
+  height: var(--gh-control-height-md);
+  padding: 0 var(--gh-space-3);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-md);
+  font-family: inherit;
+  font-size: var(--gh-font-size-body);
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.textarea { height: auto; min-height: 88px; padding: var(--gh-space-3); resize: vertical; line-height: var(--gh-line-height-body); }
+.input::placeholder, .textarea::placeholder { color: var(--color-text-tertiary); }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-border-strong); }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+.input:disabled, .select:disabled, .textarea:disabled { background: var(--color-bg-muted); color: var(--color-text-disabled); cursor: not-allowed; }
+.input--error { border-color: var(--color-danger); }
+.input--error:focus { box-shadow: 0 0 0 3px var(--color-danger-bg); }
+
+.search { position: relative; }
+.search .input { padding-left: var(--gh-space-8); }
+.search__icon { position: absolute; left: var(--gh-space-3); top: 50%; transform: translateY(-50%); color: var(--color-text-tertiary); pointer-events: none; }
+
+.check { display: inline-flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-body); cursor: pointer; }
+.check input { width: 16px; height: 16px; accent-color: var(--color-accent); cursor: pointer; }
+
+.switch { position: relative; display: inline-flex; align-items: center; gap: var(--gh-space-3); cursor: pointer; font-size: var(--gh-font-size-body); }
+.switch input { position: absolute; opacity: 0; }
+.switch__track {
+  width: 40px; height: 22px; border-radius: var(--gh-radius-full);
+  background: var(--color-border-strong);
+  transition: background var(--gh-duration-base) var(--gh-ease-standard);
+  flex-shrink: 0;
+}
+.switch__track::after {
+  content: ""; display: block;
+  width: 18px; height: 18px; margin: 2px;
+  background: var(--gh-neutral-0);
+  border-radius: var(--gh-radius-full);
+  transition: transform var(--gh-duration-base) var(--gh-ease-standard);
+}
+.switch input:checked + .switch__track { background: var(--color-accent); }
+.switch input:checked + .switch__track::after { transform: translateX(18px); }
+
+/* ---- 展示 ---- */
+.tag {
+  display: inline-flex; align-items: center; gap: var(--gh-space-1);
+  height: 24px; padding: 0 var(--gh-space-2);
+  border-radius: var(--gh-radius-sm);
+  background: var(--color-bg-muted);
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-caption);
+  font-weight: var(--gh-weight-medium);
+}
+.tag--accent { background: var(--color-accent-subtle); color: var(--color-accent-text); }
+.tag--pill { border-radius: var(--gh-radius-full); padding: 0 var(--gh-space-3); }
+
+.status { display: inline-flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-body-sm); }
+.status::before { content: ""; width: 6px; height: 6px; border-radius: var(--gh-radius-full); background: currentColor; }
+.status--success { color: var(--color-success); }
+.status--warning { color: var(--color-warning); }
+.status--danger  { color: var(--color-danger); }
+.status--info    { color: var(--color-info); }
+.status--muted   { color: var(--color-text-tertiary); }
+
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 var(--gh-space-1);
+  border-radius: var(--gh-radius-full);
+  background: var(--color-danger-solid); color: var(--color-text-on-danger);
+  font-size: 11px; font-weight: var(--gh-weight-semibold);
+}
+
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--gh-radius-full);
+  background: var(--color-accent-subtle); color: var(--color-accent-text);
+  font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-semibold);
+}
+
+/* ---- 导航类 ---- */
+.tabs { display: flex; gap: var(--gh-space-5); border-bottom: 1px solid var(--color-border-default); }
+.tab {
+  padding: var(--gh-space-3) 0; margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary); font-size: var(--gh-font-size-body);
+  cursor: pointer; background: none; border-left: 0; border-right: 0; border-top: 0;
+  font-family: inherit;
+}
+.tab:hover { color: var(--color-text-primary); }
+.tab--active { color: var(--color-accent-text); border-bottom-color: var(--color-accent); font-weight: var(--gh-weight-medium); }
+
+.segmented {
+  display: inline-flex; padding: 3px; gap: 2px;
+  background: var(--color-bg-muted);
+  border-radius: var(--gh-radius-md);
+}
+.segmented button {
+  height: 30px; padding: 0 var(--gh-space-4);
+  border: 0; border-radius: calc(var(--gh-radius-md) - 2px);
+  background: transparent; color: var(--color-text-secondary);
+  font-family: inherit; font-size: var(--gh-font-size-body-sm); cursor: pointer;
+}
+.segmented button.is-active { background: var(--color-bg-surface); color: var(--color-text-primary); font-weight: var(--gh-weight-medium); box-shadow: var(--shadow-sm); }
+
+.breadcrumb { display: flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-body-sm); color: var(--color-text-tertiary); }
+.breadcrumb a { color: var(--color-text-secondary); text-decoration: none; }
+.breadcrumb a:hover { color: var(--color-accent-text); }
+
+.pagination { display: flex; gap: var(--gh-space-1); }
+.pagination button {
+  min-width: var(--gh-control-height-sm); height: var(--gh-control-height-sm); padding: 0 var(--gh-space-2);
+  border: 1px solid var(--color-border-default); background: transparent;
+  border-radius: var(--gh-radius-sm); color: var(--color-text-secondary);
+  font-family: inherit; font-size: var(--gh-font-size-body-sm); cursor: pointer;
+}
+.pagination button:hover { border-color: var(--color-border-strong); color: var(--color-text-primary); }
+.pagination button.is-active { background: var(--color-accent-solid); border-color: var(--color-accent-solid); color: var(--color-text-on-accent); }
+
+/* ---- 容器 ---- */
+.card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+  padding: var(--gh-space-5);
+}
+.card__title { font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); margin: 0 0 var(--gh-space-2); }
+.card__desc { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); margin: 0; }
+
+.alert {
+  display: flex; gap: var(--gh-space-3);
+  padding: var(--gh-space-3) var(--gh-space-4);
+  border-radius: var(--gh-radius-md);
+  border: 1px solid transparent;
+  font-size: var(--gh-font-size-body-sm);
+}
+.alert--info    { background: var(--color-info-bg);    border-color: var(--color-info-border);    color: var(--color-info); }
+.alert--success { background: var(--color-success-bg); border-color: var(--color-success-border); color: var(--color-success); }
+.alert--warning { background: var(--color-warning-bg); border-color: var(--color-warning-border); color: var(--color-warning); }
+.alert--danger  { background: var(--color-danger-bg);  border-color: var(--color-danger-border);  color: var(--color-danger); }
+
+.toast {
+  display: flex; align-items: center; gap: var(--gh-space-3);
+  width: var(--gh-toast-width); max-width: 100%;
+  padding: var(--gh-space-3) var(--gh-space-4);
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--gh-font-size-body-sm);
+}
+
+.tooltip-demo {
+  display: inline-block; position: relative;
+  padding: var(--gh-space-2) var(--gh-space-3);
+  background: var(--color-bg-inverse); color: var(--color-text-inverse);
+  border-radius: var(--gh-radius-sm);
+  font-size: var(--gh-font-size-caption);
+}
+
+.accordion { border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md); overflow: hidden; }
+.accordion__item + .accordion__item { border-top: 1px solid var(--color-border-default); }
+.accordion__head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--gh-space-4);
+  background: transparent; border: 0; width: 100%; text-align: left;
+  font-family: inherit; font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium);
+  color: var(--color-text-primary); cursor: pointer;
+}
+.accordion__body { padding: 0 var(--gh-space-4) var(--gh-space-4); font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+
+.steps { display: flex; gap: var(--gh-space-5); }
+.step { display: flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-body-sm); color: var(--color-text-tertiary); }
+.step__dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: var(--gh-radius-full);
+  border: 1px solid var(--color-border-strong); font-size: var(--gh-font-size-caption);
+}
+.step--done .step__dot { background: var(--color-accent-solid); border-color: var(--color-accent-solid); color: var(--color-text-on-accent); }
+.step--done { color: var(--color-text-secondary); }
+.step--current { color: var(--color-text-primary); font-weight: var(--gh-weight-medium); }
+.step--current .step__dot { border-color: var(--color-accent); color: var(--color-accent-text); }
+
+/* ---- 数据 ---- */
+.table { width: 100%; border-collapse: collapse; font-size: var(--gh-font-size-body-sm); }
+.table th, .table td { padding: 0 var(--gh-space-3); height: var(--gh-table-row-height); text-align: left; border-bottom: 1px solid var(--color-border-subtle); }
+.table th { height: var(--gh-table-header-height); color: var(--color-text-tertiary); font-weight: var(--gh-weight-medium); background: var(--color-bg-subtle); }
+.table tbody tr:hover { background: var(--color-bg-subtle); }
+.table .mono { font-family: var(--gh-font-mono); }
+
+.progress { height: 6px; background: var(--color-bg-muted); border-radius: var(--gh-radius-full); overflow: hidden; }
+.progress__bar { height: 100%; background: var(--color-accent); border-radius: var(--gh-radius-full); }
+
+.stat__value { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-h2); font-weight: var(--gh-weight-semibold); line-height: 1.1; }
+.stat__label { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+
+/* ---- 反馈 ---- */
+.skeleton { background: var(--color-bg-muted); border-radius: var(--gh-radius-sm); animation: pulse 1.6s var(--gh-ease-standard) infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
+
+.empty {
+  display: flex; flex-direction: column; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-8) var(--gh-space-5);
+  border: 1px dashed var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+  text-align: center;
+}
+.empty__icon { color: var(--color-text-tertiary); }
+.empty__title { font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium); }
+.empty__desc { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); max-width: 320px; }
+
+/* ============================================================
+   电竞皮肤示例 —— 仅用于产品展示区与榜单区（见规格说明书 2.1）
+   禁止在骨架层（排版/导航/表单/后台）复用
+   ============================================================ */
+.stage {
+  position: relative;
+  border-radius: var(--gh-radius-2xl);
+  background: linear-gradient(160deg, var(--gh-neutral-900) 0%, var(--gh-neutral-950) 100%);
+  border: 1px solid var(--color-border-default);
+  padding: var(--gh-space-8);
+  overflow: hidden;
+}
+.stage__glow {
+  position: absolute; inset: auto -20% -60% -20%; height: 60%;
+  background: radial-gradient(ellipse at center, var(--gh-blue-500) 0%, transparent 70%);
+  opacity: .28; filter: blur(48px);
+}
+.stage__content { position: relative; color: var(--gh-neutral-50); }
+.stage__eyebrow { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--gh-blue-300); letter-spacing: .08em; }
+.stage__title { font-size: var(--gh-font-size-h2); font-weight: var(--gh-weight-bold); margin: var(--gh-space-2) 0 var(--gh-space-3); letter-spacing: -0.02em; }
+.stage__desc { color: var(--gh-neutral-400); font-size: var(--gh-font-size-body); max-width: 46ch; margin: 0; }
+
+.ladder__row { display: flex; align-items: center; gap: var(--gh-space-4); padding: var(--gh-space-3) 0; border-bottom: 1px solid var(--color-border-subtle); }
+.ladder__rank { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-sm); color: var(--color-text-tertiary); width: 24px; flex-shrink: 0; }
+.ladder__model { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-sm); width: 132px; flex-shrink: 0; }
+.ladder__track { flex: 1; min-width: 80px; height: 10px; background: var(--color-bg-muted); border-radius: var(--gh-radius-full); overflow: hidden; }
+.ladder__fill {
+  display: block; height: 100%; border-radius: var(--gh-radius-full);
+  background: linear-gradient(90deg, var(--color-data-gradient-from), var(--color-data-gradient-to));
+  transition: width var(--gh-duration-slow) var(--gh-ease-accent);
+}
+.ladder__value { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-sm); width: 76px; text-align: right; flex-shrink: 0; }
+
+@media (max-width: 1023px) {
+  .ds-nav { display: none; }
+  .ds-main { padding: var(--gh-space-5); }
+}
+</style>
+</head>
+<body>
+
+<div class="ds-layout">
+  <nav class="ds-nav">
+    <div class="ds-nav__title">光魂设计系统</div>
+    <a href="#color">色彩</a>
+    <a href="#type">字体与排版</a>
+    <a href="#scale">间距 / 圆角 / 阴影</a>
+    <a href="#button">按钮</a>
+    <a href="#form">表单控件</a>
+    <a href="#display">展示组件</a>
+    <a href="#nav">导航类</a>
+    <a href="#container">容器</a>
+    <a href="#data">数据展示</a>
+    <a href="#feedback">反馈与状态</a>
+    <a href="#skin">电竞皮肤示例</a>
+  </nav>
+
+  <main class="ds-main">
+    <div class="ds-topbar">
+      <div>
+        <h1>光魂官网 · 设计系统预览</h1>
+        <div class="ds-label">v1.0 ｜ 苹果风骨架 · 电竞感皮肤 · 双主题同等重要</div>
+      </div>
+      <button class="btn btn--secondary" id="themeToggle">切换暗色</button>
+    </div>
+
+    <!-- ============ 色彩 ============ -->
+    <section class="ds-section" id="color">
+      <h2>色彩</h2>
+      <p class="ds-note">品牌色 #2040ED 仅作点缀，单屏面积占比应低于 10%。暗色模式下强调色自动提亮为 #5B75F5（原色在暗底仅 2.6:1，不达标）。</p>
+
+      <div class="ds-label">品牌蓝</div>
+      <div class="ds-row" style="margin-bottom: var(--gh-space-5);">
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-100)"></div>
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-200)"></div>
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-300)"></div>
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-400)"></div>
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-500)"></div>
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-600)"></div>
+        <div style="width:88px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-blue-700)"></div>
+      </div>
+
+      <div class="ds-label">中性阶</div>
+      <div class="ds-row" style="margin-bottom: var(--gh-space-5);">
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-0);border:1px solid var(--color-border-default)"></div>
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-100)"></div>
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-300)"></div>
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-500)"></div>
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-700)"></div>
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-900)"></div>
+        <div style="width:64px;height:56px;border-radius:var(--gh-radius-md);background:var(--gh-neutral-950)"></div>
+      </div>
+
+      <div class="ds-label">语义色（随主题自动切换）</div>
+      <div class="ds-grid ds-grid--3">
+        <div class="card" style="border-color:var(--color-success-border);background:var(--color-success-bg)">
+          <div style="color:var(--color-success);font-weight:var(--gh-weight-medium)">成功 Success</div>
+          <div class="ds-label" style="margin:var(--gh-space-1) 0 0">已发布 / 已解决</div>
+        </div>
+        <div class="card" style="border-color:var(--color-warning-border);background:var(--color-warning-bg)">
+          <div style="color:var(--color-warning);font-weight:var(--gh-weight-medium)">警告 Warning</div>
+          <div class="ds-label" style="margin:var(--gh-space-1) 0 0">待检查 / 未验证</div>
+        </div>
+        <div class="card" style="border-color:var(--color-danger-border);background:var(--color-danger-bg)">
+          <div style="color:var(--color-danger);font-weight:var(--gh-weight-medium)">危险 Danger</div>
+          <div class="ds-label" style="margin:var(--gh-space-1) 0 0">失败 / 不可恢复</div>
+        </div>
+        <div class="card" style="border-color:var(--color-info-border);background:var(--color-info-bg)">
+          <div style="color:var(--color-info);font-weight:var(--gh-weight-medium)">信息 Info</div>
+          <div class="ds-label" style="margin:var(--gh-space-1) 0 0">处理中 / 提示</div>
+        </div>
+      </div>
+
+      <div class="ds-label" style="margin-top:var(--gh-space-5)">语义文字层级</div>
+      <div class="card">
+        <div style="color:var(--color-text-primary)">主要文字 primary —— 标题与关键内容</div>
+        <div style="color:var(--color-text-secondary);margin-top:var(--gh-space-2)">次要文字 secondary —— 描述与说明</div>
+        <div style="color:var(--color-text-tertiary);margin-top:var(--gh-space-2)">三级文字 tertiary —— 时间、注释、辅助</div>
+        <div style="color:var(--color-text-disabled);margin-top:var(--gh-space-2)">禁用文字 disabled —— 不可用状态</div>
+        <div style="color:var(--color-accent-text);margin-top:var(--gh-space-2)">强调文字 accent —— 链接与可点击</div>
+      </div>
+    </section>
+
+    <!-- ============ 字体 ============ -->
+    <section class="ds-section" id="type">
+      <h2>字体与排版</h2>
+      <p class="ds-note">Geist（拉丁/数字）+ MiSans（中文）+ Geist Mono（型号与数值）。三者均为可商用许可。</p>
+
+      <div class="card">
+        <div style="font-size:var(--gh-font-size-display);line-height:var(--gh-line-height-display);font-weight:var(--gh-weight-bold);letter-spacing:-0.02em">Display 56</div>
+        <div style="font-size:var(--gh-font-size-h1);line-height:var(--gh-line-height-h1);font-weight:var(--gh-weight-semibold);letter-spacing:-0.02em;margin-top:var(--gh-space-4)">H1 页面主标题 40</div>
+        <div style="font-size:var(--gh-font-size-h2);line-height:var(--gh-line-height-h2);font-weight:var(--gh-weight-semibold);margin-top:var(--gh-space-4)">H2 区块标题 32</div>
+        <div style="font-size:var(--gh-font-size-h3);line-height:var(--gh-line-height-h3);font-weight:var(--gh-weight-semibold);margin-top:var(--gh-space-4)">H3 卡片组标题 24</div>
+        <div style="font-size:var(--gh-font-size-body-lg);line-height:var(--gh-line-height-body-lg);margin-top:var(--gh-space-4)">Body Large 17 —— 导语与产品描述，用于承载较长的说明性内容</div>
+        <div style="font-size:var(--gh-font-size-body);line-height:var(--gh-line-height-body);margin-top:var(--gh-space-3)">Body 15 —— 正文默认字号，绝大多数阅读内容使用此级</div>
+        <div style="font-size:var(--gh-font-size-body-sm);line-height:var(--gh-line-height-body-sm);color:var(--color-text-secondary);margin-top:var(--gh-space-3)">Body Small 13 —— 辅助信息与表格内容</div>
+        <div style="font-size:var(--gh-font-size-caption);line-height:var(--gh-line-height-caption);color:var(--color-text-tertiary);margin-top:var(--gh-space-3)">Caption 12 —— 标签、时间、注释</div>
+        <div style="font-family:var(--gh-font-mono);font-size:var(--gh-font-size-body);margin-top:var(--gh-space-4)">Mono · GH-X27U-4K · 144.00 Hz · 1,200:1</div>
+      </div>
+    </section>
+
+    <!-- ============ 尺度 ============ -->
+    <section class="ds-section" id="scale">
+      <h2>间距 / 圆角 / 阴影</h2>
+      <p class="ds-note">间距仅允许 8pt 网格值，禁止任意数值。圆角按组件类型固定，不自由发挥。</p>
+
+      <div class="ds-label">间距</div>
+      <div style="margin-bottom:var(--gh-space-5)">
+        <div style="display:flex;align-items:center;gap:var(--gh-space-3);margin-bottom:var(--gh-space-2)">
+          <span class="ds-label" style="width:52px;margin:0">space-2</span>
+          <div style="width:var(--gh-space-2);height:14px;background:var(--color-accent);border-radius:2px"></div>
+          <span class="ds-label" style="margin:0">8px</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--gh-space-3);margin-bottom:var(--gh-space-2)">
+          <span class="ds-label" style="width:52px;margin:0">space-4</span>
+          <div style="width:var(--gh-space-4);height:14px;background:var(--color-accent);border-radius:2px"></div>
+          <span class="ds-label" style="margin:0">16px</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--gh-space-3);margin-bottom:var(--gh-space-2)">
+          <span class="ds-label" style="width:52px;margin:0">space-6</span>
+          <div style="width:var(--gh-space-6);height:14px;background:var(--color-accent);border-radius:2px"></div>
+          <span class="ds-label" style="margin:0">32px</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--gh-space-3)">
+          <span class="ds-label" style="width:52px;margin:0">space-8</span>
+          <div style="width:var(--gh-space-8);height:14px;background:var(--color-accent);border-radius:2px"></div>
+          <span class="ds-label" style="margin:0">64px</span>
+        </div>
+      </div>
+
+      <div class="ds-label">圆角</div>
+      <div class="ds-row" style="margin-bottom:var(--gh-space-5)">
+        <div style="width:72px;height:56px;background:var(--color-bg-muted);border:1px solid var(--color-border-default);border-radius:var(--gh-radius-sm)"></div>
+        <div style="width:72px;height:56px;background:var(--color-bg-muted);border:1px solid var(--color-border-default);border-radius:var(--gh-radius-md)"></div>
+        <div style="width:72px;height:56px;background:var(--color-bg-muted);border:1px solid var(--color-border-default);border-radius:var(--gh-radius-lg)"></div>
+        <div style="width:72px;height:56px;background:var(--color-bg-muted);border:1px solid var(--color-border-default);border-radius:var(--gh-radius-xl)"></div>
+        <div style="width:72px;height:56px;background:var(--color-bg-muted);border:1px solid var(--color-border-default);border-radius:var(--gh-radius-2xl)"></div>
+        <div style="width:72px;height:56px;background:var(--color-bg-muted);border:1px solid var(--color-border-default);border-radius:var(--gh-radius-full)"></div>
+      </div>
+
+      <div class="ds-label">阴影（暗色模式下层次改由边框承担）</div>
+      <div class="ds-row">
+        <div style="width:140px;height:76px;background:var(--color-bg-surface);border:1px solid var(--color-border-subtle);border-radius:var(--gh-radius-lg);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center" class="ds-label">shadow-sm</div>
+        <div style="width:140px;height:76px;background:var(--color-bg-surface);border:1px solid var(--color-border-subtle);border-radius:var(--gh-radius-lg);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center" class="ds-label">shadow-md</div>
+        <div style="width:140px;height:76px;background:var(--color-bg-surface);border:1px solid var(--color-border-subtle);border-radius:var(--gh-radius-lg);box-shadow:var(--shadow-lg);display:flex;align-items:center;justify-content:center" class="ds-label">shadow-lg</div>
+      </div>
+    </section>
+
+    <!-- ============ 按钮 ============ -->
+    <section class="ds-section" id="button">
+      <h2>按钮</h2>
+      <p class="ds-note">全部 7 种状态必须齐备：默认 / 悬停 / 聚焦 / 激活 / 禁用 / 加载 / 错误。</p>
+
+      <div class="ds-label">类型</div>
+      <div class="ds-row" style="margin-bottom:var(--gh-space-5)">
+        <button class="btn btn--primary">主按钮</button>
+        <button class="btn btn--secondary">次按钮</button>
+        <button class="btn btn--ghost">文字按钮</button>
+        <button class="btn btn--danger">危险操作</button>
+        <button class="icon-btn" aria-label="搜索">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        </button>
+      </div>
+
+      <div class="ds-label">尺寸</div>
+      <div class="ds-row" style="margin-bottom:var(--gh-space-5)">
+        <button class="btn btn--primary btn--sm">小 32</button>
+        <button class="btn btn--primary">中 40</button>
+        <button class="btn btn--primary btn--lg">大 48</button>
+      </div>
+
+      <div class="ds-label">状态</div>
+      <div class="ds-row">
+        <button class="btn btn--primary">默认</button>
+        <button class="btn btn--primary" disabled>禁用</button>
+        <button class="btn btn--primary btn--loading"><span class="spinner"></span>提交中</button>
+        <button class="btn btn--secondary" style="border-color:var(--color-danger);color:var(--color-danger)">错误</button>
+      </div>
+    </section>
+
+    <!-- ============ 表单 ============ -->
+    <section class="ds-section" id="form">
+      <h2>表单控件</h2>
+      <p class="ds-note">表单必须额外覆盖：提交中 / 成功 / 失败保输入。校验提示走字段级，不用全局弹窗。</p>
+
+      <div class="ds-grid ds-grid--3">
+        <div class="field">
+          <label class="field__label" for="f1">默认输入框</label>
+          <input class="input" id="f1" placeholder="请输入内容">
+        </div>
+        <div class="field">
+          <label class="field__label" for="f2">错误态<span class="req">*</span></label>
+          <input class="input input--error" id="f2" value="格式不正确">
+          <span class="field__error">请输入有效的邮箱地址</span>
+        </div>
+        <div class="field">
+          <label class="field__label" for="f3">禁用态</label>
+          <input class="input" id="f3" value="不可编辑" disabled>
+        </div>
+        <div class="field">
+          <label class="field__label" for="f4">下拉选择</label>
+          <select class="select" id="f4">
+            <option>显示器</option><option>配件</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="f5">型号搜索（带联想）</label>
+          <div class="search">
+            <span class="search__icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            </span>
+            <input class="input" id="f5" placeholder="输入型号或别名">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="f6">多行文本</label>
+          <textarea class="textarea" id="f6" placeholder="问题描述"></textarea>
+        </div>
+      </div>
+
+      <div class="ds-label" style="margin-top:var(--gh-space-6)">选择类控件</div>
+      <div class="ds-row">
+        <label class="check"><input type="checkbox" checked>复选框</label>
+        <label class="check"><input type="checkbox">未选中</label>
+        <label class="check"><input type="radio" name="r" checked>单选 A</label>
+        <label class="check"><input type="radio" name="r">单选 B</label>
+        <label class="switch"><input type="checkbox" checked><span class="switch__track"></span>开关</label>
+      </div>
+    </section>
+
+    <!-- ============ 展示 ============ -->
+    <section class="ds-section" id="display">
+      <h2>展示组件</h2>
+
+      <div class="ds-label">标签与徽标</div>
+      <div class="ds-row" style="margin-bottom:var(--gh-space-5)">
+        <span class="tag">默认标签</span>
+        <span class="tag tag--accent">评测</span>
+        <span class="tag tag--pill">胶囊标签</span>
+        <span class="badge">3</span>
+        <span class="avatar">GH</span>
+      </div>
+
+      <div class="ds-label">状态标记（必须同时有颜色与文字，不可仅靠颜色）</div>
+      <div class="ds-row">
+        <span class="status status--success">已发布</span>
+        <span class="status status--warning">原文更新待检查</span>
+        <span class="status status--danger">失败</span>
+        <span class="status status--info">处理中</span>
+        <span class="status status--muted">草稿</span>
+      </div>
+
+      <div class="ds-label" style="margin-top:var(--gh-space-6)">步骤条</div>
+      <div class="steps">
+        <div class="step step--done"><span class="step__dot">✓</span>提交咨询</div>
+        <div class="step step--current"><span class="step__dot">2</span>等待补充</div>
+        <div class="step"><span class="step__dot">3</span>已解决</div>
+      </div>
+    </section>
+
+    <!-- ============ 导航类 ============ -->
+    <section class="ds-section" id="nav">
+      <h2>导航类</h2>
+
+      <div class="ds-label">面包屑</div>
+      <div class="breadcrumb" style="margin-bottom:var(--gh-space-5)">
+        <a href="#">首页</a><span>/</span><a href="#">产品</a><span>/</span><span style="color:var(--color-text-primary)">GH-X27U</span>
+      </div>
+
+      <div class="ds-label">Tab</div>
+      <div class="tabs" style="margin-bottom:var(--gh-space-5)">
+        <button class="tab tab--active">总览</button>
+        <button class="tab">色域容积</button>
+        <button class="tab">SDR 亮度</button>
+        <button class="tab">响应速度</button>
+      </div>
+
+      <div class="ds-label">分段控件</div>
+      <div class="segmented" style="margin-bottom:var(--gh-space-5)">
+        <button class="is-active">全部</button>
+        <button>只看差异</button>
+      </div>
+
+      <div class="ds-label">分页</div>
+      <div class="pagination">
+        <button>‹</button><button class="is-active">1</button><button>2</button><button>3</button><button>›</button>
+      </div>
+    </section>
+
+    <!-- ============ 容器 ============ -->
+    <section class="ds-section" id="container">
+      <h2>容器</h2>
+
+      <div class="ds-grid ds-grid--3" style="margin-bottom:var(--gh-space-5)">
+        <div class="card">
+          <h3 class="card__title">卡片</h3>
+          <p class="card__desc">由令牌统一圆角、边框与内边距。</p>
+        </div>
+        <div class="card">
+          <h3 class="card__title">产品卡片</h3>
+          <p class="card__desc">业务组件，含主图 / 型号 / 关键字段，可加入对比。</p>
+        </div>
+        <div class="card">
+          <h3 class="card__title">体验点</h3>
+          <p class="card__desc">含营业状态，未接地图时不显示空地图。</p>
+        </div>
+      </div>
+
+      <div class="ds-label">提示条</div>
+      <div class="ds-grid" style="gap:var(--gh-space-3);margin-bottom:var(--gh-space-5)">
+        <div class="alert alert--info">信息：草稿已自动保存</div>
+        <div class="alert alert--success">成功：发布成功，已记录版本与操作者</div>
+        <div class="alert alert--warning">警告：原文已更新，英文版待检查</div>
+        <div class="alert alert--danger">错误：提交失败，已保留你填写的内容</div>
+      </div>
+
+      <div class="ds-label">Toast / 提示气泡</div>
+      <div class="ds-row">
+        <div class="toast"><span class="status status--success">已保存</span></div>
+        <span class="tooltip-demo">型号搜索支持别名</span>
+      </div>
+
+      <div class="ds-label" style="margin-top:var(--gh-space-6)">折叠面板</div>
+      <div class="accordion">
+        <div class="accordion__item">
+          <button class="accordion__head">如何判断均匀度？<span>−</span></button>
+          <div class="accordion__body">均匀度需明确采用"偏差"还是"一致性百分比"，两者口径不同，不可混排。</div>
+        </div>
+        <div class="accordion__item">
+          <button class="accordion__head">缺失值与零值有何区别？<span>+</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 数据 ============ -->
+    <section class="ds-section" id="data">
+      <h2>数据展示</h2>
+      <p class="ds-note">表格与榜单必须额外验证：超长内容、空数据、单行。型号与数值一律用等宽字体。</p>
+
+      <div class="ds-label">统计数据（等宽字体，避免数值跳动）</div>
+      <div class="ds-grid ds-grid--3" style="margin-bottom:var(--gh-space-5)">
+        <div class="card"><div class="stat__value">2,847</div><div class="stat__label">有效咨询（本月）</div></div>
+        <div class="card"><div class="stat__value">18.4%</div><div class="stat__label">资料下载点击转化</div></div>
+        <div class="card"><div class="stat__value">4.2h</div><div class="stat__label">首次公开回复中位时长</div></div>
+      </div>
+
+      <div class="ds-label">表格</div>
+      <div style="border:1px solid var(--color-border-default);border-radius:var(--gh-radius-md);overflow:hidden;margin-bottom:var(--gh-space-5)">
+        <table class="table">
+          <thead>
+            <tr><th>型号</th><th>面板</th><th>刷新率</th><th>状态</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">GH-X27U-4K</td><td>IPS</td><td class="mono">144 Hz</td><td><span class="status status--success">在售</span></td></tr>
+            <tr><td class="mono">GH-X32Q-2K</td><td>VA</td><td class="mono">165 Hz</td><td><span class="status status--success">在售</span></td></tr>
+            <tr><td class="mono">GH-A24F</td><td>IPS</td><td class="mono">75 Hz</td><td><span class="status status--muted">停产</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ds-label">进度条</div>
+      <div class="progress" style="max-width:320px"><div class="progress__bar" style="width:62%"></div></div>
+    </section>
+
+    <!-- ============ 反馈 ============ -->
+    <section class="ds-section" id="feedback">
+      <h2>反馈与状态</h2>
+      <p class="ds-note">空状态必须区分「未配置」与「无结果」——两者文案与视觉不同，不可共用一图一话。</p>
+
+      <div class="ds-grid ds-grid--3" style="margin-bottom:var(--gh-space-5)">
+        <div class="empty">
+          <div class="empty__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>
+          </div>
+          <div class="empty__title">暂无产品</div>
+          <div class="empty__desc">还没有录入产品。前往后台添加第一个产品后，这里会显示它。</div>
+          <button class="btn btn--primary btn--sm">前往添加</button>
+        </div>
+        <div class="empty">
+          <div class="empty__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          </div>
+          <div class="empty__title">没有匹配结果</div>
+          <div class="empty__desc">当前筛选条件下没有产品。可调整或清除条件后重试。</div>
+          <button class="btn btn--secondary btn--sm">清除筛选</button>
+        </div>
+        <div class="empty">
+          <div class="empty__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>
+          </div>
+          <div class="empty__title">加载失败</div>
+          <div class="empty__desc">数据未能加载。已保留你的筛选条件，可重试。</div>
+          <button class="btn btn--secondary btn--sm">重试</button>
+        </div>
+      </div>
+
+      <div class="ds-label">骨架屏（不用整页转圈）</div>
+      <div class="card">
+        <div class="skeleton" style="height:14px;width:38%"></div>
+        <div class="skeleton" style="height:14px;width:72%;margin-top:var(--gh-space-3)"></div>
+        <div class="skeleton" style="height:14px;width:56%;margin-top:var(--gh-space-3)"></div>
+      </div>
+    </section>
+
+    <!-- ============ 电竞皮肤 ============ -->
+    <section class="ds-section" id="skin">
+      <h2>电竞皮肤示例</h2>
+      <p class="ds-note">
+        仅允许出现在产品展示区与榜单区。<strong>禁止在排版、导航、表单、后台复用。</strong>
+        这是"苹果风骨架 + 电竞感皮肤"分层管辖规则的唯一例外区。
+      </p>
+
+      <div class="stage" style="margin-bottom:var(--gh-space-5)">
+        <div class="stage__glow"></div>
+        <div class="stage__content">
+          <div class="stage__eyebrow">// GH-X27U-4K</div>
+          <h3 class="stage__title">4K 144Hz · 专业级色准</h3>
+          <p class="stage__desc">深底展台、边缘光、等宽型号与负字距大标题——电竞感只在此类区块释放，不进入任何骨架层。</p>
+        </div>
+      </div>
+
+      <div class="ds-label">天梯榜条形（品牌蓝 → 青色渐变）</div>
+      <div class="card">
+        <div class="ladder__row">
+          <span class="ladder__rank">1</span>
+          <span class="ladder__model">GH-X27U-4K</span>
+          <span class="ladder__track"><span class="ladder__fill" style="width:96%"></span></span>
+          <span class="ladder__value">98.2%</span>
+        </div>
+        <div class="ladder__row">
+          <span class="ladder__rank">2</span>
+          <span class="ladder__model">GH-X32Q-2K</span>
+          <span class="ladder__track"><span class="ladder__fill" style="width:88%"></span></span>
+          <span class="ladder__value">94.7%</span>
+        </div>
+        <div class="ladder__row">
+          <span class="ladder__rank">3</span>
+          <span class="ladder__model">GH-A24F</span>
+          <span class="ladder__track"><span class="ladder__fill" style="width:71%"></span></span>
+          <span class="ladder__value">86.1%</span>
+        </div>
+        <div class="ladder__row" style="border-bottom:0">
+          <span class="ladder__rank">—</span>
+          <span class="ladder__model">GH-B27Q</span>
+          <span class="ladder__track"><span class="ladder__fill" style="width:0%"></span></span>
+          <span class="ladder__value" style="color:var(--color-text-tertiary)">暂无</span>
+        </div>
+        <div class="ds-label" style="margin-top:var(--gh-space-4)">末行为无值状态：不参与排名，显示"暂无"而非 0</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    function render(t) {
+      root.setAttribute('data-theme', t);
+      btn.textContent = t === 'dark' ? '切换浅色' : '切换暗色';
+    }
+    btn.addEventListener('click', function () {
+      render(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    render('light');
+  })();
+</script>
+
+</body>
+</html>

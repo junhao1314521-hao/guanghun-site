@@ -1,0 +1,235 @@
+/**
+ * 8. cards 卡片组（契约 §4，扩展 rail / overlay / media）
+ * props: title / desc / columns:2|3|4 /
+ *        layout?:'grid'|'rail'（rail = 横向滑动）/
+ *        overlay?:boolean（文字浮在媒体图上）/
+ *        ratio?:string（媒体宽高比，如 '4 / 5'、'16 / 9'）/
+ *        items:{media?,mediaType?('image'|'video'|'gif'),image?,tag?,title,desc?,href?}[]
+ *
+ * - rail：横向排列 + 可拖拽滑动 + 鼠标靠近左右边缘自动滑动（复用 HScroll / useHScroll）；
+ * - overlay：文字浮在媒体图上，底部渐变遮罩保证可读性（双主题对比度达标）；
+ * - 媒体：video 用原生 <video autoplay muted loop playsinline>；image / gif 按图片处理；
+ * - 有 href 的卡片整体可点击（.card--link / 链接包裹），保留键盘可达。
+ */
+import { Link } from 'react-router-dom'
+import { HScroll } from '../components/home/HScroll'
+import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { MediaImg } from '../components/ui/MediaImg'
+import { resolveMedia } from '../data/media'
+import { asArray, asBool, asRecord, asString, gridClass } from './blockUtils'
+
+type MediaType = 'image' | 'video' | 'gif'
+
+type CardItem = {
+  image: string
+  media: string
+  mediaType: MediaType
+  tag: string
+  title: string
+  desc: string
+  href: string
+}
+
+function toItem(value: unknown): CardItem {
+  const record = asRecord(value)
+  const rawType = asString(record.mediaType, 'image')
+  return {
+    image: asString(record.image),
+    media: asString(record.media),
+    mediaType: rawType === 'video' || rawType === 'gif' ? rawType : 'image',
+    tag: asString(record.tag),
+    title: asString(record.title),
+    desc: asString(record.desc),
+    href: asString(record.href),
+  }
+}
+
+/** 媒体地址：优先 media，回退 image，并把已知 /media/... 占位解析为内置素材 */
+function mediaSrc(item: CardItem): string {
+  return resolveMedia(item.media || item.image)
+}
+
+/** 悬浮在媒体上的媒体层（video 原生循环播放；image / gif 交 MediaImg） */
+function OverlayMedia({ item }: { item: CardItem }) {
+  const src = mediaSrc(item)
+  if (!src) return null
+  if (item.mediaType === 'video') {
+    return <video src={src} autoPlay muted loop playsInline aria-label={item.title} />
+  }
+  return <MediaImg src={src} alt={item.title} />
+}
+
+/** overlay 卡：文字浮在媒体图上（底部渐变遮罩） */
+function OverlayCardBody({ item }: { item: CardItem }) {
+  return (
+    <>
+      <div className="blk-card__media">
+        <OverlayMedia item={item} />
+      </div>
+      <div className="blk-card__scrim" />
+      <div className="blk-card__body">
+        {item.tag && <span className="tag tag--pill">{item.tag}</span>}
+        {item.title && <h3 className="blk-card__title">{item.title}</h3>}
+        {item.desc && <p className="blk-card__desc">{item.desc}</p>}
+      </div>
+    </>
+  )
+}
+
+/** 常规卡：媒体在上、文案在下（沿用既有 .card 视觉，不引入第二套语言） */
+function PlainCardBody({ item, ratio }: { item: CardItem; ratio: string }) {
+  const src = mediaSrc(item)
+  return (
+    <>
+      {src &&
+        (item.mediaType === 'video' ? (
+          <div className="ph-box ph-box--media" style={{ aspectRatio: ratio, marginBottom: 'var(--gh-space-4)' }}>
+            <video src={src} autoPlay muted loop playsInline aria-label={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          </div>
+        ) : (
+          <div className="ph-box ph-box--media" style={{ aspectRatio: ratio, marginBottom: 'var(--gh-space-4)' }}>
+            <MediaImg src={src} alt={item.title} />
+          </div>
+        ))}
+      {item.tag && <span className="tag tag--pill">{item.tag}</span>}
+      {item.title && (
+        <h3 className="card__title" style={item.tag ? { marginTop: 'var(--gh-space-3)' } : undefined}>
+          {item.title}
+        </h3>
+      )}
+      {item.desc && <p className="card__desc">{item.desc}</p>}
+    </>
+  )
+}
+
+/** 单张卡：overlay 用 .blk-card（媒体背景 + 悬浮文案），常规用 .card */
+function CardItemView({
+  item,
+  ratio,
+  overlay,
+  index,
+}: {
+  item: CardItem
+  ratio: string
+  overlay: boolean
+  index: number
+}) {
+  const className = overlay ? 'blk-card blk-card--overlay reveal' : 'card reveal'
+  const style = overlay ? { aspectRatio: ratio } : undefined
+  const body = overlay ? <OverlayCardBody item={item} /> : <PlainCardBody item={item} ratio={ratio} />
+  const key = `${item.title}-${index}`
+  const delay = (index % 3) + 1
+  return item.href ? (
+    <Link className={`${className}${overlay ? '' : ' card--link'}`} to={item.href} key={key} style={style} data-delay={delay} data-rail-card="">
+      {body}
+    </Link>
+  ) : (
+    <div className={className} key={key} style={style} data-delay={delay} data-rail-card="">
+      {body}
+    </div>
+  )
+}
+
+/** spotlight 主卡（大卡）：突出首个入口 */
+function SpotlightMain({ item }: { item: CardItem }) {
+  const body = (
+    <>
+      {item.tag && <span className="tag tag--pill">{item.tag}</span>}
+      {item.title && <h3 className="blk-spotlight__main-title">{item.title}</h3>}
+      {item.desc && <p className="blk-spotlight__main-desc">{item.desc}</p>}
+      <span className="btn btn--primary btn--sm is-magnetic" style={{ alignSelf: 'flex-start', marginTop: 'var(--gh-space-2)' }}>
+        立即了解 →
+      </span>
+    </>
+  )
+  return item.href ? (
+    <Link className="blk-spotlight__main reveal" to={item.href}>
+      {body}
+    </Link>
+  ) : (
+    <div className="blk-spotlight__main reveal">{body}</div>
+  )
+}
+
+/** spotlight 次卡（行）：编号 + 标题 + 说明 + 箭头 */
+function SpotlightRow({ item, index }: { item: CardItem; index: number }) {
+  const body = (
+    <>
+      <span className="blk-spotlight__badge">{String(index + 1).padStart(2, '0')}</span>
+      <span>
+        {item.title && (
+          <span className="blk-spotlight__row-title" style={{ display: 'block' }}>
+            {item.title}
+          </span>
+        )}
+        {item.desc && <span className="blk-spotlight__row-desc">{item.desc}</span>}
+      </span>
+      <span className="blk-spotlight__go" aria-hidden="true">
+        →
+      </span>
+    </>
+  )
+  const delay = String(Math.min(index + 2, 6))
+  return item.href ? (
+    <Link className="blk-spotlight__row reveal" to={item.href} data-delay={delay}>
+      {body}
+    </Link>
+  ) : (
+    <div className="blk-spotlight__row reveal" data-delay={delay}>
+      {body}
+    </div>
+  )
+}
+
+export function CardsBlock({ props }: { props: Record<string, unknown> }) {
+  const layout = asString(props.layout, 'grid')
+  const overlay = asBool(props.overlay)
+  const ratio = asString(props.ratio) || '16 / 9'
+  const columns = gridClass(props.columns, 3)
+  const items = asArray(props.items).map(toItem)
+
+  const head = <SectionHeadFromProps props={props} />
+
+  // rail：横向滑动（拖拽 + 指针接近自动滑动 + 箭头）
+  if (layout === 'rail') {
+    return (
+      <div className="blk-rail">
+        {head}
+        <HScroll auto>
+          {items.map((item, index) => (
+            <CardItemView key={`${item.title}-${index}`} item={item} ratio={ratio} overlay={overlay} index={index} />
+          ))}
+        </HScroll>
+      </div>
+    )
+  }
+
+  // spotlight：1 主 + 若干次（首页「服务入口」）
+  if (layout === 'spotlight' && items.length > 0) {
+    const [main, ...rest] = items
+    return (
+      <div>
+        {head}
+        <div className="blk-spotlight">
+          <SpotlightMain item={main} />
+          <div className="blk-spotlight__side">
+            {rest.map((item, index) => (
+              <SpotlightRow key={`${item.title}-${index}`} item={item} index={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {head}
+      <div className={columns}>
+        {items.map((item, index) => (
+          <CardItemView key={`${item.title}-${index}`} item={item} ratio={ratio} overlay={overlay} index={index} />
+        ))}
+      </div>
+    </div>
+  )
+}

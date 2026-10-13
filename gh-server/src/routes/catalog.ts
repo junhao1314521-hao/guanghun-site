@@ -1,0 +1,24 @@
+import { Router } from 'express'
+import { PRODUCT_TOTAL, getProductDetail } from '../data/products'
+import { listCollection } from '../data/collectionStore'
+import { readLocale } from '../data/locale'
+
+/** 产品：GET /api/products、GET /api/products/:id（数据来自集合存储，形状与既有 PRODUCTS 一致）。
+ *  支持 ?locale=en：集合英文覆盖层生效，缺覆盖回退中文。 */
+export const catalogRouter = Router()
+
+catalogRouter.get('/', (req, res) => {
+  // V1：一次返回全量，筛选/排序/分页在前端完成（见契约 §1）
+  // total 沿用既有占位总量 PRODUCT_TOTAL，保证响应与现状一致
+  const items = listCollection('products', readLocale(req))
+  res.json({ items, total: PRODUCT_TOTAL })
+})
+
+catalogRouter.get('/:id', (req, res) => {
+  const detail = getProductDetail(listCollection('products', readLocale(req)), req.params.id)
+  if (!detail) {
+    res.status(404).json({ error: '未找到该产品' })
+    return
+  }
+  res.json(detail)
+})

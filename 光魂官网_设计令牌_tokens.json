@@ -1,0 +1,245 @@
+{
+  "$description": "光魂官网设计令牌 · DTCG 格式 · 与 tokens.css 同源。品牌色 #2040ED 仅作点缀/强调。",
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+
+  "primitive": {
+    "color": {
+      "blue": {
+        "50":  { "$value": "#EEF1FE", "$type": "color" },
+        "100": { "$value": "#DCE3FD", "$type": "color" },
+        "200": { "$value": "#BAC6FB", "$type": "color" },
+        "300": { "$value": "#93A4F8", "$type": "color" },
+        "400": { "$value": "#5B75F5", "$type": "color", "$description": "暗色模式主用，对 #0E0E10 达 4.5:1" },
+        "500": { "$value": "#2040ED", "$type": "color", "$description": "品牌原色。白底 6.9:1；暗底仅 2.6:1，禁止用于暗色 UI" },
+        "600": { "$value": "#1A33C4", "$type": "color" },
+        "700": { "$value": "#14289B", "$type": "color" },
+        "800": { "$value": "#0F1E73", "$type": "color" },
+        "900": { "$value": "#0A144D", "$type": "color" }
+      },
+      "neutral": {
+        "0":   { "$value": "#FFFFFF", "$type": "color" },
+        "50":  { "$value": "#FAFAFB", "$type": "color" },
+        "100": { "$value": "#F4F4F6", "$type": "color" },
+        "200": { "$value": "#E8E8EC", "$type": "color" },
+        "300": { "$value": "#D4D4DA", "$type": "color" },
+        "400": { "$value": "#A8A8B3", "$type": "color" },
+        "450": { "$value": "#6B6B75", "$type": "color", "$description": "禁用态文字专用：对 #F4F4F6 达 4.8:1" },
+        "500": { "$value": "#74747F", "$type": "color" },
+        "600": { "$value": "#52525B", "$type": "color" },
+        "700": { "$value": "#3A3A42", "$type": "color" },
+        "800": { "$value": "#26262C", "$type": "color" },
+        "900": { "$value": "#17171A", "$type": "color" },
+        "950": { "$value": "#0E0E10", "$type": "color" }
+      },
+      "cyan": {
+        "400": { "$value": "#22D3EE", "$type": "color" },
+        "500": { "$value": "#06B6D4", "$type": "color" }
+      }
+    },
+    "font": {
+      "family": {
+        "sans": { "$value": "\"Geist\", \"MiSans\", \"PingFang SC\", \"HarmonyOS Sans SC\", \"Noto Sans SC\", system-ui, -apple-system, \"Segoe UI\", sans-serif", "$type": "fontFamily" },
+        "mono": { "$value": "\"Geist Mono\", \"JetBrains Mono\", ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace", "$type": "fontFamily" }
+      },
+      "size": {
+        "display": { "$value": "56px", "$type": "dimension" },
+        "h1":      { "$value": "40px", "$type": "dimension" },
+        "h2":      { "$value": "32px", "$type": "dimension" },
+        "h3":      { "$value": "24px", "$type": "dimension" },
+        "h4":      { "$value": "20px", "$type": "dimension" },
+        "body-lg": { "$value": "17px", "$type": "dimension" },
+        "body":    { "$value": "15px", "$type": "dimension" },
+        "body-sm": { "$value": "13px", "$type": "dimension" },
+        "caption": { "$value": "12px", "$type": "dimension" }
+      },
+      "lineHeight": {
+        "display": { "$value": "64px", "$type": "dimension" },
+        "h1":      { "$value": "48px", "$type": "dimension" },
+        "h2":      { "$value": "40px", "$type": "dimension" },
+        "h3":      { "$value": "32px", "$type": "dimension" },
+        "h4":      { "$value": "28px", "$type": "dimension" },
+        "body-lg": { "$value": "28px", "$type": "dimension" },
+        "body":    { "$value": "24px", "$type": "dimension" },
+        "body-sm": { "$value": "20px", "$type": "dimension" },
+        "caption": { "$value": "18px", "$type": "dimension" }
+      },
+      "weight": {
+        "regular":  { "$value": 400, "$type": "fontWeight" },
+        "medium":   { "$value": 500, "$type": "fontWeight" },
+        "semibold": { "$value": 600, "$type": "fontWeight" },
+        "bold":     { "$value": 700, "$type": "fontWeight" }
+      }
+    },
+    "space": {
+      "1":  { "$value": "4px",   "$type": "dimension" },
+      "2":  { "$value": "8px",   "$type": "dimension" },
+      "3":  { "$value": "12px",  "$type": "dimension" },
+      "4":  { "$value": "16px",  "$type": "dimension" },
+      "5":  { "$value": "24px",  "$type": "dimension" },
+      "6":  { "$value": "32px",  "$type": "dimension" },
+      "7":  { "$value": "48px",  "$type": "dimension" },
+      "8":  { "$value": "64px",  "$type": "dimension" },
+      "9":  { "$value": "96px",  "$type": "dimension" },
+      "10": { "$value": "128px", "$type": "dimension" }
+    },
+    "radius": {
+      "sm":   { "$value": "6px",    "$type": "dimension" },
+      "md":   { "$value": "8px",    "$type": "dimension" },
+      "lg":   { "$value": "12px",   "$type": "dimension" },
+      "xl":   { "$value": "16px",   "$type": "dimension" },
+      "2xl":  { "$value": "24px",   "$type": "dimension" },
+      "full": { "$value": "9999px", "$type": "dimension" }
+    },
+    "duration": {
+      "fast": { "$value": "150ms", "$type": "duration" },
+      "base": { "$value": "200ms", "$type": "duration" },
+      "slow": { "$value": "300ms", "$type": "duration" }
+    },
+    "easing": {
+      "standard": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)",  "$type": "cubicBezier", "$description": "苹果风：克制" },
+      "out":      { "$value": "cubic-bezier(0, 0, 0.2, 1)",    "$type": "cubicBezier" },
+      "accent":   { "$value": "cubic-bezier(0.16, 1, 0.3, 1)", "$type": "cubicBezier", "$description": "电竞感：爽快" }
+    },
+    "breakpoint": {
+      "sm": { "$value": "640px",  "$type": "dimension" },
+      "md": { "$value": "768px",  "$type": "dimension" },
+      "lg": { "$value": "1024px", "$type": "dimension" },
+      "xl": { "$value": "1440px", "$type": "dimension" }
+    }
+  },
+
+  "semantic": {
+    "light": {
+      "bg": {
+        "page":     { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
+        "surface":  { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
+        "raised":   { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
+        "subtle":   { "$value": "{primitive.color.neutral.50}",  "$type": "color" },
+        "muted":    { "$value": "{primitive.color.neutral.100}", "$type": "color" },
+        "disabled": { "$value": "{primitive.color.neutral.100}", "$type": "color" },
+        "inverse":  { "$value": "{primitive.color.neutral.900}", "$type": "color" }
+      },
+      "text": {
+        "primary":   { "$value": "{primitive.color.neutral.900}", "$type": "color" },
+        "secondary": { "$value": "{primitive.color.neutral.600}", "$type": "color", "$description": "对 #F4F4F6 达 7.0:1" },
+        "tertiary":  { "$value": "{primitive.color.neutral.450}", "$type": "color", "$description": "对 #F4F4F6 达 4.8:1 ✅ AA" },
+        "disabled":  { "$value": "{primitive.color.neutral.500}", "$type": "color", "$description": "禁用态豁免强制对比度，仅需可辨认" },
+        "inverse":   { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
+        "onAccent":  { "$value": "#FFFFFF",                       "$type": "color" },
+        "onDanger":  { "$value": "#FFFFFF",                       "$type": "color" }
+      },
+      "border": {
+        "default": { "$value": "{primitive.color.neutral.200}", "$type": "color" },
+        "subtle":  { "$value": "{primitive.color.neutral.100}", "$type": "color" },
+        "strong":  { "$value": "{primitive.color.neutral.300}", "$type": "color" }
+      },
+      "accent": {
+        "default": { "$value": "{primitive.color.blue.500}", "$type": "color", "$description": "前景用：文字、图标、边框、聚焦环" },
+        "hover":   { "$value": "{primitive.color.blue.600}", "$type": "color" },
+        "active":  { "$value": "{primitive.color.blue.700}", "$type": "color" },
+        "subtle":  { "$value": "{primitive.color.blue.50}",  "$type": "color" },
+        "text":    { "$value": "{primitive.color.blue.600}", "$type": "color" }
+      },
+      "solid": {
+        "$description": "填充态实色：专供「有色底 + 其上文字」。与前景色分开维护——填充底色必须更深，白字才达标",
+        "accent":       { "$value": "{primitive.color.blue.500}", "$type": "color", "$description": "白字 6.9:1 ✅" },
+        "accentHover":  { "$value": "{primitive.color.blue.600}", "$type": "color" },
+        "accentActive": { "$value": "{primitive.color.blue.700}", "$type": "color" },
+        "danger":       { "$value": "#DC2626", "$type": "color", "$description": "白字 4.8:1 ✅" },
+        "dangerHover":  { "$value": "#B91C1C", "$type": "color" }
+      },
+      "status": {
+        "success":       { "$value": "#16A34A", "$type": "color" },
+        "successBg":     { "$value": "#F0FDF4", "$type": "color" },
+        "successBorder": { "$value": "#BBF7D0", "$type": "color" },
+        "warning":       { "$value": "#D97706", "$type": "color" },
+        "warningBg":     { "$value": "#FFFBEB", "$type": "color" },
+        "warningBorder": { "$value": "#FDE68A", "$type": "color" },
+        "danger":        { "$value": "#DC2626", "$type": "color" },
+        "dangerBg":      { "$value": "#FEF2F2", "$type": "color" },
+        "dangerBorder":  { "$value": "#FECACA", "$type": "color" },
+        "info":          { "$value": "#0284C7", "$type": "color" },
+        "infoBg":        { "$value": "#F0F9FF", "$type": "color" },
+        "infoBorder":    { "$value": "#BAE6FD", "$type": "color" }
+      },
+      "data": {
+        "gradientFrom": { "$value": "{primitive.color.blue.500}", "$type": "color" },
+        "gradientTo":   { "$value": "{primitive.color.cyan.400}", "$type": "color" }
+      },
+      "shadow": {
+        "sm": { "$value": "0 1px 2px rgba(16,18,35,0.06)",   "$type": "shadow" },
+        "md": { "$value": "0 4px 12px rgba(16,18,35,0.08)",  "$type": "shadow" },
+        "lg": { "$value": "0 12px 32px rgba(16,18,35,0.12)", "$type": "shadow" },
+        "xl": { "$value": "0 24px 64px rgba(16,18,35,0.16)", "$type": "shadow" }
+      },
+      "focusRing": { "$value": "0 0 0 3px rgba(32,64,237,0.35)", "$type": "shadow" }
+    },
+
+    "dark": {
+      "bg": {
+        "page":     { "$value": "{primitive.color.neutral.950}", "$type": "color" },
+        "surface":  { "$value": "{primitive.color.neutral.900}", "$type": "color" },
+        "raised":   { "$value": "{primitive.color.neutral.700}", "$type": "color" },
+        "subtle":   { "$value": "{primitive.color.neutral.800}", "$type": "color" },
+        "muted":    { "$value": "{primitive.color.neutral.800}", "$type": "color" },
+        "disabled": { "$value": "{primitive.color.neutral.800}", "$type": "color" },
+        "inverse":  { "$value": "{primitive.color.neutral.50}",  "$type": "color" }
+      },
+      "text": {
+        "primary":   { "$value": "{primitive.color.neutral.50}",  "$type": "color" },
+        "secondary": { "$value": "{primitive.color.neutral.300}", "$type": "color", "$description": "对最亮面 #26262C 达 10.2:1" },
+        "tertiary":  { "$value": "{primitive.color.neutral.400}", "$type": "color", "$description": "对最亮面 #26262C 达 6.4:1 ✅ AA" },
+        "disabled":  { "$value": "{primitive.color.neutral.500}", "$type": "color", "$description": "禁用态豁免强制对比度，仅需可辨认" },
+        "inverse":   { "$value": "{primitive.color.neutral.900}", "$type": "color" },
+        "onAccent":  { "$value": "#FFFFFF",                       "$type": "color" },
+        "onDanger":  { "$value": "#FFFFFF",                       "$type": "color" }
+      },
+      "border": {
+        "default": { "$value": "{primitive.color.neutral.700}", "$type": "color" },
+        "subtle":  { "$value": "{primitive.color.neutral.800}", "$type": "color" },
+        "strong":  { "$value": "{primitive.color.neutral.600}", "$type": "color" }
+      },
+      "accent": {
+        "default": { "$value": "{primitive.color.blue.400}",        "$type": "color", "$description": "提亮版，解决原色在暗底 2.6:1 不达标的问题" },
+        "hover":   { "$value": "{primitive.color.blue.300}",        "$type": "color" },
+        "active":  { "$value": "{primitive.color.blue.200}",        "$type": "color" },
+        "subtle":  { "$value": "rgba(91,117,245,0.16)",             "$type": "color" },
+        "text":    { "$value": "{primitive.color.blue.300}",        "$type": "color" }
+      },
+      "solid": {
+        "$description": "暗色填充态：必须比前景色更深，白字才达标（前景 #5B75F5 作填充时白字仅 3.96:1）",
+        "accent":       { "$value": "#4A63F2", "$type": "color", "$description": "白字 4.8:1 ✅" },
+        "accentHover":  { "$value": "{primitive.color.blue.400}", "$type": "color" },
+        "accentActive": { "$value": "#6E85F7", "$type": "color" },
+        "danger":       { "$value": "#DC2626", "$type": "color", "$description": "白字 4.8:1 ✅" },
+        "dangerHover":  { "$value": "#B91C1C", "$type": "color" }
+      },
+      "status": {
+        "success":       { "$value": "#34D399", "$type": "color" },
+        "successBg":     { "$value": "rgba(52,211,153,0.12)",  "$type": "color" },
+        "successBorder": { "$value": "rgba(52,211,153,0.30)",  "$type": "color" },
+        "warning":       { "$value": "#FBBF24", "$type": "color" },
+        "warningBg":     { "$value": "rgba(251,191,36,0.12)",  "$type": "color" },
+        "warningBorder": { "$value": "rgba(251,191,36,0.30)",  "$type": "color" },
+        "danger":        { "$value": "#F87171", "$type": "color" },
+        "dangerBg":      { "$value": "rgba(248,113,113,0.12)", "$type": "color" },
+        "dangerBorder":  { "$value": "rgba(248,113,113,0.30)", "$type": "color" },
+        "info":          { "$value": "#38BDF8", "$type": "color" },
+        "infoBg":        { "$value": "rgba(56,189,248,0.12)",  "$type": "color" },
+        "infoBorder":    { "$value": "rgba(56,189,248,0.30)",  "$type": "color" }
+      },
+      "data": {
+        "gradientFrom": { "$value": "{primitive.color.blue.400}", "$type": "color" },
+        "gradientTo":   { "$value": "{primitive.color.cyan.400}", "$type": "color" }
+      },
+      "shadow": {
+        "sm":         { "$value": "0 1px 2px rgba(0,0,0,0.40)",   "$type": "shadow" },
+        "md":         { "$value": "0 4px 12px rgba(0,0,0,0.50)",  "$type": "shadow" },
+        "lg":         { "$value": "0 12px 32px rgba(0,0,0,0.60)", "$type": "shadow" },
+        "xl":         { "$value": "0 24px 64px rgba(0,0,0,0.70)", "$type": "shadow" },
+        "glowAccent": { "$value": "0 0 24px rgba(91,117,245,0.35)", "$type": "shadow", "$description": "电竞感：仅用于产品展示区与榜单区" }
+      },
+      "focusRing": { "$value": "0 0 0 3px rgba(91,117,245,0.45)", "$type": "shadow" }
+    }
+  }
+}

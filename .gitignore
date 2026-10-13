@@ -1,0 +1,25 @@
+# 依赖与构建产物
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 运行时数据（可由种子重建，不入库）
+gh-server/data/
+gh-server/*.sqlite
+gh-server/*.sqlite-*
+
+# 本地临时/上传/截图/预览
+.uploads/
+.screenshots/
+.tmp/
+.bin/
+.csb-site/
+.trae-html-share-packages/
+.publish-live.mjs
+.verify*.mjs
+
+# 编辑器与系统
+.DS_Store
+*.log
+.env
+.env.*
