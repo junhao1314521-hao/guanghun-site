@@ -1,0 +1,18 @@
+# 依赖与构建产物（镜像内自行安装/构建）
+**/node_modules
+**/dist
+
+# 运行时数据（种子可重建，不入镜像）
+gh-server/data
+
+# 仓库内的文档与本地杂物
+.git
+.gitignore
+.screenshots
+.uploads
+.bin
+.tmp
+.csb-site
+.csb-live
+.trae-html-share-packages
+*.md

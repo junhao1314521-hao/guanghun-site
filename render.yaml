@@ -1,0 +1,18 @@
+# Render 蓝图：从 GitHub 仓库一键部署「光魂官网」（前端 + API 同源）
+# 用法：Render → New → Blueprint → 选择本仓库 → Apply
+services:
+  - type: web
+    name: guanghun-site
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # 前端产物由 Express 同源托管（Dockerfile 内已构建）
+      - key: STATIC_DIR
+        value: /app/gh-web/dist
+      # 说明：后台「免登录」由 Vite 在**构建期**内联（默认开启）。
+      # 上线前关闭方式：把 Dockerfile 里的构建行改为
+      #   RUN VITE_API_BASE= VITE_ADMIN_AUTO_LOGIN=off npm --prefix gh-web run build
+      # 然后重新部署即可（运行时环境变量对它无效）。
