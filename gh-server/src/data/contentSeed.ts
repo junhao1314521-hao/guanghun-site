@@ -148,7 +148,7 @@ function buildHome(): Page {
         alternate: true,
         items: home.FEATURED_PRODUCTS.slice(0, 3).map((product) => ({
           productId: product.id,
-          media: `/media/products/${product.id}.svg`,
+          media: `/media/home/showcase/${product.id}.jpg`,
           mediaType: 'image',
           eyebrow: product.tag ? `${product.model} · ${product.tag}` : product.model,
           title: product.name,
