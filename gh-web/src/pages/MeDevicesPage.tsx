@@ -88,7 +88,7 @@ export function MeDevicesPage() {
                 className="input"
                 id="deviceModel"
                 value={model}
-                placeholder="GH-M900 PRO"
+                placeholder="54027X1QE-W54"
                 onChange={(event) => setModel(event.target.value)}
               />
             </div>

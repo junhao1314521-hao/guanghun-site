@@ -322,8 +322,8 @@ function defaultDevices(profile: UserProfile): AccountDevice[] {
   const suffix = profile.username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'MEMBER'
   return [
     {
-      model: 'GH-M900 PRO',
-      sn: `GH-M900-DEMO-${suffix}`,
+      model: '54027X1QE-W54',
+      sn: `54027X1QE-DEMO-${suffix}`,
       status: 'success',
       statusText: '在保',
       warranty: '365 天',

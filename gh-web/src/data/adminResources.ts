@@ -163,7 +163,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '产品名称', type: 'text', span: 2, required: true, hint: '对外展示的完整名称' },
-          { key: 'model', label: '型号', type: 'text', placeholder: 'GH-M900 PRO' },
+          { key: 'model', label: '型号', type: 'text', placeholder: '54027X1QE-W54' },
           { key: 'category', label: '分类', type: 'select', options: ['OLED旗舰', '双模高刷', '电竞IPS', '周边'] },
           { key: 'connection', label: '接口', type: 'select', options: ['DP 2.1', 'HDMI 2.1', 'USB-C'] },
           { key: 'variant', label: '设备形态', type: 'select', options: ['monitor', 'mouse', 'keyboard', 'headset', 'pad'] },
@@ -172,26 +172,26 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'price', label: '价格', type: 'text', placeholder: '¥899' },
           { key: 'priceValue', label: '价格数值（元）', type: 'number', hint: '用于排序与价格区间筛选' },
           { key: 'releasedAt', label: '上新时间', type: 'date' },
-          { key: 'tagline', label: '一句话卖点', type: 'text', span: 2, hint: '详情页标题下方展示，如：26,000 DPI · 58 g 轻量' },
+          { key: 'tagline', label: '一句话卖点', type: 'text', span: 2, hint: '详情页标题下方展示，如：2K 540Hz · 0.03ms GTG' },
           { key: 'stock', label: '库存数量', type: 'number', hint: '数值，0 视为缺货；留空则不展示' },
         ],
       },
       {
         title: '参数',
         fields: [
-          { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '每行一项，如：26,000 DPI' },
+          { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '每行一项，如：26.5 英寸 2K 540Hz' },
         ],
       },
       {
         title: '详情信息（前台展示）',
         fields: [
-          { key: 'features', label: '产品亮点', type: 'list', span: 2, hint: '每行一项，如：58 g 超轻量机身' },
+          { key: 'features', label: '产品亮点', type: 'list', span: 2, hint: '每行一项，如：满速 DP 2.1 · 80Gbps' },
           {
             key: 'attributes',
             label: '结构化参数',
             type: 'records',
             span: 2,
-            hint: '按「参数名 + 取值」逐项维护（传感器 / 回报率 / 按键数等）；可增删改与上下移动',
+            hint: '按「参数名 + 取值」逐项维护（面板 / 分辨率 / 刷新率 / 接口等）；可增删改与上下移动',
             recordFields: [
               { key: 'label', label: '参数名', type: 'text' },
               { key: 'value', label: '取值', type: 'text' },
@@ -200,7 +200,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'os', label: '兼容系统', type: 'list', span: 2, hint: '每行一项，如：Windows 10 / 11' },
           { key: 'weight', label: '整机重量（克）', type: 'number' },
           { key: 'warranty', label: '保修政策', type: 'text', span: 2 },
-          { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：鼠标 × 1' },
+          { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：显示器 × 1、电源线 × 1' },
         ],
       },
     ],
@@ -256,7 +256,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     ],
     filters: [
       { key: 'status', label: '状态', options: ['已发布', '审核中', '草稿'] },
-      { key: 'metric', label: '指标', options: ['端到端延迟', '续航', '重量', '回报率'] },
+      { key: 'metric', label: '指标', options: ['综合', '色准', '峰值亮度', '响应时间'] },
     ],
     form: [
       {
@@ -264,7 +264,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'title', label: '测试标题', type: 'text', span: 2, required: true },
           { key: 'product', label: '产品', type: 'text' },
-          { key: 'metric', label: '指标', type: 'select', options: ['端到端延迟', '续航', '重量', '回报率'] },
+          { key: 'metric', label: '指标', type: 'select', options: ['综合', '色准', '峰值亮度', '响应时间'] },
           { key: 'value', label: '实测值', type: 'text' },
           { key: 'method', label: '测试方法', type: 'select', options: ['示波器采样', '高速相机', '电子秤', '综合评估'] },
           { key: 'status', label: '状态', type: 'select', options: ['已发布', '审核中', '草稿'] },
@@ -458,7 +458,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'date', label: '更新时间', type: 'date' },
     ],
     filters: [
-      { key: 'category', label: '分类', options: ['软件', '鼠标', '键盘', '耳机', '配件'] },
+      { key: 'category', label: '分类', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
       { key: 'type', label: '类型', options: ['driver', 'firmware', 'manual', 'tool'] },
     ],
     form: [
@@ -467,14 +467,14 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '资源名称', type: 'text', span: 2, required: true },
-          { key: 'category', label: '分类', type: 'select', options: ['软件', '鼠标', '键盘', '耳机', '配件'] },
+          { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
           { key: 'type', label: '类型', type: 'select', options: ['driver', 'firmware', 'manual', 'tool'] },
           { key: 'version', label: '版本', type: 'text' },
           { key: 'size', label: '文件大小', type: 'text' },
           { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows 10 / 11' },
           { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '上传或从素材库选择可下载文件（pdf / zip / 图片 / txt / md）；前台下载按钮指向该地址' },
           { key: 'date', label: '更新时间', type: 'date' },
-          { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一项，如：GH-M900 PRO' },
+          { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一项，如：54027X1QE-W54' },
           { key: 'note', label: '说明', type: 'textarea', span: 2 },
         ],
       },
@@ -741,7 +741,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'name', label: '称呼', type: 'text' },
           { key: 'topic', label: '主题分类', type: 'text', placeholder: '产品咨询 / 保修与售后 / 预约到店 …' },
           { key: 'contact', label: '联系方式', type: 'text', placeholder: '邮箱 / 手机号' },
-          { key: 'model', label: '型号', type: 'text', placeholder: 'GH-M900 PRO' },
+          { key: 'model', label: '型号', type: 'text', placeholder: '54027X1QE-W54' },
           { key: 'message', label: '问题描述', type: 'textarea', span: 2 },
           { key: 'tag', label: '状态文案', type: 'text', placeholder: '处理中 / 已解决 …' },
           { key: 'date', label: '日期', type: 'date' },
@@ -907,14 +907,14 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'faqs', label: '问答', type: 'records' },
       { key: 'guides', label: '指南', type: 'records' },
     ],
-    filters: [{ key: 'line', label: '产品线', options: ['鼠标', '键盘', '耳机', '配件'] }],
+    filters: [{ key: 'line', label: '产品线', options: ['OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] }],
     form: [
       {
         title: '型号信息',
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'model', label: '型号', type: 'text', required: true },
-          { key: 'line', label: '产品线', type: 'text', placeholder: '鼠标 / 键盘 / 耳机 / 配件' },
+          { key: 'line', label: '产品线', type: 'text', placeholder: 'OLED 旗舰 / 双模高刷 / 电竞 IPS / 周边' },
           { key: 'summary', label: '摘要', type: 'textarea', span: 2 },
         ],
       },
@@ -929,7 +929,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             hint: '该型号可用的驱动、固件、说明书与工具；可增删改与上下移动',
             recordFields: [
               { key: 'name', label: '名称', type: 'text' },
-              { key: 'category', label: '分类', type: 'select', options: ['软件', '鼠标', '键盘', '耳机', '配件'] },
+              { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
               { key: 'type', label: '类型', type: 'select', options: ['driver', 'firmware', 'manual', 'tool'] },
               { key: 'models', label: '适用型号', type: 'list' },
               { key: 'version', label: '版本', type: 'text' },

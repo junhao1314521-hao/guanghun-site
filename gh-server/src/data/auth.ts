@@ -56,7 +56,7 @@ const INQUIRY_CONTACTS: string[] = [
 ]
 
 /** 与 ACCOUNT_TICKETS 顺序一一对应的型号（占位） */
-const INQUIRY_MODELS_LIST: string[] = ['GH-M900 PRO', 'GH-M900 PRO', 'GH-K870', 'GH-H500']
+const INQUIRY_MODELS_LIST: string[] = ['54027X1QE-W54', '54027X1QE-W54', '32X1UE-W16', '27Q1F']
 
 /** 与 ACCOUNT_TICKETS 顺序一一对应的问题描述（占位） */
 const INQUIRY_MESSAGES: string[] = [
@@ -104,10 +104,10 @@ export type InquiryDetail = {
 
 /** 各工单对应的产品型号 */
 const INQUIRY_MODELS: Record<string, string> = {
-  'inq-2026-0008': 'GH-M900 PRO',
-  'inq-2026-0007': 'GH-M900 PRO',
-  'inq-2026-0006': 'GH-K870',
-  'inq-2026-0005': 'GH-H500',
+  'inq-2026-0008': '54027X1QE-W54',
+  'inq-2026-0007': '54027X1QE-W54',
+  'inq-2026-0006': '32X1UE-W16',
+  'inq-2026-0005': '27Q1F',
 }
 
 /** 按摘要生成占位时间线：三类条目齐备，用于演示客户侧的可见性过滤 */

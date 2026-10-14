@@ -27,7 +27,7 @@ export const OVERVIEW_STATS: AccountStat[] = [
 ]
 
 // 显式放宽为 string：契约 §5.1 #7 采纳「值可变」口径
-export const OVERVIEW_ALERT: string = '咨询「GH-M900 PRO 无线连接偶发断连」状态更新为「等待补充」，请在 7 天内回复。'
+export const OVERVIEW_ALERT: string = '咨询「54027X1QE-W54 OLED 屏体亮点检测」状态更新为「等待补充」，请在 7 天内回复。'
 
 /** 我的设备 */
 export type AccountDevice = {
@@ -41,19 +41,19 @@ export type AccountDevice = {
 }
 
 export const ACCOUNT_DEVICES: AccountDevice[] = [
-  { model: 'GH-M900 PRO', sn: 'GH-M900-2026-000128', status: 'success', statusText: '在保', warranty: '640 天', action: { label: '申请售后', variant: 'secondary', to: '/inquiry' } },
-  { model: 'GH-K870', sn: 'GH-K870-2025-004512', status: 'success', statusText: '在保', warranty: '210 天', action: { label: '申请售后', variant: 'secondary', to: '/inquiry' } },
-  { model: 'GH-H500', sn: '未验证', status: 'muted', statusText: '未验证', warranty: '暂无', action: { label: '去验证', variant: 'ghost' } },
+  { model: '54027X1QE-W54', sn: '54027X1QE-2026-000128', status: 'success', statusText: '在保', warranty: '640 天', action: { label: '申请售后', variant: 'secondary', to: '/inquiry' } },
+  { model: '32X1UE-W16', sn: '32X1UE-2025-004512', status: 'success', statusText: '在保', warranty: '210 天', action: { label: '申请售后', variant: 'secondary', to: '/inquiry' } },
+  { model: '27Q1F', sn: '未验证', status: 'muted', statusText: '未验证', warranty: '暂无', action: { label: '去验证', variant: 'ghost' } },
 ]
 
 /** 我的咨询 */
 export type AccountTicket = { date: string; tag: string; accent?: boolean; title: string }
 
 export const ACCOUNT_TICKETS: AccountTicket[] = [
-  { date: '2026-10-08', tag: '处理中', accent: true, title: 'GH-M900 PRO 无线连接偶发断连' },
+  { date: '2026-10-08', tag: '处理中', accent: true, title: '54027X1QE-W54 OLED 屏体亮点检测' },
   { date: '2026-09-30', tag: '等待补充', title: '提交保修凭证以继续处理' },
-  { date: '2026-09-21', tag: '已解决', title: '驱动更新后侧键宏失效' },
-  { date: '2026-09-12', tag: '已关闭', title: '咨询是否支持 Linux 系统' },
+  { date: '2026-09-21', tag: '已解决', title: '固件更新后 HDR 峰值亮度异常' },
+  { date: '2026-09-12', tag: '已关闭', title: '咨询是否支持 Mac 色彩配置' },
 ]
 
 /** 收藏与订阅 */

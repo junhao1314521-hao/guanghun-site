@@ -118,7 +118,7 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
               className={`input${errors.model ? ' input--error' : ''}`}
               id="inq-model"
               name="model"
-              placeholder="例如 GH-M900 PRO"
+              placeholder="例如 54027X1QE-W54"
               value={form.model}
               aria-invalid={Boolean(errors.model)}
               onChange={(event) => update('model', event.target.value)}

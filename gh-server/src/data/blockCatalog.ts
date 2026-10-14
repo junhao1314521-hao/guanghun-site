@@ -530,7 +530,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'alternate', label: '图文左右交替', kind: 'switch' },
     ],
     listFields: [
-      { name: 'productId', label: '关联产品 ID', kind: 'text', placeholder: '可选，如 gh-m900-pro' },
+      { name: 'productId', label: '关联产品 ID', kind: 'text', placeholder: '可选，如 gh-54027x1qe' },
       { name: 'media', label: '媒体（图/视频/GIF）', kind: 'image' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
       { name: 'eyebrow', label: '眉题', kind: 'text' },
