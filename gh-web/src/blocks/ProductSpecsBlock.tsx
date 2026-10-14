@@ -10,19 +10,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useProductDetail } from './ProductDetailContext'
+import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
 
 export function ProductSpecsBlock({ props }: { props: Record<string, unknown> }) {
+  const { t } = useI18n()
   const detail = useProductDetail()
   const [tab, setTab] = useState(0)
 
   if (!detail) return null
 
-  const title = asString(props.title, '参数规格')
+  const title = asString(props.title, t('blocks.pd.specTitle'))
   const showTabs = props.showTabs === undefined ? true : asBool(props.showTabs)
   const showGuides = props.showGuides === undefined ? true : asBool(props.showGuides)
-  const downloadLabel = asString(props.guideDownloadLabel, '前往下载中心')
-  const contactLabel = asString(props.guideContactLabel, '提交咨询')
+  const downloadLabel = asString(props.guideDownloadLabel, t('blocks.pd.goDownload'))
+  const contactLabel = asString(props.guideContactLabel, t('blocks.pd.submitTicket'))
 
   return (
     <div>
@@ -55,10 +57,10 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
               <table className="table">
                 <thead>
                   <tr>
-                    <th style={{ width: '30%' }}>参数</th>
-                    <th>标称值</th>
-                    <th>实测值</th>
-                    <th>备注</th>
+                    <th style={{ width: '30%' }}>{t('blocks.pd.colParam')}</th>
+                    <th>{t('blocks.pd.colNominal')}</th>
+                    <th>{t('blocks.pd.colMeasured')}</th>
+                    <th>{t('blocks.pd.colNote')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -76,12 +78,10 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
           </>
         ) : (
           <div className="empty">
-            <h2 className="empty__title">{detail.tabs[tab]} 暂无内容</h2>
-            <p className="empty__desc">
-              {detail.tabs[tab]}将在上线后随测试与内容排期补充；如需相关数据，可提交咨询由咨询师提供。
-            </p>
+            <h2 className="empty__title">{t('blocks.pd.tabEmptyTitle', { tab: detail.tabs[tab] ?? '' })}</h2>
+            <p className="empty__desc">{t('blocks.pd.tabEmptyDesc', { tab: detail.tabs[tab] ?? '' })}</p>
             <Link className="btn btn--secondary btn--sm" to="/support#contact">
-              提交咨询
+              {t('blocks.pd.submitTicket')}
             </Link>
           </div>
         )}
@@ -89,15 +89,15 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
         {showGuides && (
           <div className="row" style={{ marginTop: 'var(--gh-space-5)', gap: 'var(--gh-space-4)', alignItems: 'stretch' }}>
             <div className="card" style={{ flex: 1, minWidth: 260 }}>
-              <h3 className="card__title">下载资料</h3>
-              <p className="card__desc">驱动、说明书与固件均在此获取，标注适用型号与版本。</p>
+              <h3 className="card__title">{t('blocks.pd.guideDownloads')}</h3>
+              <p className="card__desc">{t('blocks.pd.guideDownloadsDesc')}</p>
               <Link className="btn btn--secondary btn--sm" to="/support#downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {downloadLabel}
               </Link>
             </div>
             <div className="card" style={{ flex: 1, minWidth: 260 }}>
-              <h3 className="card__title">需要帮助？</h3>
-              <p className="card__desc">对参数或适配有疑问，可提交咨询，由咨询师跟进。</p>
+              <h3 className="card__title">{t('blocks.pd.guideHelp')}</h3>
+              <p className="card__desc">{t('blocks.pd.guideHelpDesc')}</p>
               <Link className="btn btn--primary btn--sm" to="/support#contact" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {contactLabel}
               </Link>

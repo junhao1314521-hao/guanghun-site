@@ -790,6 +790,138 @@ function buildInquiryEn(): Page {
   ])
 }
 
+/* ============================================================
+   明细页模板（英文变体）
+   与中文模板一一对应：相同的区块类型与顺序，仅译可见文案。
+   必要性：模板页若缺英文变体，英文端会回退到中文模板，导致明细页出现中文标签。
+   ============================================================ */
+
+function buildTemplatesEn(): Page[] {
+  return [
+    toPage(
+      'template-product',
+      '/products/:id',
+      'Product detail template',
+      'Product detail area (one shared template for all products; data comes from the product collection).',
+      [
+        {
+          type: 'productHero',
+          props: {
+            primaryLabel: 'Add to compare',
+            primaryHref: '/compare',
+            secondaryLabel: 'Talk to a specialist',
+            secondaryHref: '/support#contact',
+            showBadges: true,
+            showPrice: true,
+            showSummary: true,
+          },
+        },
+        {
+          type: 'productSpecs',
+          props: {
+            title: 'Specifications',
+            showTabs: true,
+            showGuides: true,
+            guideDownloadLabel: 'Go to downloads',
+            guideContactLabel: 'Submit a ticket',
+          },
+        },
+        {
+          type: 'productBuy',
+          props: {
+            title: 'Ready to buy?',
+            subtitle: 'Read the specs first — no rush.',
+            primaryLabel: 'Add to compare',
+            primaryHref: '/compare',
+            secondaryLabel: 'Talk to a specialist',
+            secondaryHref: '/support#contact',
+            points: [
+              'Nationwide warranty per official policy',
+              '7-day returns (unused, original packaging)',
+              'Public params and methods; reproducible results',
+            ],
+          },
+        },
+        {
+          type: 'productGrid',
+          props: {
+            title: 'Related products',
+            subtitle: 'Same category, comparable models.',
+            ctaLabel: 'Browse all products',
+            ctaHref: '/products',
+            source: 'featured',
+            limit: 4,
+            columns: 4,
+          },
+        },
+        {
+          type: 'articleList',
+          props: {
+            title: 'Related reviews',
+            subtitle: 'The full process behind the numbers.',
+            ctaLabel: 'View all reviews',
+            ctaHref: '/articles',
+            source: 'review',
+            limit: 3,
+          },
+        },
+      ],
+    ),
+    toPage('template-series', '/products/series/:slug', 'Product series template', 'Product series area.', [
+      { type: 'text', props: { title: 'Product series', body: 'Browse products by series.', align: 'left' } },
+      { type: 'productGrid', props: { title: 'Series products', source: 'series', seriesId: '', limit: 12, columns: 3 } },
+    ]),
+    toPage('template-compare', '/compare', 'Compare template', 'Compare area.', [
+      {
+        type: 'text',
+        props: { title: 'Compare products', body: 'Pick up to 4 products of the same category and compare their specs.', align: 'left' },
+      },
+      { type: 'productGrid', props: { title: 'Selectable products', source: 'all', limit: 8, columns: 4 } },
+    ]),
+    toPage('template-article', '/articles/:id', 'Article detail template', 'Article detail area.', [
+      { type: 'articleList', props: { title: 'Related reading', source: 'all', limit: 3 } },
+    ]),
+    toPage('template-download', '/downloads/:id', 'Download detail template', 'Download detail area.', [
+      { type: 'downloadList', props: { title: 'Related downloads', category: 'all', limit: 4 } },
+    ]),
+    toPage('template-faq', '/faq/:id', 'FAQ detail template', 'FAQ detail area.', [
+      { type: 'faqList', props: { title: 'Related FAQ', source: 'support', limit: 4 } },
+    ]),
+    toPage('template-case', '/business/cases/:id', 'Case study template', 'Case study area.', [
+      { type: 'text', props: { title: 'About this case', body: 'Case details are subject to the official final announcement.', align: 'left' } },
+      {
+        type: 'cards',
+        props: {
+          title: 'More cases',
+          columns: 3,
+          items: [
+            { image: '/media/business/case-team.svg', tag: 'Esports', title: 'Team sponsorship', desc: 'Multi-year gear supply', href: '/business/cases/case-team' },
+            { image: '/media/business/case-store.svg', tag: 'Retail', title: 'Flagship store', desc: 'Shenzhen Nanshan', href: '/business/cases/case-store' },
+            { image: '/media/business/case-press.svg', tag: 'Press', title: 'Editorial review', desc: 'Independent teardown', href: '/business/cases/case-press' },
+          ],
+        },
+      },
+    ]),
+    toPage('template-venue', '/business/venues/:id', 'Venue template', 'Venue area.', [
+      {
+        type: 'cards',
+        props: {
+          title: 'More venues',
+          columns: 3,
+          items: [
+            { image: '/media/business/venue-sz.svg', tag: 'Open', title: 'Guanghun Shenzhen', desc: 'Nanshan · Coastal City · L2', href: '/business/venues/venue-sz' },
+            { image: '/media/business/venue-sh.svg', tag: 'Open', title: 'Guanghun Shanghai', desc: 'Pudong · IFC · L3', href: '/business/venues/venue-sh' },
+            { image: '/media/business/venue-cd.svg', tag: 'Coming soon', title: 'Guanghun Chengdu', desc: 'Yulin · ITO · B1', href: '/business/venues/venue-cd' },
+          ],
+        },
+      },
+    ]),
+    toPage('template-model', '/support/model/:id', 'Model support template', 'Model support area.', [
+      { type: 'faqList', props: { title: 'FAQ', source: 'support', limit: 4 } },
+    ]),
+  ]
+}
+
 /** 构建英文 seed：全部主要页面英文变体（key 追加 `__en`） */
 export function buildSeedEn(): Page[] {
   return [
@@ -809,5 +941,6 @@ export function buildSeedEn(): Page[] {
     buildDownloadsEn(),
     buildFaqEn(),
     buildInquiryEn(),
+    ...buildTemplatesEn(),
   ]
 }

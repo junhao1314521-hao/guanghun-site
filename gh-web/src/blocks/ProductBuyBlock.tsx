@@ -6,14 +6,8 @@
  */
 import { Link } from 'react-router-dom'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { useI18n } from '../i18n'
 import { asString, asStringArray } from './blockUtils'
-
-/** 默认保障要点（留空时使用） */
-const DEFAULT_POINTS = [
-  '全国联保 · 以官方保修政策为准',
-  '7 天无理由退换（不影响二次销售）',
-  '参数公开、方法公开，结论可复现',
-]
 
 function CtaButton({ label, href, primary }: { label: string; href: string; primary: boolean }) {
   if (!label) return null
@@ -30,8 +24,11 @@ function CtaButton({ label, href, primary }: { label: string; href: string; prim
 }
 
 export function ProductBuyBlock({ props }: { props: Record<string, unknown> }) {
+  const { t } = useI18n()
   const points = asStringArray(props.points)
-  const list = points.length ? points : DEFAULT_POINTS
+  const list = points.length
+    ? points
+    : [t('blocks.pd.point1'), t('blocks.pd.point2'), t('blocks.pd.point3')]
 
   return (
     <div>

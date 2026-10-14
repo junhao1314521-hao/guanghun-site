@@ -13,11 +13,13 @@ import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
 import { MediaImg } from '../components/ui/MediaImg'
 import { useProductDetail } from './ProductDetailContext'
+import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
 
 const VIEW_COUNT = 4
 
 export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) {
+  const { t } = useI18n()
   const detail = useProductDetail()
   const [thumb, setThumb] = useState(0)
 
@@ -30,9 +32,9 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const showPrice = props.showPrice === undefined ? true : asBool(props.showPrice)
   const showSummary = props.showSummary === undefined ? true : asBool(props.showSummary)
 
-  const primaryLabel = asString(props.primaryLabel, '加入对比')
+  const primaryLabel = asString(props.primaryLabel, t('blocks.pd.defaultPrimary'))
   const primaryHref = asString(props.primaryHref, '/compare')
-  const secondaryLabel = asString(props.secondaryLabel, '咨询咨询师')
+  const secondaryLabel = asString(props.secondaryLabel, t('blocks.pd.defaultSecondary'))
   const secondaryHref = asString(props.secondaryHref, '/support#contact')
 
   return (
@@ -61,7 +63,7 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
               key={index}
               type="button"
               className={`thumb${index === thumb ? ' is-active' : ''}`}
-              aria-label={`视图 ${index + 1}`}
+              aria-label={t('blocks.pd.view', { n: index + 1 })}
               aria-pressed={index === thumb}
               onClick={() => setThumb(index)}
             >
@@ -100,7 +102,7 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                 fontWeight: 'var(--gh-weight-regular)',
               }}
             >
-              参考价
+              {t('blocks.pd.refPrice')}
             </small>
           </div>
         )}
@@ -151,7 +153,7 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                 color: 'var(--color-text-tertiary)',
               }}
             >
-              缺失与零值含义不同：「未测量」表示尚未完成该测试，不代表零值表现。
+              {t('blocks.pd.missingNote')}
             </p>
           </>
         )}
