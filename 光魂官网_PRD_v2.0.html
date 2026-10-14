@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>光魂官网 · PRD v2.0</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#16181d; --muted:#6b7280; --line:#e6e8ec;
+    --brand:#2040ed; --soft:#f6f7f9; --ok:#0f9d58; --warn:#b45309;
+    --radius:10px; --sans:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.7;font-size:15px}
+  .wrap{max-width:900px;margin:0 auto;padding:56px 24px 96px}
+  header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--brand);font-weight:600}
+  h1{font-size:30px;letter-spacing:-.02em;margin:8px 0 12px}
+  .meta{color:var(--muted);font-size:13px}
+  .meta b{color:var(--fg)}
+  h2{font-size:19px;margin:40px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+  h3{font-size:15px;margin:22px 0 8px;color:var(--fg)}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0 8px 22px;padding:0}
+  li{margin:4px 0}
+  code{font-family:var(--mono);font-size:13px;background:var(--soft);padding:1px 5px;border-radius:5px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:600}
+  .pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .pill--ok{border-color:color-mix(in srgb,var(--ok) 40%,transparent);color:var(--ok)}
+  .pill--plan{border-color:color-mix(in srgb,var(--warn) 40%,transparent);color:var(--warn)}
+  .card{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;background:var(--soft);margin:12px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">PRODUCT REQUIREMENTS DOCUMENT</div>
+    <h1>光魂官网 · PRD v2.0</h1>
+    <div class="meta">
+      版本 <b>v2.0</b> · 状态 <span class="pill pill--ok">第一批已实现并发布</span> · 日期 <b>2026-10-14</b> · 代码库标签 <code>v2.0</code><br />
+      关联文档：<code>光魂官网_改版需求汇总_v2.md</code>
+    </div>
+  </header>
+
+  <section>
+    <h2>1 · 背景与目标</h2>
+    <p>品牌口径统一为 <b>光魂（光魂科技 / 小雪人数码，SUPER DISPLAY CO）</b>，内容以 <b>显示器为主 + 少量周边</b>；实测口径为 <b>小雪人评测实验室</b>（标注来源 / 样本量 / 方法版本）。</p>
+    <p>目标：先把「体验细节、视觉规范、SEO 与后台可用性」打底，为后续逐模块大改造（v2.1）铺路；前后台一一对齐。</p>
+  </section>
+
+  <section>
+    <h2>2 · v2.0 已实现</h2>
+
+    <h3>2.1 UI 规范</h3>
+    <table>
+      <tr><th>项</th><th>说明</th></tr>
+      <tr><td>圆角收敛</td><td>令牌 <code>--gh-radius-{sm,md,lg,xl,2xl}</code> 调整为 <code>4/6/8/10/14</code></td></tr>
+      <tr><td>区块标题图标</td><td><code>SectionHead</code> 支持 <code>icon</code>；新增 <code>BlockIcon</code>；首页各区块标题配图标</td></tr>
+      <tr><td>媒体槽规则</td><td>有素材显示素材；无素材以 <b>代码渐变</b>兜底（<code>CodeMedia</code>）；<b>首屏第一张海报为特例</b>，固定 canvas 代码动画（<code>CodeBackdrop</code>）</td></tr>
+    </table>
+
+    <h3>2.2 导航与顶栏</h3>
+    <ul>
+      <li>一级项改名：<code>Center 软件 → 光魂 Center</code>；<code>文章 → 评测与资讯</code>。</li>
+      <li>角标支持<b>自定义文案</b>（<code>SiteLink.badgeText</code>），后台「站点配置」可填。</li>
+    </ul>
+
+    <h3>2.3 页脚</h3>
+    <ul>
+      <li>新增<b>社交关注</b>（微信 / 微博 / B 站 / 抖音）。</li>
+      <li>二维码改为<b>视觉仿真</b>（定位角 + 定时图案 + 伪随机模块）。</li>
+    </ul>
+
+    <h3>2.4 首页</h3>
+    <ul>
+      <li>顺序：<b>重点产品提到「按场景选择」之前</b>。</li>
+      <li>标题与图标：<b>实测天梯榜 / 评测与解析 / 服务与支持 / 体验与合作</b>。</li>
+      <li>「按场景选择」卡片链接改为 <code>/products?scene=xxx</code>。</li>
+      <li>「评测与解析」限定内容类（不含新闻）；服务四卡分别指向 support / downloads / faq / contact；体验点卡补链接。</li>
+    </ul>
+
+    <h3>2.5 产品 / Center</h3>
+    <ul>
+      <li>详情主 CTA 改为 <b>预约体验</b>，次 CTA「加入对比」；<code>咨询咨询师 → 在线顾问</code>。</li>
+      <li>Center 页文案改显示器语境；「立即下载」指向 <code>/downloads</code>。</li>
+    </ul>
+
+    <h3>2.6 SEO</h3>
+    <p>新增 <code>scripts/gen-seo.ts</code>：由 <code>meta.ts</code> 真源<b>生成</b> <code>sitemap.xml</code> / <code>robots.txt</code>，<code>npm run gen:seo</code> 一键同步。Product / FAQ 结构化数据列入 v2.1。</p>
+
+    <h3>2.7 后台</h3>
+    <p><b>新手指导扩到 8 步</b>：导航 → 页面装修 → 产品维护 → 素材上传 → 咨询工单 → 样式与模板 → 站点配置 → 发布回滚；每步可一键跳转。</p>
+  </section>
+
+  <section>
+    <h2>3 · 未实现（v2.1 计划） <span class="pill pill--plan">计划</span></h2>
+    <ol>
+      <li><b>重点产品重构</b>（方案二优化版：上下布局 + 浅底信息区 + 图标规格条 + 3 条卖点 + 进度点/箭头）。</li>
+      <li><b>天梯榜</b>：领奖台 + 列表 + 缩略图 + 四项交互 + 我的型号高亮 + 页内测试方法入口。</li>
+      <li><b>评测与资讯</b>：分类改方案 C（评测/教程/技术/资讯）+ 主题标签；详情 TOC / 相关产品 / 作者来源 / 分享。</li>
+      <li><b>服务支持</b>：下载精选 + 类型/型号筛选；服务承诺条；型号支持入口；保修可维护 + 锚点；FAQ 分类。</li>
+      <li><b>商业合作</b>：合作流程 / 权益 / 品牌资料下载；案例卡带图 + 成果数据；体验点补全。</li>
+      <li><b>关于 &amp; 品牌</b>：媒体报道·荣誉；光魂实验室区块；招聘投递；品牌页主视觉（区块化）。</li>
+      <li><b>登录 &amp; 个人中心</b>：验证码 / 记住我 / 密码可见与强度 / 同意条款 / 登录设备管理；设备关联资料 / 收藏 / 订阅分粒度 / 注销 / 工单附件+评价 / 设备登记+保修提醒。</li>
+      <li><b>后台新栏目</b>：服务评价、设备登记、迭代需求池（看板 + MoSCoW + 版本 + 四象限）；工作台待办；站点配置新增；表单提示规范。</li>
+      <li><b>工程与运营</b>：筛选全量进 URL / 对比只看差异 / 404 搜索 / 公告定时 / 埋点 / 内容导出导入 / 表单反垃圾 / 出图与图片规范。</li>
+      <li><b>需求池登记</b>：第三方登录、短信、SN 解析、购买渠道、多语言覆盖提示。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>4 · 数据模型与接口变更</h2>
+    <div class="card">
+      <ul>
+        <li><code>SiteLink</code> 新增 <code>badgeText?: string</code>（角标自定义文案），后端 / 前端类型同步。</li>
+        <li>媒体槽：<code>MediaImg</code> 对「空值 / <code>#</code> / <code>/media/**</code> / 加载失败（无 variant）」统一回退 <code>CodeMedia</code>。</li>
+        <li>SEO：<code>public/sitemap.xml</code>、<code>public/robots.txt</code> 改为<b>生成产物</b>（勿手改）。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>5 · 验收（本批）</h2>
+    <div class="grid">
+      <div class="card">后端 typecheck <span class="pill pill--ok">通过</span></div>
+      <div class="card">后端单测 <span class="pill pill--ok">178 / 178</span></div>
+      <div class="card">前端 typecheck <span class="pill pill--ok">通过</span></div>
+      <div class="card">前端单测 <span class="pill pill--ok">38 / 38</span></div>
+      <div class="card">前端 lint <span class="pill pill--ok">0 error</span></div>
+      <div class="card">生产构建 <span class="pill pill--ok">成功</span></div>
+    </div>
+    <p>接口自检：<code>/api/content/pages/home</code> 区块顺序 / 命名 / 图标正确；<code>/api/content/site</code> 导航 7 项且角标正确。</p>
+  </section>
+
+  <footer>光魂官网 PRD v2.0 · 由 Markdown 源 <code>光魂官网_PRD_v2.0.md</code> 同步 · 2026-10-14</footer>
+</div>
+</body>
+</html>
