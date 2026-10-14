@@ -1,9 +1,9 @@
 /**
- * 素材占位层测试：守护「无破图、无外链依赖、覆盖齐全」这三条硬约束。
+ * 素材层测试：守护「无破图、无外链依赖、覆盖齐全」这三条硬约束。
  *
- * 背景：除产品主图（由生成/正式素材提供的 http(s) 图片）外，其余视觉位由 `data/media.ts` 的
- * `MEDIA` 映射提供**本地内联 SVG 占位**。一旦有人误把某个占位改成外链、漏掉新增产品、
- * 或回退分支被改坏，本测试会失败。
+ * 背景：产品主图为**本地静态素材**（品牌实拍图合成，见 `gh-web/public/media/`），
+ * 其余视觉位由 `data/media.ts` 的 `MEDIA` 映射提供**本地内联 SVG 占位**。
+ * 一旦有人误把某个素材改成外链、漏掉新增产品、或回退分支被改坏，本测试会失败。
  */
 import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
@@ -30,37 +30,37 @@ function flattenMedia(): Array<[string, string]> {
 
 const ALL = flattenMedia()
 
-/**
- * 产品主图例外：由生成/正式素材提供（http(s) 图片地址）。
- * 其余视觉位仍须为本地内联 SVG（离线可用、无破图风险）。
- */
-const isProductSlot = (path: string) => path.startsWith('MEDIA.product.')
-const SVG_ALL = ALL.filter(([path]) => !isProductSlot(path))
+const SVG_PREFIX = 'data:image/svg+xml,'
+const LOCAL_ASSET = /^\/media\//
+const isSvg = (v: string) => v.startsWith(SVG_PREFIX)
 
-describe('MEDIA：除产品主图外，视觉位为本地内联 SVG（无外链、无破图风险）', () => {
-  it('产品主图为 http(s) 图片地址', () => {
-    const product = ALL.filter(([path]) => isProductSlot(path))
-    expect(product.length).toBeGreaterThan(0)
-    for (const [path, value] of product) {
-      expect(/^https?:\/\//.test(value), `${path} 应为 http(s) 图片地址`).toBe(true)
+describe('MEDIA：视觉位均为本地资源（内联 SVG 或 /media 静态图），无外链依赖', () => {
+  it('每个视觉位要么是内联 SVG，要么是本地 /media 静态图；且都不是 http 外链', () => {
+    expect(ALL.length).toBeGreaterThan(0)
+    for (const [path, value] of ALL) {
+      expect(isSvg(value) || LOCAL_ASSET.test(value), `${path} 应为内联 SVG 或本地 /media 资源`).toBe(true)
+      expect(/^https?:/.test(value), `${path} 不应为外链（离线可用、无鉴权失效风险）`).toBe(false)
     }
   })
 
-  it('其余每个视觉位都是 data:image/svg+xml 且非 http(s) 外链', () => {
-    expect(SVG_ALL.length).toBeGreaterThan(0)
-    for (const [path, value] of SVG_ALL) {
-      expect(value.startsWith('data:image/svg+xml,'), `${path} 应为内联 SVG data URI`).toBe(true)
-      expect(/^https?:/.test(value), `${path} 不应为外链（离线可用）`).toBe(false)
-    }
-  })
-
-  it('每张 SVG 均可解码且带固有尺寸（viewBox + width/height，避免 <img> 塌陷）', () => {
-    for (const [path, value] of SVG_ALL) {
-      const svg = decodeURIComponent(value.slice('data:image/svg+xml,'.length))
+  it('内联 SVG 均可解码且带固有尺寸（viewBox + width/height，避免 <img> 塌陷）', () => {
+    const svgs = ALL.filter(([, v]) => isSvg(v))
+    expect(svgs.length).toBeGreaterThan(0)
+    for (const [path, value] of svgs) {
+      const svg = decodeURIComponent(value.slice(SVG_PREFIX.length))
       expect(svg.startsWith('<svg'), `${path} 应可解析为 SVG`).toBe(true)
       expect(svg.includes('viewBox='), `${path} 应含 viewBox`).toBe(true)
       expect(svg.includes('width='), `${path} 应含 width`).toBe(true)
       expect(svg.includes('height='), `${path} 应含 height`).toBe(true)
+    }
+  })
+
+  it('产品主图含真实产品照（本地 /media 静态图），且不含外链', () => {
+    const product = ALL.filter(([path]) => path.startsWith('MEDIA.product.'))
+    expect(product.length).toBeGreaterThan(0)
+    expect(product.some(([, v]) => LOCAL_ASSET.test(v)), '产品主图应至少有一张真实产品照').toBe(true)
+    for (const [path, value] of product) {
+      expect(isSvg(value) || LOCAL_ASSET.test(value), `${path} 应为本地资源`).toBe(true)
     }
   })
 

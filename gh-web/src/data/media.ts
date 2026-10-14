@@ -1,11 +1,12 @@
 /**
- * 视觉素材占位层（本地矢量占位，非最终素材）。
+ * 视觉素材层：产品主图用本地静态实拍图，其余视觉位用本地确定性 SVG 占位。
  *
- * 背景：正式素材（产品实拍、软件截图、品牌形象图等）尚未到位；远端出图服务在本环境
- * 对所有 prompt 均返回「生成中」占位，不可用于交付。这里改为**本地确定性 SVG 占位**：
+ * 背景：软件截图、场景图等正式素材尚未到位；**产品主图**已采用品牌实拍图
+ * （合成后存于 `gh-web/public/media/products/`，走 `/media/**` 本地路径渲染）。
+ * 其余视觉位由本文件的 `art()` 生成**本地确定性 SVG**（data URI）：
  *  - 离线可用、始终渲染，不存在「破图 / 生成中 / 占位字样」；
  *  - 按语义给出统一暗色影棚基调（产品剪影、场景透视、软件界面、品牌光带等），视觉完整；
- *  - 全部为 data URI，由 `MediaImg` 以 `<img>` 渲染，尺寸交由容器 CSS + object-fit 控制。
+ *  - 全部为 data URI 或本地 `/media/**` 路径，绝不使用需鉴权的外链。
  *
  * 每个视觉位都带一条**交付风格描述**（`art()` 的第 4 个参数），一行讲清最终应替换成的素材：
  *   `交付物｜主体｜构图｜光线｜色调｜背景｜比例`
@@ -322,23 +323,23 @@ export const MEDIA = {
 
   /** 产品列表 / 重点产品卡（按产品 id，4:3） */
   /**
-   * 产品主图：由生成/正式素材提供（远程地址，MediaImg 直接加载）。
+   * 产品主图：本地静态素材（由品牌实拍图合成，存于 gh-web/public/media/products）。
    * 未配置的型号由调用方回退到 DeviceArt 占位。
    */
   product: {
-    'gh-54027x1qe': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=26.5%E8%8B%B1%E5%AF%B82K%20540Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E8%B6%85%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%E5%93%91%E5%85%89%E5%8F%B0%E9%9D%A2%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E5%B1%8F%E5%B9%95%E5%BE%AE%E5%85%89%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E5%8B%BE%E5%85%89%EF%BC%8C%E5%B1%85%E4%B8%AD%E6%9F%94%E6%8A%95%E5%BD%B1&image_size=landscape_4_3',
-    'gh-28027x1qe': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=26.5%E8%8B%B1%E5%AF%B82K%20280Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E9%AB%98%E5%85%89&image_size=landscape_4_3',
-    'gh-32x1ue': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=31.5%E8%8B%B1%E5%AF%B84K%E5%8F%8C%E6%A8%A1OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E5%AE%BD%E5%B1%8F%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E5%8B%BE%E5%85%89&image_size=landscape_4_3',
-    'gh-27x1u': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=27%E8%8B%B1%E5%AF%B82K%20240Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E8%B6%85%E8%96%84%E6%9C%BA%E8%BA%AB%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E9%AB%98%E5%85%89&image_size=landscape_4_3',
-    'gh-27q1f': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=27%E8%8B%B1%E5%AF%B82K%20200Hz%20Fast%20IPS%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E9%9D%92%E8%89%B2%E7%82%B9%E7%BC%80%E5%85%89&image_size=landscape_4_3',
-    'gh-24h1': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=23.8%E8%8B%B1%E5%AF%B8FHD%20200Hz%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AE%80%E6%B4%81%E6%94%AF%E6%9E%B6%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E9%AB%98%E5%85%89&image_size=landscape_4_3',
-    'gh-25s1fp': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=24.5%E8%8B%B1%E5%AF%B8FHD%20240Hz%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E8%93%9D%E8%89%B2%E5%8B%BE%E5%85%89&image_size=landscape_4_3',
-    'gh-arm01': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=%E6%98%BE%E7%A4%BA%E5%99%A8%E6%82%AC%E8%87%82%E6%94%AF%E6%9E%B6%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E9%93%9D%E5%90%88%E9%87%91%E5%8D%95%E8%87%82%EF%BC%8C%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%E5%93%91%E5%85%89%E5%8F%B0%E9%9D%A2%EF%BC%8C%E6%96%9C%E4%BF%AF%E8%A7%86%EF%BC%8C%E9%87%91%E5%B1%9E%E8%B4%A8%E6%84%9F%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E8%BE%B9%E5%85%89&image_size=landscape_4_3',
+    'gh-54027x1qe': '/media/products/gh-54027x1qe.jpg',
+    'gh-28027x1qe': '/media/products/gh-28027x1qe.jpg',
+    'gh-32x1ue': '/media/products/gh-32x1ue.jpg',
+    'gh-27x1u': '/media/products/gh-27x1u.jpg',
+    'gh-27q1f': '/media/products/gh-27q1f.jpg',
+    'gh-24h1': '/media/products/gh-24h1.jpg',
+    'gh-25s1fp': '/media/products/gh-25s1fp.jpg',
+    'gh-arm01': art('pad', W43, H43, `${DEVICE_DESC.pad}｜产品卡 4:3`),
   } as Record<string, string>,
 
   /** 产品详情相册（按设备类型给 4 个机位，1:1） */
   views: {
-    monitor: VIEW_ANGLES.map((a) => art('monitor', SQ, SQ, `${DEVICE_DESC.monitor}｜相册机位：${a}｜1:1`)),
+    monitor: [1, 2, 3, 4].map((i) => `/media/products/views/monitor-${i}.jpg`),
     mouse: VIEW_ANGLES.map((a) => art('mouse', SQ, SQ, `${DEVICE_DESC.mouse}｜相册机位：${a}｜1:1`)),
     keyboard: VIEW_ANGLES.map((a) => art('keyboard', SQ, SQ, `${DEVICE_DESC.keyboard}｜相册机位：${a}｜1:1`)),
     headset: VIEW_ANGLES.map((a) => art('headset', SQ, SQ, `${DEVICE_DESC.headset}｜相册机位：${a}｜1:1`)),
