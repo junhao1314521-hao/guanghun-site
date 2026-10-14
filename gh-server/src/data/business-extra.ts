@@ -78,6 +78,11 @@ export type CaseSummary = {
   year: string
   summary: string
   cover: string
+  /** 以下为详情扩展字段（运营可在后台维护；缺省回退内置示例） */
+  background?: string
+  solution?: string[]
+  results?: { label: string; value: string }[]
+  gallery?: string[]
 }
 
 export type CaseDetail = CaseSummary & {
@@ -193,6 +198,13 @@ export type VenueSummary = {
   ok: boolean
   address: string
   cover: string
+  /** 以下为详情扩展字段（运营可在后台维护；缺省回退内置示例） */
+  hours?: string
+  phone?: string
+  products?: string[]
+  services?: string[]
+  transport?: string
+  note?: string
 }
 
 export type VenueDetail = VenueSummary & {
@@ -310,32 +322,32 @@ export const BIZ_VENUE_DETAILS: Record<string, VenueDetail> = {
   },
 }
 
-/** 按 id 取案例详情（摘要来自集合存储，扩展字段来自静态详情表）；未命中返回 null */
+/** 按 id 取案例详情：扩展字段优先取记录值（后台可维护），缺省回退内置示例表 */
 export function getBizCaseDetail(cases: CaseSummary[], id: string): CaseDetail | null {
   const summary = cases.find((item) => item.id === id)
+  if (!summary) return null
   const extra = BIZ_CASE_DETAILS[id]
-  if (!summary || !extra) return null
   return {
     ...summary,
-    background: extra.background,
-    solution: extra.solution,
-    results: extra.results,
-    gallery: extra.gallery,
+    background: summary.background ?? extra?.background ?? '',
+    solution: summary.solution ?? extra?.solution ?? [],
+    results: summary.results ?? extra?.results ?? [],
+    gallery: summary.gallery ?? extra?.gallery ?? [],
   }
 }
 
-/** 按 id 取体验点详情（摘要来自集合存储，扩展字段来自静态详情表）；未命中返回 null */
+/** 按 id 取体验点详情：扩展字段优先取记录值（后台可维护），缺省回退内置示例表 */
 export function getBizVenueDetail(venues: VenueSummary[], id: string): VenueDetail | null {
   const summary = venues.find((item) => item.id === id)
+  if (!summary) return null
   const extra = BIZ_VENUE_DETAILS[id]
-  if (!summary || !extra) return null
   return {
     ...summary,
-    hours: extra.hours,
-    phone: extra.phone,
-    products: extra.products,
-    services: extra.services,
-    transport: extra.transport,
-    note: extra.note,
+    hours: summary.hours ?? extra?.hours ?? '',
+    phone: summary.phone ?? extra?.phone ?? '',
+    products: summary.products ?? extra?.products ?? [],
+    services: summary.services ?? extra?.services ?? [],
+    transport: summary.transport ?? extra?.transport ?? '',
+    note: summary.note ?? extra?.note ?? '',
   }
 }
