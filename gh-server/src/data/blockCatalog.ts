@@ -561,6 +561,67 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'points', label: '保障要点（每行一条）', kind: 'list' },
     ],
   },
+  // —— 商业合作数据源区块：从集合挑选，支持「全部 / 手动挑选」——
+  {
+    type: 'caseList',
+    name: '合作案例',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      {
+        name: 'scope',
+        label: '挑选方式',
+        kind: 'select',
+        options: [
+          { label: '全部案例', value: 'all' },
+          { label: '手动挑选（按下方顺序）', value: 'manual' },
+        ],
+      },
+      { name: 'ids', label: '手动挑选的案例', kind: 'ref', source: 'bizCases', placeholder: '勾选案例即可；已选顺序即展示顺序' },
+      {
+        name: 'layout',
+        label: '呈现方式',
+        kind: 'select',
+        options: [
+          { label: '网格', value: 'grid' },
+          { label: '横向滑动', value: 'rail' },
+        ],
+      },
+      { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
+      { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'showMeta', label: '显示合作方 / 年份', kind: 'switch' },
+    ],
+  },
+  {
+    type: 'venueList',
+    name: '体验点',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      {
+        name: 'scope',
+        label: '挑选方式',
+        kind: 'select',
+        options: [
+          { label: '全部体验点', value: 'all' },
+          { label: '手动挑选（按下方顺序）', value: 'manual' },
+        ],
+      },
+      { name: 'ids', label: '手动挑选的体验点', kind: 'ref', source: 'bizVenues', placeholder: '勾选体验点即可；已选顺序即展示顺序' },
+      {
+        name: 'layout',
+        label: '呈现方式',
+        kind: 'select',
+        options: [
+          { label: '网格', value: 'grid' },
+          { label: '横向滑动', value: 'rail' },
+        ],
+      },
+      { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
+      { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'showStatus', label: '显示营业状态', kind: 'switch' },
+    ],
+  },
 ]
 
 /**
@@ -580,8 +641,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
 const TITLE_GROUP_TYPES: BlockType[] = [
   'imageGrid', 'stats', 'cards', 'timeline', 'video',
   'productGrid', 'articleList', 'ranking', 'downloadList', 'faqList', 'showcase',
-  // 详情页收口区块同样支持「主标题 / 子标题 / 右侧按钮」
-  'productBuy',
+  // 详情页收口区块 / 商业合作数据源区块 同样支持「主标题 / 子标题 / 右侧按钮」
+  'productBuy', 'caseList', 'venueList',
 ]
 
 const COPY_FIELDS: BlockFieldMeta[] = [

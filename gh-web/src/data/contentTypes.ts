@@ -28,6 +28,8 @@ export type BlockType =
   | 'showcase'
   // 产品详情主体区块（详情页「主体区块化」：读取当前产品数据，模板级配置统一生效）
   | 'productHero' | 'productSpecs' | 'productBuy'
+  // 商业合作数据源区块（集合 biz-cases / biz-venues，支持全部 / 手动挑选）
+  | 'caseList' | 'venueList'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {

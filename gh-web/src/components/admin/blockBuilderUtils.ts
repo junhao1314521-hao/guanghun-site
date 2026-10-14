@@ -263,6 +263,9 @@ const BLOCK_ICON: Record<BlockType, string> = {
   productHero: 'cube',
   productSpecs: 'venn',
   productBuy: 'chat',
+  // 商业合作数据源区块
+  caseList: 'book',
+  venueList: 'grid',
 }
 
 export function blockIcon(type: BlockType): string {

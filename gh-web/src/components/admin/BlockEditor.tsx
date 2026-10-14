@@ -14,6 +14,7 @@ import type { Block, BlockFieldMeta, BlockTypeMeta } from '../../data/contentTyp
 import { fetchProducts } from '../../api/products'
 import { fetchArticles } from '../../api/articles'
 import { fetchDownloads, fetchFaqs } from '../../api/support-extra'
+import { fetchBizCases, fetchBizVenues } from '../../api/business-extra'
 import { useApi } from '../../hooks/useApi'
 import { emptyItem, isStringList, resolveItemFields } from './blockBuilderUtils'
 import { ImageField } from './ImageField'
@@ -40,6 +41,19 @@ async function loadRefItems(source: string | undefined, signal?: AbortSignal): P
     case 'faqs': {
       const { items } = await fetchFaqs(signal)
       return items.map((item) => ({ id: item.id, primary: item.q, secondary: item.category }))
+    }
+    case 'bizCases': {
+      const { items } = await fetchBizCases(signal)
+      return items.map((item) => ({ id: item.id, primary: item.title, secondary: item.partner, meta: item.category }))
+    }
+    case 'bizVenues': {
+      const { items } = await fetchBizVenues(signal)
+      return items.map((item) => ({
+        id: item.id,
+        primary: item.name,
+        secondary: `${item.city} · ${item.area}`,
+        meta: item.status,
+      }))
     }
     default:
       return []

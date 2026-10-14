@@ -83,6 +83,8 @@ const BLOCK_DATA_SOURCE: Partial<Record<BlockType, { label: string; href: string
   productHero: { label: '当前产品（产品集合）', href: '/admin/products' },
   productSpecs: { label: '当前产品 · 参数与实测（产品集合）', href: '/admin/products' },
   productBuy: { label: '当前产品（产品集合）', href: '/admin/products' },
+  caseList: { label: '合作案例集合', href: '/admin/biz-cases' },
+  venueList: { label: '体验点集合', href: '/admin/biz-venues' },
 }
 
 /** 空区块类型目录常量（保持引用稳定，避免每次渲染新建数组） */

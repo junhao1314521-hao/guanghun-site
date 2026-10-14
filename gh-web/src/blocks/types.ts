@@ -232,6 +232,31 @@ export type ProductBuyProps = {
   points?: string[]
 }
 
+/** 24. caseList 合作案例（数据源，集合 biz-cases） */
+export type CaseListProps = DataBlockInteraction & {
+  title: string
+  /** 挑选方式：all 全部｜manual 手动挑选（ids 顺序即展示顺序） */
+  scope?: 'all' | 'manual'
+  ids?: string[]
+  layout?: 'grid' | 'rail'
+  columns?: 2 | 3 | 4
+  limit?: number
+  /** 是否显示合作方 / 年份等元信息 */
+  showMeta?: boolean
+}
+
+/** 25. venueList 体验点 / 网点（数据源，集合 biz-venues） */
+export type VenueListProps = DataBlockInteraction & {
+  title: string
+  scope?: 'all' | 'manual'
+  ids?: string[]
+  layout?: 'grid' | 'rail'
+  columns?: 2 | 3 | 4
+  limit?: number
+  /** 是否显示营业状态标签 */
+  showStatus?: boolean
+}
+
 /** 类型名 → props 类型映射（区块组件用） */
 export type BlockPropsMap = {
   hero: HeroProps
@@ -257,4 +282,6 @@ export type BlockPropsMap = {
   productHero: ProductHeroProps
   productSpecs: ProductDetailSpecsProps
   productBuy: ProductBuyProps
+  caseList: CaseListProps
+  venueList: VenueListProps
 }

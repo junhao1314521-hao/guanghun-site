@@ -428,17 +428,14 @@ function buildBusinessScenes(): Page {
 function buildBusinessCases(): Page {
   return toPage('business-cases', '/business/cases', '合作案例列表', '合作案例装修 + 数据源区块。', [
     {
-      type: 'cards',
+      type: 'caseList',
       props: {
         title: '合作案例',
+        subtitle: '与战队、渠道与媒体的合作项目。',
+        scope: 'all',
+        limit: 9,
         columns: 3,
-        items: businessExtra.BIZ_CASES.map((item) => ({
-          image: item.cover,
-          tag: item.category,
-          title: item.title,
-          desc: item.summary,
-          href: `/business/cases/${item.id}`,
-        })),
+        showMeta: true,
       },
     },
   ])
@@ -448,17 +445,14 @@ function buildBusinessCases(): Page {
 function buildBusinessVenues(): Page {
   return toPage('business-venues', '/business/venues', '体验点列表', '体验点装修 + 数据源区块。', [
     {
-      type: 'cards',
+      type: 'venueList',
       props: {
         title: '线下体验点',
+        subtitle: '就近体验实机与调参。',
+        scope: 'all',
+        limit: 9,
         columns: 3,
-        items: businessExtra.BIZ_VENUES.map((venue) => ({
-          image: venue.cover,
-          tag: venue.status,
-          title: venue.name,
-          desc: `${venue.city} · ${venue.area} · ${venue.address}`,
-          href: `/business/venues/${venue.id}`,
-        })),
+        showStatus: true,
       },
     },
   ])
@@ -752,33 +746,31 @@ function buildTemplates(): Page[] {
     toPage('template-case', '/business/cases/:id', '合作案例详情模板', '合作案例详情装修区。', [
       { type: 'text', props: { title: '关于本案例', body: '案例内容以官方最终公布为准。', align: 'left' } },
       {
-        type: 'cards',
+        type: 'caseList',
         props: {
           title: '更多案例',
+          subtitle: '可一并参考的合作项目。',
+          ctaLabel: '查看全部案例',
+          ctaHref: '/business/cases',
+          scope: 'all',
+          limit: 3,
           columns: 3,
-          items: businessExtra.BIZ_CASES.map((item) => ({
-            image: item.cover,
-            tag: item.category,
-            title: item.title,
-            desc: item.summary,
-            href: `/business/cases/${item.id}`,
-          })),
+          showMeta: true,
         },
       },
     ]),
     toPage('template-venue', '/business/venues/:id', '体验点详情模板', '体验点详情装修区。', [
       {
-        type: 'cards',
+        type: 'venueList',
         props: {
           title: '更多体验点',
+          subtitle: '就近选择门店体验实机。',
+          ctaLabel: '查看全部体验点',
+          ctaHref: '/business/venues',
+          scope: 'all',
+          limit: 3,
           columns: 3,
-          items: businessExtra.BIZ_VENUES.map((venue) => ({
-            image: venue.cover,
-            tag: venue.status,
-            title: venue.name,
-            desc: `${venue.city} · ${venue.area}`,
-            href: `/business/venues/${venue.id}`,
-          })),
+          showStatus: true,
         },
       },
     ]),

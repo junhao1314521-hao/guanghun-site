@@ -33,6 +33,8 @@ import { ShowcaseBlock } from './ShowcaseBlock'
 import { ProductHeroBlock } from './ProductHeroBlock'
 import { ProductSpecsBlock } from './ProductSpecsBlock'
 import { ProductBuyBlock } from './ProductBuyBlock'
+import { CaseListBlock } from './CaseListBlock'
+import { VenueListBlock } from './VenueListBlock'
 
 /** 按区块类型分派到对应组件；未知类型返回 null（向前兼容后台新增类型） */
 function renderBlock(block: Block): ReactNode {
@@ -85,6 +87,11 @@ function renderBlock(block: Block): ReactNode {
       return <ProductSpecsBlock props={props} />
     case 'productBuy':
       return <ProductBuyBlock props={props} />
+    // 商业合作数据源区块
+    case 'caseList':
+      return <CaseListBlock props={props} />
+    case 'venueList':
+      return <VenueListBlock props={props} />
     default:
       return null
   }

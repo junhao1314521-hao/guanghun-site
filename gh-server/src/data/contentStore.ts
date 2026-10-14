@@ -201,7 +201,8 @@ export function deletePage(key: string): { ok: boolean; error?: string } {
 
 /** 重置为 seed；非 seed 页面返回 undefined。已存在页保留原列表位置。 */
 export function resetPage(key: string): Page | undefined {
-  const seedPage = buildSeed().pages.find((page) => page.key === key)
+  // 同时支持中文页与英文变体（key 形如 `xxx__en`）：两套 seed 一起查
+  const seedPage = [...buildSeed().pages, ...buildSeedEn()].find((page) => page.key === key)
   if (!seedPage) return undefined
   initStore()
   const next: Page = { ...seedPage, updatedAt: new Date().toISOString() }

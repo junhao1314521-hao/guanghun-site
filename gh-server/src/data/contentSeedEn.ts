@@ -563,15 +563,14 @@ function buildBusinessScenesEn(): Page {
 function buildBusinessCasesEn(): Page {
   return toPage('business-cases', '/business/cases', 'Case studies', 'Case studies + data-source block.', [
     {
-      type: 'cards',
+      type: 'caseList',
       props: {
         title: 'Case studies',
+        subtitle: 'Partnerships with teams, retail and press.',
+        scope: 'all',
+        limit: 9,
         columns: 3,
-        items: [
-          { image: '/media/business/case-team.svg', tag: 'Esports', title: 'Team sponsorship', desc: 'Multi-year gear supply', href: '/business/cases/case-team' },
-          { image: '/media/business/case-store.svg', tag: 'Retail', title: 'Flagship store', desc: 'Shenzhen Nanshan', href: '/business/cases/case-store' },
-          { image: '/media/business/case-press.svg', tag: 'Press', title: 'Editorial review', desc: 'Independent teardown', href: '/business/cases/case-press' },
-        ],
+        showMeta: true,
       },
     },
   ])
@@ -580,15 +579,14 @@ function buildBusinessCasesEn(): Page {
 function buildBusinessVenuesEn(): Page {
   return toPage('business-venues', '/business/venues', 'Experience spots', 'Venues + data-source block.', [
     {
-      type: 'cards',
+      type: 'venueList',
       props: {
         title: 'Experience spots',
+        subtitle: 'Try the gear and tuning in person.',
+        scope: 'all',
+        limit: 9,
         columns: 3,
-        items: [
-          { image: '/media/business/venue-sz.svg', tag: 'Open', title: 'Guanghun Shenzhen', desc: 'Nanshan · Coastal City · L2', href: '/business/venues/venue-sz' },
-          { image: '/media/business/venue-sh.svg', tag: 'Open', title: 'Guanghun Shanghai', desc: 'Pudong · IFC · L3', href: '/business/venues/venue-sh' },
-          { image: '/media/business/venue-cd.svg', tag: 'Coming soon', title: 'Guanghun Chengdu', desc: 'Yulin · ITO · B1', href: '/business/venues/venue-cd' },
-        ],
+        showStatus: true,
       },
     },
   ])
@@ -890,29 +888,31 @@ function buildTemplatesEn(): Page[] {
     toPage('template-case', '/business/cases/:id', 'Case study template', 'Case study area.', [
       { type: 'text', props: { title: 'About this case', body: 'Case details are subject to the official final announcement.', align: 'left' } },
       {
-        type: 'cards',
+        type: 'caseList',
         props: {
           title: 'More cases',
+          subtitle: 'Other partnerships worth a look.',
+          ctaLabel: 'View all cases',
+          ctaHref: '/business/cases',
+          scope: 'all',
+          limit: 3,
           columns: 3,
-          items: [
-            { image: '/media/business/case-team.svg', tag: 'Esports', title: 'Team sponsorship', desc: 'Multi-year gear supply', href: '/business/cases/case-team' },
-            { image: '/media/business/case-store.svg', tag: 'Retail', title: 'Flagship store', desc: 'Shenzhen Nanshan', href: '/business/cases/case-store' },
-            { image: '/media/business/case-press.svg', tag: 'Press', title: 'Editorial review', desc: 'Independent teardown', href: '/business/cases/case-press' },
-          ],
+          showMeta: true,
         },
       },
     ]),
     toPage('template-venue', '/business/venues/:id', 'Venue template', 'Venue area.', [
       {
-        type: 'cards',
+        type: 'venueList',
         props: {
           title: 'More venues',
+          subtitle: 'Try the gear at a spot near you.',
+          ctaLabel: 'View all venues',
+          ctaHref: '/business/venues',
+          scope: 'all',
+          limit: 3,
           columns: 3,
-          items: [
-            { image: '/media/business/venue-sz.svg', tag: 'Open', title: 'Guanghun Shenzhen', desc: 'Nanshan · Coastal City · L2', href: '/business/venues/venue-sz' },
-            { image: '/media/business/venue-sh.svg', tag: 'Open', title: 'Guanghun Shanghai', desc: 'Pudong · IFC · L3', href: '/business/venues/venue-sh' },
-            { image: '/media/business/venue-cd.svg', tag: 'Coming soon', title: 'Guanghun Chengdu', desc: 'Yulin · ITO · B1', href: '/business/venues/venue-cd' },
-          ],
+          showStatus: true,
         },
       },
     ]),
