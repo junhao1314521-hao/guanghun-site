@@ -15,10 +15,12 @@
 import { useEffect, useRef } from 'react'
 import { prefersReducedMotion } from '../../lib/motion'
 
-/** 单格边长（px，含间距）：越小越密、开销越大 */
-const CELL = 30
-/** 方块与格子的间隙（px），决定圆角方块的「颗粒感」 */
-const GAP = 8
+/** 单格边长（px，含间距）：越小越密、开销越大。取 18 形成细颗粒的「数据方块」观感 */
+const CELL = 18
+/** 方块与格子的间隙（px）：颗粒越细，间隙同步收窄 */
+const GAP = 6
+/** 方块圆角（px） */
+const RADIUS = 3
 /** 目标帧间隔（ms）：≈30fps，兼顾流畅与开销 */
 const FRAME_MS = 33
 
@@ -123,7 +125,7 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
 
           const x = gx * CELL
           const y = gy * CELL
-          roundRect(x, y, size, size, 6)
+          roundRect(x, y, size, size, RADIUS)
           ctx.fill()
         }
       }
