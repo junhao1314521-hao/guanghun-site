@@ -1428,30 +1428,34 @@ body.drawer-open { overflow: hidden; }
 }
 
 /* ============================================================
-   页面切换过渡：品牌幕布「向中心收拢」
-   0–30%  幕布快速盖上（遮住内容瞬时切换）
-   30–100% 幕布从上下向中线收拢成一条线并消失 → 露出新页面
-   新页面同时轻微「收放」淡入，避免露出瞬间生硬。
+   页面切换：瞬时切页 + 内容级微入场（不做全屏过渡）
+   只动 transform（不动 opacity），避免影响 View Transitions 的新页快照
    ============================================================ */
-.page-veil {
-  position: fixed; inset: 0; z-index: var(--gh-z-modal); pointer-events: none;
-  background: linear-gradient(135deg, var(--gh-neutral-950) 0%, #101A44 58%, var(--gh-blue-700) 100%);
-  animation: ghVeilCollapse .54s var(--gh-ease-accent) both;
-}
-@keyframes ghVeilCollapse {
-  0%   { opacity: 0; clip-path: inset(0 0 0 0); }
-  14%  { opacity: 1; clip-path: inset(0 0 0 0); }
-  30%  { opacity: 1; clip-path: inset(0 0 0 0); }
-  100% { opacity: 1; clip-path: inset(50% 0 50% 0); }
-}
-.page-enter { animation: ghPageZoom .4s var(--gh-ease-accent) .06s both; }
-@keyframes ghPageZoom {
-  from { opacity: 0; transform: scale(.994); }
-  to   { opacity: 1; transform: none; }
+.page-enter { animation: ghPageIn .22s var(--gh-ease-accent) both; }
+@keyframes ghPageIn {
+  from { transform: translateY(8px); }
+  to   { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .page-veil { display: none; }
   .page-enter { animation: none; }
+}
+
+/* ============================================================
+   共享元素过渡：产品卡 → 详情页主图（View Transitions API，渐进增强）
+   仅新版 Chrome / Edge / Safari 生效；其余浏览器自动退化为瞬时切页，无副作用。
+   名称只在「产品列表页」的卡片上生成，避免同页重复名称导致整组被浏览器忽略。
+   ============================================================ */
+.mk-page[data-page="list"] .pcard__media { view-transition-name: var(--vt, none); }
+.mk-page[data-page="detail"] .detail-media { view-transition-name: var(--vt, none); }
+/* 页面本身瞬切，只让产品图「飞」过去 */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; }
+::view-transition-group(*) {
+  animation-duration: .46s;
+  animation-timing-function: var(--gh-ease-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) { animation-duration: .001s; }
 }
 
 /* ============================================================

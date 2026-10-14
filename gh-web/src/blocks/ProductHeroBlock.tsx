@@ -7,7 +7,7 @@
  * 数据来自 `ProductDetailContext`（当前产品）；装修配置来自区块 props（模板级，统一生效）。
  * 复用详情页既有类名（.detail-top / .stage / .summary 等），保证与旧版视觉一致。
  */
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
@@ -41,7 +41,8 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
     <div className="detail-top">
       {/* 展台（大图 + 多视角缩略图） */}
       <div>
-        <div className="stage detail-media media-ph">
+        {/* 共享元素过渡：与产品卡同名（vh-<id>），进入详情页时卡片图「飞」到大图位 */}
+        <div className="stage detail-media media-ph" style={{ '--vt': `vh-${detail.id}` } as CSSProperties}>
           <div className="stage__glow" />
           <div
             className="stage__content"

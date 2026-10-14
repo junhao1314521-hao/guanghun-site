@@ -7,7 +7,8 @@
  * 当 `showFilter` 开启（列表页由 PageView 注入）时，在区块内保留原产品列表页的
  * 类别 / 连接 / 价格 / 库存筛选、排序、分页与对比选择，避免装修化后交互能力回退。
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { flushSync } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { fetchProductCategories, fetchProducts } from '../api/products'
 import { MEDIA } from '../data/media'
@@ -95,6 +96,12 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0])
   const [moreOpen, setMoreOpen] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
+  /**
+   * 共享元素过渡：指针按下的那张卡片临时获得 `view-transition-name`，
+   * 详情页主图使用同名 → 浏览器把卡片图「飞」到大图位置。
+   * 用 flushSync 保证 DOM 在快照前已带上该名字。
+   */
+  const [vtId, setVtId] = useState('')
   // 轻提示（对比上限等本地校验，非演示占位）
   const [hint, setHint] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -356,8 +363,15 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
               {paged.map((item) => {
                 const isPicked = picked.includes(item.id)
                 return (
-                  <article className={`pcard${showFilter && isPicked ? ' is-picked' : ''}`} key={item.id}>
-                    <div className="pcard__media media-ph">
+                  <article
+                    className={`pcard${showFilter && isPicked ? ' is-picked' : ''}`}
+                    key={item.id}
+                    onPointerDown={() => flushSync(() => setVtId(item.id))}
+                  >
+                    <div
+                      className="pcard__media media-ph"
+                      style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
+                    >
                       {showFlag && item.flag && (
                         <div className="pcard__flags">
                           <span className="tag tag--accent">{item.flag}</span>
@@ -378,7 +392,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                       <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
                     </div>
                     <div className="pcard__body">
-                      <Link to={`/products/${item.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                      <Link to={`/products/${item.id}`} viewTransition style={{ color: 'inherit', textDecoration: 'none' }}>
                         <div className="pcard__model">{item.model}</div>
                         <h3 className="pcard__name">{item.name}</h3>
                       </Link>
@@ -406,7 +420,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                             {isPicked ? '对比中' : '加入对比'}
                           </button>
                         ) : (
-                          <Link className="btn btn--sm btn--secondary" to={`/products/${item.id}`}>
+                          <Link className="btn btn--sm btn--secondary" to={`/products/${item.id}`} viewTransition>
                             查看详情
                           </Link>
                         )}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { BlockRenderer } from '../blocks/BlockRenderer'
@@ -180,7 +180,10 @@ export function ProductDetailPage() {
         <div className="detail-top" style={{ marginTop: 'var(--gh-space-5)' }}>
           {/* 产品大图（皮肤层展台） */}
           <div>
-            <div className="stage detail-media media-ph">
+            <div
+              className="stage detail-media media-ph"
+              style={{ '--vt': `vh-${detail.id}` } as CSSProperties}
+            >
               <div className="stage__glow" />
               <div className="stage__content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <MediaImg

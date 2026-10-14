@@ -1,13 +1,13 @@
 /**
- * 页面切换过渡（缩放淡入 + 柔和遮罩）
+ * 页面切换：瞬时切页 + 内容级微入场
  * ============================================================
- * 路由变化时：一层与页面同底色的薄幕快速化开（0.26s），
- * 新页面同时从 99.2% 轻微收放到 100% 并淡入（0.36s）——
- * 读作「页面被轻轻收进来」，而不是生硬跳变。
+ * 不做全屏过渡（整屏动画会让每次导航都慢半拍，且与浏览器「后退」语义冲突）。
+ * 路由瞬间完成，只给新页面一次极短的轻微上浮（0.22s）—— 感知上「快且精致」。
+ *
+ * 产品卡 → 详情页的「图片飞入」由 View Transitions API 单独负责（见 blocks.css）。
  *
  * - 只监听 `pathname`（忽略 query / hash），筛选、分页不触发；
- * - `prefers-reduced-motion` 时完全关闭，直接切页；
- * - 纯 CSS 动画（只动 transform / opacity），无第三方依赖。
+ * - `prefers-reduced-motion` 时关闭。
  */
 import type { ReactNode } from 'react'
 import { prefersReducedMotion } from '../../lib/motion'
@@ -15,11 +15,8 @@ import { prefersReducedMotion } from '../../lib/motion'
 export function PageTransition({ pathname, children }: { pathname: string; children: ReactNode }) {
   const reduced = prefersReducedMotion()
   return (
-    <>
-      {!reduced && <span key={`veil-${pathname}`} className="page-veil" aria-hidden="true" />}
-      <div key={`page-${pathname}`} className={reduced ? undefined : 'page-enter'}>
-        {children}
-      </div>
-    </>
+    <div key={`page-${pathname}`} className={reduced ? undefined : 'page-enter'}>
+      {children}
+    </div>
   )
 }
