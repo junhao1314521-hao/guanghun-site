@@ -161,6 +161,30 @@ function buildHome(): Page {
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },
     },
+    // 按场景选择：横向滑动 rail，卡片链接带 ?scene= 场景参数（筛选走 URL）
+    // 顺序调整（按反馈）：场景选择紧贴首屏海报，重点产品随后
+    {
+      type: 'cards',
+      props: {
+        title: '按场景选择',
+        icon: 'grid',
+        subtitle: '从电竞对战到内容创作，按使用场景组合你的显示方案。',
+        ctaLabel: '浏览全部产品',
+        ctaHref: '/products',
+        layout: 'rail',
+        overlay: true,
+        ratio: '3 / 4',
+        columns: 4,
+        items: home.SCENES.map((scene) => ({
+          tag: scene.tag,
+          title: scene.title,
+          desc: scene.desc,
+          href: `/products?scene=${scene.id}`,
+          media: `/media/home/scenes/${scene.id}.jpg`,
+          mediaType: 'image',
+        })),
+      },
+    },
     // 重点产品：通栏分段式展示（左右交替），数据来自产品集合
     {
       type: 'showcase',
@@ -186,29 +210,6 @@ function buildHome(): Page {
         })),
       },
       style: { container: 'full', background: 'soft' },
-    },
-    // 按场景选择：横向滑动 rail，卡片链接带 ?scene= 场景参数（筛选走 URL）
-    {
-      type: 'cards',
-      props: {
-        title: '按场景选择',
-        icon: 'grid',
-        subtitle: '从电竞对战到内容创作，按使用场景组合你的显示方案。',
-        ctaLabel: '浏览全部产品',
-        ctaHref: '/products',
-        layout: 'rail',
-        overlay: true,
-        ratio: '3 / 4',
-        columns: 4,
-        items: home.SCENES.map((scene) => ({
-          tag: scene.tag,
-          title: scene.title,
-          desc: scene.desc,
-          href: `/products?scene=${scene.id}`,
-          media: `/media/home/scenes/${scene.id}.jpg`,
-          mediaType: 'image',
-        })),
-      },
     },
     // teaser：首页只展示局部榜单（底部渐变虚化），数据与 /ladder 页同源
     { type: 'ranking', props: { title: '实测天梯榜', icon: 'trophy', subtitle: '所有数值来自同一套可复现的测试方法。', metric: 'overall', limit: 6, teaser: true } },

@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom'
 import { IconChevronLeft, IconChevronRight } from '../components/ui/Icon'
 import { prefersReducedMotion } from '../lib/motion'
 import { CodeBackdrop } from '../components/site/CodeBackdrop'
-import { CodeMedia, isPlaceholderMedia } from '../components/ui/CodeMedia'
+import { isPlaceholderMedia } from '../components/ui/CodeMedia'
 import { MediaImg } from '../components/ui/MediaImg'
 import { asArray, asBool, asLink, asRecord, asStatItems, asString, asStringArray } from './blockUtils'
 
@@ -75,6 +75,9 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
         if (event.key === 'ArrowLeft') go(index - 1)
       }}
     >
+      {/* 首屏共享的「流动方块」代码动效：单一画布，避免每张幻灯片各起一个动画循环。
+          第一张海报固定用它（不受媒体槽规则限制）；其余幻灯片无真实素材时同样透出它。 */}
+      <CodeBackdrop className="blk-hero__anim" />
       <div className="blk-hero__slides">
         {slides.map((slide, i) => {
           const active = i === index
@@ -86,13 +89,9 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
               aria-hidden={!active}
             >
               <div className="blk-hero__bg">
-                {/* 首屏第一张海报为特例：固定使用 canvas 代码动画（需求汇总 §13「海报例外」）；
-                    其余幻灯片：有素材显示素材，无素材用代码渐变兜底。 */}
-                {i === 0 ? (
-                  <CodeBackdrop className="blk-hero__code" />
-                ) : isPlaceholderMedia(slide.image) ? (
-                  <CodeMedia className="blk-hero__code" />
-                ) : (
+                {/* 首屏第一张为代码动画（由 hero 级共享画布承载）：不铺图片；
+                    其余幻灯片仅在「有真实素材」时铺图（占位素材不铺，透出代码动画）。 */}
+                {i !== 0 && !isPlaceholderMedia(slide.image) && (
                   <MediaImg src={slide.image} alt="" loading="lazy" />
                 )}
               </div>

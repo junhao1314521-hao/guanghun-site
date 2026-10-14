@@ -79,7 +79,7 @@
   border: 1px solid var(--color-border-default);
   color: var(--gh-neutral-50);
 }
-.blk-hero__slides { position: relative; min-height: min(62vh, 520px); }
+.blk-hero__slides { position: relative; z-index: 1; min-height: min(62vh, 520px); }
 .blk-hero__slide { display: none; position: relative; }
 .blk-hero__slide.is-active { display: block; animation: blkFadeUp .6s var(--gh-ease-accent) both; }
 @keyframes blkFadeUp { from { opacity: 0; } to { opacity: 1; } }
@@ -99,21 +99,23 @@
 .blk-hero__grid {
   position: relative; z-index: 2;
   width: 100%; max-width: var(--gh-container-max); margin-inline: auto;
-  padding: clamp(80px, 15vh, 170px) var(--gh-space-4);
+  /* 左右内边距需避开两侧 42px 圆形箭头（否则会与文案/按钮重叠），同时形成更从容的版心留白 */
+  padding: clamp(80px, 15vh, 170px) clamp(72px, 8vw, 120px);
 }
-@media (min-width: 768px) { .blk-hero__grid { padding-inline: var(--gh-space-6); } }
-@media (min-width: 1024px) { .blk-hero__grid { padding-inline: var(--gh-space-7); } }
-@media (max-width: 900px) {
-  /* 手机竖版：文案贴近底部 */
+@media (max-width: 767px) {
+  /* 移动端：文案贴近底部；此断点下箭头已隐藏，左右内边距收紧 */
   .blk-hero__grid { padding: 46vh var(--gh-space-4) var(--gh-space-7); }
 }
 
-/* 不做压暗时的可读性兜底：仅给文案加轻投影（按钮不参与，避免发灰） */
-.blk-hero .hero__eyebrow,
-.blk-hero .hero__title,
-.blk-hero .hero__desc,
-.blk-hero .hero__stats {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, .6), 0 8px 26px rgba(0, 0, 0, .45);
+/* 共享「流动方块」代码动效画布：铺满整张海报，位于文案之下 */
+.blk-hero__anim { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; }
+/* 文案可读性：左侧（桌面）/ 底部（移动）渐变压暗，替代旧版「无条件重投影」；
+   右侧保留动效可见，形成「暗场 + 动效」的层次。 */
+.blk-hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(7, 10, 22, .9) 0%, rgba(7, 10, 22, .68) 36%, rgba(7, 10, 22, .16) 66%, rgba(7, 10, 22, 0) 100%),
+    linear-gradient(0deg, rgba(7, 10, 22, .78) 0%, rgba(7, 10, 22, 0) 52%);
 }
 
 /* 底部导航区：序号 + 进度式指示器（品牌色进度随自动播放推进，悬停暂停） */
@@ -737,7 +739,9 @@
   border-radius: var(--gh-radius-lg); overflow: hidden;
   border: 1px solid var(--color-border-subtle); background: var(--color-bg-muted);
 }
-.showcase__media-inner { position: absolute; inset: 0; border: 0; }
+/* 注意：旧版（上一代 showcase）对 .showcase__media-inner 设过深色渐变底 + 投影，
+   这里显式重置为透明，让 .showcase__media 的浅底 / CodeMedia 代码兜底正常透出（否则会呈现「黑框」）。 */
+.showcase__media-inner { position: absolute; inset: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0; }
 .showcase__media-inner img, .showcase__media-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .showcase__info {
   margin-top: var(--gh-space-5);
