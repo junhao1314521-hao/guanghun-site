@@ -36,7 +36,7 @@ export type CoopCase = { tag: string; title: string; desc: string }
 
 export const COOP_CASES: CoopCase[] = [
   { tag: '赛事合作', title: '高校电竞赛事合作', desc: '与高校电竞社团联合办赛，提供比赛用机与现场体验区。' },
-  { tag: '内容共创', title: '联合延迟实测企划', desc: '与内容创作者共用同一测试脚本，数据与结论共同署名。' },
+  { tag: '内容共创', title: '联合响应实测企划', desc: '与内容创作者共用同一测试脚本，数据与结论共同署名。' },
   { tag: '渠道合作', title: '区域门店体验升级', desc: '为授权门店提供统一陈列物料与试机台配置方案。' },
 ]
 

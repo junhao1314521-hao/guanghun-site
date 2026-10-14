@@ -113,13 +113,13 @@ describe('数据分析：公开埋点 → 真实统计（traffic / downloads）'
   })
 
   it('上报 download 后 downloads 的点击量与明细随之变化（映射为资料名称）', async () => {
-    for (let i = 0; i < 2; i += 1) await track('download', { id: 'm900-driver' })
+    for (let i = 0; i < 2; i += 1) await track('download', { id: 'gh-54027x1qe-firmware' })
 
     const downloads = await analytics('downloads')
     assert.equal(summaryValue(downloads, 'total'), 2)
     assert.equal(summaryValue(downloads, 'today'), 2)
     assert.equal(summaryValue(downloads, 'items'), 1, '仅 1 个不同资料被点击')
-    const row = downloads.rows.find((r) => r[0] === 'GH-M900 PRO 驱动')
+    const row = downloads.rows.find((r) => r[0] === '54027X1QE-W54 固件升级包')
     assert.ok(row, '下载明细应把 id 映射为资料名称')
     assert.equal(row[1], 2)
   })

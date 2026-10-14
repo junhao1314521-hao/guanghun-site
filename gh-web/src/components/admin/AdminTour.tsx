@@ -11,6 +11,7 @@
  * 逻辑（上下文 / 步骤 / 已看过标记）见 ./tourContext。
  */
 import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { IconHelp } from '../ui/Icon'
 import {
   AdminTourContext,
@@ -45,6 +46,7 @@ function cardStyle(rect: DOMRect | null): { top: number; left: number } {
 }
 
 export function AdminTourProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
@@ -118,6 +120,18 @@ export function AdminTourProvider({ children }: { children: ReactNode }) {
                 不再显示
               </button>
               <span className="admin-tour-card__spacer" />
+              {current.to && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => {
+                    navigate(current.to as string)
+                    if (!isLast) setStep((value) => value + 1)
+                  }}
+                >
+                  打开该栏目
+                </button>
+              )}
               {!isLast && (
                 <button type="button" className="btn btn--secondary btn--sm" onClick={finish}>
                   跳过

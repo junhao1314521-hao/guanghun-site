@@ -2,7 +2,7 @@
  * 产品分类（前台产品筛选 + 后台「分类与参数」共用）。
  * 自 v? 起纳入结构化集合 `product-categories`，后台改动即时反映到前台产品筛选。
  *
- * 名称与 `products.category`（鼠标 / 键盘 / 耳机 / 配件）保持一致，避免两套枚举对不上。
+ * 名称与 `products.category`（OLED旗舰 / 双模高刷 / 电竞IPS / 周边）保持一致，避免两套枚举对不上。
  */
 
 export type ProductCategoryItem = {

@@ -7,16 +7,16 @@ export type QuickEntry = {
 }
 
 export const QUICK_ENTRIES: QuickEntry[] = [
-  { id: 'download', title: '下载中心', desc: '驱动、固件与说明书，公开资料无需登录即可下载。' },
-  { id: 'firmware', title: '驱动与固件', desc: '按型号获取最新驱动与固件，附版本变更说明。' },
-  { id: 'warranty', title: '保修政策', desc: '保修范围、期限与不适用情形，条款公开可查。' },
-  { id: 'faq', title: '常见问题', desc: '连接、调参与售后相关的高频问答与图文教程。' },
+  { id: 'download', title: '下载中心', desc: '固件、说明书、色彩配置与调校软件，公开资料无需登录即可下载。' },
+  { id: 'firmware', title: '固件与调校', desc: '按型号获取最新固件与色彩配置，附版本变更说明。' },
+  { id: 'warranty', title: '保修政策', desc: '整机三年质保含 OLED 烧屏保护，范围与期限条款公开可查。' },
+  { id: 'faq', title: '常见问题', desc: '安装、接口、HDR 调校与售后相关的高频问答与图文教程。' },
   { id: 'warranty-status', title: '保修状态查询', desc: '输入序列号即可查看保修剩余时间与保修类型。' },
   { id: 'verify', title: '真伪查询', desc: '核对防伪码，确认渠道与产品是否为正品。' },
 ]
 
-export const DOWNLOAD_CATEGORIES = ['全部', '鼠标', '键盘', '耳机']
-export const DOWNLOAD_TYPES = ['驱动', '固件', '说明书']
+export const DOWNLOAD_CATEGORIES = ['全部', '显示器', '调校软件', '周边']
+export const DOWNLOAD_TYPES = ['固件', '说明书', '色彩配置']
 
 export type DownloadRow = {
   name: string
@@ -27,14 +27,14 @@ export type DownloadRow = {
 }
 
 export const DOWNLOADS: DownloadRow[] = [
-  { name: 'Center 软件 · Windows 安装包', models: 'GH-M900 PRO / GH-M700', version: 'v2.4.1', size: '86.4 MB', date: '2026-09-20' },
-  { name: 'Center 软件 · macOS 安装包', models: '全部支持型号', version: 'v2.4.1', size: '92.1 MB', date: '2026-09-20' },
-  { name: 'GH-K870 固件升级包', models: 'GH-K870', version: 'v1.8.2', size: '4.2 MB', date: '2026-08-30' },
-  { name: 'GH-H500 使用说明书', models: 'GH-H500', version: 'v1.2', size: '2.1 MB', date: '2026-07-18' },
+  { name: 'Center 显示器调校软件 · Windows 安装包', models: '54027X1QE-W54 / 32X1UE-W16', version: 'v2.4.1', size: '86.4 MB', date: '2026-09-20' },
+  { name: 'Center 显示器调校软件 · macOS 安装包', models: '全部支持型号', version: 'v2.4.1', size: '92.1 MB', date: '2026-09-20' },
+  { name: '54027X1QE-W54 固件升级包', models: '54027X1QE-W54', version: 'v1.6.3', size: '3.8 MB', date: '2026-09-15' },
+  { name: '32X1UE-W16 使用说明书', models: '32X1UE-W16', version: 'v1.3', size: '5.6 MB', date: '2026-09-05' },
 ]
 
 export const WARRANTY_POINTS = [
-  '整机保修 24 个月，线材、脚贴等易损件 6 个月',
+  '整机三年质保，含 OLED 烧屏保护；支架等周边按易损件单独约定',
   '保修期自购买凭证日期起算；无凭证时按出厂日期计算',
   '非人为损坏免费维修；人为损坏提供付费维修报价',
   '寄修前请先提交咨询并保留物流单号，维修进度可随时查询',
@@ -55,15 +55,15 @@ export type Faq = { q: string; a: string }
 
 export const FAQS: Faq[] = [
   {
-    q: '下载资料需要注册账号吗？',
-    a: '不需要。公开的驱动、固件与说明书访客可直接下载；仅与账号相关的配置同步与工单进度需要登录。',
+    q: '下载显示器资料需要注册账号吗？',
+    a: '不需要。公开的固件、说明书、色彩配置与调校软件访客可直接下载；仅与账号相关的配置同步与工单进度需要登录。',
   },
   {
-    q: '怎么确认我的产品是否在保修期内？',
-    a: '在产品底部标签或包装盒上找到序列号，使用本页「保修状态查询」输入即可看到剩余时间；若查不到，请提交咨询并附上购买凭证。',
+    q: '怎么确认我的显示器是否在保修期内？',
+    a: '在显示器底部标签或包装盒上找到序列号，使用本页「保修状态查询」输入即可看到剩余时间；若查不到，请提交咨询并附上购买凭证。',
   },
   {
-    q: '上传了新版本后，旧版本还能下载吗？',
+    q: '上传了新固件后，旧固件还能下载吗？',
     a: '可以。发布新版本不会删除旧版本，历史版本在后台仍有记录；只有运营主动撤回后，前台才不再提供下载。',
   },
   {

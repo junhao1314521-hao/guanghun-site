@@ -22,7 +22,7 @@ export type DownloadItem = {
 }
 
 /** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
-export const DOWNLOAD_CATEGORIES = ['全部', '软件', '鼠标', '键盘', '耳机', '配件']
+export const DOWNLOAD_CATEGORIES = ['全部', '软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边']
 export const DOWNLOAD_TYPES = ['全部', '驱动', '固件', '说明书', '工具']
 
 /** 类型枚举 → 中文标签（表格展示与 chip 过滤共用） */
@@ -36,7 +36,7 @@ export const DOWNLOAD_TYPE_LABELS: Record<DownloadType, string> = {
 export const DOWNLOAD_ITEMS: DownloadItem[] = [
   {
     id: 'center-win',
-    name: 'Center 软件 · Windows 安装包',
+    name: 'Center 显示器调校软件 · Windows 安装包',
     category: '软件',
     type: 'tool',
     models: ['全部支持型号'],
@@ -47,7 +47,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
   },
   {
     id: 'center-mac',
-    name: 'Center 软件 · macOS 安装包',
+    name: 'Center 显示器调校软件 · macOS 安装包',
     category: '软件',
     type: 'tool',
     models: ['全部支持型号'],
@@ -57,92 +57,92 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     note: '支持 macOS 12 及以上',
   },
   {
-    id: 'm900-driver',
-    name: 'GH-M900 PRO 驱动',
-    category: '鼠标',
-    type: 'driver',
-    models: ['GH-M900 PRO'],
-    version: 'v3.1.0',
-    size: '12.6 MB',
-    date: '2026-09-18',
-    note: '含 DPI、回报率与宏调节',
-  },
-  {
-    id: 'm900-firmware',
-    name: 'GH-M900 PRO 固件升级包',
-    category: '鼠标',
+    id: 'gh-54027x1qe-firmware',
+    name: '54027X1QE-W54 固件升级包',
+    category: 'OLED 旗舰',
     type: 'firmware',
-    models: ['GH-M900 PRO'],
+    models: ['54027X1QE-W54'],
     version: 'v1.6.3',
     size: '3.8 MB',
     date: '2026-09-15',
-    note: '优化无线连接稳定性',
+    note: '优化 DP 2.1 满速握手与 HDR 调校',
   },
   {
-    id: 'm700-driver',
-    name: 'GH-M700 驱动',
-    category: '鼠标',
+    id: 'gh-54027x1qe-icc',
+    name: '54027X1QE-W54 色彩配置文件（ICC）',
+    category: 'OLED 旗舰',
+    type: 'tool',
+    models: ['54027X1QE-W54'],
+    version: 'v2.1',
+    size: '1.2 MB',
+    date: '2026-09-12',
+    note: '含 sRGB / DCI-P3 两套色彩配置',
+  },
+  {
+    id: 'gh-32x1ue-driver',
+    name: '32X1UE-W16 显示器驱动（INF）',
+    category: '双模高刷',
     type: 'driver',
-    models: ['GH-M700', 'GH-M500'],
+    models: ['32X1UE-W16'],
+    version: 'v1.2.0',
+    size: '2.6 MB',
+    date: '2026-09-08',
+    note: '含双模切换与色彩配置文件注册',
+  },
+  {
+    id: 'gh-32x1ue-manual',
+    name: '32X1UE-W16 使用说明书',
+    category: '双模高刷',
+    type: 'manual',
+    models: ['32X1UE-W16'],
+    version: 'v1.3',
+    size: '5.6 MB',
+    date: '2026-09-05',
+    note: '含双模切换与 OSD 菜单说明',
+  },
+  {
+    id: 'gh-27q1f-driver',
+    name: '27Q1F 显示器驱动（INF）',
+    category: '电竞 IPS',
+    type: 'driver',
+    models: ['27Q1F'],
     version: 'v2.0.4',
     size: '11.8 MB',
     date: '2026-06-12',
-    note: '兼容 GH-M500 参数调节',
+    note: 'Windows 下识别型号与色域映射',
   },
   {
-    id: 'k870-driver',
-    name: 'GH-K870 驱动',
-    category: '键盘',
-    type: 'driver',
-    models: ['GH-K870'],
-    version: 'v2.2.0',
-    size: '14.2 MB',
-    date: '2026-08-30',
-    note: '支持按键重映射与宏',
-  },
-  {
-    id: 'k870-firmware',
-    name: 'GH-K870 固件升级包',
-    category: '键盘',
-    type: 'firmware',
-    models: ['GH-K870', 'GH-K650'],
-    version: 'v1.8.2',
+    id: 'gh-27q1f-manual',
+    name: '27Q1F 使用说明书',
+    category: '电竞 IPS',
+    type: 'manual',
+    models: ['27Q1F'],
+    version: 'v1.1',
     size: '4.2 MB',
-    date: '2026-08-30',
-    note: '修复休眠唤醒后偶发断连',
+    date: '2026-04-10',
+    note: '含 OSD 调校与 HDR 设置说明',
   },
   {
-    id: 'k870-manual',
-    name: 'GH-K870 使用说明书',
-    category: '键盘',
-    type: 'manual',
-    models: ['GH-K870'],
-    version: 'v1.3',
-    size: '5.6 MB',
-    date: '2026-07-20',
-    note: '含三模连接与配对说明',
+    id: 'gh-24h1-icc',
+    name: '24H1 色彩配置文件（ICC）',
+    category: '电竞 IPS',
+    type: 'tool',
+    models: ['24H1'],
+    version: 'v1.0',
+    size: '0.9 MB',
+    date: '2026-02-26',
+    note: '含 sRGB 出厂校准配置',
   },
   {
-    id: 'h500-manual',
-    name: 'GH-H500 使用说明书',
-    category: '耳机',
+    id: 'gh-arm01-manual',
+    name: 'GH-ARM01 安装说明书',
+    category: '周边',
     type: 'manual',
-    models: ['GH-H500'],
+    models: ['GH-ARM01'],
     version: 'v1.2',
     size: '2.1 MB',
-    date: '2026-07-18',
-    note: '含 2.4G 配对与麦克风说明',
-  },
-  {
-    id: 'p400-manual',
-    name: 'GH-P400 使用说明书',
-    category: '配件',
-    type: 'manual',
-    models: ['GH-P400'],
-    version: 'v1.1',
-    size: '1.4 MB',
-    date: '2026-05-06',
-    note: '含清洗与保养建议',
+    date: '2026-05-20',
+    note: '含 VESA 75/100 安装与承重说明',
   },
 ]
 
@@ -159,38 +159,38 @@ export type DownloadDetail = DownloadItem & {
 /** 按类型给出变更日志与安装步骤模板，避免逐条重复 */
 const DOWNLOAD_CHANGELOG: Record<DownloadType, DownloadChangelogEntry[]> = {
   driver: [
-    { version: 'v3.1.0', date: '2026-09-18', notes: ['新增按场景保存参数预设', '修复个别系统下宏编辑偶发卡顿'] },
-    { version: 'v3.0.4', date: '2026-07-02', notes: ['兼容新版 Center 界面', '优化设备识别速度'] },
+    { version: 'v3.1.0', date: '2026-09-18', notes: ['新增按分辨率保存显示预设', '修复个别接口下偶发无信号'] },
+    { version: 'v3.0.4', date: '2026-07-02', notes: ['兼容新版 Center 界面', '优化显示器识别速度'] },
   ],
   firmware: [
-    { version: 'v1.8.2', date: '2026-08-30', notes: ['修复休眠唤醒后偶发断连', '优化低电量提示逻辑'] },
-    { version: 'v1.7.0', date: '2026-05-11', notes: ['提升无线回报率稳定性'] },
+    { version: 'v1.8.2', date: '2026-08-30', notes: ['修复 DP 2.1 满速握手偶发降速', '优化 OSD 固件响应速度'] },
+    { version: 'v1.7.0', date: '2026-05-11', notes: ['提升高刷下的色彩稳定性'] },
   ],
   manual: [
-    { version: 'v1.3', date: '2026-07-20', notes: ['补充连接与配对说明', '更新默认布局示意'] },
-    { version: 'v1.2', date: '2026-04-10', notes: ['修正保养章节表述'] },
+    { version: 'v1.3', date: '2026-07-20', notes: ['补充双模切换与 OSD 说明', '更新接口与支架示意'] },
+    { version: 'v1.2', date: '2026-04-10', notes: ['修正出厂色彩章节表述'] },
   ],
   tool: [
-    { version: 'v2.4.1', date: '2026-09-20', notes: ['修复无线设备休眠唤醒后偶发断连', '优化配置云同步冲突提示'] },
-    { version: 'v2.4.0', date: '2026-08-28', notes: ['新增配置云同步，多台设备共用一套配置'] },
+    { version: 'v2.4.1', date: '2026-09-20', notes: ['修复显示器休眠唤醒后偶发无信号', '优化色彩配置同步冲突提示'] },
+    { version: 'v2.4.0', date: '2026-08-28', notes: ['新增显示配置云同步，多台设备共用一套配置'] },
   ],
 }
 
 const DOWNLOAD_INSTALL_STEPS: Record<DownloadType, string[]> = {
   driver: [
-    '关闭 Center 与其它外设软件',
+    '关闭其它显示调校软件',
     '以管理员身份运行安装包',
     '按向导完成安装后重启电脑',
-    '打开 Center 确认设备已被识别',
+    '在「显示设置」中确认型号已被识别',
   ],
   firmware: [
-    '用 USB 线连接设备并保持供电',
+    '用 DP / USB-C 线连接显示器并保持供电',
     '打开 Center 进入「固件更新」',
     '选择本升级包并等待校验完成',
-    '升级过程中请勿断电或拔线，完成后设备会自动重启',
+    '升级过程中请勿断电或拔线，完成后显示器会自动重启',
   ],
   manual: ['下载并打开说明书文件', '按目录定位到对应章节', '遇到问题可对照「常见问题」排查'],
-  tool: ['下载对应系统的安装包', '双击安装并按提示完成', '首次启动后用 USB 连接设备', '登录账号即可同步已有配置'],
+  tool: ['下载对应系统的安装包', '双击安装并按提示完成', '首次启动后连接显示器', '登录账号即可同步已有显示配置'],
 }
 
 /** 由 id 生成确定性的 64 位占位校验值，供界面展示校验字段结构（非真实摘要） */
@@ -222,55 +222,55 @@ export type FaqItem = { id: string; q: string; a: string; category: string; /** 
 export type FaqDetail = FaqItem & { steps?: string[]; related: FaqItem[] }
 
 /** 问答类别（首项「全部」表示不筛选） */
-export const FAQ_CATEGORIES = ['全部', '下载与安装', '连接与配对', '固件与更新', '保修与售后']
+export const FAQ_CATEGORIES = ['全部', '下载与安装', '连接与接口', '固件与更新', '保修与售后']
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'faq-download-login',
-    q: '下载资料需要注册账号吗？',
-    a: '不需要。公开的驱动、固件与说明书访客可直接下载；仅与账号相关的配置同步与工单进度需要登录。',
+    q: '下载显示器固件、说明书与色彩配置需要注册账号吗？',
+    a: '不需要。公开的固件、说明书、ICC 色彩配置与调校软件访客可直接下载；仅与账号相关的配置同步与工单进度需要登录。',
     category: '下载与安装',
   },
   {
     id: 'faq-download-old',
-    q: '上传了新版本后，旧版本还能下载吗？',
+    q: '上传了新固件后，旧固件还能下载吗？',
     a: '可以。发布新版本不会删除旧版本，历史版本后台仍有记录；只有运营主动撤回后，前台才不再提供下载。',
     category: '下载与安装',
   },
   {
     id: 'faq-download-slow',
     q: '下载速度慢或中途中断怎么办？',
-    a: '建议更换网络环境后重试；较大的安装包请避免在下载过程中切换网络。若多次中断，可提交咨询并附上资料名称。',
+    a: '建议更换网络环境后重试；较大的安装包（如调校软件）请避免在下载过程中切换网络。若多次中断，可提交咨询并附上资料名称。',
     category: '下载与安装',
   },
   {
     id: 'faq-driver-install',
-    q: '安装驱动前需要先卸载旧版本吗？',
-    a: '通常不需要。新版驱动会覆盖安装并保留已有配置；如遇识别异常，可先在「控制面板」卸载旧版后重新安装。',
+    q: '升级显示器固件前需要先卸载旧版本吗？',
+    a: '通常不需要。新版固件会覆盖写入并保留已有设置；如遇识别异常，可先在 Center 中重新检测显示器后再升级。',
     category: '下载与安装',
   },
   {
     id: 'faq-pair-24g',
-    q: '无线设备无法进入 2.4G 模式怎么办？',
-    a: '先确认接收器已插入并处于有线模式；再按设备上的模式切换键进入配对状态。若指示灯不闪，请先充电后再试。',
-    category: '连接与配对',
+    q: 'DP 2.1 连接后为什么跑不满 540Hz？',
+    a: '请使用随附的满速 DP 2.1（80 Gbps）线材，并在 OSD 与显卡驱动中都开启对应刷新率；线材或转接器带宽不足会锁定到较低刷新率。仍无法跑满时请提交咨询。',
+    category: '连接与接口',
   },
   {
     id: 'faq-pair-multi',
-    q: '三模键盘如何在多台设备间切换？',
-    a: '键盘可保存多条蓝牙配对记录，通过组合键在已配对设备间切换；切换后 Center 会显示当前连接通道。',
-    category: '连接与配对',
+    q: '双模显示器如何在 4K 与高刷模式间切换？',
+    a: '通过 OSD 菜单或 Center 中的「双模切换」选择 4K@165 或 FHD@330；切换后系统会重新识别分辨率与刷新率，建议同时确认线材与接口带宽。',
+    category: '连接与接口',
   },
   {
     id: 'faq-pair-notfound',
-    q: 'Center 识别不到设备怎么办？',
-    a: '请用 USB 线直连（不要经 USB Hub），确认设备处于有线模式；无线设备需先完成配对，再回到 Center 刷新设备列表。',
-    category: '连接与配对',
+    q: 'Center 识别不到显示器怎么办？',
+    a: '请用 DP 或 USB-C 直连（不要经转接坞），确认显示器处于对应输入源；若仍无反应，可在「服务支持 → 下载中心」获取最新调校软件后重试。',
+    category: '连接与接口',
   },
   {
     id: 'faq-fw-fail',
-    q: '固件更新失败后设备还能用吗？',
-    a: '可以。更新中断不会清空原固件，设备仍可正常使用；重新连接后 Center 会提示重试。更新过程中请保持连接与供电。',
+    q: '固件更新失败后显示器还能用吗？',
+    a: '可以。更新中断不会清空原固件，显示器仍可正常使用；重新连接后 Center 会提示重试。更新过程中请保持连接与供电。',
     category: '固件与更新',
   },
   {
@@ -281,14 +281,14 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     id: 'faq-warranty-period',
-    q: '怎么确认产品是否在保修期内？',
-    a: '在产品底部标签或包装盒上找到序列号，使用「保修状态查询」输入即可看到剩余时间；若查不到，请提交咨询并附上购买凭证。',
+    q: 'OLED 显示器保修多久，是否包含烧屏保护？',
+    a: '整机三年质保，含 OLED 烧屏保护；在显示器底部标签或包装盒上找到序列号，使用「保修状态查询」输入即可看到剩余时间。',
     category: '保修与售后',
   },
   {
     id: 'faq-warranty-serial',
     q: '序列号在哪里查看？',
-    a: '序列号通常位于产品底部标签或包装盒条码处；部分无线设备可在 Center 的设备信息页直接查看。',
+    a: '序列号通常位于显示器底部标签或包装盒条码处；也可在 Center 的设备信息页直接查看。',
     category: '保修与售后',
   },
   {
@@ -301,10 +301,10 @@ export const FAQ_ITEMS: FaqItem[] = [
 
 /** 部分问答附带分步说明；未配置的问答详情不展示步骤区 */
 const FAQ_STEPS: Record<string, string[]> = {
-  'faq-pair-24g': ['长按模式切换键，直至指示灯快闪', '把 2.4G 接收器插入设备 USB 口', '等待约 3 秒，指示灯常亮即配对成功'],
-  'faq-pair-multi': ['按住 Fn 加对应通道组合键', '在目标设备的蓝牙列表中完成配对', '再次按下该组合键即可切回该通道'],
-  'faq-fw-check': ['用 USB 连接设备并打开 Center', '进入「固件更新」查看当前版本', '若有可用更新，阅读变更说明后再执行升级'],
-  'faq-driver-install': ['卸载旧版本（如遇识别异常时）', '下载最新驱动并以管理员身份运行', '安装完成后重启电脑并打开 Center'],
+  'faq-pair-24g': ['确认使用满速 DP 2.1（80 Gbps）线材', '在 OSD 与显卡驱动中开启对应刷新率', '若仍锁定低刷，更换线材或接口后重试'],
+  'faq-pair-multi': ['打开 OSD 菜单，进入「双模切换」', '选择 4K@165 或 FHD@330 目标模式', '等待系统重新识别分辨率与刷新率'],
+  'faq-fw-check': ['用 DP / USB-C 连接显示器并打开 Center', '进入「固件更新」查看当前版本', '若有可用更新，阅读变更说明后再执行升级'],
+  'faq-driver-install': ['在 Center 中重新检测显示器', '下载最新固件并以管理员身份运行', '升级完成后重启显示器与电脑'],
   'faq-warranty-repair': ['提交咨询并说明型号与现象', '附上购买凭证与故障照片', '按回复指引寄出并保留物流单号'],
 }
 
@@ -342,54 +342,54 @@ function faqsByIds(...ids: string[]): FaqItem[] {
 
 export const MODEL_SUPPORTS: ModelSupport[] = [
   {
-    id: 'gh-m900-pro',
-    model: 'GH-M900 PRO',
-    line: '鼠标',
-    summary: '旗舰无线电竞鼠标，支持 Center 调参与固件在线更新。',
-    downloads: downloadsFor('GH-M900 PRO'),
+    id: 'gh-54027x1qe',
+    model: '54027X1QE-W54',
+    line: 'OLED旗舰',
+    summary: '26.5 英寸 2K@540Hz 旗舰 OLED 电竞显示器，支持 DP 2.1 满速与 Center 调校。',
+    downloads: downloadsFor('54027X1QE-W54'),
     faqs: faqsByIds('faq-driver-install', 'faq-pair-24g', 'faq-fw-check'),
     guides: [
-      { title: '快速上手', desc: '开箱、充电与 2.4G 配对的完整流程。' },
-      { title: 'Center 调参', desc: 'DPI、回报率与宏的调节方法，含预设保存。' },
-      { title: '连接排障', desc: '识别不到设备、断连与延迟偏高的排查步骤。' },
+      { title: '快速上手', desc: '开箱、支架安装与 DP 2.1 满速连接的完整流程。' },
+      { title: 'OSD 与色彩调校', desc: '亮度、色域与 HDR 的调节方法，含预设保存。' },
+      { title: '接口排障', desc: '无法跑满刷新率、无信号与识别不到的排查步骤。' },
     ],
   },
   {
-    id: 'gh-k870',
-    model: 'GH-K870',
-    line: '键盘',
-    summary: '三模机械键盘，支持按键重映射、宏与多设备切换。',
-    downloads: downloadsFor('GH-K870'),
+    id: 'gh-32x1ue',
+    model: '32X1UE-W16',
+    line: '双模高刷',
+    summary: '31.5 英寸 4K@165 / FHD@330 双模 OLED 电竞显示器，一机兼顾画质与竞技。',
+    downloads: downloadsFor('32X1UE-W16'),
     faqs: faqsByIds('faq-pair-multi', 'faq-pair-notfound', 'faq-fw-fail'),
     guides: [
-      { title: '连接与配对', desc: '有线、蓝牙与 2.4G 三种连接方式的切换。' },
-      { title: '按键与宏', desc: '逐键重映射与宏录制的基础用法。' },
+      { title: '双模切换', desc: '4K@165 与 FHD@330 两种模式的切换与取舍。' },
+      { title: 'OSD 与 HDR', desc: 'HDR 调校与峰值亮度设置的用法。' },
       { title: '固件升级', desc: '通过 Center 完成固件升级与失败重试。' },
     ],
   },
   {
-    id: 'gh-h500',
-    model: 'GH-H500',
-    line: '耳机',
-    summary: '无线游戏耳机，支持 2.4G 低延迟连接与麦克风调节。',
-    downloads: downloadsFor('GH-H500'),
+    id: 'gh-27q1f',
+    model: '27Q1F',
+    line: '电竞IPS',
+    summary: '27 英寸 2K 200Hz Fast IPS 电竞显示器，兼容 HDMI 2.1，兼顾日常与竞技。',
+    downloads: downloadsFor('27Q1F'),
     faqs: faqsByIds('faq-pair-24g', 'faq-pair-notfound', 'faq-warranty-serial'),
     guides: [
-      { title: '快速上手', desc: '充电、开关机与 2.4G 配对的基础操作。' },
-      { title: '麦克风调节', desc: '音量、监听与降噪相关设置说明。' },
-      { title: '连接排障', desc: '无声、断续与识别不到的排查路径。' },
+      { title: '快速上手', desc: '开箱、支架安装与 HDMI 2.1 连接的基础操作。' },
+      { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
+      { title: '接口排障', desc: '无信号、刷新率不达标与识别不到的排查路径。' },
     ],
   },
   {
-    id: 'gh-p400',
-    model: 'GH-P400',
-    line: '配件',
-    summary: '超大鼠标垫，含清洗与保养建议。',
-    downloads: downloadsFor('GH-P400'),
+    id: 'gh-arm01',
+    model: 'GH-ARM01',
+    line: '周边',
+    summary: '显示器悬臂支架，支持 VESA 75/100 与 9 kg 承重，含安装与调节说明。',
+    downloads: downloadsFor('GH-ARM01'),
     faqs: faqsByIds('faq-warranty-serial', 'faq-download-old'),
     guides: [
-      { title: '清洗与保养', desc: '日常清洁方式与避免的保养误区。' },
-      { title: '尺寸与适配', desc: '桌面尺寸参考与常见搭配建议。' },
+      { title: '安装与调节', desc: 'VESA 75/100 安装与气压调节说明。' },
+      { title: '承重与适配', desc: '承重范围与常见尺寸搭配建议。' },
     ],
   },
 ]
@@ -430,4 +430,4 @@ export const CONTACT_PAYLOAD: ContactPayload = {
 }
 
 /** 咨询主题选项（提交咨询表单的下拉来源） */
-export const INQUIRY_TOPICS = ['驱动与安装', '设备连接', '固件升级', '保修与售后', '其他']
+export const INQUIRY_TOPICS = ['固件与调校', '接口与连接', '色彩与 HDR', '保修与售后', '其他']

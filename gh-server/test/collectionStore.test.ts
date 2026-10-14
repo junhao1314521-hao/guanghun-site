@@ -167,9 +167,9 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
   })
 
   it('前台 /api/support/model/:id 返回记录与 seed 逐字一致', async () => {
-    const target = buildCollectionSeed().models.find((item) => item.id === 'gh-p400')
-    assert.ok(target, 'seed 应含 gh-p400')
-    const pub = (await (await get('/api/support/model/gh-p400')).json()) as unknown
+    const target = buildCollectionSeed().models.find((item) => item.id === 'gh-54027x1qe')
+    assert.ok(target, 'seed 应含 gh-54027x1qe')
+    const pub = (await (await get('/api/support/model/gh-54027x1qe')).json()) as unknown
     assert.deepEqual(pub, target, '响应应与 seed 记录逐字一致')
   })
 

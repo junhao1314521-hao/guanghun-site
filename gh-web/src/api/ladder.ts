@@ -21,9 +21,9 @@ export type TestMethod = {
 
 /** 离线回退：与集合 seed 一致的公开方法条目 */
 const METHODS_FALLBACK: TestMethod[] = [
-  { id: 'm-001', name: '端到端延迟测试方法', category: '延迟', version: 'v2.1', owner: '林知远', status: '已发布', updatedAt: '2026-09-01', detail: '以示波器同步触发，记录输入到屏幕响应的端到端时延。' },
-  { id: 'm-002', name: '无线续航测试方法', category: '续航', version: 'v1.4', owner: '周予安', status: '已发布', updatedAt: '2026-08-22', detail: '统一亮度与回报率条件下，循环任务直至电量耗尽。' },
-  { id: 'm-003', name: '重量与手感评估方法', category: '手感', version: 'v1.2', owner: '沈牧', status: '已发布', updatedAt: '2026-08-10', detail: '电子秤称重 + 盲测手感评分。' },
+  { id: 'm-001', name: '响应时间测试方法', category: '响应时间', version: 'v2.1', owner: '林知远', status: '已发布', updatedAt: '2026-09-25', detail: '以光电探头同步触发，记录灰阶到灰阶的 GTG 响应与运动清晰度。' },
+  { id: 'm-002', name: '峰值亮度测试方法', category: '峰值亮度', version: 'v1.4', owner: '周予安', status: '已发布', updatedAt: '2026-08-22', detail: '在 10% / 25% / 100% 窗口下测量 HDR 峰值亮度并记录环境照度。' },
+  { id: 'm-003', name: '色准与色域测试方法', category: '色准', version: 'v1.2', owner: '沈牧', status: '已发布', updatedAt: '2026-08-10', detail: '分光计测量 ΔE 与 DCI-P3 色域容积，标注色温与伽马设定。' },
 ]
 
 /** 榜单数据：一次返回全部指标，指标切换在前端完成（配合榜单条重放动画） */

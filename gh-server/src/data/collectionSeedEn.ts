@@ -35,14 +35,14 @@ export function buildCollectionEnOverlays(): Partial<Record<CollectionKey, Recor
 /* ---------------- 产品 ---------------- */
 
 const PRODUCTS_EN: Record<string, Overlay> = {
-  'gh-m900-pro': { name: 'Wireless Gaming Mouse', specs: ['26,000 DPI', '58 g'], flag: 'Flagship' },
-  'gh-m700': { name: 'Wired Gaming Mouse', specs: ['20,000 DPI', '62 g'] },
-  'gh-m500': { name: 'Lightweight Gaming Mouse', specs: ['18,000 DPI', '48 g'] },
-  'gh-k870': { name: 'Tri-mode Mechanical Keyboard', specs: ['87 keys', 'Tri-mode'] },
-  'gh-k650': { name: 'Compact Mechanical Keyboard', specs: ['65% layout', 'Wireless'] },
-  'gh-h500': { name: 'Gaming Headset', specs: ['50 mm', '2.4 G'] },
-  'gh-h300': { name: 'Lightweight Gaming Headset', specs: ['40 mm', 'Wired'] },
-  'gh-p400': { name: 'Oversized Mouse Pad', specs: ['900×400', 'Spill-resistant'] },
+  'gh-54027x1qe': { name: 'Lightning 540Hz OLED Gaming Monitor', specs: ['2K 540Hz', 'W-OLED'], flag: 'Flagship' },
+  'gh-28027x1qe': { name: 'Lightning 280Hz OLED Gaming Monitor', specs: ['2K 280Hz', '1500 nit'] },
+  'gh-32x1ue': { name: 'Meta Dual-mode 4K Gaming Monitor', specs: ['4K@165 / FHD@330', 'META OLED'] },
+  'gh-27x1u': { name: '27" 2K OLED Monitor', specs: ['2K 240Hz', 'QD-OLED'] },
+  'gh-27q1f': { name: '27" 2K Gaming Monitor', specs: ['2K 200Hz', 'Fast IPS'] },
+  'gh-24h1': { name: '24" 200Hz Gaming Monitor', specs: ['FHD 200Hz', 'HDR400'] },
+  'gh-25s1fp': { name: '24.5" High-refresh Gaming Monitor', specs: ['FHD 240Hz', 'IPS'] },
+  'gh-arm01': { name: 'Monitor Arm', specs: ['VESA 75/100', '9 kg'] },
 }
 
 /* ---------------- 天梯榜（仅译指标名与行内产品名；unit/分数保持原样） ---------------- */
@@ -51,52 +51,47 @@ const RANKINGS_EN: Record<string, Overlay> = {
   overall: {
     label: 'Overall',
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: 'Wireless Gaming Mouse', score: 96.4 },
-      { rank: '02', model: 'GH-M700', name: 'Wired Gaming Mouse', score: 91.2 },
-      { rank: '03', model: 'GH-M500', name: 'Lightweight Gaming Mouse', score: 88.7 },
-      { rank: '04', model: 'GH-K870', name: 'Tri-mode Mechanical Keyboard', score: 85.3 },
-      { rank: '05', model: 'GH-H500', name: 'Gaming Headset', score: 82.9 },
-      { rank: '06', model: 'GH-K650', name: 'Compact Mechanical Keyboard', score: 79.6 },
-      { rank: '07', model: 'GH-H300', name: 'Lightweight Gaming Headset', score: 74.1 },
-      { rank: '08', model: 'GH-P400', name: 'Oversized Mouse Pad', score: 70.0, tied: true },
-      { rank: '08', model: 'GH-P300', name: 'Standard Mouse Pad', score: 70.0 },
-      { rank: '—', model: 'GH-M100', name: 'Entry Gaming Mouse', score: null },
+      { rank: '01', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 96.8 },
+      { rank: '02', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 94.2 },
+      { rank: '03', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 92.5 },
+      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 89.6 },
+      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 85.1 },
+      { rank: '06', model: '25S1FP', name: '24.5" FHD 240Hz IPS', score: 82.4 },
+      { rank: '07', model: '24H1', name: '24" FHD 200Hz IPS', score: 79.8 },
     ],
   },
   sensor: {
-    label: 'Sensor accuracy',
+    label: 'Color accuracy',
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: 'Wireless Gaming Mouse', score: 97.1 },
-      { rank: '02', model: 'GH-M700', name: 'Wired Gaming Mouse', score: 92.8 },
-      { rank: '03', model: 'GH-M800', name: 'Flagship Wireless Gaming Mouse', score: 89.6 },
-      { rank: '04', model: 'GH-M500', name: 'Lightweight Gaming Mouse', score: 86.4, tied: true },
-      { rank: '04', model: 'GH-M600', name: 'Lightweight Wireless Gaming Mouse', score: 86.4 },
-      { rank: '—', model: 'GH-M100', name: 'Entry Gaming Mouse', score: null },
+      { rank: '01', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 0.9 },
+      { rank: '02', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 1.1 },
+      { rank: '03', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 1.3 },
+      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 1.6 },
+      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 2.1 },
+      { rank: '06', model: '24H1', name: '24" FHD 200Hz IPS', score: 2.8 },
     ],
   },
   battery: {
-    label: 'Battery life',
+    label: 'Peak brightness',
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: 'Wireless Gaming Mouse', score: 120 },
-      { rank: '02', model: 'GH-K870', name: 'Tri-mode Mechanical Keyboard', score: 96 },
-      { rank: '03', model: 'GH-M800', name: 'Flagship Wireless Gaming Mouse', score: 88 },
-      { rank: '04', model: 'GH-M600', name: 'Lightweight Wireless Gaming Mouse', score: 58, tied: true },
-      { rank: '04', model: 'GH-M500', name: 'Lightweight Gaming Mouse', score: 58 },
-      { rank: '05', model: 'GH-H500', name: 'Gaming Headset', score: 42 },
-      { rank: '—', model: 'GH-M700', name: 'Wired Gaming Mouse', score: null },
+      { rank: '01', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 1320 },
+      { rank: '02', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 1180 },
+      { rank: '03', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 1050 },
+      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 960 },
+      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 480 },
+      { rank: '06', model: '24H1', name: '24" FHD 200Hz IPS', score: 430 },
     ],
   },
   latency: {
-    label: 'Latency',
+    label: 'Response time',
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: 'Wireless Gaming Mouse', score: 0.6 },
-      { rank: '02', model: 'GH-M700', name: 'Wired Gaming Mouse', score: 0.9 },
-      { rank: '03', model: 'GH-M800', name: 'Flagship Wireless Gaming Mouse', score: 1.2 },
-      { rank: '04', model: 'GH-K870', name: 'Tri-mode Mechanical Keyboard', score: 1.8 },
-      { rank: '05', model: 'GH-M600', name: 'Lightweight Wireless Gaming Mouse', score: 2.4, tied: true },
-      { rank: '05', model: 'GH-H300', name: 'Lightweight Gaming Headset', score: 2.4 },
-      { rank: '06', model: 'GH-H500', name: 'Gaming Headset', score: 12.4 },
-      { rank: '—', model: 'GH-M100', name: 'Entry Gaming Mouse', score: null },
+      { rank: '01', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 0.04 },
+      { rank: '02', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 0.05 },
+      { rank: '03', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 0.06 },
+      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 0.08 },
+      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 1.2 },
+      { rank: '06', model: '25S1FP', name: '24.5" FHD 240Hz IPS', score: 1.8 },
+      { rank: '07', model: '24H1', name: '24" FHD 200Hz IPS', score: 2.4 },
     ],
   },
 }
@@ -105,53 +100,53 @@ const RANKINGS_EN: Record<string, Overlay> = {
 
 const ARTICLES_EN: Record<string, Overlay> = {
   'latency-end-to-end': {
-    title: 'Wireless mouse end-to-end latency: three flagships compared',
+    title: 'OLED gaming monitor response time: three flagships compared',
     categoryLabel: 'Review',
-    tag: 'Latency test',
-    desc: 'Measuring end-to-end latency segment by segment on three wireless mice under identical conditions, reporting both median and 95th percentile.',
+    tag: 'Response test',
+    desc: 'Measuring GTG response and motion clarity on three OLED gaming monitors under identical conditions, reporting both median and 95th percentile.',
     meta: 'Tested · Method v2',
     body:
       '<h2>Purpose & environment</h2>' +
-      '<p>This test quantifies the end-to-end latency of three wireless mice — from physical click to system response — under identical conditions, and breaks the total into explainable segments.</p>' +
-      '<ul><li>Room held at 22–24 °C;</li><li>Receiver fixed 30 cm from the mouse;</li><li>Polling rate set to the highest level.</li></ul>' +
-      '<h2>What latency is made of</h2>' +
-      '<p>End-to-end latency combines sensor sampling, main-controller processing, wireless transmission, receiver solving and OS scheduling. A single total cannot locate the bottleneck.</p>' +
+      '<p>This test quantifies the <strong>GTG response</strong> of three OLED gaming monitors under identical conditions, and breaks the total into explainable segments.</p>' +
+      '<ul><li>Room held at 22–24 °C;</li><li>Monitors warmed up for 30 minutes;</li><li>Overdrive set to «Standard».</li></ul>' +
+      '<h2>What response time is made of</h2>' +
+      '<p>Response time combines panel grey-to-grey switching, overdrive and pixel light control. A single rated value cannot capture real motion blur.</p>' +
       '<h2>Conclusion</h2>' +
       '<p>In competitive play, a <em>stable high percentile</em> matters more than an occasional single-lowest value. Full raw data is available on the rankings page.</p>',
   },
   'tri-mode-keyboard-latency': {
-    title: 'Tri-mode keyboard latency: 2.4G vs Bluetooth vs wired',
+    title: 'Dual-mode tested: 4K resolution vs FHD high refresh',
     categoryLabel: 'Review',
-    tag: 'Connection test',
-    desc: 'Typing the same tri-mode keyboard across three connection modes to compare typing latency, jitter and battery life.',
+    tag: 'Dual-mode test',
+    desc: 'Running the same dual-mode monitor at 4K@165 and FHD@330 to compare clarity, refresh rate and feel.',
     meta: 'Tested · Method v2',
     body:
       '<h2>How the modes differ</h2>' +
-      '<p>The same keyboard was used in <strong>wired / 2.4G / Bluetooth</strong> modes to compare typing latency, jitter and battery life.</p>' +
-      '<h2>Typing latency</h2>' +
-      '<p>Each mode logged 1,000 valid samples with median and jitter range; differences widen with long runs and fast key combos.</p>' +
+      '<p>The same monitor runs in <strong>4K@165 and FHD@330</strong> modes, trading off clarity, refresh rate and input latency.</p>' +
+      '<h2>Dual-mode switch test</h2>' +
+      '<p>Each mode logged 1,000 valid frames with median and jitter range; differences widen in fast pans and high-speed footage.</p>' +
       '<h2>How to choose</h2>' +
-      '<p>Bluetooth for office and creation, 2.4G for competitive play, and wired as the primary choice at a fixed desk.</p>',
+      '<p>4K for film and creation, FHD high refresh for competitive play, and one-click switching at a fixed desk.</p>',
   },
   'driver-firmware-guide': {
-    title: 'Driver & firmware upgrade guide: from detection to rollback',
+    title: 'Monitor color calibration guide: from OSD to ICC profile',
     categoryLabel: 'Guide',
-    tag: 'Firmware guide',
-    desc: 'A step-by-step walkthrough of identifying the device, verifying the firmware version, upgrading, and safely rolling back if something goes wrong.',
+    tag: 'Calibration guide',
+    desc: 'A step-by-step walkthrough of calibrating brightness, color temperature and gamut in the OSD and OS, and exporting a reusable ICC profile.',
     meta: 'Guide · Illustrated',
     body:
       '<h2>Before you start</h2>' +
-      '<p>Confirm the model and current firmware version in the driver, and keep the device charged or use a wired connection.</p>' +
-      '<ol><li>Close other devices sharing the receiver;</li><li>Do not unplug the receiver during the upgrade;</li><li>Do not power off the host mid-upgrade.</li></ol>' +
-      '<h2>Upgrade & rollback</h2>' +
-      '<p>Confirm the prompt and wait for the write to finish; the device restarts automatically. To roll back, get the historical firmware from the download center and write it the same way.</p>' +
-      '<blockquote><p>Historical versions are not removed when a new version ships, so you can roll back at any time.</p></blockquote>',
+      '<p>Confirm the current gamut and color temperature in the OSD, warm the monitor up for 30 minutes, and turn off adaptive brightness.</p>' +
+      '<ol><li>Close other color-management apps;</li><li>Do not switch inputs during calibration;</li><li>Do not power off the monitor mid-way.</li></ol>' +
+      '<h2>Calibrate & export</h2>' +
+      '<p>After calibrating brightness, color temperature and gamut, export an ICC profile and load it in the OS. To roll back, get the factory profile from the download center and apply it the same way.</p>' +
+      '<blockquote><p>Factory color profiles are not removed when a new version ships, so you can roll back at any time.</p></blockquote>',
   },
   'test-methodology': {
-    title: 'Why we publish our test methodology: the value of reproducibility',
+    title: 'Why we publish our monitor test methodology: the value of reproducibility',
     categoryLabel: 'Insight',
     tag: 'Methodology',
-    desc: 'Publishing devices, environment, sample size and criteria lets any lab reproduce our numbers instead of just trusting the conclusion.',
+    desc: 'Publishing instruments, environment, sample size and criteria lets any lab reproduce our numbers instead of just trusting the conclusion.',
     meta: 'Method · Notes',
     body:
       '<h2>Why publish the method</h2>' +
@@ -162,30 +157,30 @@ const ARTICLES_EN: Record<string, Overlay> = {
       '<p>We prefer the <strong>median</strong> and <strong>95th percentile</strong> over the mean, which is easily skewed by outliers.</p>',
   },
   'report-rate-explained': {
-    title: 'Report rate vs sample rate: the real-world difference',
+    title: 'HDR and peak brightness explained: the real viewing impact',
     categoryLabel: 'Insight',
     tag: 'Specs explained',
-    desc: 'Report rate and sample rate are often conflated; this piece separates their definitions, measurement and real impact.',
+    desc: 'Peak brightness and HDR are often reduced to a single number; this piece separates window size, sustained brightness and dimming.',
     meta: 'Explained · Data',
     body:
       '<h2>What the terms mean</h2>' +
-      '<p>Report rate is how often the device reports its position to the host; sample rate is how often the sensor captures a frame. Related, but not the same.</p>' +
-      '<h2>Impact on experience</h2>' +
-      '<p>A higher report rate gives denser position tracks during fast movement, with diminishing returns; <em>stability</em> often matters more than the rated ceiling.</p>' +
+      '<p>Peak brightness is usually measured in a small window — the smaller the window, the higher the reading; sustained brightness is closer to real long-form viewing.</p>' +
+      '<h2>Impact on viewing</h2>' +
+      '<p>Higher peak brightness gives highlights more punch, but HDR layering also depends on dimming and tone mapping; <em>stability</em> often matters more than the rated ceiling.</p>' +
       '<h2>Practical advice</h2>' +
-      '<p>Start from the vendor default, then adjust to feel and evaluate after sustained use.</p>',
+      '<p>Start from the vendor HDR mode, then fine-tune by content type and evaluate after sustained viewing.</p>',
   },
   'brand-2026-roadmap': {
-    title: 'Guanghun 2026 roadmap: from latency to ecosystem',
+    title: 'Guanghun 2026 monitor roadmap: from panel to ecosystem',
     categoryLabel: 'Brand',
     tag: 'Roadmap',
-    desc: 'Three threads — low latency, multi-device connectivity and software ecosystem — and the trade-offs for the next generation.',
+    desc: 'Three threads — OLED panels, full-speed connectivity and a color ecosystem — and the trade-offs for the next generation.',
     meta: 'Brand · Roadmap',
     body:
       '<h2>Portfolio overview</h2>' +
-      '<p>2026 centers on three threads: lower end-to-end latency, more reliable multi-device connectivity, and a more complete software ecosystem.</p>' +
-      '<h2>Latency & connectivity</h2>' +
-      '<p>On latency we move from chasing a single lowest value to improving <strong>high-percentile stability</strong>; on connectivity we harden multi-device switching.</p>' +
+      '<p>2026 centers on three threads: more advanced OLED panels, more complete full-speed connectivity, and a more open color and tuning ecosystem.</p>' +
+      '<h2>Panels & connectivity</h2>' +
+      '<p>On panels we move from chasing a single metric to improving <strong>high-percentile stability</strong>; on connectivity we push DP 2.1 full speed and reliable multi-device switching.</p>' +
       '<h2>Next steps</h2>' +
       '<p>Specific requirements and timings follow the official final announcement; progress is tracked through the news and articles pages.</p>',
   },
@@ -194,64 +189,64 @@ const ARTICLES_EN: Record<string, Overlay> = {
 /* ---------------- 下载中心 ---------------- */
 
 const DOWNLOADS_EN: Record<string, Overlay> = {
-  'center-win': { name: 'Center Software · Windows installer', note: 'Supports Windows 10 / 11 (64-bit)' },
-  'center-mac': { name: 'Center Software · macOS installer', note: 'Supports macOS 12 and later' },
-  'm900-driver': { name: 'GH-M900 PRO driver', note: 'Includes DPI, polling rate and macro tuning' },
-  'm900-firmware': { name: 'GH-M900 PRO firmware update', note: 'Improves wireless connection stability' },
-  'm700-driver': { name: 'GH-M700 driver', note: 'Also tunes GH-M500 parameters' },
-  'k870-driver': { name: 'GH-K870 driver', note: 'Supports key remapping and macros' },
-  'k870-firmware': { name: 'GH-K870 firmware update', note: 'Fixes rare disconnects after wake' },
-  'k870-manual': { name: 'GH-K870 user manual', note: 'Covers tri-mode connection and pairing' },
-  'h500-manual': { name: 'GH-H500 user manual', note: 'Covers 2.4G pairing and microphone' },
-  'p400-manual': { name: 'GH-P400 user manual', note: 'Includes cleaning and care tips' },
+  'center-win': { name: 'Center monitor tuning software · Windows installer', note: 'Supports Windows 10 / 11 (64-bit)' },
+  'center-mac': { name: 'Center monitor tuning software · macOS installer', note: 'Supports macOS 12 and later' },
+  'gh-54027x1qe-firmware': { name: '54027X1QE-W54 firmware update', note: 'Improves full-speed DP 2.1 handshake and HDR tuning' },
+  'gh-54027x1qe-icc': { name: '54027X1QE-W54 color profile (ICC)', note: 'Includes sRGB / DCI-P3 profiles' },
+  'gh-32x1ue-driver': { name: '32X1UE-W16 driver (INF)', note: 'Includes dual-mode switching and color profile registration' },
+  'gh-32x1ue-manual': { name: '32X1UE-W16 user manual', note: 'Covers dual-mode switching and the OSD menu' },
+  'gh-27q1f-driver': { name: '27Q1F driver (INF)', note: 'Model recognition and gamut mapping on Windows' },
+  'gh-27q1f-manual': { name: '27Q1F user manual', note: 'Covers OSD tuning and HDR setup' },
+  'gh-24h1-icc': { name: '24H1 color profile (ICC)', note: 'Includes the factory-calibrated sRGB profile' },
+  'gh-arm01-manual': { name: 'GH-ARM01 installation manual', note: 'Covers VESA 75/100 mounting and load limits' },
 }
 
 /* ---------------- 常见问题 ---------------- */
 
 const FAQS_EN: Record<string, Overlay> = {
   'faq-download-login': {
-    q: 'Do I need an account to download files?',
-    a: 'No. Public drivers, firmware and manuals are open to guests; only account-related config sync and ticket tracking require sign-in.',
+    q: 'Do I need an account to download monitor files?',
+    a: 'No. Public firmware, manuals, ICC color profiles and tuning software are open to guests; only account-related config sync and ticket tracking require sign-in.',
   },
   'faq-download-old': {
-    q: 'After a new version is uploaded, can I still download the old one?',
+    q: 'After a new firmware is uploaded, can I still download the old one?',
     a: 'Yes. Publishing a new version does not remove the old one; history stays on record until an operator withdraws it.',
   },
   'faq-download-slow': {
     q: 'The download is slow or interrupted — what should I do?',
-    a: 'Try another network and retry; for large installers avoid switching networks mid-download. If it keeps failing, submit a ticket with the file name.',
+    a: 'Try another network and retry; for large installers (such as the tuning software) avoid switching networks mid-download. If it keeps failing, submit a ticket with the file name.',
   },
   'faq-driver-install': {
-    q: 'Should I uninstall the old driver before installing a new one?',
-    a: 'Usually not needed. The new driver overwrites in place and keeps your settings; if the device is not detected, uninstall the old version first, then reinstall.',
+    q: 'Should I uninstall the old version before updating the monitor firmware?',
+    a: 'Usually not needed. The new firmware overwrites in place and keeps your settings; if the monitor is not detected, re-scan it in Center, then update.',
   },
   'faq-pair-24g': {
-    q: 'My wireless device will not enter 2.4G mode — what now?',
-    a: 'Make sure the receiver is plugged in and the device is in wired mode, then press the mode switch to pair. If the indicator does not blink, charge it first and retry.',
+    q: 'Why can’t I reach 540Hz over DP 2.1?',
+    a: 'Use the bundled full-speed DP 2.1 (80 Gbps) cable and enable the refresh rate in both the OSD and the GPU driver; cables or adapters with insufficient bandwidth lock to a lower rate. Submit a ticket if it still falls short.',
   },
   'faq-pair-multi': {
-    q: 'How do I switch a tri-mode keyboard between devices?',
-    a: 'The keyboard stores multiple Bluetooth pairings; use the key combo to switch between paired devices. Center shows the active channel.',
+    q: 'How do I switch a dual-mode monitor between 4K and high refresh?',
+    a: 'Use the OSD menu or the «Dual-mode» switch in Center to pick 4K@165 or FHD@330; the system re-detects resolution and refresh rate, so confirm cable and port bandwidth as well.',
   },
   'faq-pair-notfound': {
-    q: 'Center cannot find my device — what should I check?',
-    a: 'Connect directly by USB (no hub) and confirm wired mode; for wireless devices, finish pairing first, then refresh the device list in Center.',
+    q: 'Center cannot find my monitor — what should I check?',
+    a: 'Connect directly by DP or USB-C (no dock) and confirm the monitor is on the matching input; if it still does not respond, get the latest tuning software from Support → Downloads and retry.',
   },
   'faq-fw-fail': {
-    q: 'Can I still use the device after a failed firmware update?',
-    a: 'Yes. An interrupted update does not erase the original firmware; the device keeps working and Center will prompt a retry.',
+    q: 'Can I still use the monitor after a failed firmware update?',
+    a: 'Yes. An interrupted update does not erase the original firmware; the monitor keeps working and Center will prompt a retry.',
   },
   'faq-fw-check': {
     q: 'How do I know if new firmware is available?',
     a: 'Open Center → Firmware update to see the current version and available updates; new versions are listed with change notes.',
   },
   'faq-warranty-period': {
-    q: 'How do I check whether my product is still under warranty?',
-    a: 'Find the serial number on the bottom label or the box, then use “Warranty status” to see the remaining period. If it fails, submit a ticket with proof of purchase.',
+    q: 'How long is the OLED monitor warranty, and does it cover burn-in?',
+    a: 'Three-year warranty including OLED burn-in protection. Find the serial number on the bottom label or the box, then use «Warranty status» to see the remaining period.',
   },
   'faq-warranty-serial': {
     q: 'Where can I find the serial number?',
-    a: 'It is usually on the bottom label or the box barcode; some wireless devices also show it on the device info page in Center.',
+    a: 'It is usually on the monitor’s bottom label or the box barcode; it is also shown on the device info page in Center.',
   },
   'faq-warranty-repair': {
     q: 'What should I prepare before sending a unit in for repair?',
@@ -262,35 +257,35 @@ const FAQS_EN: Record<string, Overlay> = {
 /* ---------------- 型号支持 ---------------- */
 
 const MODELS_EN: Record<string, Overlay> = {
-  'gh-m900-pro': {
-    summary: 'Flagship wireless gaming mouse with Center tuning and over-the-air firmware updates.',
+  'gh-54027x1qe': {
+    summary: '26.5" 2K@540Hz flagship OLED gaming monitor with full-speed DP 2.1 and Center tuning.',
     guides: [
-      { title: 'Quick start', desc: 'Unboxing, charging and 2.4G pairing.' },
-      { title: 'Center tuning', desc: 'Adjust DPI, polling rate and macros, including presets.' },
-      { title: 'Connection troubleshooting', desc: 'Steps for device not found, disconnects and high latency.' },
+      { title: 'Quick start', desc: 'Unboxing, stand mounting and full-speed DP 2.1 connection.' },
+      { title: 'OSD & color tuning', desc: 'Adjust brightness, gamut and HDR, including presets.' },
+      { title: 'Port troubleshooting', desc: 'Steps for not reaching full refresh, no signal and not detected.' },
     ],
   },
-  'gh-k870': {
-    summary: 'Tri-mode mechanical keyboard with key remapping, macros and multi-device switching.',
+  'gh-32x1ue': {
+    summary: '31.5" 4K@165 / FHD@330 dual-mode OLED gaming monitor for both quality and competition.',
     guides: [
-      { title: 'Connection & pairing', desc: 'Switching between wired, Bluetooth and 2.4G.' },
-      { title: 'Keys & macros', desc: 'Per-key remapping and macro recording basics.' },
+      { title: 'Dual-mode switching', desc: 'Switching and trade-offs between 4K@165 and FHD@330.' },
+      { title: 'OSD & HDR', desc: 'Using HDR tuning and peak brightness settings.' },
       { title: 'Firmware update', desc: 'Firmware upgrade via Center, including retry after failure.' },
     ],
   },
-  'gh-h500': {
-    summary: 'Wireless gaming headset with 2.4G low-latency connection and microphone tuning.',
+  'gh-27q1f': {
+    summary: '27" 2K 200Hz Fast IPS gaming monitor with HDMI 2.1 for daily use and competition.',
     guides: [
-      { title: 'Quick start', desc: 'Charging, power and 2.4G pairing basics.' },
-      { title: 'Microphone tuning', desc: 'Volume, monitoring and noise-reduction settings.' },
-      { title: 'Connection troubleshooting', desc: 'Path for no sound, dropouts and device not found.' },
+      { title: 'Quick start', desc: 'Unboxing, stand mounting and HDMI 2.1 connection basics.' },
+      { title: 'Color & eye care', desc: 'Gamut, brightness and low blue light settings.' },
+      { title: 'Port troubleshooting', desc: 'Path for no signal, low refresh rate and not detected.' },
     ],
   },
-  'gh-p400': {
-    summary: 'Oversized mouse pad with cleaning and care guidance.',
+  'gh-arm01': {
+    summary: 'Monitor arm supporting VESA 75/100 and 9 kg, with mounting and adjustment guidance.',
     guides: [
-      { title: 'Cleaning & care', desc: 'Routine cleaning and pitfalls to avoid.' },
-      { title: 'Size & fit', desc: 'Desk size reference and common pairings.' },
+      { title: 'Mounting & adjustment', desc: 'VESA 75/100 mounting and gas-spring adjustment.' },
+      { title: 'Load & fit', desc: 'Load range and common size pairings.' },
     ],
   },
 }
@@ -301,46 +296,46 @@ const BIZ_SCENES_EN: Record<string, Overlay> = {
   'esports-room': {
     eyebrow: 'Esports',
     title: 'Esports arena bundle',
-    desc: 'Peripherals bundled by seat count and budget for team training rooms and arena battle zones, balancing low latency and long-session comfort.',
+    desc: 'Monitors bundled by seat count and budget for team training rooms and arena battle zones, balancing high refresh and response.',
     points: [
-      'Configure keyboards, mice and headsets per seat with unified firmware and parameter profiles',
-      'Central storage and charging for wireless gear to cut desk cable clutter',
+      'Configure gaming monitors per seat with unified firmware and display profiles',
+      'Central monitor management and cable routing to cut desk clutter',
       'Reserve trial and backup seats for quick swaps before matches',
     ],
     products: [
-      { id: 'gh-m900-pro', name: 'GH-M900 PRO Wireless Gaming Mouse' },
-      { id: 'gh-k870', name: 'GH-K870 Tri-mode Mechanical Keyboard' },
-      { id: 'gh-h500', name: 'GH-H500 Gaming Headset' },
+      { id: 'gh-54027x1qe', name: 'Lightning 540Hz OLED Gaming Monitor' },
+      { id: 'gh-32x1ue', name: 'Meta Dual-mode 4K Gaming Monitor' },
+      { id: 'gh-27q1f', name: '27" 2K Gaming Monitor' },
     ],
   },
   'creator-desk': {
     eyebrow: 'Content creation',
     title: 'Creator desk bundle',
-    desc: 'For editing and streaming desks, balancing key feel with silence and zoning the desk around the creation workflow.',
+    desc: 'For editing and grading desks, prioritizing color accuracy and wide gamut and zoning the desk around the workflow.',
     points: [
-      'Separate main and hotkey zones to reduce mis-taps and switching cost',
-      'Low-noise switches and a quiet headset for long recording sessions',
-      'A large mouse pad to unify the desk look and aid device placement',
+      'Separate main and reference zones to reduce switching cost',
+      'Native 10-bit and 99% DCI-P3 for grading needs',
+      'A large monitor with an arm to unify the desk look',
     ],
     products: [
-      { id: 'gh-k870', name: 'GH-K870 Tri-mode Mechanical Keyboard' },
-      { id: 'gh-m900-pro', name: 'GH-M900 PRO Wireless Gaming Mouse' },
-      { id: 'gh-p400', name: 'GH-P400 Oversized Mouse Pad' },
+      { id: 'gh-32x1ue', name: 'Meta Dual-mode 4K Gaming Monitor' },
+      { id: 'gh-54027x1qe', name: 'Lightning 540Hz OLED Gaming Monitor' },
+      { id: 'gh-arm01', name: 'Monitor Arm' },
     ],
   },
   'office-desk': {
     eyebrow: 'Enterprise',
     title: 'Enterprise office desk bundle',
-    desc: 'For bulk corporate purchases, unifying key layout and connectivity for centralized IT management and asset tracking.',
+    desc: 'For bulk corporate purchases, unifying models and ports for centralized IT management and asset tracking.',
     points: [
-      'Unified models and colors to lower spare-part and training cost',
-      'Multi-mode connectivity for meeting rooms and desk switching',
+      'Unified models and ports to lower spare-part and training cost',
+      'HDMI 2.1 / DP 2.1 for meeting rooms and desk switching',
       'Bulk firmware delivery and device-list templates',
     ],
     products: [
-      { id: 'gh-k650', name: 'GH-K650 Compact Mechanical Keyboard' },
-      { id: 'gh-m500', name: 'GH-M500 Lightweight Gaming Mouse' },
-      { id: 'gh-h300', name: 'GH-H300 Lightweight Gaming Headset' },
+      { id: 'gh-27q1f', name: '27" 2K Gaming Monitor' },
+      { id: 'gh-24h1', name: '24" 200Hz Gaming Monitor' },
+      { id: 'gh-arm01', name: 'Monitor Arm' },
     ],
   },
 }
@@ -351,15 +346,15 @@ const BIZ_CASES_EN: Record<string, Overlay> = {
   'campus-esports-2026': {
     title: 'Campus esports event partnership',
     partner: 'South China Campus Esports Alliance',
-    summary: 'Providing match PCs and on-site experience zones for campus and regional leagues, unifying peripheral specs to reduce home/away differences.',
+    summary: 'Providing match monitors and on-site experience zones for campus and regional leagues, unifying display specs to reduce home/away differences.',
   },
   'venue-experience-2025': {
     title: 'Co-built experience zone in an esports venue',
     partner: 'Shenzhen Jingjie Esports Arena',
-    summary: 'Co-building a trial zone with unified display materials and trial-seat setups, supporting foot traffic and trial sign-ups.',
+    summary: 'Co-building a trial zone with unified display materials and trial-seat display setups, supporting foot traffic and trial sign-ups.',
   },
   'cobrand-series-2026': {
-    title: 'Co-branded peripherals program',
+    title: 'Co-branded monitor program',
     partner: 'NOVA Design Studio',
     summary: 'Jointly developing co-branded colorways and packaging visuals, rolled out on-site and online across launch and long-tail phases.',
   },

@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../components/admin/AdminAuth'
-import { BrandMark } from '../../components/site/BrandMark'
+import { AuthShell } from '../../components/site/AuthShell'
 
 type LoginState = { from?: string } | null
 
@@ -73,16 +73,15 @@ export function AdminLoginPage() {
   }
 
   return (
-    <div className="admin-root admin-login">
-      <div className="admin-login__card">
-        <div className="admin-login__brand">
-          <span className="logo admin-side__logo">
-            <BrandMark className="logo__mark admin-side__mark" />
-            <span className="logo__word admin-side__word" role="img" aria-label="光魂" />
-          </span>
-          <span className="tag admin-side__badge">管理端</span>
-        </div>
-
+    <div className="admin-root">
+      <AuthShell
+        variant="full"
+        badge="管理端"
+        eyebrow="ADMIN / SIGN IN"
+        headline="光魂内容管理系统"
+        subtitle="统一管理产品、内容、装修与服务数据，改动即时反映到前台。"
+        points={['页面装修器 · 可视化拖拽编辑', '集合数据 · 前后台单一数据源', '角色权限 · 发布与版本备份']}
+      >
         <div className="card">
           <h1 className="card__title">登录后台</h1>
           <p className="card__desc">
@@ -162,7 +161,7 @@ export function AdminLoginPage() {
             </div>
           )}
         </div>
-      </div>
+      </AuthShell>
     </div>
   )
 }

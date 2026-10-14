@@ -238,13 +238,13 @@ const DEVICE_DESC: Record<'monitor' | 'mouse' | 'keyboard' | 'headset' | 'pad', 
   monitor:
     'OLED 电竞显示器 · 产品实拍｜暗色影棚哑光台面，正面略俯视展露窄边框与支架｜居中、下身柔投影与轻微倒影｜顶侧逆光 + 屏幕微光｜深蓝黑底 + 品牌蓝 / 青高光｜无缝影棚背景',
   mouse:
-    '旗舰无线电竞鼠标 · 产品实拍｜暗色影棚哑光台面，产品 3/4 侧视置于台面｜居中、下身柔投影与轻微倒影｜顶侧逆光 + 边缘勾光｜深蓝黑底 + 品牌蓝 / 青高光｜无缝影棚背景',
+    'OLED 电竞显示器 · 产品实拍（3/4 侧视）｜暗色影棚哑光台面，侧视置于台面｜居中、下身柔投影与轻微倒影｜顶侧逆光 + 屏幕微光｜深蓝黑底 + 品牌蓝 / 青高光｜无缝影棚背景',
   keyboard:
-    '三模机械键盘 · 产品实拍｜暗色影棚哑光台面，45° 俯视展露键帽纵深｜居中、下身柔投影｜顶部柔光 + 键面高光｜深蓝黑底 + 品牌蓝点缀｜无缝影棚背景',
+    'OLED 电竞显示器 · 产品实拍（45° 俯视）｜暗色影棚哑光台面，俯视展露窄边框与支架｜居中、下身柔投影｜顶部柔光 + 屏面微光｜深蓝黑底 + 品牌蓝点缀｜无缝影棚背景',
   headset:
-    '无线游戏耳机 · 产品实拍｜暗色影棚哑光台面，3/4 侧视展露耳罩与头梁｜居中、柔和接地阴影｜侧逆光勾出耳罩轮廓｜深蓝黑底 + 品牌蓝高光｜无缝影棚背景',
+    'OLED 电竞显示器 · 场景实拍｜暗色影棚台面，侧逆光勾出机身轮廓与屏面反光｜居中、柔和接地阴影｜侧逆光 + 屏幕高光｜深蓝黑底 + 品牌蓝高光｜无缝影棚背景',
   pad:
-    '桌面鼠标垫 · 产品实拍｜暗色影棚台面，斜俯视呈现纹理与包边｜居中平铺、边缘阴影｜顶部均匀柔光｜深蓝黑底 + 青色包边光｜无缝影棚背景',
+    '显示器悬臂支架 · 周边实拍｜暗色影棚台面，斜俯视呈现铝合金臂与底座｜居中、边缘阴影｜顶部均匀柔光｜深蓝黑底 + 青色包边光｜无缝影棚背景',
 }
 
 /** 详情页相册的四个机位 */
@@ -321,15 +321,19 @@ export const MEDIA = {
   } as Record<string, string>,
 
   /** 产品列表 / 重点产品卡（按产品 id，4:3） */
+  /**
+   * 产品主图：由生成/正式素材提供（远程地址，MediaImg 直接加载）。
+   * 未配置的型号由调用方回退到 DeviceArt 占位。
+   */
   product: {
-    'gh-54027x1qe': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-28027x1qe': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-32x1ue': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-27x1u': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-27q1f': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-24h1': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-25s1fp': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-arm01': art('pad', W43, H43, `${DEVICE_DESC.pad}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-54027x1qe': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=26.5%E8%8B%B1%E5%AF%B82K%20540Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E8%B6%85%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%E5%93%91%E5%85%89%E5%8F%B0%E9%9D%A2%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E5%B1%8F%E5%B9%95%E5%BE%AE%E5%85%89%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E5%8B%BE%E5%85%89%EF%BC%8C%E5%B1%85%E4%B8%AD%E6%9F%94%E6%8A%95%E5%BD%B1&image_size=landscape_4_3',
+    'gh-28027x1qe': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=26.5%E8%8B%B1%E5%AF%B82K%20280Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E9%AB%98%E5%85%89&image_size=landscape_4_3',
+    'gh-32x1ue': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=31.5%E8%8B%B1%E5%AF%B84K%E5%8F%8C%E6%A8%A1OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E5%AE%BD%E5%B1%8F%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E5%8B%BE%E5%85%89&image_size=landscape_4_3',
+    'gh-27x1u': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=27%E8%8B%B1%E5%AF%B82K%20240Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E8%B6%85%E8%96%84%E6%9C%BA%E8%BA%AB%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E9%AB%98%E5%85%89&image_size=landscape_4_3',
+    'gh-27q1f': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=27%E8%8B%B1%E5%AF%B82K%20200Hz%20Fast%20IPS%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E9%9D%92%E8%89%B2%E7%82%B9%E7%BC%80%E5%85%89&image_size=landscape_4_3',
+    'gh-24h1': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=23.8%E8%8B%B1%E5%AF%B8FHD%20200Hz%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AE%80%E6%B4%81%E6%94%AF%E6%9E%B6%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E9%AB%98%E5%85%89&image_size=landscape_4_3',
+    'gh-25s1fp': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=24.5%E8%8B%B1%E5%AF%B8FHD%20240Hz%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%EF%BC%8C%E7%AA%84%E8%BE%B9%E6%A1%86%EF%BC%8C%E8%93%9D%E8%89%B2%E5%8B%BE%E5%85%89&image_size=landscape_4_3',
+    'gh-arm01': 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=%E6%98%BE%E7%A4%BA%E5%99%A8%E6%82%AC%E8%87%82%E6%94%AF%E6%9E%B6%E4%BA%A7%E5%93%81%E5%9B%BE%EF%BC%9A%E9%93%9D%E5%90%88%E9%87%91%E5%8D%95%E8%87%82%EF%BC%8C%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%E5%93%91%E5%85%89%E5%8F%B0%E9%9D%A2%EF%BC%8C%E6%96%9C%E4%BF%AF%E8%A7%86%EF%BC%8C%E9%87%91%E5%B1%9E%E8%B4%A8%E6%84%9F%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E8%BE%B9%E5%85%89&image_size=landscape_4_3',
   } as Record<string, string>,
 
   /** 产品详情相册（按设备类型给 4 个机位，1:1） */

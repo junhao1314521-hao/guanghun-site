@@ -12,7 +12,7 @@ export const SITE_URL = 'https://www.guanghun.example'
 /** 品牌名（用于标题后缀与结构化数据） */
 export const BRAND = '光魂'
 
-export const DEFAULT_TITLE = '光魂 · 电竞外设官网'
+export const DEFAULT_TITLE = '光魂 · OLED 电竞显示器官网'
 export const DEFAULT_DESCRIPTION = '以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。'
 
 /**
@@ -52,7 +52,7 @@ export const PAGE_META: PageMeta[] = [
   {
     path: '/products',
     title: '全部产品 · 光魂',
-    description: '电竞鼠标、机械键盘、游戏耳机与鼠标垫配件，可按产品线、使用场景与新品筛选。',
+    description: '光魂 OLED 电竞显示器，覆盖 540Hz 旗舰到主流电竞 IPS，可按品类、接口与价格筛选。',
     indexable: true,
     changefreq: 'weekly',
     priority: 0.9,

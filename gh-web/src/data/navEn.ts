@@ -19,15 +19,24 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
         ],
       },
       {
+        eyebrow: 'Series',
+        links: [
+          { label: 'OLED flagship series', to: '/products/series/oled' },
+          { label: 'Dual-mode series', to: '/products/series/dual' },
+          { label: 'Gaming IPS series', to: '/products/series/ips' },
+          { label: 'Desktop accessories', to: '/products/series/accessory' },
+        ],
+      },
+      {
         eyebrow: 'Featured models',
         links: [
-          { label: 'GH-M900 PRO flagship mouse', to: '/products/gh-m900-pro' },
-          { label: 'GH-K870 tri-mode keyboard', to: '/products/gh-k870' },
-          { label: 'GH-H500 wireless headset', to: '/products/gh-h500' },
+          { label: '54027X1QE-W54 540Hz OLED', to: '/products/gh-54027x1qe' },
+          { label: '32X1UE-W16 dual-mode 4K OLED', to: '/products/gh-32x1ue' },
+          { label: '28027X1QE-W28 280Hz OLED', to: '/products/gh-28027x1qe' },
         ],
       },
     ],
-    feature: { eyebrow: 'FEATURED', title: 'GH-M900 PRO', desc: '58 g lightweight · 26,000 DPI optical engine' },
+    feature: { eyebrow: 'FEATURED', title: '54027X1QE-W54', desc: '26.5" 2K@540Hz · 0.03 ms GTG' },
   },
   {
     key: 'ladder',
@@ -36,16 +45,17 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
         eyebrow: 'Rankings',
         links: [
           { label: 'Overall', to: '/ladder' },
-          { label: 'Mice', to: '/ladder?type=mouse' },
-          { label: 'Keyboards', to: '/ladder?type=keyboard' },
-          { label: 'Headsets', to: '/ladder?type=headset' },
+          { label: 'OLED flagship', to: '/ladder?type=oled' },
+          { label: 'Dual-mode', to: '/ladder?type=dual' },
+          { label: 'Gaming IPS', to: '/ladder?type=ips' },
         ],
       },
       {
         eyebrow: 'Popular',
         links: [
-          { label: 'End-to-end latency TOP 10', to: '/ladder?metric=latency' },
-          { label: 'Battery rankings', to: '/ladder?metric=battery' },
+          { label: 'Response time rankings', to: '/ladder/latency' },
+          { label: 'Peak brightness rankings', to: '/ladder/battery' },
+          { label: 'Color accuracy rankings', to: '/ladder/sensor' },
         ],
       },
     ],
@@ -111,6 +121,14 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
         links: [
           { label: 'About Guanghun', to: '/about' },
           { label: 'Newsroom', to: '/news' },
+        ],
+      },
+      {
+        eyebrow: 'Brand',
+        links: [
+          { label: 'Brand profile · Guanghun', to: '/brand/guanghun' },
+          { label: 'Guanghun Lab', to: '/brand/lab' },
+          { label: 'Esports partnerships', to: '/brand/esports' },
         ],
       },
       {

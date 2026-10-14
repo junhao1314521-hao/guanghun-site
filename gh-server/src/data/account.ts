@@ -60,9 +60,9 @@ export const ACCOUNT_TICKETS: AccountTicket[] = [
 export type FavoriteItem = { name: string; spec: string; subscribed: boolean }
 
 export const FAVORITES: FavoriteItem[] = [
-  { name: 'GH-M900 PRO 无线电竞鼠标', spec: '26,000 DPI · 58 g', subscribed: true },
-  { name: 'GH-K870 三模机械键盘', spec: '三模 · 热插拔', subscribed: false },
-  { name: 'GH-H500 无线游戏耳机', spec: '2.4G / 蓝牙双模', subscribed: true },
+  { name: '54027X1QE-W54 电竞OLED显示器', spec: '26.5 英寸 2K 540Hz', subscribed: true },
+  { name: '32X1UE-W16 双模 4K 电竞显示器', spec: '4K@165 / FHD@330', subscribed: false },
+  { name: '28027X1QE-W28 电竞OLED显示器', spec: '26.5 英寸 2K 280Hz', subscribed: true },
 ]
 
 /** 账号与安全 */

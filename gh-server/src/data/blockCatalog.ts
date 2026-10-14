@@ -363,9 +363,11 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
         kind: 'select',
         options: [
           { label: '全部', value: 'all' },
-          { label: '鼠标', value: 'mouse' },
-          { label: '键盘', value: 'keyboard' },
-          { label: '耳机', value: 'headset' },
+          { label: '软件', value: 'software' },
+          { label: 'OLED 旗舰', value: 'oled' },
+          { label: '双模高刷', value: 'dual' },
+          { label: '电竞 IPS', value: 'ips' },
+          { label: '周边', value: 'accessory' },
         ],
       },
       {

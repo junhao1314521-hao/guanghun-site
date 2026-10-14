@@ -24,10 +24,10 @@ const VIEW_COUNT = 4
 
 /** 产品分类 → 系列 slug（用于详情页「同系列」入口） */
 const SERIES_SLUG_BY_CATEGORY: Record<string, string> = {
-  鼠标: 'mouse',
-  键盘: 'keyboard',
-  耳机: 'headset',
-  配件: 'accessory',
+  OLED旗舰: 'oled',
+  双模高刷: 'dual',
+  电竞IPS: 'ips',
+  周边: 'accessory',
 }
 
 /** 产品详情（一级页面 · 骨架层）：展台、标称/实测分区、参数规格表 */

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
+import { AuthShell } from '../components/site/AuthShell'
 import { invalidateSession } from '../hooks/useSession'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -79,10 +80,17 @@ export function RegisterPage() {
           <span>注册</span>
         </nav>
 
-        <div style={{ maxWidth: 460, margin: 'var(--gh-space-7) auto 0' }}>
+        <div style={{ marginTop: 'var(--gh-space-5)' }}>
+        <AuthShell
+          variant="card"
+          badge="客户中心"
+          eyebrow="ACCOUNT / REGISTER"
+          headline="注册光魂账号"
+          subtitle="注册后可登记设备、跟踪工单并管理订阅通知。"
+          points={['登记与管理我的设备', '跟踪工单与预约进度', '接收固件与资料更新']}
+        >
           <div className="card reveal">
-            <h1 className="card__title">注册光魂账号</h1>
-            <p className="card__desc">注册后可登记设备、跟踪工单并管理订阅通知。</p>
+            <h1 className="card__title">注册</h1>
 
             {done ? (
               <div className="alert alert--success" style={{ marginTop: 'var(--gh-space-5)' }} role="status">
@@ -196,6 +204,7 @@ export function RegisterPage() {
               已有账号？<Link to="/login">返回登录</Link>
             </p>
           </div>
+        </AuthShell>
         </div>
       </div>
     </div>

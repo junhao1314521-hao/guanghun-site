@@ -19,12 +19,14 @@ import { BlockPager, useBlockPager } from './BlockPager'
 import { useI18n } from '../i18n'
 import { asBool, asNumber, asString, asStringArray, pickByIds } from './blockUtils'
 
-/** 契约类别 → 下载资料分类（all 不筛选；软件 / 配件不在契约枚举内） */
+/** 契约类别 → 下载资料分类（all 不筛选） */
 const CATEGORY_LABEL: Record<string, string> = {
   all: '',
-  mouse: '鼠标',
-  keyboard: '键盘',
-  headset: '耳机',
+  software: '软件',
+  oled: 'OLED 旗舰',
+  dual: '双模高刷',
+  ips: '电竞 IPS',
+  accessory: '周边',
 }
 
 /** 受控的单选筛选 chip 组：驱动类别 / 类型的过滤 */

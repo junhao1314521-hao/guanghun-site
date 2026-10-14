@@ -13,12 +13,12 @@ export type Fact = { value: string; label: string }
 export const FACTS: Fact[] = [
   { value: '2019', label: '品牌成立' },
   { value: '1', label: '自有测试实验室' },
-  { value: '3', label: '产品线：鼠标 / 键盘 / 耳机' },
+  { value: '4', label: '产品线：OLED 旗舰 / 双模高刷 / 电竞 IPS / 周边' },
 ]
 
 /** 测试实验室：我们测什么 */
 export const LAB_POINTS = [
-  '端到端延迟、续航、重量与手感等可量化指标',
+  '响应时间、峰值亮度、色准与亮度均匀度等可量化指标',
   '同一测试脚本在所有型号上重复执行，条件一致',
   '每条记录保留设备、固件版本与执行时间',
   '方法升级后，历史文章引用旧版数值保持不变',
@@ -28,17 +28,17 @@ export const LAB_POINTS = [
 export type TimelineItem = { year: string; tag: string; title: string }
 
 export const TIMELINE: TimelineItem[] = [
-  { year: '2026', tag: '产品', title: 'GH-M900 PRO 发布，天梯榜测试方法升级至 v2' },
-  { year: '2024', tag: '软件', title: '光魂 Center 配套软件上线，统一管理全部设备' },
+  { year: '2026', tag: '产品', title: '闪电 540Hz OLED 电竞显示器发布，天梯榜测试方法升级至 v2' },
+  { year: '2024', tag: '软件', title: '光魂 Center 调校软件上线，统一管理全部显示器' },
   { year: '2022', tag: '实验室', title: '自有测试实验室投入使用，开始公开测试方法' },
-  { year: '2019', tag: '品牌', title: '光魂品牌成立，首款电竞鼠标上市' },
+  { year: '2019', tag: '品牌', title: '光魂品牌成立，首款电竞显示器上市' },
 ]
 
 /** 新闻中心 */
 export type NewsItem = { date: string; tag: string; title: string }
 
 export const NEWS: NewsItem[] = [
-  { date: '2026-09-28', tag: '产品发布', title: 'GH-M900 PRO 正式发布' },
+  { date: '2026-09-28', tag: '产品发布', title: '闪电 540Hz OLED 电竞显示器正式发布' },
   { date: '2026-09-12', tag: '品牌动态', title: '天梯榜测试方法升级至 v2' },
   { date: '2026-08-30', tag: '活动', title: '线下体验点巡回活动预告' },
 ]

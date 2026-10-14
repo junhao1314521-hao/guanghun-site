@@ -105,7 +105,7 @@ function buildHome(): Page {
           title: slide.title,
           desc: slide.desc,
           mediaTag: slide.mediaTag,
-          image: `/media/home/${slide.id}.svg`,
+          image: slide.poster ?? `/media/home/${slide.id}.svg`,
           primary: { label: slide.primary, href: slide.primaryTo ?? '#' },
           ...(slide.secondary ? { secondary: { label: slide.secondary, href: slide.secondaryTo ?? '#' } } : {}),
           stats: slide.stats,
@@ -262,10 +262,10 @@ function buildAbout(): Page {
       props: {
         html:
           '<h3>HTML 模块示例</h3>' +
-          '<table><thead><tr><th>型号</th><th>重量</th></tr></thead>' +
-          '<tbody><tr><td>GH-A1</td><td>58 g</td></tr><tr><td>GH-B2</td><td>62 g</td></tr></tbody></table>' +
+          '<table><thead><tr><th>型号</th><th>刷新率</th></tr></thead>' +
+          '<tbody><tr><td>27Q1F</td><td>200 Hz</td></tr><tr><td>24H1</td><td>200 Hz</td></tr></tbody></table>' +
           '<p style="color:#8a8a94">以上为无害占位内容，允许静态 HTML（表格 / 内联样式）。</p>',
-        note: '产品重量对比占位示例',
+        note: '产品参数对比占位示例',
       },
     },
     {

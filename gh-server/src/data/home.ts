@@ -11,6 +11,8 @@ export type HeroSlide = {
   id: string
   media: SlideMedia
   mediaTag: string
+  /** 海报图地址（运营/生成的主视觉；缺省则由前端按 id 回退占位图） */
+  poster?: string
   eyebrow: string
   title: string[]
   desc: string
@@ -27,6 +29,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's0',
     media: { kind: 'image' },
     mediaTag: '品牌主视觉',
+    poster: 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=%E7%94%B5%E7%AB%9EOLED%E6%98%BE%E7%A4%BA%E5%99%A8%E5%93%81%E7%89%8C%E4%B8%BB%E8%A7%86%E8%A7%89%E6%B5%B7%E6%8A%A5%EF%BC%9A%E6%B7%B1%E8%89%B2%E5%BD%B1%E6%A3%9A%EF%BC%8C26.5%E8%8B%B1%E5%AF%B8%E8%B6%85%E7%AA%84%E8%BE%B9%E6%A1%86OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E6%AD%A3%E9%9D%A2%E7%95%A5%E4%BF%AF%E8%A7%86%E7%BD%AE%E4%BA%8E%E6%9A%97%E8%89%B2%E5%8F%B0%E9%9D%A2%EF%BC%8C%E5%B1%8F%E5%B9%95%E7%BB%BD%E6%94%BE%E5%93%81%E7%89%8C%E8%93%9D%E7%A7%91%E6%8A%80%E7%94%BB%E9%9D%A2%EF%BC%8C%E9%A1%B6%E4%BE%A7%E9%80%86%E5%85%89%E5%8B%BE%E5%8B%92%E8%BE%B9%E6%A1%86%EF%BC%8C%E6%B7%B1%E8%93%9D%E9%BB%91%E5%BA%95%E9%85%8D%E9%9D%92%E8%89%B2%E5%85%89%E6%99%95%EF%BC%8C%E9%AB%98%E7%BA%A7%E8%B4%A8%E6%84%9F%EF%BC%8C%E7%94%B5%E5%BD%B1%E7%BA%A7%E6%89%93%E5%85%89%EF%BC%8C%E8%B6%85%E6%B8%85%E5%95%86%E4%B8%9A%E5%B9%BF%E5%91%8A&image_size=landscape_16_9',
     eyebrow: 'SUPER DISPLAY / 2026',
     title: ['至尊电竞旗舰', '为极致而生'],
     desc: '光魂 OLED 电竞显示器，进口三星 / LG 旗舰面板。以实测数据定义性能：参数公开、方法公开、来源可查。',
@@ -44,6 +47,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's1',
     media: { kind: 'motion' },
     mediaTag: '主视觉动效',
+    poster: 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=2K%20540Hz%20OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BE%A7%E9%9D%A2%E7%89%B9%E5%86%99%E6%B5%B7%E6%8A%A5%EF%BC%9A%E5%B1%8F%E5%B9%95%E9%AB%98%E5%85%89%E4%B8%8E%E7%94%BB%E9%9D%A2%E6%B5%81%E5%85%89%EF%BC%8C%E6%9C%BA%E8%BA%AB%E8%B6%85%E8%96%84%EF%BC%8CCNC%E9%87%91%E5%B1%9E%E8%83%8C%E6%9D%BF%EF%BC%8C%E6%B7%B1%E8%93%9D%E9%BB%91%E5%BA%95%E5%93%81%E7%89%8C%E8%93%9D%E5%85%89%E6%99%95%EF%BC%8C%E9%80%9F%E5%BA%A6%E6%84%9F%E5%85%89%E8%BD%A8%EF%BC%8C%E7%A7%91%E6%8A%80%E6%84%9F%E5%95%86%E4%B8%9A%E5%B9%BF%E5%91%8A&image_size=landscape_16_9',
     eyebrow: 'FLAGSHIP / 54027X1QE-W54',
     title: ['2K@540Hz', '闪电序列旗舰电竞OLED'],
     desc: '第四代 W-OLED 面板，0.03 ms 灰阶响应与 368 万像素级控光；满速 DP 2.1 一线跑满 540Hz。',
@@ -60,6 +64,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's2',
     media: { kind: 'canvas' },
     mediaTag: 'Canvas 实时动效',
+    poster: 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=OLED%E7%94%B5%E7%AB%9E%E6%98%BE%E7%A4%BA%E5%99%A8%E4%BF%AF%E8%A7%86%E9%99%88%E5%88%97%E6%B5%B7%E6%8A%A5%EF%BC%9A%E6%9A%97%E8%89%B2%E7%A7%91%E6%8A%80%E5%8F%B0%E9%9D%A2%EF%BC%8C%E6%98%BE%E7%A4%BA%E5%99%A8%E7%8E%AF%E7%BB%95%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E5%85%89%E6%95%88%E4%B8%8E%E5%83%8F%E7%B4%A0%E5%85%89%E7%82%B9%EF%BC%8C%E5%93%81%E7%89%8C%E8%93%9D%E4%B8%BB%E8%89%B2%EF%BC%8C%E6%9E%81%E7%AE%80%E7%A7%91%E6%8A%80%E9%A3%8E%EF%BC%8C%E5%95%86%E4%B8%9A%E5%B9%BF%E5%91%8A%E7%BA%A7%E6%89%93%E5%85%89&image_size=landscape_16_9',
     eyebrow: 'INTERACTIVE / CANVAS',
     title: ['数据驱动', '每一帧决胜'],
     desc: '由代码实时渲染的动效层，配合可复现的实测方法，把刷新率、响应与色准还原成看得懂的对比。',

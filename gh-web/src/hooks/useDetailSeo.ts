@@ -3,7 +3,7 @@ import { DEFAULT_OG_IMAGE, ogImageUrl } from '../data/meta'
 import { upsertMeta } from './usePageMeta'
 
 export type DetailSeo = {
-  /** 真实页面标题（覆盖壳层的通用标题），如「GH-M900 PRO 无线电竞鼠标 · 光魂」 */
+  /** 真实页面标题（覆盖壳层的通用标题），如「闪电 540Hz 电竞OLED显示器 · 光魂」 */
   title?: string
   description?: string
   /** 页面主图地址（http(s) 绝对地址才作为分享图，否则回退默认图） */

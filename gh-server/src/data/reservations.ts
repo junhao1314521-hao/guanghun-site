@@ -35,7 +35,7 @@ export const RESERVATIONS: ReservationSummary[] = [
     contact: '138-0000-0001',
     visitTime: '2026-10-18 14:00',
     people: 2,
-    note: '想体验 GH-M900 PRO 与 GH-K870。',
+    note: '想体验闪电 540Hz 电竞OLED显示器与 Meta 双模 4K 电竞显示器。',
     status: '待确认',
     createdAt: '2026-10-14',
   },

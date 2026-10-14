@@ -79,14 +79,14 @@ export const SITE_EN: SiteConfig['en'] = {
    ============================================================ */
 
 const SHOWCASE_COPY_EN: Record<string, string> = {
-  'gh-m900-pro':
-    'Flagship wireless gaming mouse. 58 g lightweight body and 0.6 ms end-to-end latency, balancing endurance and feel.',
-  'gh-k870':
-    '87-key tri-mode mechanical keyboard with hot-swap switches and low-latency wireless — stable for long sessions.',
-  'gh-h500':
-    '50 mm driver gaming headset with 7.1 surround and 2.4 G low latency — pinpoint sound with ease.',
-  'gh-p400':
-    '900×400 oversized mouse pad. Spill-resistant surface and 3 mm thickness leave room for sweeping motions.',
+  'gh-54027x1qe':
+    'Flagship series: 26.5" 2K@540Hz with a 4th-gen W-OLED panel and 0.03 ms GTG response.',
+  'gh-32x1ue':
+    'Dual-mode switching: 4K@165Hz and FHD@330Hz in one, with an imported LG META OLED panel.',
+  'gh-28027x1qe':
+    '26.5" 2K@280Hz, 1500 nit peak brightness and 3.68M-pixel light control — a value flagship.',
+  'gh-27q1f':
+    '27" 2K 200Hz Fast IPS; HDR and wide gamut at an accessible price.',
 }
 
 function buildHomeEn(): Page {
@@ -103,15 +103,15 @@ function buildHomeEn(): Page {
             image: '/media/home/hero-01.svg',
             primary: { label: 'Explore products', href: '/products' },
             secondary: { label: 'See the rankings', href: '/ladder' },
-            stats: [{ k: 'Latency', v: '0.6 ms' }, { k: 'Weight', v: '58 g' }],
+            stats: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }],
           },
           {
             eyebrow: 'NEW RELEASE',
-            title: 'GH-M900 Pro',
-            desc: 'The lightest flagship in its class — engineered for the fastest plays.',
-            mediaTag: 'Mouse',
+            title: 'Lightning 540Hz',
+            desc: 'The flagship OLED gaming monitor — 2K@540Hz engineered for the fastest plays.',
+            mediaTag: 'Monitor',
             image: '/media/home/hero-02.svg',
-            primary: { label: 'View details', href: '/products/gh-m900-pro' },
+            primary: { label: 'View details', href: '/products/gh-54027x1qe' },
           },
           {
             eyebrow: 'CENTER SOFTWARE',
@@ -130,7 +130,7 @@ function buildHomeEn(): Page {
       type: 'cards',
       props: {
         title: 'Choose by scenario',
-        desc: 'Peripheral combos for different use cases.',
+        desc: 'Display setups for different use cases.',
         ctaLabel: 'Browse all products',
         ctaHref: '/products',
         layout: 'rail',
@@ -138,9 +138,9 @@ function buildHomeEn(): Page {
         ratio: '4 / 5',
         columns: 3,
         items: [
-          { tag: 'FPS', title: 'Competitive FPS', desc: 'Ultra-light mice and fast switches for precise aiming.', href: '/products', media: '/media/home/scenes/fps.svg', mediaType: 'image' },
-          { tag: 'MOBA', title: 'MOBA & RTS', desc: 'Durable keys and macro-ready boards for long sessions.', href: '/products', media: '/media/home/scenes/moba.svg', mediaType: 'image' },
-          { tag: 'MMO', title: 'MMO & Productivity', desc: 'Multi-button layouts and ergonomic support for all-day use.', href: '/products', media: '/media/home/scenes/mmo.svg', mediaType: 'image' },
+          { tag: 'Esports', title: 'Competitive play', desc: 'High refresh and fast response for precise aiming.', href: '/products', media: '/media/home/scenes/fps.svg', mediaType: 'image' },
+          { tag: 'Creative', title: 'Content & color', desc: 'Native 10-bit and 99% DCI-P3 for editing and grading.', href: '/products', media: '/media/home/scenes/moba.svg', mediaType: 'image' },
+          { tag: 'Office', title: 'Work & comfort', desc: 'Low blue light and stable brightness for all-day use.', href: '/products', media: '/media/home/scenes/mmo.svg', mediaType: 'image' },
         ],
       },
     },
@@ -153,9 +153,9 @@ function buildHomeEn(): Page {
         ctaHref: '/products',
         alternate: true,
         items: [
-          { productId: 'gh-m900-pro', media: '/media/products/gh-m900-pro.svg', mediaType: 'image', eyebrow: 'M900 Pro · Flagship', title: 'GH-M900 Pro', desc: SHOWCASE_COPY_EN['gh-m900-pro'], specs: [{ k: 'Weight', v: '58 g' }, { k: 'Latency', v: '0.6 ms' }], cta: { label: 'View details', href: '/products/gh-m900-pro' } },
-          { productId: 'gh-k870', media: '/media/products/gh-k870.svg', mediaType: 'image', eyebrow: 'K870 · Tri-mode', title: 'GH-K870', desc: SHOWCASE_COPY_EN['gh-k870'], specs: [{ k: 'Keys', v: '87' }, { k: 'Connection', v: 'Tri-mode' }], cta: { label: 'View details', href: '/products/gh-k870' } },
-          { productId: 'gh-h500', media: '/media/products/gh-h500.svg', mediaType: 'image', eyebrow: 'H500 · Surround', title: 'GH-H500', desc: SHOWCASE_COPY_EN['gh-h500'], specs: [{ k: 'Driver', v: '50 mm' }, { k: 'Surround', v: '7.1' }], cta: { label: 'View details', href: '/products/gh-h500' } },
+          { productId: 'gh-54027x1qe', media: '/media/products/gh-54027x1qe.svg', mediaType: 'image', eyebrow: '54027X1QE-W54 · Flagship', title: 'Lightning 540Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-54027x1qe'], specs: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }], cta: { label: 'View details', href: '/products/gh-54027x1qe' } },
+          { productId: 'gh-32x1ue', media: '/media/products/gh-32x1ue.svg', mediaType: 'image', eyebrow: '32X1UE-W16 · Dual-mode', title: 'Meta Dual-mode 4K Monitor', desc: SHOWCASE_COPY_EN['gh-32x1ue'], specs: [{ k: 'Resolution', v: '4K@165 / FHD@330' }, { k: 'Panel', v: 'META OLED' }], cta: { label: 'View details', href: '/products/gh-32x1ue' } },
+          { productId: 'gh-28027x1qe', media: '/media/products/gh-28027x1qe.svg', mediaType: 'image', eyebrow: '28027X1QE-W28 · Best seller', title: 'Lightning 280Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-28027x1qe'], specs: [{ k: 'Refresh rate', v: '280 Hz' }, { k: 'Peak brightness', v: '1500 nit' }], cta: { label: 'View details', href: '/products/gh-28027x1qe' } },
         ],
       },
       style: { container: 'full', background: 'soft' },
@@ -179,7 +179,7 @@ function buildHomeEn(): Page {
         subtitle: 'What we have done, in verifiable numbers.',
         footnote: 'Figures as of 2026, counted under one published methodology — verifiable on the About page.',
         items: [
-          { label: 'Founded', value: '2019', note: 'Started in peripherals, with our own lab and in-house firmware.' },
+          { label: 'Founded', value: '2019', note: 'Started in displays, with our own lab and in-house firmware.' },
           { label: 'R&D and test team', value: '40', unit: '+', note: 'Covering structure, electronics, firmware and UX validation.' },
           { label: 'Test records logged', value: '1,200', unit: '+', note: 'Each traceable to its original test conditions and sample ID.' },
         ],
@@ -225,7 +225,7 @@ function buildHomeEn(): Page {
         ctaHref: '/news',
         columns: 3,
         items: [
-          { tag: 'Release', title: 'M900 Pro launch', desc: '2026-09' },
+          { tag: 'Release', title: 'Lightning 540Hz launch', desc: '2026-09' },
           { tag: 'Event', title: 'Esports sponsorship', desc: '2026-08' },
           { tag: 'Update', title: 'Center 2.1 firmware', desc: '2026-07' },
         ],
@@ -266,7 +266,7 @@ function buildAboutEn(): Page {
       props: {
         image: '/media/about/lab.svg',
         title: 'Testing lab',
-        body: 'A dedicated measurement lab for latency, weight, switch life, battery and acoustics.\nFixtures and methods are documented and versioned.\nHistorical numbers stay fixed to the method used at the time.',
+        body: 'A dedicated measurement lab for response time, peak brightness, color accuracy and uniformity.\nFixtures and methods are documented and versioned.\nHistorical numbers stay fixed to the method used at the time.',
         side: 'right',
       },
     },
@@ -288,7 +288,7 @@ function buildAboutEn(): Page {
         title: 'Newsroom',
         columns: 3,
         items: [
-          { tag: 'Release', title: 'M900 Pro launch', desc: '2026-09', href: '/news' },
+          { tag: 'Release', title: 'Lightning 540Hz launch', desc: '2026-09', href: '/news' },
           { tag: 'Event', title: 'Esports sponsorship', desc: '2026-08', href: '/news' },
           { tag: 'Update', title: 'Center 2.1 firmware', desc: '2026-07', href: '/news' },
         ],
@@ -354,10 +354,10 @@ function buildAboutEn(): Page {
       props: {
         html:
           '<h3>HTML module example</h3>' +
-          '<table><thead><tr><th>Model</th><th>Weight</th></tr></thead>' +
-          '<tbody><tr><td>GH-A1</td><td>58 g</td></tr><tr><td>GH-B2</td><td>62 g</td></tr></tbody></table>' +
+          '<table><thead><tr><th>Model</th><th>Refresh rate</th></tr></thead>' +
+          '<tbody><tr><td>27Q1F</td><td>200 Hz</td></tr><tr><td>24H1</td><td>200 Hz</td></tr></tbody></table>' +
           '<p style="color:#8a8a94">Harmless placeholder content; static HTML (tables / inline styles) allowed.</p>',
-        note: 'Product weight comparison sample',
+        note: 'Product specs comparison sample',
       },
     },
     {
@@ -401,9 +401,9 @@ function buildCenterEn(): Page {
         title: 'Core capabilities',
         columns: 3,
         items: [
-          { tag: 'tune', title: 'Param tuning', desc: 'DPI, polling, debounce and lift-off.' },
-          { tag: 'macro', title: 'Macros', desc: 'Record, edit and bind to any key.' },
-          { tag: 'rgb', title: 'Lighting', desc: 'Per-key and zone effects.' },
+          { tag: 'tune', title: 'OSD & color', desc: 'Brightness, gamut, tone and response levels.' },
+          { tag: 'preset', title: 'Presets & scenes', desc: 'Save and switch per-scenario presets.' },
+          { tag: 'eye', title: 'Eye care', desc: 'Low blue light and stable brightness.' },
           { tag: 'fw', title: 'Firmware', desc: 'Update with one click.' },
           { tag: 'sync', title: 'Config sync', desc: 'Carry settings across devices.' },
           { tag: 'cloud', title: 'Cloud profiles', desc: 'Sign in to back up profiles.' },
@@ -423,8 +423,8 @@ function buildCenterEn(): Page {
       type: 'imageText',
       props: {
         image: '/media/center/feature2.svg',
-        title: 'Low-latency wireless',
-        body: '2.4 G wireless stays under 1 ms end-to-end with Center active.\nProfile switching is instant, with no re-pairing.',
+        title: 'Full-speed connectivity',
+        body: 'DP 2.1 at 80 Gbps keeps 540Hz at full speed.\nProfile switching is instant, with no re-plugging.',
         side: 'left',
       },
     },
@@ -434,9 +434,9 @@ function buildCenterEn(): Page {
         title: 'Supported devices',
         columns: 3,
         items: [
-          { tag: 'Supported', title: 'Mice', desc: 'M900 Pro, K700, M500' },
-          { tag: 'Supported', title: 'Keyboards', desc: 'K870, K700, K300' },
-          { tag: 'Supported', title: 'Headsets', desc: 'H500, H300' },
+          { tag: 'Supported', title: 'OLED flagship', desc: '54027X1QE-W54, 28027X1QE-W28' },
+          { tag: 'Supported', title: 'Dual-mode', desc: '32X1UE-W16, 27X1U' },
+          { tag: 'Supported', title: 'Gaming IPS', desc: '27Q1F, 24H1, 25S1FP' },
         ],
       },
     },
@@ -725,9 +725,9 @@ function buildProductsEn(): Page {
     { type: 'text', props: { title: 'Products', body: 'Filter in-stock products by category, connection and price.', align: 'left' } },
     { type: 'productGrid', props: { title: 'All products', source: 'all', limit: 24, columns: 3 } },
     // Sample: hand-picked (order is the display order)
-    { type: 'productGrid', props: { title: 'Editor picks', subtitle: 'Hand-picked models; the order is adjustable.', scope: 'manual', ids: ['gh-m900-pro', 'gh-k870', 'gh-h500', 'gh-p400'], limit: 8, columns: 4, showFilter: false } },
-    // Sample: by category (mice only)
-    { type: 'productGrid', props: { title: 'Gaming mice', subtitle: 'Every model in the "Mice" category.', scope: 'category', category: '鼠标', limit: 6, columns: 3, showFilter: false } },
+    { type: 'productGrid', props: { title: 'Editor picks', subtitle: 'Hand-picked models; the order is adjustable.', scope: 'manual', ids: ['gh-54027x1qe', 'gh-32x1ue', 'gh-28027x1qe', 'gh-27q1f'], limit: 8, columns: 4, showFilter: false } },
+    // Sample: by category (OLED flagship only)
+    { type: 'productGrid', props: { title: 'OLED flagship', subtitle: 'Every model in the "OLED flagship" category.', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false } },
   ])
 }
 
@@ -760,7 +760,7 @@ function buildDownloadsEn(): Page {
     { type: 'text', props: { title: 'Downloads', body: 'Drivers, firmware and manuals. One file can map to multiple models.', align: 'left' } },
     { type: 'downloadList', props: { title: 'All files', category: 'all', limit: 0, pageSize: 10 } },
     // Sample: hand-picked + rail card presentation
-    { type: 'downloadList', props: { title: 'Recommended', subtitle: 'Hand-picked files; the order is adjustable.', scope: 'manual', ids: ['center-win', 'k870-driver', 'h500-manual'], limit: 0, showFilter: false, layout: 'rail' } },
+    { type: 'downloadList', props: { title: 'Recommended', subtitle: 'Hand-picked files; the order is adjustable.', scope: 'manual', ids: ['center-win', 'gh-54027x1qe-firmware', 'gh-32x1ue-manual'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
+import { AuthShell } from '../components/site/AuthShell'
 import { invalidateSession } from '../hooks/useSession'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -55,17 +56,24 @@ export function LoginPage() {
 
   return (
     <div ref={rootRef}>
-      <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
+      <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-6)' }}>
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
           <span>登录</span>
         </nav>
 
-        <div style={{ maxWidth: 420, margin: 'var(--gh-space-7) auto 0' }}>
+        <div style={{ marginTop: 'var(--gh-space-5)' }}>
+        <AuthShell
+          variant="card"
+          badge="客户中心"
+          eyebrow="ACCOUNT / SIGN IN"
+          headline="登录光魂账号"
+          subtitle="登录后可跟踪咨询进度、管理已登记设备与订阅通知。"
+          points={['跟踪咨询与预约进度', '登记与管理我的设备', '收藏型号与下载资料']}
+        >
           <div className="card reveal">
-            <h1 className="card__title">登录光魂账号</h1>
-            <p className="card__desc">登录后可跟踪咨询进度、管理已登记设备与订阅。</p>
+            <h1 className="card__title">登录</h1>
 
             {done ? (
               <div className="alert alert--success" style={{ marginTop: 'var(--gh-space-5)' }} role="status">
@@ -147,6 +155,7 @@ export function LoginPage() {
               </Link>
             </div>
           </div>
+        </AuthShell>
         </div>
       </div>
     </div>
