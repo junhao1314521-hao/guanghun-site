@@ -1,18 +1,21 @@
 /**
- * 20. showcase 通栏产品展示（契约 §4 扩展）—— 首页「重点产品」分段式。
- * props: alternate?:boolean（图文左右交替）/ items:{productId?,media,mediaType?,eyebrow?,title,desc?,specs?:string[],cta?}[]
+ * 20. showcase 通栏产品展示（契约 §4 扩展）—— 首页「重点产品」。
  *
- * 视觉（要求大气）：配合 style.container:'full' 通栏，每一项占满一屏；
- * 大图 / 大视频在一侧、文案（眉题 / 标题 / 描述 / 参数条 / CTA）在另一侧，左右交替；
- * 滚动进入时渐显 + 轻微上移（.reveal），参数依次浮现并**数值滚动**；
- * 媒体 hover 缓慢推进（Ken Burns）+ 提亮 + 描边高亮；移动端降级为上下堆叠；
- * 复用现有设计令牌与双主题；prefers-reduced-motion 时不动画。
+ * v2.1 重构为「方案二优化版」（见需求汇总 §13）：
+ * - 上层：媒体区（16:10，左对齐；无素材时由 MediaImg → CodeMedia 代码渐变兜底）；
+ * - 下层：浅底信息区（左：型号 / 名称 / 价格 / 双 CTA；右：图标规格条 + 卖点列表）；
+ * - 一次展示一个主推，底部「进度点 + 左右箭头」切换；
+ * - 排版要求：干净、高级、整洁、大气（大留白、弱分隔线、统一字号层级）。
+ *
+ * props: items:{productId?,media,mediaType?,eyebrow?,model?,title,desc?,price?,specs?:string[],features?:string[],cta?}[]
  */
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { BlockIcon } from '../components/home/BlockIcon'
 import { MediaImg } from '../components/ui/MediaImg'
 import { MEDIA, resolveMedia } from '../data/media'
-import { asArray, asBool, asLink, asRecord, asString, asStringArray } from './blockUtils'
+import { asArray, asLink, asRecord, asString, asStringArray } from './blockUtils'
 
 type MediaType = 'image' | 'video' | 'gif'
 
@@ -20,10 +23,12 @@ type ShowcaseItem = {
   productId: string
   media: string
   mediaType: MediaType
-  eyebrow: string
+  model: string
   title: string
   desc: string
+  price: string
   specs: string[]
+  features: string[]
   cta: { label: string; href: string } | null
 }
 
@@ -34,10 +39,12 @@ function toItem(value: unknown): ShowcaseItem {
     productId: asString(record.productId),
     media: asString(record.media),
     mediaType: rawType === 'video' || rawType === 'gif' ? rawType : 'image',
-    eyebrow: asString(record.eyebrow),
+    model: asString(record.model) || asString(record.eyebrow),
     title: asString(record.title),
     desc: asString(record.desc),
+    price: asString(record.price),
     specs: asStringArray(record.specs),
+    features: asStringArray(record.features),
     cta: asLink(record.cta),
   }
 }
@@ -50,20 +57,20 @@ function itemMedia(item: ShowcaseItem): string {
   return ''
 }
 
-/** 媒体层：video 用原生循环播放；image / gif 交 MediaImg */
-function ShowcaseMedia({ item }: { item: ShowcaseItem }) {
-  const src = itemMedia(item)
-  if (!src) return <div className="showcase__media-fallback" aria-hidden="true" />
-  if (item.mediaType === 'video') {
-    return <video src={src} autoPlay muted loop playsInline aria-label={item.title} />
-  }
-  return <MediaImg src={src} alt={item.title} />
-}
+/** 规格条的图标：按顺序轮换（尺寸 / 刷新率 / 响应），保持视觉节奏 */
+const SPEC_ICONS = ['monitor', 'clock', 'sliders', 'chip']
 
 export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
   const items = asArray(props.items).map(toItem)
-  const alternate = asBool(props.alternate, true)
+  const [active, setActive] = useState(0)
   const hasTitle = asString(props.title).length > 0
+  if (items.length === 0) return null
+  const index = Math.min(active, items.length - 1)
+  const item = items[index]
+  const src = itemMedia(item)
+  const detailHref = item.cta?.href || (item.productId ? `/products/${item.productId}` : '/products')
+
+  const go = (delta: number) => setActive((prev) => (prev + delta + items.length) % items.length)
 
   return (
     <div className="showcase">
@@ -72,50 +79,79 @@ export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
           <SectionHeadFromProps props={props} />
         </div>
       )}
-      {items.map((item, index) => {
-        const reverse = alternate && index % 2 === 1
-        const detailHref = item.cta?.href || (item.productId ? `/products/${item.productId}` : '')
-        return (
-          <div className={`showcase__item${reverse ? ' showcase__item--reverse' : ''}`} key={`${item.title}-${index}`}>
-            <div className="showcase__inner reveal" data-delay="0">
-              <div className="showcase__media">
-                <div className="showcase__media-inner">
-                  <ShowcaseMedia item={item} />
-                </div>
-              </div>
-              <div className="showcase__copy">
-                {item.eyebrow && <div className="showcase__eyebrow">{item.eyebrow}</div>}
-                {item.title && <h2 className="showcase__title">{item.title}</h2>}
-                {item.desc && <p className="showcase__desc">{item.desc}</p>}
-                {item.specs.length > 0 && (
-                  <ul className="showcase__specs">
-                    {item.specs.map((spec, specIndex) => (
-                      <li className="reveal" data-delay={String(Math.min(specIndex + 1, 6))} key={`${spec}-${specIndex}`}>
-                        <span className="showcase__spec">{spec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {(item.cta || detailHref) && (
-                  <div className="showcase__cta">
-                    {item.cta && (
-                      <Link className="btn btn--primary" to={item.cta.href}>
-                        {item.cta.label}
-                      </Link>
-                    )}
-                    {detailHref && (
-                      <Link className="showcase__link" to={detailHref}>
-                        查看全部参数
-                        <span aria-hidden="true">→</span>
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
+      <div className="container showcase__stage">
+        <article className="showcase__slide reveal" data-delay="0">
+          <div className="showcase__media">
+            <div className="showcase__media-inner">
+              {item.mediaType === 'video' && src ? (
+                <video src={src} autoPlay muted loop playsInline aria-label={item.title} />
+              ) : (
+                <MediaImg src={src} alt={item.title} />
+              )}
             </div>
           </div>
-        )
-      })}
+
+          <div className="showcase__info">
+            <div className="showcase__info-main">
+              {item.model && <span className="showcase__model">{item.model}</span>}
+              {item.title && <h3 className="showcase__name">{item.title}</h3>}
+              {item.desc && <p className="showcase__desc">{item.desc}</p>}
+              {item.price && <span className="showcase__price">{item.price}</span>}
+              <div className="showcase__cta">
+                <Link className="btn btn--primary" to="/business/venues">
+                  预约体验
+                </Link>
+                <Link className="btn btn--secondary" to="/compare">
+                  加入对比
+                </Link>
+                <Link className="showcase__more" to={detailHref}>
+                  查看详情<span aria-hidden="true">→</span>
+                </Link>
+              </div>
+              {items.length > 1 && (
+                <div className="showcase__pager">
+                  <span className="showcase__pager-num">
+                    {String(index + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}
+                  </span>
+                  <span className="showcase__dots" aria-hidden="true">
+                    {items.map((_, i) => (
+                      <i key={i} className={i === index ? 'is-on' : ''} />
+                    ))}
+                  </span>
+                  <button className="showcase__arrow" type="button" aria-label="上一个" onClick={() => go(-1)}>
+                    ←
+                  </button>
+                  <button className="showcase__arrow" type="button" aria-label="下一个" onClick={() => go(1)}>
+                    →
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="showcase__info-side">
+              {item.specs.length > 0 && (
+                <div className="showcase__specs2">
+                  {item.specs.slice(0, 4).map((spec, i) => (
+                    <div className="showcase__spec2" key={`${spec}-${i}`}>
+                      <span className="showcase__spec2-icon" aria-hidden="true">
+                        <BlockIcon name={SPEC_ICONS[i % SPEC_ICONS.length]} size={14} />
+                      </span>
+                      <span className="showcase__spec2-value">{spec}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {item.features.length > 0 && (
+                <ul className="showcase__feats">
+                  {item.features.slice(0, 3).map((feature, i) => (
+                    <li key={`${feature}-${i}`}>{feature}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </article>
+      </div>
     </div>
   )
 }

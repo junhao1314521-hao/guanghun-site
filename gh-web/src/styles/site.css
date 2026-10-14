@@ -632,6 +632,21 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .ladder__score { font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-semibold); color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
 .ladder__delta { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); font-variant-numeric: tabular-nums; line-height: 1.25; }
 .ladder__score { line-height: 1.15; }
+/* —— 天梯榜 v2.1：缩略图 / 领奖台(前三) / 名次箭头 / hover 实测卡 / 我的型号高亮 —— */
+.ladder__thumb-head { width: 40px; flex: none; }
+.ladder__thumb { width: 40px; height: 28px; flex: none; border-radius: var(--gh-radius-md); overflow: hidden; background: var(--color-bg-muted); border: 1px solid var(--color-border-subtle); }
+.ladder__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ladder__row--top { background: var(--color-bg-subtle); border-radius: var(--gh-radius-md); }
+.ladder__arrow { font-style: normal; font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); margin-left: 6px; color: var(--color-text-tertiary); }
+.ladder__arrow.is-up { color: var(--color-accent-text); }
+.ladder__row.is-hit { outline: 1px solid var(--color-accent-solid); outline-offset: -1px; background: color-mix(in srgb, var(--color-accent-solid) 6%, transparent); border-radius: var(--gh-radius-md); }
+.ladder__value { position: relative; }
+.ladder__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 6; display: none; width: max-content; max-width: 320px; padding: 8px 10px; border-radius: var(--gh-radius-md); background: var(--color-bg-elevated); border: 1px solid var(--color-border-default); box-shadow: 0 6px 20px rgba(0, 0, 0, .12); color: var(--color-text-secondary); font-size: var(--gh-font-size-caption); }
+.ladder__row:hover .ladder__pop { display: block; }
+.ladder__tools { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-4); margin-bottom: var(--gh-space-3); flex-wrap: wrap; }
+.ladder__search { max-width: 260px; }
+.ladder__method { color: var(--color-accent-text); font-size: var(--gh-font-size-body-sm); text-decoration: none; }
+.ladder__method:hover { text-decoration: underline; }
 @media (max-width: 767px) {
   .ladder__name { display: none; }
   .ladder__head, .ladder__row { padding: var(--gh-space-3); gap: var(--gh-space-2); }

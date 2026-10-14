@@ -152,6 +152,8 @@ export type FeaturedProduct = {
   specs: string[]
   price: string
   tag?: string
+  /** 卖点（重点产品信息区右侧展示，最多取 3 条）；缺省则不展示 */
+  features?: string[]
   background: string
   art: DeviceVariant
 }
@@ -164,6 +166,7 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
     specs: ['26.5 英寸 2K', '540 Hz', '0.03 ms'],
     price: '¥4,999',
     tag: '旗舰',
+    features: ['第四代 W-OLED，368 万像素级控光', '满速 DP 2.1（80Gbps）· 原厂石墨烯散热', '三年质保，含 OLED 烧屏保护'],
     background:
       'radial-gradient(120% 100% at 72% 16%, rgba(32,64,237,.55), transparent 58%), linear-gradient(165deg, #0E0E10, #17171A)',
     art: 'monitor',
@@ -175,6 +178,7 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
     specs: ['4K@165 / FHD@330', 'META OLED', 'DP 2.1'],
     price: '¥5,499',
     tag: '双模',
+    features: ['一机两用：4K 高分辨率与 FHD 高刷一键切换', '进口 LG META OLED 面板', '支持 HDR 与广色域'],
     background:
       'radial-gradient(120% 100% at 76% 18%, rgba(91,117,245,.5), transparent 58%), linear-gradient(165deg, #121018, #1A1620)',
     art: 'monitor',
@@ -186,6 +190,7 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
     specs: ['26.5 英寸 2K', '280 Hz', '1500 nit'],
     price: '¥2,699',
     tag: '热销',
+    features: ['第四代 W-OLED，1500 nit 峰值亮度', '26.5 英寸 2K@280Hz，平民超跑', 'CNC 阳极氧化铝背板 · 石墨烯散热'],
     background:
       'radial-gradient(120% 100% at 70% 14%, rgba(34,211,238,.4), transparent 58%), linear-gradient(165deg, #0C121E, #131C2C)',
     art: 'monitor',
@@ -196,6 +201,7 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
     name: '27 英寸 2K 电竞显示器',
     specs: ['27 英寸 2K', '200 Hz', 'Fast IPS'],
     price: '¥1,299',
+    features: ['27 英寸 2K 200Hz Fast IPS', 'HDR 与广色域兼得', '高性价比电竞之选'],
     background:
       'radial-gradient(120% 100% at 74% 16%, rgba(32,64,237,.5), transparent 58%), linear-gradient(165deg, #101018, #181820)',
     art: 'monitor',

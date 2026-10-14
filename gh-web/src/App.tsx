@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AdminAuthProvider, AdminGuard } from './components/admin/AdminAuth'
 import { ToastProvider } from './components/admin/ToastProvider'
 import { ConfirmProvider } from './components/admin/ConfirmDialog'
@@ -88,17 +88,51 @@ const AdminSiteConfigPage = lazy(() =>
 )
 const AdminNotFound = lazy(() => import('./components/admin/AdminNotFound').then((m) => ({ default: m.AdminNotFound })))
 
-/** 404 兜底页：未匹配任何路由时展示，避免空白路由；沿用设计系统的 empty 组件 */
+/** 404 兜底页：未匹配任何路由时展示，避免空白路由；沿用设计系统的 empty 组件。
+ *  v2.1：加「搜索引导」——直接把用户引到站内搜索，而不是干巴巴报错。 */
 function NotFound() {
   const { t } = useI18n()
+  const navigate = useNavigate()
+  const [q, setQ] = useState('')
   return (
     <div className="container section">
       <div className="empty">
         <div className="empty__title">{t('notFound.title')}</div>
         <p className="empty__desc">{t('notFound.desc')}</p>
-        <Link className="btn btn--secondary btn--sm" to="/">
-          {t('notFound.back')}
-        </Link>
+        {/* 404 搜索引导：输入关键词直达站内搜索 */}
+        <form
+          className="row"
+          style={{ justifyContent: 'center', gap: 'var(--gh-space-3)', marginBottom: 'var(--gh-space-4)' }}
+          onSubmit={(event) => {
+            event.preventDefault()
+            const query = q.trim()
+            navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/search')
+          }}
+        >
+          <input
+            className="input"
+            type="search"
+            value={q}
+            aria-label="站内搜索"
+            placeholder="搜索产品 / 评测 / 支持…"
+            style={{ maxWidth: 320 }}
+            onChange={(event) => setQ(event.target.value)}
+          />
+          <button className="btn btn--primary btn--sm" type="submit">
+            搜索
+          </button>
+        </form>
+        <div className="row" style={{ justifyContent: 'center', gap: 'var(--gh-space-3)', flexWrap: 'wrap' }}>
+          <Link className="btn btn--secondary btn--sm" to="/products">
+            浏览产品
+          </Link>
+          <Link className="btn btn--secondary btn--sm" to="/support">
+            服务支持
+          </Link>
+          <Link className="btn btn--secondary btn--sm" to="/">
+            {t('notFound.back')}
+          </Link>
+        </div>
       </div>
     </div>
   )

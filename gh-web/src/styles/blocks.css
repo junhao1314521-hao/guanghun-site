@@ -729,6 +729,61 @@
   .showcase__spec { padding: 6px 11px; font-size: var(--gh-font-size-body-sm); }
 }
 
+/* ---- 重点产品「方案二优化版」（v2.1）：媒体在上 + 浅底信息区（左信息 / 右规格与卖点）---- */
+.showcase__stage { padding-bottom: var(--gh-space-9); }
+.showcase__slide { display: flex; flex-direction: column; }
+.showcase__media {
+  position: relative; aspect-ratio: 16 / 10;
+  border-radius: var(--gh-radius-lg); overflow: hidden;
+  border: 1px solid var(--color-border-subtle); background: var(--color-bg-muted);
+}
+.showcase__media-inner { position: absolute; inset: 0; border: 0; }
+.showcase__media-inner img, .showcase__media-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.showcase__info {
+  margin-top: var(--gh-space-5);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-lg);
+  padding: var(--gh-space-6);
+  display: grid; grid-template-columns: 1.05fr 1fr; gap: var(--gh-space-8);
+}
+.showcase__info-main { display: flex; flex-direction: column; gap: var(--gh-space-2); min-width: 0; }
+.showcase__model { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.showcase__name { font-size: clamp(20px, 2.2vw, 26px); font-weight: var(--gh-weight-semibold); letter-spacing: -0.01em; margin: 0; }
+.showcase__price { font-family: var(--gh-font-mono); font-size: 20px; font-weight: var(--gh-weight-semibold); }
+/* 双 CTA：此处覆盖旧的 .showcase__cta margin，保持信息区节奏 */
+.showcase__info .showcase__cta { margin-top: var(--gh-space-3); gap: var(--gh-space-3); }
+.showcase__more { color: var(--color-accent-text); text-decoration: none; font-size: var(--gh-font-size-body-sm); }
+.showcase__more:hover { text-decoration: underline; }
+.showcase__pager { display: flex; align-items: center; gap: var(--gh-space-3); margin-top: var(--gh-space-4); }
+.showcase__pager-num { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.showcase__dots { display: inline-flex; gap: 6px; }
+.showcase__dots i { width: 6px; height: 6px; border-radius: 99px; background: var(--color-border-default); }
+.showcase__dots i.is-on { width: 18px; background: var(--color-accent-solid); }
+.showcase__arrow {
+  width: 28px; height: 28px; border-radius: 99px; cursor: pointer;
+  border: 1px solid var(--color-border-default); background: var(--color-bg-surface);
+  color: var(--color-text-secondary); display: inline-flex; align-items: center; justify-content: center;
+}
+.showcase__arrow:hover { color: var(--color-text-primary); border-color: var(--color-text-primary); }
+.showcase__info-side { display: flex; flex-direction: column; gap: var(--gh-space-4); justify-content: center; }
+.showcase__specs2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gh-space-3) var(--gh-space-5); }
+.showcase__spec2 { display: flex; align-items: center; gap: var(--gh-space-2); min-width: 0; }
+.showcase__spec2-icon {
+  width: 22px; height: 22px; border-radius: var(--gh-radius-md); flex: none;
+  background: var(--color-bg-surface); border: 1px solid var(--color-border-subtle);
+  color: var(--color-accent-text); display: inline-flex; align-items: center; justify-content: center;
+}
+.showcase__spec2-value { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-sm); }
+/* 卖点列表：去掉旧版的圆角胶囊，改为「勾 + 文本」行（用户反馈胶囊不好看） */
+.showcase__feats { list-style: none; margin: 0; padding: var(--gh-space-4) 0 0; border-top: 1px solid var(--color-border-subtle); display: flex; flex-direction: column; gap: 6px; }
+.showcase__feats li { display: flex; gap: var(--gh-space-2); font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+.showcase__feats li::before { content: '✓'; color: var(--color-accent-text); font-weight: 700; }
+@media (max-width: 900px) {
+  .showcase__info { grid-template-columns: 1fr; gap: var(--gh-space-6); }
+  .showcase__media { aspect-ratio: 4 / 3; }
+}
+
 /* 减弱动效偏好：静止呈现（media 不缩放、卡片不上浮） */
 @media (prefers-reduced-motion: reduce) {
   .blk-card, .blk-card__media img, .blk-card__media video,

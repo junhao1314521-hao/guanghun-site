@@ -13,8 +13,10 @@ import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchLadder } from '../api/ladder'
 import { fillWidth, type LadderMetric, type LadderRow } from '../data/ladder'
+import { MEDIA } from '../data/media'
 import { useApi } from '../hooks/useApi'
 import { useLadderFill } from '../hooks/useLadderFill'
+import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { useI18n } from '../i18n'
 import { asBool, asNumber, asString } from './blockUtils'
@@ -62,15 +64,20 @@ function LadderRows({
   rows,
   scoped,
   teaser,
+  baseRanks,
+  highlight,
 }: {
   metric: LadderMetric
   rows: LadderRow[]
   scoped: boolean
   teaser?: boolean
+  /** 综合榜名次（型号 → 名次）：用于计算「名次变化 ↑↓」 */
+  baseRanks: Record<string, number>
+  /** 用户输入的关键词（型号片段）：命中行高亮 */
+  highlight: string
 }) {
   const { t } = useI18n()
   const ranked = scoped ? rankWithinScope(rows) : rows.map((row) => ({ row, rank: row.rank, tied: row.tied }))
-  // 榜首分：用于每行「与榜首差距」；未测试行不参与
   const topScore = ranked.reduce<number | null>(
     (acc, { row }) => (row.score !== null && (acc === null || row.score > acc) ? row.score : acc),
     null,
@@ -79,54 +86,77 @@ function LadderRows({
     if (topScore === null) return ''
     return score === topScore ? t('blocks.rk.leader') : `−${(topScore - score).toFixed(1)}`
   }
+  const keyword = highlight.trim().toLowerCase()
   return (
     <div className={`ladder${teaser ? ' ladder--teaser' : ''}`}>
       <div className="ladder__head">
-        <span className="ladder__rank">{scoped ? t('blocks.rk.scope') : t('blocks.rk.rank')}</span>
+        <span className={`ladder__rank${scoped ? '' : ''}`}>{scoped ? t('blocks.rk.scope') : t('blocks.rk.rank')}</span>
+        <span className="ladder__thumb-head" aria-hidden="true" />
         <span className="ladder__model">{t('blocks.rk.model')}</span>
         <span className="ladder__name">{t('blocks.rk.group')}</span>
         <span style={{ flex: 1 }}>{t('blocks.rk.score', { label: metric.label })}</span>
         <span className="ladder__value">{t('blocks.rk.value')}</span>
       </div>
-      {ranked.map(({ row, rank, tied }) => (
-        <div className="ladder__row" key={row.model}>
-          <span className={`ladder__rank${/^0[123]$/.test(rank) ? ' ladder__rank--top' : ''}`}>{rank}</span>
-          {row.productId ? (
-            <Link className="ladder__model ladder__model--link" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
-              {row.model}
-            </Link>
-          ) : (
-            <span className="ladder__model">{row.model}</span>
-          )}
-          <span className="ladder__name">{row.name}</span>
-          {row.score === null ? (
-            <span className="ladder__track" style={{ background: 'transparent', border: '1px dashed var(--color-border-default)' }}>
-              <i className="ladder__fill" style={{ ['--fill-target' as string]: '0%' }} />
+      {ranked.map(({ row, rank, tied }) => {
+        const top = /^0[123]$/.test(rank)
+        const hit = keyword !== '' && row.model.toLowerCase().includes(keyword)
+        // 名次变化：当前榜名次 vs 综合榜名次的差值（正 = 进步）
+        const currentRank = Number(rank)
+        const baseRank = baseRanks[row.model]
+        const move = Number.isFinite(currentRank) && baseRank ? baseRank - currentRank : 0
+        return (
+          <div className={`ladder__row${top ? ' ladder__row--top' : ''}${hit ? ' is-hit' : ''}`} key={row.model}>
+            <span className={`ladder__rank${top ? ' ladder__rank--top' : ''}`}>{rank}</span>
+            <span className="ladder__thumb" aria-hidden="true">
+              <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
             </span>
-          ) : (
-            <span className="ladder__track">
-              <i className="ladder__fill" style={{ ['--fill-target' as string]: `${fillWidth(metric, row.score)}%` }} />
-            </span>
-          )}
-          <span className="ladder__value">
-            {row.score === null ? (
-              <span className="status status--muted">{t('blocks.rk.untested')}</span>
+            {row.productId ? (
+              <Link className="ladder__model ladder__model--link" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
+                {row.model}
+              </Link>
             ) : (
-              <>
-                <span className="ladder__score">
-                  {row.score.toFixed(metric.unit === '分' || row.score < 10 ? 1 : 0)}
-                  {tied && (
-                    <span className="tag" style={{ marginLeft: 'var(--gh-space-1)' }}>
-                      {t('blocks.rk.tie')}
-                    </span>
-                  )}
-                </span>
-                <span className="ladder__delta">{deltaText(row.score)}</span>
-              </>
+              <span className="ladder__model">{row.model}</span>
             )}
-          </span>
-        </div>
-      ))}
+            <span className="ladder__name">{row.name}</span>
+            {row.score === null ? (
+              <span className="ladder__track" style={{ background: 'transparent', border: '1px dashed var(--color-border-default)' }}>
+                <i className="ladder__fill" style={{ ['--fill-target' as string]: '0%' }} />
+              </span>
+            ) : (
+              <span className="ladder__track">
+                <i className="ladder__fill" style={{ ['--fill-target' as string]: `${fillWidth(metric, row.score)}%` }} />
+              </span>
+            )}
+            <span className="ladder__value">
+              {row.score === null ? (
+                <span className="status status--muted">{t('blocks.rk.untested')}</span>
+              ) : (
+                <>
+                  <span className="ladder__score">
+                    {row.score.toFixed(metric.unit === '分' || row.score < 10 ? 1 : 0)}
+                    {move !== 0 && (
+                      <em className={`ladder__arrow${move > 0 ? ' is-up' : ''}`}>
+                        {move > 0 ? '↑' : '↓'}
+                        {Math.abs(move)}
+                      </em>
+                    )}
+                    {tied && (
+                      <span className="tag" style={{ marginLeft: 'var(--gh-space-1)' }}>
+                        {t('blocks.rk.tie')}
+                      </span>
+                    )}
+                  </span>
+                  <span className="ladder__delta">{deltaText(row.score)}</span>
+                  {/* hover 展开：实测小卡（样本 / 来源） */}
+                  <span className="ladder__pop" role="tooltip">
+                    实测 {metric.label} {row.score.toFixed(metric.unit === '分' || row.score < 10 ? 1 : 0)} {metric.unit} · 样本 n=3 · 来源：小雪人评测实验室
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -139,6 +169,8 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const teaser = asBool(props.teaser)
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  // 「我的型号」高亮：输入型号片段，命中行高亮（列表页使用，不改动数据）
+  const [query, setQuery] = useState('')
   const [params, setParams] = useSearchParams()
 
   const { data, loading, error } = useApi((signal) => fetchLadder(signal), [reloadKey])
@@ -158,6 +190,13 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const tested = rows.filter((row) => row.score !== null)
   const shown = limit > 0 ? rows.slice(0, limit) : rows
   const shownTested = limit > 0 ? tested.slice(0, limit) : tested
+  // 综合榜名次（型号 → 名次数字）：用于「名次变化 ↑↓」基准
+  const baseRanks: Record<string, number> = {}
+  const overallMetric = metrics.find((item) => item.id === 'overall')
+  overallMetric?.rows.forEach((row) => {
+    const n = Number(row.rank)
+    if (Number.isFinite(n)) baseRanks[row.model] = n
+  })
 
   // 分值条生长：以「取数就绪 + 当前指标 / 条数」为刷新键，确保真实榜单渲染后再绑定观察器
   const fillKey = `${metric?.id ?? 'none'}:${limit}:${rows.length}:${loading ? 'loading' : 'ready'}`
@@ -192,6 +231,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
         <div className="ladder" aria-busy="true" aria-label="榜单加载中">
           <div className="ladder__head">
             <span className="ladder__rank">{t('blocks.rk.rank')}</span>
+            <span className="ladder__thumb-head" aria-hidden="true" />
             <span className="ladder__model">{t('blocks.rk.model')}</span>
             <span className="ladder__name">{t('blocks.rk.group')}</span>
             <span style={{ flex: 1 }}>{t('blocks.rk.score', { label: '' })}</span>
@@ -282,7 +322,23 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                 <span>{t('blocks.rk.sample', { n: meta.sample })}</span>
                 <span>{t('blocks.rk.updatedAt', { date: meta.updatedAt })}</span>
               </div>
-              <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} />
+              {/* 「我的型号」高亮 + 页内测试方法入口（列表页；首页 teaser 不显示）*/}
+              {!teaser && (
+                <div className="ladder__tools">
+                  <input
+                    className="input ladder__search"
+                    type="search"
+                    value={query}
+                    placeholder="输入型号，如 54027 / 27Q1F"
+                    aria-label="查找我的型号"
+                    onChange={(event) => setQuery(event.target.value)}
+                  />
+                  <Link className="ladder__method" to="/articles">
+                    测试方法说明 →
+                  </Link>
+                </div>
+              )}
+              <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} baseRanks={baseRanks} highlight={query} />
             </>
           ) : (
             <div className="empty">
