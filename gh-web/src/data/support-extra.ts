@@ -17,6 +17,8 @@ export type DownloadItem = {
   size: string
   date: string
   note: string
+  /** 适用平台（运营维护，缺省不展示） */
+  platform?: string
 }
 
 /** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
@@ -215,7 +217,7 @@ export function getDownloadDetail(id: string): DownloadDetail | undefined {
 
 /* —— 常见问题 —— */
 
-export type FaqItem = { id: string; q: string; a: string; category: string }
+export type FaqItem = { id: string; q: string; a: string; category: string; /** 操作步骤（可后台维护） */ steps?: string[] }
 
 export type FaqDetail = FaqItem & { steps?: string[]; related: FaqItem[] }
 

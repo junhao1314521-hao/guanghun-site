@@ -17,6 +17,8 @@ export type DownloadItem = {
   size: string
   date: string
   note: string
+  /** 适用平台（如 Windows 10 / 11、macOS 12+）；运营维护，缺省不展示 */
+  platform?: string
   /**
    * 文件地址（`GET /api/downloads/:id` 返回）。
    * 可为 `/uploads/<文件名>`（本服务素材库）或外部/对象存储占位地址；上线前由运营替换为真实地址。
@@ -228,7 +230,7 @@ export function getDownloadDetail(downloads: DownloadItem[], id: string): Downlo
 
 /* —— 常见问题 —— */
 
-export type FaqItem = { id: string; q: string; a: string; category: string }
+export type FaqItem = { id: string; q: string; a: string; category: string; /** 操作步骤（可后台维护；缺省回退内置示例） */ steps?: string[] }
 
 export type FaqDetail = FaqItem & { steps?: string[]; related: FaqItem[] }
 
@@ -324,7 +326,7 @@ export function getFaqDetail(faqs: FaqItem[], id: string): FaqDetail | undefined
   const item = faqs.find((entry) => entry.id === id)
   if (!item) return undefined
   const related = faqs.filter((entry) => entry.category === item.category && entry.id !== id).slice(0, 3)
-  return { ...item, steps: FAQ_STEPS[item.id], related }
+  return { ...item, steps: item.steps ?? FAQ_STEPS[item.id], related }
 }
 
 /* —— 型号支持 —— */

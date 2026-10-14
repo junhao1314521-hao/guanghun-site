@@ -151,6 +151,12 @@ export function DownloadDetailPage() {
                 {detail.models.join(' / ')}
               </div>
             </div>
+            {detail.platform && (
+              <div>
+                <div className="dl-meta__k">适用平台</div>
+                <div className="dl-meta__v">{detail.platform}</div>
+              </div>
+            )}
           </div>
 
           <div className="field" style={{ marginTop: 'var(--gh-space-5)' }}>

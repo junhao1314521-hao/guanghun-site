@@ -2,8 +2,9 @@ import { useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { fetchCompare } from '../api/product-extra'
+import { fetchProductDetail } from '../api/products'
 import { COMPARE_MAX } from '../data/product-extra'
-import { getProductDetail, type ProductDetail } from '../data/products'
+import type { ProductDetail } from '../data/products'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -47,10 +48,16 @@ export function ComparePage() {
   const { data, loading, error } = useApi((signal) => fetchCompare(limitedIds, signal), [idsKey, reloadKey])
   const items = useMemo(() => data?.items ?? [], [data])
 
-  const details = useMemo(
-    () => items.map((item) => getProductDetail(item.id)).filter((detail): detail is ProductDetail => Boolean(detail)),
-    [items],
+  // 规格来自接口（与详情页同源），不再直接用本地常量拼装
+  const detailQuery = useApi(
+    async (signal) => {
+      const results = await Promise.all(limitedIds.map((id) => fetchProductDetail(id, signal).catch(() => null)))
+      return results.filter((detail): detail is ProductDetail => Boolean(detail))
+    },
+    [idsKey, reloadKey],
   )
+  const details = detailQuery.data ?? []
+  const loadingAll = loading || detailQuery.loading
 
   const paramNames = useMemo(() => {
     const names: string[] = []
@@ -75,7 +82,7 @@ export function ComparePage() {
     ]
   }, [items, details, paramNames])
 
-  const readyKey = `${idsKey}:${reloadKey}:${loading ? 'loading' : 'ready'}`
+  const readyKey = `${idsKey}:${reloadKey}:${loadingAll ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
   useHomeEffects(rootRef, readyKey)
 
@@ -133,7 +140,7 @@ export function ComparePage() {
               重新加载
             </button>
           </div>
-        ) : loading ? (
+        ) : loadingAll ? (
           <div className="table-wrap" aria-busy="true" aria-label="对比数据加载中">
             <table className="table">
               <thead>
@@ -228,7 +235,7 @@ export function ComparePage() {
           </>
         )}
       </div>
-      {!error && !loading && items.length >= 2 && <TemplateBlocks pageKey="template-compare" />}
+      {!error && !loadingAll && items.length >= 2 && <TemplateBlocks pageKey="template-compare" />}
     </div>
   )
 }

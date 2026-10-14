@@ -84,8 +84,10 @@ supportExtraRouter.post('/inquiry', (req, res) => {
     date: new Date().toISOString().slice(0, 10),
     tag: '处理中',
     accent: true,
-    // title 承载「称呼 + 主题」的可读摘要；联系方式 / 型号 / 问题描述各自独立落库
+    // title 承载「称呼 + 主题」的可读摘要；称呼 / 主题同时**独立落库**，便于筛选与统计
     title: [name, topic].filter(Boolean).join(' · ') || `${name} 的咨询`,
+    name,
+    topic,
     contact,
     model,
     message,

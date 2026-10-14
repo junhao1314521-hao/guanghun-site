@@ -459,6 +459,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'type', label: '类型', type: 'select', options: ['driver', 'firmware', 'manual', 'tool'] },
           { key: 'version', label: '版本', type: 'text' },
           { key: 'size', label: '文件大小', type: 'text' },
+          { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows 10 / 11' },
           { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '上传或从素材库选择可下载文件（pdf / zip / 图片 / txt / md）；前台下载按钮指向该地址' },
           { key: 'date', label: '更新时间', type: 'date' },
           { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一项，如：GH-M900 PRO' },
@@ -655,9 +656,11 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     desc: '处理客户提交的咨询与售后工单，可指派处理人并回复。',
     editable: true,
     deletable: true,
-    searchKeys: ['title', 'tag', 'contact', 'model'],
+    searchKeys: ['title', 'name', 'topic', 'tag', 'contact', 'model'],
     columns: [
       { key: 'title', label: '主题', type: 'strong' },
+      { key: 'name', label: '称呼' },
+      { key: 'topic', label: '主题分类', type: 'tag' },
       { key: 'tag', label: '状态', type: 'status' },
       { key: 'contact', label: '联系方式', type: 'mono' },
       { key: 'model', label: '型号', type: 'mono' },
@@ -666,13 +669,18 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'accent', label: '强调', type: 'bool' },
       { key: 'status', label: '状态级别', type: 'mono' },
     ],
-    filters: [{ key: 'tag', label: '状态', options: ['处理中', '等待补充', '已解决', '已关闭'] }],
+    filters: [
+      { key: 'tag', label: '状态', options: ['处理中', '等待补充', '已解决', '已关闭'] },
+      { key: 'topic', label: '主题分类', options: ['产品咨询', '保修与售后', '驱动与下载', '商务合作', '预约到店'] },
+    ],
     form: [
       {
         title: '工单信息',
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'title', label: '主题', type: 'text', span: 2, required: true },
+          { key: 'name', label: '称呼', type: 'text' },
+          { key: 'topic', label: '主题分类', type: 'text', placeholder: '产品咨询 / 保修与售后 / 预约到店 …' },
           { key: 'contact', label: '联系方式', type: 'text', placeholder: '邮箱 / 手机号' },
           { key: 'model', label: '型号', type: 'text', placeholder: 'GH-M900 PRO' },
           { key: 'message', label: '问题描述', type: 'textarea', span: 2 },
@@ -744,6 +752,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'q', label: '问题', type: 'text', span: 2, required: true },
           { key: 'category', label: '分类', type: 'select', options: ['下载与安装', '连接与配对', '固件与更新', '保修与售后'] },
           { key: 'a', label: '答案', type: 'textarea', span: 2 },
+          { key: 'steps', label: '操作步骤', type: 'list', span: 2, hint: '每行一步；详情页「操作步骤」按此展示' },
         ],
       },
     ],

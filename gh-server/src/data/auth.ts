@@ -22,6 +22,10 @@ export type InquirySummary = {
   tag: string
   accent?: boolean
   title: string
+  /** 提交人称呼（表单「称呼」独立落库，不再并入 title） */
+  name?: string
+  /** 咨询主题（表单「主题」独立落库，便于按主题统计） */
+  topic?: string
   /** 联系方式（邮箱 / 手机号等） */
   contact: string
   /** 关联产品型号 */
