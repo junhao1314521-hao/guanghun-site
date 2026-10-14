@@ -10,7 +10,18 @@ import {
   setEnabledBlocks,
   setTheme,
 } from '../data/contentStore'
-import type { Block, BlockStyle, BlockType } from '../data/contentTypes'
+import type {
+  Block,
+  BlockStyle,
+  BlockType,
+  SiteAnnouncement,
+  SiteAuthConfig,
+  SiteCta,
+  SiteFooterGroup,
+  SiteLink,
+  SiteSocialConfig,
+  SiteWarrantyConfig,
+} from '../data/contentTypes'
 import { readParam, requireSession } from '../middleware/adminAuth'
 import { requireScope } from '../middleware/rbac'
 import { auditWrite } from '../middleware/audit'
@@ -45,6 +56,44 @@ function actorOf(res: Response): string {
   return user?.username ?? 'anonymous'
 }
 
+/** 是否为「普通对象」（非 null / 非数组 / 非原始值） */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+/** 取正数（非法 / 非正则返回 fallback，向下取整） */
+function positiveNumber(value: unknown, fallback: number): number {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
+}
+
+/** 解析 CTA 按钮：label 与 href 均非空才有效，否则返回 undefined */
+function parseCta(raw: unknown): SiteCta | undefined {
+  if (!isPlainObject(raw)) return undefined
+  const label = readString(raw.label)
+  const href = readString(raw.href)
+  if (!label || !href) return undefined
+  return { label, href }
+}
+
+/**
+ * 解析站点链接（导航 / 页脚组内链接 / 页脚社交复用）。
+ * 保留角标扩展字段：`badge` ∈ {new, hot} 时同时携带 badgeText / badgeShake。
+ * 与既有实现一致，label / href 允许为空串（由后台编辑器逐字段校验，不在此强制）。
+ */
+function parseSiteLink(raw: unknown): SiteLink {
+  const link = isPlainObject(raw) ? raw : {}
+  const out: SiteLink = { label: readString(link.label), href: readString(link.href) }
+  const badge = readString(link.badge)
+  if (badge === 'new' || badge === 'hot') {
+    out.badge = badge
+    const text = readString(link.badgeText)
+    if (text) out.badgeText = text
+    out.badgeShake = link.badgeShake === true
+  }
+  return out
+}
+
 /** 校验并规整区块数组：非法项直接拒绝（返回 null） */
 function parseBlocks(raw: unknown): Block[] | null {
   if (!Array.isArray(raw)) return null
@@ -64,37 +113,45 @@ function parseBlocks(raw: unknown): Block[] | null {
 }
 
 /**
- * 校验站点配置结构：`{ nav, footer }` 为必填；`enabledBlocks` / `theme` 为可选扩展。
+ * 校验站点配置结构：`{ nav, footer }` 为必填；其余为可选扩展字段。
  * - `enabledBlocks`：字符串数组，且每项须为已知区块类型（否则整体不合法 → 400）；
- * - `theme`：对象，保存时按白名单过滤键（非白名单键静默丢弃，避免任意变量注入）。
+ * - `theme`：对象，保存时按白名单过滤键（非白名单键静默丢弃，避免任意变量注入）；
+ * - `announcement` / `topCta` / `auth` / `warranty` / `social`：新增扩展字段，结构不合法时整体 400；
+ *   合法但字段缺失时按「缺省」处理（如 auth 缺省视为开启验证码）。
  * 返回 `null` 表示结构不合法。
  */
 function parseSite(raw: unknown): Partial<{
-  nav: { label: string; href: string }[]
-  footer: { title: string; links: { label: string; href: string }[] }[]
+  nav: SiteLink[]
+  footer: SiteFooterGroup[]
   enabledBlocks: string[]
   theme: Record<string, string>
+  announcement: SiteAnnouncement
+  topCta: { primary?: SiteCta; secondary?: SiteCta }
+  auth: SiteAuthConfig
+  warranty: SiteWarrantyConfig
+  social: SiteSocialConfig
 }> | null {
   if (!raw || typeof raw !== 'object') return null
   const data = raw as Record<string, unknown>
-  const nav = Array.isArray(data.nav)
-    ? data.nav.map((link) => ({ label: readString((link as Record<string, unknown>)?.label), href: readString((link as Record<string, unknown>)?.href) }))
-    : null
+  const nav = Array.isArray(data.nav) ? data.nav.map(parseSiteLink) : null
   const footer = Array.isArray(data.footer)
-    ? data.footer.map((group) => {
-        const g = group as Record<string, unknown>
-        const links = Array.isArray(g?.links)
-          ? g.links.map((link) => ({ label: readString((link as Record<string, unknown>)?.label), href: readString((link as Record<string, unknown>)?.href) }))
-          : []
-        return { title: readString(g?.title), links }
+    ? data.footer.map((group): SiteFooterGroup => {
+        const g = (group ?? {}) as Record<string, unknown>
+        const links = Array.isArray(g.links) ? g.links.map(parseSiteLink) : []
+        return { title: readString(g.title), links }
       })
     : null
   if (!nav || !footer) return null
   const result: Partial<{
-    nav: { label: string; href: string }[]
-    footer: { title: string; links: { label: string; href: string }[] }[]
+    nav: SiteLink[]
+    footer: SiteFooterGroup[]
     enabledBlocks: string[]
     theme: Record<string, string>
+    announcement: SiteAnnouncement
+    topCta: { primary?: SiteCta; secondary?: SiteCta }
+    auth: SiteAuthConfig
+    warranty: SiteWarrantyConfig
+    social: SiteSocialConfig
   }> = { nav, footer }
   if (data.enabledBlocks !== undefined) {
     if (!Array.isArray(data.enabledBlocks)) return null
@@ -106,6 +163,54 @@ function parseSite(raw: unknown): Partial<{
   if (data.theme !== undefined) {
     if (!data.theme || typeof data.theme !== 'object' || Array.isArray(data.theme)) return null
     result.theme = filterThemeTokens(data.theme)
+  }
+  // —— 公告条：enabled 布尔 + text 字符串；href / startAt / endAt / dismissible 可选 ——
+  if (data.announcement !== undefined) {
+    if (!isPlainObject(data.announcement)) return null
+    const a = data.announcement
+    result.announcement = {
+      enabled: a.enabled === true,
+      text: readString(a.text),
+      ...(readString(a.href) ? { href: readString(a.href) } : {}),
+      ...(readString(a.startAt) ? { startAt: readString(a.startAt) } : {}),
+      ...(readString(a.endAt) ? { endAt: readString(a.endAt) } : {}),
+      dismissible: a.dismissible === true,
+    }
+  }
+  // —— 顶栏 CTA：primary / secondary 各为 { label, href }；空项丢弃 ——
+  if (data.topCta !== undefined) {
+    if (!isPlainObject(data.topCta)) return null
+    const cta: { primary?: SiteCta; secondary?: SiteCta } = {}
+    const primary = parseCta(data.topCta.primary)
+    const secondary = parseCta(data.topCta.secondary)
+    if (primary) cta.primary = primary
+    if (secondary) cta.secondary = secondary
+    result.topCta = cta
+  }
+  // —— 安全开关：captcha 缺省 true，thirdParty 缺省 false ——
+  if (data.auth !== undefined) {
+    if (!isPlainObject(data.auth)) return null
+    result.auth = { captcha: data.auth.captcha !== false, thirdParty: data.auth.thirdParty === true }
+  }
+  // —— 保修参数：年限 / 提醒天数取正数，缺省 3 / 30；SN 解析默认关闭 ——
+  if (data.warranty !== undefined) {
+    if (!isPlainObject(data.warranty)) return null
+    result.warranty = {
+      years: positiveNumber(data.warranty.years, 3),
+      remindDays: positiveNumber(data.warranty.remindDays, 30),
+      snParse: data.warranty.snParse === true,
+    }
+  }
+  // —— 页脚社交 + 二维码：links / qr 数组 ——
+  if (data.social !== undefined) {
+    if (!isPlainObject(data.social) || !Array.isArray(data.social.links) || !Array.isArray(data.social.qr)) return null
+    result.social = {
+      links: data.social.links.map(parseSiteLink),
+      qr: data.social.qr.map((entry): { label: string; image: string } => {
+        const q = (entry ?? {}) as Record<string, unknown>
+        return { label: readString(q.label), image: readString(q.image) }
+      }),
+    }
   }
   return result
 }

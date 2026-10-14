@@ -53,3 +53,11 @@ export function trackDownload(id: string): void {
   if (!id) return
   send('/api/track/download', { id })
 }
+
+/** 通用事件类型（与后端 `metricsStore.MetricKind` 对应） */
+export type TrackEventName = 'cta' | 'reserve' | 'compare' | 'subscribe'
+
+/** 上报一次通用事件（CTA 点击 / 预约 / 加入对比 / 订阅）；key 为事件对象标识（可空） */
+export function trackEvent(name: TrackEventName, key = ''): void {
+  send('/api/track/event', { name, key })
+}

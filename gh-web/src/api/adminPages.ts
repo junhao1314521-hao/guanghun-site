@@ -29,9 +29,14 @@ import type {
   BlockTypeMeta,
   Page,
   PageMeta,
+  SiteAnnouncement,
+  SiteAuthConfig,
   SiteConfig,
+  SiteCta,
   SiteFooterGroup,
   SiteLink,
+  SiteSocialConfig,
+  SiteWarrantyConfig,
 } from '../data/contentTypes'
 
 // 类型统一从本模块再导出，页面只依赖 api 层
@@ -43,9 +48,14 @@ export type {
   BlockTypeMeta,
   Page,
   PageMeta,
+  SiteAnnouncement,
+  SiteAuthConfig,
   SiteConfig,
+  SiteCta,
   SiteFooterGroup,
   SiteLink,
+  SiteSocialConfig,
+  SiteWarrantyConfig,
 }
 
 /** 页面列表响应（契约 §6.2） */

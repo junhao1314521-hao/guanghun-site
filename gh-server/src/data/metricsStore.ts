@@ -9,8 +9,16 @@
  */
 import { getDb, runInTransaction } from './db'
 
-/** 事件类型：页面浏览 / 下载点击 */
-export type MetricKind = 'view' | 'download'
+/**
+ * 事件类型：
+ * - `view`     页面浏览；
+ * - `download` 下载点击；
+ * - `cta`      行动按钮点击（顶栏 CTA / 首页 CTA 等）；
+ * - `reserve`  预约体验提交（到店预约）；
+ * - `compare`  加入对比；
+ * - `subscribe` 订阅（邮件 / 内容订阅）。
+ */
+export type MetricKind = 'view' | 'download' | 'cta' | 'reserve' | 'compare' | 'subscribe'
 
 /** 默认保留上限（条数） */
 const DEFAULT_MAX = 20000

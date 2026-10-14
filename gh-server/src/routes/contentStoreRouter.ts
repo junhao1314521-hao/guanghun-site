@@ -39,6 +39,12 @@ contentStoreRouter.get('/site', (req, res) => {
     footer: site.footer,
     ...(site.enabledBlocks ? { enabledBlocks: site.enabledBlocks } : {}),
     ...(site.theme ? { theme: site.theme } : {}),
+    // 扩展字段：公告条 / 顶栏 CTA / 安全开关 / 保修参数 / 页脚社交二维码（未设置则不返回，前台回退本地缺省）
+    ...(site.announcement ? { announcement: site.announcement } : {}),
+    ...(site.topCta ? { topCta: site.topCta } : {}),
+    ...(site.auth ? { auth: site.auth } : {}),
+    ...(site.warranty ? { warranty: site.warranty } : {}),
+    ...(site.social ? { social: site.social } : {}),
   })
 })
 

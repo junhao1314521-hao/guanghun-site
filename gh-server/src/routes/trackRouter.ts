@@ -81,3 +81,27 @@ trackRouter.post('/download', (req: Request, res: Response) => {
   recordMetric('download', id)
   res.json({ ok: true })
 })
+
+/** 允许的通用事件名（与 metricsStore.MetricKind 对应；view/download 另有专用端点） */
+const EVENT_NAMES = new Set(['cta', 'reserve', 'compare', 'subscribe'])
+
+trackRouter.post('/event', (req: Request, res: Response) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const name = readString(body.name)
+  const key = readString(body.key)
+  if (!EVENT_NAMES.has(name)) {
+    res.status(400).json({ error: 'name 不合法' })
+    return
+  }
+  if (key.length > 200) {
+    res.status(400).json({ error: 'key 过长' })
+    return
+  }
+  if (!allow(clientIp(req))) {
+    res.status(429).json({ error: '上报过于频繁，请稍后再试' })
+    return
+  }
+  // key 缺省用 `-` 占位：事件计数不依赖具体对象时仍可统计
+  recordMetric(name as 'cta' | 'reserve' | 'compare' | 'subscribe', key || '-')
+  res.json({ ok: true })
+})

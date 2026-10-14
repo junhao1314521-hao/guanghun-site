@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { MEGA_PANELS, PAGE_NAV, pageIdFromPath } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
-import { useSiteNav } from '../../hooks/useSiteConfig'
+import { useSiteAnnouncement, useSiteNav, useTopCta } from '../../hooks/useSiteConfig'
 import { useSession } from '../../hooks/useSession'
 import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
 import { toggleTheme } from '../../lib/theme'
 import { useTheme } from '../../lib/useTheme'
+import { trackEvent } from '../../lib/track'
+import type { SiteAnnouncement } from '../../data/contentTypes'
 import {
   IconAccount,
   IconGlobe,
@@ -25,6 +27,33 @@ type Props = {
   onOpenDrawer: () => void
 }
 
+/** 公告条（顶栏上方细条）：文案可点跳转，可按配置关闭（关闭状态记忆在 localStorage） */
+function AnnouncementBar({ announcement, onDismiss }: { announcement: SiteAnnouncement; onDismiss: () => void }) {
+  return (
+    <div className="announce" role="region" aria-label="站点公告">
+      <div className="container announce__inner">
+        {announcement.href ? (
+          <Link className="announce__link" to={announcement.href}>
+            {announcement.text}
+          </Link>
+        ) : (
+          <span className="announce__text">{announcement.text}</span>
+        )}
+        {announcement.dismissible && (
+          <button className="announce__close" type="button" aria-label="关闭公告" onClick={onDismiss}>
+            ×
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** 公告条关闭状态在 localStorage 的键（按文案区分，同一公告不重复打扰） */
+function announceDismissKey(text: string): string {
+  return `gh-announce-dismissed:${text.slice(0, 60)}`
+}
+
 /** 顶栏：主导航 + 宽屏下拉菜单 + 搜索 + 语言 + 主题 + 客服/账号 */
 export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const { pathname } = useLocation()
@@ -36,6 +65,31 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const panels = lang === 'en' ? MEGA_PANELS_EN : MEGA_PANELS
   // 登录态：已登录 → 个人中心；未登录 → 登录页（入口按会话切换）
   const { user } = useSession()
+
+  // 公告条（后台可配、可定时、可关闭）+ 顶栏 CTA（购买 / 预约体验）
+  const announcement = useSiteAnnouncement()
+  const topCta = useTopCta()
+  const [announceDismissed, setAnnounceDismissed] = useState(false)
+  useEffect(() => {
+    if (!announcement) {
+      setAnnounceDismissed(false)
+      return
+    }
+    try {
+      setAnnounceDismissed(localStorage.getItem(announceDismissKey(announcement.text)) === '1')
+    } catch {
+      setAnnounceDismissed(false)
+    }
+  }, [announcement])
+  const dismissAnnounce = () => {
+    if (!announcement) return
+    try {
+      localStorage.setItem(announceDismissKey(announcement.text), '1')
+    } catch {
+      // 隐私模式 / 存储禁用时静默，仅本次会话隐藏
+    }
+    setAnnounceDismissed(true)
+  }
 
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [langOpen, setLangOpen] = useState(false)
@@ -151,6 +205,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
 
   return (
     <>
+      {/* 公告条：置于顶栏之上；可关闭时按配置隐藏 */}
+      {announcement && !announceDismissed && <AnnouncementBar announcement={announcement} onDismiss={dismissAnnounce} />}
       <header ref={headerRef} className={`site-header${overHero ? ' site-header--over-hero' : ''}${isHome ? ' site-header--home' : ''}`}>
       <div className="container site-header__inner" style={{ position: 'relative' }}>
         <Link className="logo" to="/">
@@ -270,6 +326,22 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
               ))}
             </div>
           </div>
+
+          {/* 顶栏 CTA：购买 / 预约体验（后台站点配置可配；窄屏由 CSS 隐藏） */}
+          {topCta.primary && (
+            <Link
+              className="btn btn--primary btn--sm site-cta site-cta--primary"
+              to={topCta.primary.href}
+              onClick={() => trackEvent('cta', topCta.primary?.href ?? '')}
+            >
+              {topCta.primary.label}
+            </Link>
+          )}
+          {topCta.secondary && (
+            <Link className="btn btn--ghost btn--sm site-cta site-cta--secondary" to={topCta.secondary.href}>
+              {topCta.secondary.label}
+            </Link>
+          )}
 
           <Link className="icon-btn" to="/support" aria-label={t('a11y.support')}>
             <IconSupport />

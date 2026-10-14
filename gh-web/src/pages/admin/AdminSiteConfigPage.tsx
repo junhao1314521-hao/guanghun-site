@@ -14,7 +14,16 @@
  */
 import { useState } from 'react'
 import { fetchAdminSite, saveAdminSite } from '../../api/adminPages'
-import type { SiteConfig, SiteFooterGroup, SiteLink } from '../../api/adminPages'
+import type {
+  SiteAnnouncement,
+  SiteAuthConfig,
+  SiteConfig,
+  SiteCta,
+  SiteFooterGroup,
+  SiteLink,
+  SiteSocialConfig,
+  SiteWarrantyConfig,
+} from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { useConfirm, useToast } from '../../components/admin/feedback'
@@ -228,6 +237,36 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setDirty(true)
   }
 
+  // 公告条（缺省补全 enabled/text/dismissible，保证编辑器字段齐全）
+  const setAnnouncement = (patch: Partial<SiteAnnouncement>) => {
+    setSite((prev) => ({
+      ...prev,
+      announcement: { enabled: false, text: '', dismissible: true, ...prev.announcement, ...patch },
+    }))
+    setDirty(true)
+  }
+
+  // 顶栏 CTA（primary / secondary 任一为空对象时不下发）
+  const setTopCta = (patch: { primary?: SiteCta; secondary?: SiteCta }) => {
+    setSite((prev) => ({ ...prev, topCta: { ...prev.topCta, ...patch } }))
+    setDirty(true)
+  }
+
+  const setAuth = (patch: Partial<SiteAuthConfig>) => {
+    setSite((prev) => ({ ...prev, auth: { captcha: true, thirdParty: false, ...prev.auth, ...patch } }))
+    setDirty(true)
+  }
+
+  const setWarranty = (patch: Partial<SiteWarrantyConfig>) => {
+    setSite((prev) => ({ ...prev, warranty: { years: 3, remindDays: 30, snParse: false, ...prev.warranty, ...patch } }))
+    setDirty(true)
+  }
+
+  const setSocial = (social: SiteSocialConfig) => {
+    setSite((prev) => ({ ...prev, social }))
+    setDirty(true)
+  }
+
   const onSave = async () => {
     setSaving(true)
     try {
@@ -316,6 +355,246 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             页脚分组：每组包含一个「分组标题」与一组链接，分组顺序与组内链接顺序均即展示顺序。
           </p>
           <FooterEditor groups={site.footer} onChange={setFooter} />
+        </section>
+
+        {/* —— 公告条：顶栏上方细条，可定时上下线、可关闭 —— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">顶栏公告条</h2>
+            <span className="admin-table__count">{site.announcement?.enabled ? '已开启' : '已关闭'}</span>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            展示在顶栏上方的通知细条。填写起止时间后仅在区间内展示；开启「允许关闭」后访客可自行关掉（本地记忆）。
+          </p>
+          <div className="site-link">
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={Boolean(site.announcement?.enabled)}
+                onChange={(event) => setAnnouncement({ enabled: event.target.checked })}
+              />
+              开启公告条
+            </label>
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={Boolean(site.announcement?.dismissible)}
+                onChange={(event) => setAnnouncement({ dismissible: event.target.checked })}
+              />
+              允许访客关闭
+            </label>
+          </div>
+          <input
+            className="input"
+            type="text"
+            placeholder="公告文案（如：新品上市，预约到店体验）"
+            value={site.announcement?.text ?? ''}
+            onChange={(event) => setAnnouncement({ text: event.target.value })}
+          />
+          <div className="site-links" style={{ marginTop: 'var(--gh-space-3)' }}>
+            <div className="site-link">
+              <input
+                className="input"
+                type="text"
+                placeholder="点击跳转（可选，如 /business/venues）"
+                value={site.announcement?.href ?? ''}
+                onChange={(event) => setAnnouncement({ href: event.target.value || undefined })}
+              />
+            </div>
+            <div className="site-link">
+              <input
+                className="input"
+                type="text"
+                aria-label="生效起始时间"
+                placeholder="生效起始（可选，如 2026-10-15T00:00）"
+                value={site.announcement?.startAt ?? ''}
+                onChange={(event) => setAnnouncement({ startAt: event.target.value || undefined })}
+              />
+              <input
+                className="input"
+                type="text"
+                aria-label="失效时间"
+                placeholder="失效时间（可选，如 2026-11-15T23:59）"
+                value={site.announcement?.endAt ?? ''}
+                onChange={(event) => setAnnouncement({ endAt: event.target.value || undefined })}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* —— 顶栏 CTA：购买 / 预约体验入口 —— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">顶栏行动按钮</h2>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            顶栏右侧按钮（主按钮 + 次按钮）。文案或链接留空即不展示该按钮；窄屏会自动隐藏以免挤压导航。
+          </p>
+          <div className="site-links">
+            <div className="site-link">
+              <input
+                className="input"
+                type="text"
+                placeholder="主按钮文案（如 预约体验）"
+                value={site.topCta?.primary?.label ?? ''}
+                onChange={(event) =>
+                  setTopCta({ primary: { label: event.target.value, href: site.topCta?.primary?.href ?? '' } })
+                }
+              />
+              <input
+                className="input"
+                type="text"
+                placeholder="主按钮链接（如 /business/venues）"
+                value={site.topCta?.primary?.href ?? ''}
+                onChange={(event) =>
+                  setTopCta({ primary: { label: site.topCta?.primary?.label ?? '', href: event.target.value } })
+                }
+              />
+            </div>
+            <div className="site-link">
+              <input
+                className="input"
+                type="text"
+                placeholder="次按钮文案（如 产品总览）"
+                value={site.topCta?.secondary?.label ?? ''}
+                onChange={(event) =>
+                  setTopCta({ secondary: { label: event.target.value, href: site.topCta?.secondary?.href ?? '' } })
+                }
+              />
+              <input
+                className="input"
+                type="text"
+                placeholder="次按钮链接（如 /products）"
+                value={site.topCta?.secondary?.href ?? ''}
+                onChange={(event) =>
+                  setTopCta({ secondary: { label: site.topCta?.secondary?.label ?? '', href: event.target.value } })
+                }
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* —— 安全与保修：验证码 / 第三方登录开关 / 保修参数 —— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">安全与保修参数</h2>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            控制表单验证码与账号安全（第三方登录仅留开关位，暂不开放外部入口），并维护质保年限与到期提醒天数。
+          </p>
+          <div className="site-link">
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={site.auth?.captcha !== false}
+                onChange={(event) => setAuth({ captcha: event.target.checked })}
+              />
+              表单图形验证码
+            </label>
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={Boolean(site.auth?.thirdParty)}
+                onChange={(event) => setAuth({ thirdParty: event.target.checked })}
+              />
+              第三方登录入口（预留）
+            </label>
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={Boolean(site.warranty?.snParse)}
+                onChange={(event) => setWarranty({ snParse: event.target.checked })}
+              />
+              SN 解析出厂日期（预留）
+            </label>
+          </div>
+          <div className="site-links" style={{ marginTop: 'var(--gh-space-3)' }}>
+            <div className="site-link">
+              <input
+                className="input"
+                type="number"
+                min={1}
+                placeholder="质保年限（年，默认 3）"
+                value={String(site.warranty?.years ?? 3)}
+                onChange={(event) => setWarranty({ years: Number(event.target.value) || 3 })}
+              />
+              <input
+                className="input"
+                type="number"
+                min={1}
+                placeholder="到期前提醒天数（默认 30）"
+                value={String(site.warranty?.remindDays ?? 30)}
+                onChange={(event) => setWarranty({ remindDays: Number(event.target.value) || 30 })}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* —— 页脚社交与二维码：真实化 —— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">页脚社交与二维码</h2>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            维护页脚社交关注链接（微信 / 微博 / B 站 / 抖音等）与官方二维码图片地址（在「素材库」上传后复制地址填入）。
+          </p>
+          <p className="admin-page__desc" style={{ margin: '0 0 var(--gh-space-2)' }}>
+            社交关注
+          </p>
+          <LinkListEditor
+            links={site.social?.links ?? []}
+            addLabel="新增社交入口"
+            onChange={(links) => setSocial({ links, qr: site.social?.qr ?? [] })}
+          />
+          <p className="admin-page__desc" style={{ margin: 'var(--gh-space-4) 0 var(--gh-space-2)' }}>
+            官方二维码
+          </p>
+          <div className="site-links">
+            {(site.social?.qr ?? []).map((item, index) => (
+              <div className="site-link" key={index}>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="二维码名称（如 官方微信）"
+                  value={item.label}
+                  onChange={(event) => {
+                    const qr = (site.social?.qr ?? []).slice()
+                    qr[index] = { ...qr[index], label: event.target.value }
+                    setSocial({ links: site.social?.links ?? [], qr })
+                  }}
+                />
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="二维码图片地址（/uploads/…）"
+                  value={item.image}
+                  onChange={(event) => {
+                    const qr = (site.social?.qr ?? []).slice()
+                    qr[index] = { ...qr[index], image: event.target.value }
+                    setSocial({ links: site.social?.links ?? [], qr })
+                  }}
+                />
+                <div className="site-link__actions">
+                  <button
+                    type="button"
+                    className="btn btn--danger-ghost btn--sm"
+                    onClick={() =>
+                      setSocial({ links: site.social?.links ?? [], qr: (site.social?.qr ?? []).filter((_, i) => i !== index) })
+                    }
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="btn btn--secondary btn--sm"
+              onClick={() => setSocial({ links: site.social?.links ?? [], qr: [...(site.social?.qr ?? []), { label: '', image: '' }] })}
+            >
+              + 新增二维码
+            </button>
+          </div>
         </section>
       </div>
     </div>

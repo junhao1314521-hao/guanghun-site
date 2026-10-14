@@ -120,6 +120,32 @@ export type SiteLink = { label: string; href: string; badge?: 'new' | 'hot'; bad
 /** 页脚分组 */
 export type SiteFooterGroup = { title: string; links: SiteLink[] }
 
+/**
+ * 顶栏公告条（扩展字段；后台可配、可定时上下线、可关闭）。
+ * - `startAt` / `endAt` 为 ISO 时间串，缺省不限；前台仅在生效区间内展示；
+ * - `dismissible = true` 时访客可关闭，关闭状态记忆在 localStorage。
+ */
+export type SiteAnnouncement = {
+  enabled: boolean
+  text: string
+  href?: string
+  startAt?: string
+  endAt?: string
+  dismissible?: boolean
+}
+
+/** 顶栏右侧行动按钮（购买 / 预约体验等） */
+export type SiteCta = { label: string; href: string }
+
+/** 表单与账号安全开关（图形验证码；第三方登录仅留开关位，暂不开放外部入口） */
+export type SiteAuthConfig = { captcha: boolean; thirdParty: boolean }
+
+/** 保修参数（前台保修说明与个人中心到期提醒共用） */
+export type SiteWarrantyConfig = { years: number; remindDays: number; snParse: boolean }
+
+/** 页脚社交关注 + 二维码（真实化：链接与二维码图由后台维护） */
+export type SiteSocialConfig = { links: SiteLink[]; qr: { label: string; image: string }[] }
+
 /** 站点配置（契约 §6.1） */
 export type SiteConfig = {
   nav: SiteLink[]
@@ -128,4 +154,14 @@ export type SiteConfig = {
   enabledBlocks?: string[]
   /** 站点级设计令牌覆盖（扩展字段；键 = CSS 变量名，仅白名单内变量生效） */
   theme?: Record<string, string>
+  /** 顶栏公告条（扩展字段；缺省不展示） */
+  announcement?: SiteAnnouncement
+  /** 顶栏右侧行动按钮（扩展字段；缺省不展示） */
+  topCta?: { primary?: SiteCta; secondary?: SiteCta }
+  /** 表单与账号安全开关（扩展字段；缺省视为「开启验证码 / 关闭第三方」） */
+  auth?: SiteAuthConfig
+  /** 保修参数（扩展字段；缺省 years=3 / remindDays=30 / snParse=false） */
+  warranty?: SiteWarrantyConfig
+  /** 页脚社交与二维码（扩展字段；缺省用前台本地真源） */
+  social?: SiteSocialConfig
 }

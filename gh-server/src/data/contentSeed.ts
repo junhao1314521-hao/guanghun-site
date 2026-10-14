@@ -77,6 +77,35 @@ const SITE: SiteConfig = {
       ],
     },
   ],
+  // —— 顶栏公告条（后台可改文案 / 链接 / 定时 / 是否可关闭）——
+  announcement: {
+    enabled: true,
+    text: '54027X1QE 第四代 W-OLED 旗舰上市 · 预约到店体验新品',
+    href: '/business/venues',
+    dismissible: true,
+  },
+  // —— 顶栏右侧行动按钮：主 CTA 预约体验 + 次 CTA 产品总览 ——
+  topCta: {
+    primary: { label: '预约体验', href: '/business/venues' },
+    secondary: { label: '产品总览', href: '/products' },
+  },
+  // —— 表单安全开关：默认开启图形验证码，第三方登录仅留位 ——
+  auth: { captcha: true, thirdParty: false },
+  // —— 保修参数：三年质保（含烧屏保护），到期前 30 天提醒 ——
+  warranty: { years: 3, remindDays: 30, snParse: false },
+  // —— 页脚社交关注与官方二维码（真实化：二维码图由后台维护）——
+  social: {
+    links: [
+      { label: '微信', href: '#' },
+      { label: '微博', href: '#' },
+      { label: 'B 站', href: '#' },
+      { label: '抖音', href: '#' },
+    ],
+    qr: [
+      { label: '官方微信', image: '' },
+      { label: '公众号', image: '' },
+    ],
+  },
 }
 
 /* ============================================================

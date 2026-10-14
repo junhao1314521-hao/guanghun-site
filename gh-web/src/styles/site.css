@@ -1609,3 +1609,51 @@ body.drawer-open { overflow: hidden; }
   .page-head__title { font-size: clamp(28px, 8vw, 36px); }
   .page-head__desc { font-size: var(--gh-font-size-body); margin-top: var(--gh-space-3); }
 }
+
+/* ============================================================
+   公告条（顶栏上方细条；后台站点配置可配、可定时、可关闭）
+   ============================================================ */
+.announce {
+  position: relative;
+  z-index: 60;
+  background: var(--color-accent-solid);
+  color: #fff;
+}
+.announce__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gh-space-3);
+  min-height: 36px;
+  padding: 6px 40px 6px var(--gh-space-4);
+  font-size: var(--gh-font-size-body-sm);
+  text-align: center;
+}
+.announce__link,
+.announce__text { color: #fff; text-decoration: none; }
+.announce__link:hover { text-decoration: underline; }
+.announce__close {
+  position: absolute;
+  right: var(--gh-space-4);
+  border: 0;
+  background: transparent;
+  color: #fff;
+  opacity: 0.8;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.announce__close:hover { opacity: 1; }
+
+/* ============================================================
+   顶栏 CTA（购买 / 预约体验；窄屏隐藏，避免挤压导航）
+   ============================================================ */
+.site-cta { margin-left: var(--gh-space-2); white-space: nowrap; }
+@media (max-width: 1023px) {
+  .site-cta--secondary { display: none; }
+}
+@media (max-width: 767px) {
+  .site-cta { display: none; }
+}
