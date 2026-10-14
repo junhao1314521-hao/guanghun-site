@@ -30,6 +30,8 @@ export type BlockType =
   | 'productHero' | 'productSpecs' | 'productBuy'
   // 商业合作数据源区块（集合 biz-cases / biz-venues，支持全部 / 手动挑选）
   | 'caseList' | 'venueList'
+  // 测评方法数据源区块（集合 methods）
+  | 'methodList'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {

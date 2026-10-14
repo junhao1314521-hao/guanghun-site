@@ -554,11 +554,58 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     ],
   },
   {
+    key: 'legal',
+    label: '法律条款',
+    icon: 'doc',
+    title: '法律条款管理',
+    desc: '维护隐私政策 / 服务条款 / Cookie 声明 / 备案信息等法律页文案，保存后前台 /legal/:slug 即时生效。',
+    creatable: true,
+    editable: true,
+    deletable: true,
+    searchKeys: ['title', 'slug', 'eyebrow'],
+    columns: [
+      { key: 'title', label: '标题', type: 'strong' },
+      { key: 'slug', label: '路由标识', type: 'mono' },
+      { key: 'eyebrow', label: '眉标', type: 'tag' },
+      { key: 'sections', label: '段落数', type: 'records' },
+      { key: 'updated', label: '更新日期', type: 'date' },
+    ],
+    form: [
+      {
+        title: '文档信息',
+        fields: [
+          { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
+          { key: 'title', label: '标题', type: 'text', span: 2, required: true },
+          { key: 'slug', label: '路由标识（slug）', type: 'text', required: true, hint: '前台地址为 /legal/{slug}，如 privacy / terms' },
+          { key: 'eyebrow', label: '眉标', type: 'text', placeholder: 'LEGAL / PRIVACY' },
+          { key: 'updated', label: '更新日期', type: 'date' },
+          { key: 'intro', label: '导语', type: 'textarea', span: 2 },
+        ],
+      },
+      {
+        title: '正文段落',
+        fields: [
+          {
+            key: 'sections',
+            label: '段落',
+            type: 'records',
+            span: 2,
+            hint: '按「小标题 + 正文」逐段维护；可增删改与上下移动',
+            recordFields: [
+              { key: 'heading', label: '小标题', type: 'text' },
+              { key: 'body', label: '正文', type: 'textarea' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     key: 'components',
     label: '组件库',
     icon: 'cube',
     title: '组件库',
-    desc: '区块类型目录（共 20 类）：查看类型、分组、字段数与启用状态，可启用 / 停用；停用后不再出现在装修器「新增区块」选择器。',
+    desc: '区块类型目录（共 21 类）：查看类型、分组、字段数与启用状态，可启用 / 停用；停用后不再出现在装修器「新增区块」选择器。',
     // 自定义视图：由 AdminComponentsList 承载（数据源 /api/content/blocks/types + PUT /api/admin/blocks/enabled）
     view: 'components',
     columns: [
@@ -1260,6 +1307,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     items: [
       { kind: 'resource', key: 'pages' },
       { kind: 'resource', key: 'site' },
+      { kind: 'resource', key: 'legal' },
       { kind: 'resource', key: 'components' },
       { kind: 'resource', key: 'templates' },
       { kind: 'resource', key: 'styles' },

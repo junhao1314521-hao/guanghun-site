@@ -266,6 +266,8 @@ const BLOCK_ICON: Record<BlockType, string> = {
   // 商业合作数据源区块
   caseList: 'book',
   venueList: 'grid',
+  // 测评方法数据源区块
+  methodList: 'doc',
 }
 
 export function blockIcon(type: BlockType): string {

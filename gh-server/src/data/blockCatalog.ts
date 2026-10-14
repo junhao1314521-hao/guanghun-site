@@ -47,7 +47,7 @@ const SLIDE_FIELDS: BlockFieldMeta[] = [
   { name: 'stats', label: '数据', kind: 'list' },
 ]
 
-/** 区块类型目录：16 类基础区块 + 3 类自定义模块 + 1 类扩展（showcase），字段严格对齐契约 §4 */
+/** 区块类型目录：16 类基础区块 + 3 类自定义模块 + 扩展类型（showcase / 产品详情三类 / 商业合作两类 / methodList），字段严格对齐契约 §4 */
 export const BLOCK_TYPES: BlockTypeMeta[] = [
   {
     type: 'hero',
@@ -603,6 +603,15 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     fields: [
       { name: 'title', label: '标题', kind: 'text' },
       {
+        name: 'source',
+        label: '数据来源',
+        kind: 'select',
+        options: [
+          { label: '商业合作体验点（biz-venues）', value: 'biz' },
+          { label: '服务网点与体验点（service-info）', value: 'service' },
+        ],
+      },
+      {
         name: 'scope',
         label: '挑选方式',
         kind: 'select',
@@ -627,6 +636,16 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'showStatus', label: '显示营业状态', kind: 'switch' },
     ],
   },
+  // —— 测评方法数据源区块：从集合 methods 取数（后台「测评方法」维护）——
+  {
+    type: 'methodList',
+    name: '测评方法',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      { name: 'limit', label: '数量', kind: 'number' },
+    ],
+  },
 ]
 
 /**
@@ -647,7 +666,7 @@ const TITLE_GROUP_TYPES: BlockType[] = [
   'imageGrid', 'stats', 'cards', 'timeline', 'video',
   'productGrid', 'articleList', 'ranking', 'downloadList', 'faqList', 'showcase',
   // 详情页收口区块 / 商业合作数据源区块 同样支持「主标题 / 子标题 / 右侧按钮」
-  'productBuy', 'caseList', 'venueList',
+  'productBuy', 'caseList', 'venueList', 'methodList',
 ]
 
 const COPY_FIELDS: BlockFieldMeta[] = [
@@ -667,7 +686,7 @@ export function getBlockTypeMeta(type: BlockType): BlockTypeMeta | undefined {
   return BLOCK_TYPES.find((meta) => meta.type === type)
 }
 
-/** 全部区块类型（20 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
+/** 全部区块类型（21 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
 export const BLOCK_TYPE_VALUES: BlockType[] = BLOCK_TYPES.map((meta) => meta.type)
 
 /** 新建区块：生成随机稳定 id 的区块对象（后台新增用） */

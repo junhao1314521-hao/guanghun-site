@@ -35,6 +35,12 @@ import {
 } from './business-extra'
 import { INQUIRIES, type InquirySummary } from './auth'
 import { TEMPLATES, type TemplateItem } from './templates'
+import { LEGAL_DOCS, type LegalDoc } from './legal'
+import { TAXONOMY_ITEMS, type TaxonomyItem } from './taxonomy'
+import { PRODUCT_CATEGORIES, type ProductCategoryItem } from './productCategories'
+import { TEST_RECORDS, type TestRecord } from './testRecords'
+import { TEST_METHODS, type TestMethod } from './methods'
+import { SERVICE_SPOTS, type ServiceSpot } from './serviceInfo'
 
 /** 集合 key（与后台栏目 key 一致） */
 export type CollectionKey =
@@ -49,6 +55,12 @@ export type CollectionKey =
   | 'biz-venues'
   | 'inquiries'
   | 'templates'
+  | 'legal'
+  | 'taxonomy'
+  | 'product-categories'
+  | 'test-records'
+  | 'methods'
+  | 'service-info'
 
 /** 集合 → 记录类型（规范形状 = 前台现有形状） */
 export type CollectionMap = {
@@ -63,6 +75,12 @@ export type CollectionMap = {
   'biz-venues': VenueSummary[]
   inquiries: InquirySummary[]
   templates: TemplateItem[]
+  legal: LegalDoc[]
+  taxonomy: TaxonomyItem[]
+  'product-categories': ProductCategoryItem[]
+  'test-records': TestRecord[]
+  methods: TestMethod[]
+  'service-info': ServiceSpot[]
 }
 
 /** 某集合的记录类型 */
@@ -81,6 +99,12 @@ export const COLLECTION_KEYS: CollectionKey[] = [
   'biz-venues',
   'inquiries',
   'templates',
+  'legal',
+  'taxonomy',
+  'product-categories',
+  'test-records',
+  'methods',
+  'service-info',
 ]
 
 /** 已就绪的数据库路径（DB_PATH 变化时需重新检查 / 回填；显式 initCollections 可重复调用） */
@@ -111,6 +135,12 @@ export function buildCollectionSeed(): CollectionMap {
     'biz-venues': BIZ_VENUES,
     inquiries: INQUIRIES,
     templates: TEMPLATES,
+    legal: LEGAL_DOCS,
+    taxonomy: TAXONOMY_ITEMS,
+    'product-categories': PRODUCT_CATEGORIES,
+    'test-records': TEST_RECORDS,
+    methods: TEST_METHODS,
+    'service-info': SERVICE_SPOTS,
   }
   return clone(seed)
 }

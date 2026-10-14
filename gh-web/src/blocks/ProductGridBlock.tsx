@@ -9,7 +9,7 @@
  */
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { fetchProducts } from '../api/products'
+import { fetchProductCategories, fetchProducts } from '../api/products'
 import { MEDIA } from '../data/media'
 import {
   CATEGORY_FILTERS,
@@ -18,7 +18,6 @@ import {
   SORT_OPTIONS,
   STATUS_FILTERS,
   type Product,
-  type ProductCategory,
   type ProductConnection,
 } from '../data/products'
 import { useApi } from '../hooks/useApi'
@@ -79,9 +78,17 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
 
   const [reloadKey, setReloadKey] = useState(0)
   const { data, loading, error } = useApi((signal) => fetchProducts(signal), [reloadKey])
+  // 类别筛选 chip 由后台「分类与参数」维护（离线回退本地枚举）
+  const { data: categoryData } = useApi((signal) => fetchProductCategories(signal), [])
+  const categoryOptions = [
+    '全部',
+    ...(categoryData
+      ? categoryData.items.filter((item) => item.status === '启用').map((item) => item.name)
+      : CATEGORY_FILTERS.filter((name) => name !== '全部')),
+  ]
 
   // —— 交互态：仅 showFilter 时使用，无条件声明以遵守 hooks 规则 ——
-  const [category, setCategory] = useState<'全部' | ProductCategory>('全部')
+  const [category, setCategory] = useState<string>('全部')
   const [connections, setConnections] = useState<ProductConnection[]>([])
   const [priceId, setPriceId] = useState(PRICE_RANGES[0].id)
   const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('全部')
@@ -208,7 +215,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                   <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
                     类别
                   </span>
-                  {CATEGORY_FILTERS.map((option) => (
+                  {categoryOptions.map((option) => (
                     <button
                       key={option}
                       type="button"

@@ -11,7 +11,7 @@
  */
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { fetchArticles, fetchNews } from '../api/articles'
+import { fetchArticles, fetchNews, fetchTaxonomy } from '../api/articles'
 import {
   CATEGORY_FILTERS,
   CATEGORY_LABEL_BY_CODE,
@@ -106,6 +106,14 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
     (signal) => (isNews ? fetchNews(signal) : fetchArticles(signal)),
     [source, reloadKey],
   )
+  // 分类筛选 chip 由后台「分类与标签」维护（离线回退本地枚举）
+  const { data: taxonomy } = useApi((signal) => fetchTaxonomy(signal), [])
+  const categoryOptions = [
+    '全部',
+    ...(taxonomy
+      ? taxonomy.items.filter((item) => item.type === '分类' && item.status === '启用').map((item) => item.name)
+      : CATEGORY_FILTERS.filter((name) => name !== '全部')),
+  ]
 
   const items = data?.items ?? []
   const label = SOURCE_LABEL[source] ?? ''
@@ -166,7 +174,7 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
                 分类
               </span>
-              {CATEGORY_FILTERS.map((option) => (
+              {categoryOptions.map((option) => (
                 <button
                   key={option}
                   type="button"

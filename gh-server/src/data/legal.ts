@@ -7,6 +7,8 @@
 export type LegalSection = { heading: string; body: string }
 
 export type LegalDoc = {
+  /** 集合记录标识（稳定不变，取与 slug 相同值） */
+  id: string
   slug: string
   title: string
   eyebrow: string
@@ -17,6 +19,7 @@ export type LegalDoc = {
 
 export const LEGAL_DOCS: LegalDoc[] = [
   {
+    id: 'privacy',
     slug: 'privacy',
     title: '隐私政策',
     eyebrow: 'LEGAL / PRIVACY',
@@ -46,6 +49,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
     ],
   },
   {
+    id: 'terms',
     slug: 'terms',
     title: '服务条款',
     eyebrow: 'LEGAL / TERMS',
@@ -75,6 +79,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
     ],
   },
   {
+    id: 'cookies',
     slug: 'cookies',
     title: 'Cookie 声明',
     eyebrow: 'LEGAL / COOKIES',
@@ -100,6 +105,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
     ],
   },
   {
+    id: 'records',
     slug: 'records',
     title: '备案信息',
     eyebrow: 'LEGAL / RECORDS',

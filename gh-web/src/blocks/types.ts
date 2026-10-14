@@ -245,9 +245,11 @@ export type CaseListProps = DataBlockInteraction & {
   showMeta?: boolean
 }
 
-/** 25. venueList 体验点 / 网点（数据源，集合 biz-venues） */
+/** 25. venueList 体验点 / 网点（数据源：source='biz' 取 biz-venues，source='service' 取 service-info） */
 export type VenueListProps = DataBlockInteraction & {
   title: string
+  /** 数据来源：商业合作体验点 / 服务网点与体验点 */
+  source?: 'biz' | 'service'
   scope?: 'all' | 'manual'
   ids?: string[]
   layout?: 'grid' | 'rail'
@@ -255,6 +257,12 @@ export type VenueListProps = DataBlockInteraction & {
   limit?: number
   /** 是否显示营业状态标签 */
   showStatus?: boolean
+}
+
+/** 26. methodList 测评方法（数据源，集合 methods） */
+export type MethodListProps = DataBlockInteraction & {
+  title: string
+  limit?: number
 }
 
 /** 类型名 → props 类型映射（区块组件用） */
@@ -284,4 +292,5 @@ export type BlockPropsMap = {
   productBuy: ProductBuyProps
   caseList: CaseListProps
   venueList: VenueListProps
+  methodList: MethodListProps
 }

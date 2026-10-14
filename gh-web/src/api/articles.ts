@@ -3,12 +3,24 @@ import { transport, ApiError } from './client'
 import {
   ARTICLES,
   ARTICLE_TOTAL,
+  CATEGORY_FILTERS,
   NEWS,
   getArticleDetail,
   type ArticleDetail,
   type ArticleSummary,
   type NewsItem,
 } from '../data/articles'
+
+/** 内容分类与标签（后台「分类与标签」维护，前台文章筛选依据） */
+export type TaxonomyItem = {
+  id: string
+  name: string
+  type: string
+  count: number
+  status: string
+  order: number
+  desc?: string
+}
 
 export type ArticleListResult = {
   items: ArticleSummary[]
@@ -36,4 +48,18 @@ export function fetchArticle(id: string, signal?: AbortSignal): Promise<ArticleD
 /** 新闻与动态：与文章复用同一批内容，返回品牌动态 / 产品发布类条目 */
 export function fetchNews(signal?: AbortSignal): Promise<NewsListResult> {
   return transport({ path: '/api/news', signal }, () => ({ items: NEWS }))
+}
+
+/** 内容分类与标签：后台「分类与标签」维护，前台文章筛选 chip 依据（离线回退本地枚举） */
+export function fetchTaxonomy(signal?: AbortSignal): Promise<{ items: TaxonomyItem[] }> {
+  return transport({ path: '/api/taxonomy', signal }, () => ({
+    items: CATEGORY_FILTERS.filter((name) => name !== '全部').map((name, index) => ({
+      id: `local-${index}`,
+      name,
+      type: '分类',
+      count: 0,
+      status: '启用',
+      order: index + 1,
+    })),
+  }))
 }

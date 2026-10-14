@@ -9,7 +9,9 @@
  */
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { fetchTestRecords } from '../api/products'
 import { useProductDetail } from './ProductDetailContext'
+import { useApi } from '../hooks/useApi'
 import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
 
@@ -17,6 +19,10 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
   const { t } = useI18n()
   const detail = useProductDetail()
   const [tab, setTab] = useState(0)
+  // 「测试记录」分区：按当前产品型号取后台维护的测试记录（仅在对外可见状态展示）
+  const model = detail?.model ?? ''
+  const { data: recordsData } = useApi((signal) => fetchTestRecords(model, signal), [model])
+  const testRecords = (recordsData?.items ?? []).filter((record) => record.status === '已发布')
 
   if (!detail) return null
 
@@ -137,6 +143,45 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
                   </div>
                 )}
               </div>
+            )}
+          </>
+        ) : detail.tabs[tab] === '测试记录' && testRecords.length > 0 ? (
+          <>
+            <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h4)', marginBottom: 'var(--gh-space-4)' }}>
+              测试记录
+            </h2>
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>指标</th>
+                    <th>实测值</th>
+                    <th>测试方法</th>
+                    <th>测试日期</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {testRecords.map((record) => (
+                    <tr key={record.id}>
+                      <td>{record.metric}</td>
+                      <td className="mono">{record.value}</td>
+                      <td className="muted">{record.method}</td>
+                      <td className="muted mono">{record.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {testRecords.some((record) => record.conclusion) && (
+              <ul style={{ marginTop: 'var(--gh-space-4)', paddingLeft: 'var(--gh-space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-2)' }}>
+                {testRecords
+                  .filter((record) => record.conclusion)
+                  .map((record) => (
+                    <li key={`${record.id}-conclusion`} className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                      {record.title}：{record.conclusion}
+                    </li>
+                  ))}
+              </ul>
             )}
           </>
         ) : (

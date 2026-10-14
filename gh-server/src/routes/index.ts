@@ -3,6 +3,7 @@ import { adminPagesRouter } from './adminPagesRouter'
 import { adminRouter } from './adminRouter'
 import { articlesRouter } from './articlesRouter'
 import { authRouter } from './authRouter'
+import { catalogMetaRouter } from './catalogMeta'
 import { backupsRouter } from './backupsRouter'
 import { brandRouter } from './brandRouter'
 import { businessExtraRouter } from './businessExtraRouter'
@@ -38,6 +39,7 @@ export function registerRoutes(app: Express): void {
   app.use('/api', articlesRouter) // /articles、/articles/:id、/news
   app.use('/api', supportExtraRouter) // /downloads、/faq、/support/model/:id、/inquiry、/contact
   app.use('/api', businessExtraRouter) // /business/scenes、/business/cases、/business/venues
+  app.use('/api', catalogMetaRouter) // /taxonomy、/product-categories、/test-records、/methods、/service-info
   app.use('/api', brandRouter) // /brand/:slug
   app.use('/api', authRouter) // /auth/*、/account/inquiries
   // 公开埋点（无需登录）：/api/track/view、/api/track/download

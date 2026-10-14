@@ -1,22 +1,41 @@
 /**
- * 25. venueList 体验点 / 授权服务网点（数据源区块，集合 biz-venues）
+ * 25. venueList 体验点 / 服务网点（数据源区块）
  *
  * props: title / subtitle / ctaLabel / ctaHref（标题组）
+ *        + source:'biz'|'service'（数据来源：商业合作体验点 / 服务网点与体验点）
  *        + scope:'all'|'manual'（手动挑选按 ids 顺序）+ ids[]
  *        + layout:'grid'|'rail' + columns + limit + showStatus
  *
- * 不存内容：渲染时调用 `/api/business/venues` 取数。
+ * 不存内容：渲染时按 source 调用 `/api/business/venues`（biz）或 `/api/service-info`（service）取数。
  */
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchBizVenues } from '../api/business-extra'
+import { fetchServiceSpots } from '../api/support'
 import { useApi } from '../hooks/useApi'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, gridClass, pickByIds } from './blockUtils'
 
+/** 统一渲染视图模型（兼容 biz 与 service 两种来源） */
+type VenueCard = {
+  id: string
+  name: string
+  meta: string
+  cover: string
+  ok: boolean
+  status: string
+  address: string
+  phone?: string
+  hours?: string
+  /** 详情链接（仅商业体验点有详情页；服务网点无） */
+  href?: string
+}
+
 export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
+  const source = asString(props.source, 'biz')
+  const isService = source === 'service'
   const scope = asString(props.scope, 'all')
   const ids = asStringArray(props.ids)
   const limit = Math.max(0, asNumber(props.limit, 6))
@@ -25,8 +44,36 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
   const showStatus = props.showStatus === undefined ? true : asBool(props.showStatus)
   const [reloadKey, setReloadKey] = useState(0)
 
-  const { data, loading, error } = useApi((signal) => fetchBizVenues(signal), [reloadKey])
-  const picked = pickByIds(data?.items ?? [], scope, ids)
+  const { data, loading, error } = useApi<{ items: unknown[] }>(
+    (signal) => (isService ? fetchServiceSpots(signal) : fetchBizVenues(signal)),
+    [source, reloadKey],
+  )
+
+  const raw = (data?.items ?? []) as Array<Record<string, unknown>>
+  const items: VenueCard[] = isService
+    ? raw.map((spot) => ({
+        id: String(spot.id),
+        name: String(spot.name),
+        meta: `${spot.city ?? ''} · ${spot.type ?? ''}`,
+        cover: '',
+        ok: spot.status === '营业中',
+        status: String(spot.status ?? ''),
+        address: String(spot.address ?? ''),
+        phone: String(spot.phone ?? ''),
+        hours: String(spot.hours ?? ''),
+      }))
+    : raw.map((venue) => ({
+        id: String(venue.id),
+        name: String(venue.name),
+        meta: `${venue.city ?? ''} · ${venue.area ?? ''}`,
+        cover: String(venue.cover ?? ''),
+        ok: Boolean(venue.ok),
+        status: String(venue.status ?? ''),
+        address: String(venue.address ?? ''),
+        href: `/business/venues/${String(venue.id)}`,
+      }))
+
+  const picked = pickByIds(items, scope, ids)
   const capped = limit > 0 ? picked.slice(0, limit) : picked
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
@@ -59,23 +106,37 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
         </p>
       ) : (
         <div className={rail ? 'blk-scroll-x' : gridClass(columns)}>
-          {shown.map((item) => (
-            <Link className="card card--link reveal" to={`/business/venues/${item.id}`} key={item.id}>
-              <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
-                <MediaImg src={item.cover} alt={item.name} />
+          {shown.map((item) => {
+            const body = (
+              <>
+                <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
+                  <MediaImg src={item.cover} alt={item.name} />
+                </div>
+                {showStatus && <span className={`status status--${item.ok ? 'success' : 'warning'}`}>{item.status}</span>}
+                <h3 className="card__title">{item.name}</h3>
+                <p className="card__desc">{item.meta}</p>
+                <div className="card--link__foot">
+                  <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+                    {item.address}
+                  </span>
+                </div>
+                {isService && (item.phone || item.hours) && (
+                  <p className="muted" style={{ fontSize: 'var(--gh-font-size-caption)', marginTop: 'var(--gh-space-2)' }}>
+                    {[item.phone, item.hours].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+              </>
+            )
+            return item.href ? (
+              <Link className="card card--link reveal" to={item.href} key={item.id}>
+                {body}
+              </Link>
+            ) : (
+              <div className="card reveal" key={item.id}>
+                {body}
               </div>
-              {showStatus && <span className={`status status--${item.ok ? 'success' : 'warning'}`}>{item.status}</span>}
-              <h3 className="card__title">{item.name}</h3>
-              <p className="card__desc">
-                {item.city} · {item.area}
-              </p>
-              <div className="card--link__foot">
-                <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                  {item.address}
-                </span>
-              </div>
-            </Link>
-          ))}
+            )
+          })}
         </div>
       )}
       {pageSize > 0 && <BlockPager page={page} totalPages={totalPages} onChange={setPage} />}

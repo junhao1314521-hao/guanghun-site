@@ -626,16 +626,10 @@ function buildSupportEn(): Page {
         ],
       },
     },
+    // Data-source block: spots come from the service-info collection (edited in admin, live on the site)
     {
-      type: 'cards',
-      props: {
-        title: 'Service & experience spots',
-        columns: 2,
-        items: [
-          { tag: 'Open', title: 'Guanghun Shenzhen', desc: 'Nanshan · South' },
-          { tag: 'Open', title: 'Guanghun Shanghai', desc: 'Pudong · East' },
-        ],
-      },
+      type: 'venueList',
+      props: { title: 'Service & experience spots', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
     },
     {
       type: 'cards',
@@ -744,9 +738,10 @@ function buildLadderEn(): Page {
       props: { title: 'Rankings', body: 'All numbers come from the same reproducible test method. Rankings are not industry verdicts — they are buying references only.', align: 'left' },
     },
     { type: 'ranking', props: { title: 'Overall', metric: 'overall', limit: 10 } },
+    // Data-source block: methods come from the methods collection (edited in admin, live on the site)
     {
-      type: 'text',
-      props: { title: 'Test method', body: 'Methods are public and reproducible; when a method is upgraded, historical articles keep the older numbers.', align: 'left' },
+      type: 'methodList',
+      props: { title: 'Test method', subtitle: 'Methods are public and reproducible; when a method is upgraded, historical articles keep the older numbers.', limit: 0 },
     },
   ])
 }

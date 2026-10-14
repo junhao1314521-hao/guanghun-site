@@ -473,13 +473,10 @@ function buildSupport(): Page {
     },
     { type: 'downloadList', props: { title: '下载中心', category: 'all', limit: 20 } },
     { type: 'cards', props: { title: '保修与售后', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) } },
+    // 数据源区块：网点/体验点取自集合 service-info（后台「服务信息」维护，改后前台即时生效）
     {
-      type: 'cards',
-      props: {
-        title: '服务网点与体验点',
-        columns: 2,
-        items: support.SUPPORT_SPOTS.map((spot) => ({ tag: spot.status, title: spot.name, desc: `${spot.area} · ${spot.region}` })),
-      },
+      type: 'venueList',
+      props: { title: '服务网点与体验点', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
     },
     {
       type: 'cards',
@@ -617,9 +614,10 @@ function buildLadder(): Page {
       props: { title: '天梯榜', body: '所有数值来自同一套可复现的测试方法。榜单不代表行业结论，仅供选购参考。', align: 'left' },
     },
     { type: 'ranking', props: { title: '综合榜', metric: 'overall', limit: 10 } },
+    // 数据源区块：测评方法取自集合 methods（后台「测评方法」维护，改后前台即时生效）
     {
-      type: 'text',
-      props: { title: '测试方法', body: '测试方法公开、可复现；方法升级后历史文章引用旧版数值保持不变。', align: 'left' },
+      type: 'methodList',
+      props: { title: '测试方法', subtitle: '测试方法公开、可复现；方法升级后历史文章引用旧版数值保持不变。', limit: 0 },
     },
   ])
 }
