@@ -94,7 +94,6 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
                   />
                 </picture>
               </div>
-              <span className="blk-hero__scrim" aria-hidden="true" />
               <div className="blk-hero__grid">
                 <div className="hero__content">
                   <div className="hero__eyebrow">{slide.eyebrow}</div>

@@ -94,13 +94,8 @@
 @keyframes blkKenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
 @media (prefers-reduced-motion: reduce) { .blk-hero__bg img { animation: none; } }
 
-/* 左侧压暗遮罩：保证浮层文案在任意海报上都清晰可读 */
-.blk-hero__scrim {
-  position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(90deg, rgba(4, 6, 14, .92) 0%, rgba(4, 6, 14, .76) 32%, rgba(4, 6, 14, .30) 58%, rgba(4, 6, 14, .58) 100%);
-}
-
-/* 文案浮层：与各板块标题同左边线对齐 */
+/* 文案浮层：与各板块标题同左边线对齐。
+   海报不做整体压暗（保留原图亮度），改用文字阴影兜底可读性。 */
 .blk-hero__grid {
   position: relative; z-index: 2;
   width: 100%; max-width: var(--gh-container-max); margin-inline: auto;
@@ -109,9 +104,16 @@
 @media (min-width: 768px) { .blk-hero__grid { padding-inline: var(--gh-space-6); } }
 @media (min-width: 1024px) { .blk-hero__grid { padding-inline: var(--gh-space-7); } }
 @media (max-width: 900px) {
-  /* 手机竖版：遮罩改为自下而上，文案贴近底部 */
-  .blk-hero__scrim { background: linear-gradient(0deg, rgba(4, 6, 14, .94) 0%, rgba(4, 6, 14, .72) 42%, rgba(4, 6, 14, .28) 72%, rgba(4, 6, 14, .45) 100%); }
+  /* 手机竖版：文案贴近底部 */
   .blk-hero__grid { padding: 46vh var(--gh-space-4) var(--gh-space-7); }
+}
+
+/* 不做压暗时的可读性兜底：仅给文案加轻投影（按钮不参与，避免发灰） */
+.blk-hero .hero__eyebrow,
+.blk-hero .hero__title,
+.blk-hero .hero__desc,
+.blk-hero .hero__stats {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6), 0 8px 26px rgba(0, 0, 0, .45);
 }
 
 /* 底部导航区：序号 + 进度式指示器（品牌色进度随自动播放推进，悬停暂停） */
