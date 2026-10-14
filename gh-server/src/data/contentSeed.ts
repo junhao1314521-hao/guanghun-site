@@ -41,11 +41,11 @@ function toPage(key: string, path: string, title: string, description: string, d
 const SITE: SiteConfig = {
   nav: [
     { label: '产品', href: '/products' },
-    { label: 'Center', href: '/center' },
+    { label: '光魂 Center', href: '/center', badge: 'new', badgeShake: true },
     { label: '天梯榜', href: '/ladder', badge: 'hot', badgeShake: true },
-    { label: '文章', href: '/articles' },
+    { label: '评测与资讯', href: '/articles' },
     { label: '服务支持', href: '/support' },
-    { label: '商业合作', href: '/business', badge: 'new', badgeShake: true },
+    { label: '商业合作', href: '/business' },
     { label: '关于光魂', href: '/about' },
   ],
   footer: [
@@ -95,6 +95,14 @@ const SHOWCASE_COPY: Record<string, string> = {
 }
 
 /** 首页：首屏轮播 → 场景 → 重点产品（通栏展示） → 天梯榜 → 评测 → 品牌 → 服务 → 合作 → 新闻 */
+/** 首页「服务与支持」四张卡的跳转目标（按 SERVICE_ENTRIES 的 id 映射） */
+const SERVICE_HREF: Record<string, string> = {
+  model: '/support',
+  download: '/downloads',
+  faq: '/faq',
+  contact: '/contact',
+}
+
 function buildHome(): Page {
   return toPage('home', '/', '首页', '首页装修：首屏、场景、重点产品、天梯榜、评测、品牌、服务、合作与新闻。', [
     {
@@ -116,32 +124,12 @@ function buildHome(): Page {
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },
     },
-    {
-      type: 'cards',
-      props: {
-        title: '按场景选择',
-        subtitle: '从电竞对战到内容创作，按使用场景组合你的显示方案。',
-        ctaLabel: '浏览全部产品',
-        ctaHref: '/products',
-        layout: 'rail',
-        overlay: true,
-        ratio: '4 / 5',
-        columns: 3,
-        items: home.SCENES.map((scene) => ({
-          tag: scene.tag,
-          title: scene.title,
-          desc: scene.desc,
-          href: '/products',
-          media: `/media/home/scenes/${scene.id}.jpg`,
-          mediaType: 'image',
-        })),
-      },
-    },
-    // 重点产品：通栏分段式展示（每项占满一屏，图文左右交替），替代原 productGrid
+    // 重点产品：通栏分段式展示（左右交替），数据来自产品集合
     {
       type: 'showcase',
       props: {
         title: '重点产品',
+        icon: 'monitor',
         subtitle: '以实测数据说话的旗舰与主力机型。',
         ctaLabel: '进入产品中心',
         ctaHref: '/products',
@@ -159,34 +147,64 @@ function buildHome(): Page {
       },
       style: { container: 'full', background: 'soft' },
     },
-    // teaser：首页只展示局部榜单（底部渐变虚化），数据与 /ladder 页同源
-    { type: 'ranking', props: { title: '天梯榜', subtitle: '所有数值来自同一套可复现的测试方法。', metric: 'overall', limit: 6, teaser: true } },
-    { type: 'articleList', props: { title: '技术评测', subtitle: '参数公开、方法公开，结论可复现。', ctaLabel: '查看全部评测', ctaHref: '/articles', source: 'all', limit: 3 } },
-    { type: 'stats', props: { title: '数据一览', subtitle: '用可核对的数字，说明我们做了什么。', footnote: '数据截至 2026 年，均按同一套公开口径统计，可在「关于光魂」逐条核对。', items: home.BRAND_STATS } },
+    // 按场景选择：横向滑动 rail，卡片链接带 ?scene= 场景参数（筛选走 URL）
     {
       type: 'cards',
       props: {
-        title: '服务入口',
+        title: '按场景选择',
+        icon: 'grid',
+        subtitle: '从电竞对战到内容创作，按使用场景组合你的显示方案。',
+        ctaLabel: '浏览全部产品',
+        ctaHref: '/products',
+        layout: 'rail',
+        overlay: true,
+        ratio: '3 / 4',
+        columns: 4,
+        items: home.SCENES.map((scene) => ({
+          tag: scene.tag,
+          title: scene.title,
+          desc: scene.desc,
+          href: `/products?scene=${scene.id}`,
+          media: `/media/home/scenes/${scene.id}.jpg`,
+          mediaType: 'image',
+        })),
+      },
+    },
+    // teaser：首页只展示局部榜单（底部渐变虚化），数据与 /ladder 页同源
+    { type: 'ranking', props: { title: '实测天梯榜', icon: 'trophy', subtitle: '所有数值来自同一套可复现的测试方法。', metric: 'overall', limit: 6, teaser: true } },
+    { type: 'articleList', props: { title: '评测与解析', icon: 'book', subtitle: '参数公开、方法公开，结论可复现。', ctaLabel: '查看全部内容', ctaHref: '/articles', source: 'review', limit: 3 } },
+    { type: 'stats', props: { title: '数据一览', icon: 'chip', subtitle: '用可核对的数字，说明我们做了什么。', footnote: '数据截至 2026 年，均按同一套公开口径统计，可在「关于光魂」逐条核对。', items: home.BRAND_STATS } },
+    {
+      type: 'cards',
+      props: {
+        title: '服务与支持',
+        icon: 'help',
         subtitle: '从选型到售后，一站直达。',
         ctaLabel: '进入服务支持',
         ctaHref: '/support',
         layout: 'spotlight',
         columns: 4,
-        items: home.SERVICE_ENTRIES.map((entry) => ({ title: entry.title, desc: entry.desc, href: '/support' })),
+        // 四张卡分别指向 支持 / 下载 / FAQ / 联系（此前全部指向 /support）
+        items: home.SERVICE_ENTRIES.map((entry) => ({
+          title: entry.title,
+          desc: entry.desc,
+          href: SERVICE_HREF[entry.id] ?? '/support',
+        })),
       },
     },
     {
       type: 'cards',
       props: {
-        title: '商业合作 · 体验点',
+        title: '体验与合作',
+        icon: 'chat',
         subtitle: '线下体验、渠道与赛事合作。',
         ctaLabel: '查看全部体验点',
         ctaHref: '/business/venues',
         columns: 3,
-        items: home.SPOTS.map((spot) => ({ tag: spot.status, title: spot.name, desc: spot.area })),
+        items: home.SPOTS.map((spot) => ({ tag: spot.status, title: spot.name, desc: spot.area, href: '/business/venues' })),
       },
     },
-    { type: 'articleList', props: { title: '新闻与动态', subtitle: '产品发布、活动与品牌更新。', ctaLabel: '查看全部新闻', ctaHref: '/news', source: 'news', limit: 6 } },
+    { type: 'articleList', props: { title: '新闻与动态', icon: 'refresh', subtitle: '产品发布、活动与品牌更新。', ctaLabel: '查看全部新闻', ctaHref: '/news', source: 'news', limit: 6 } },
     {
       type: 'contact',
       props: {
@@ -258,10 +276,10 @@ function buildCenter(): Page {
       props: {
         eyebrow: 'SOFTWARE / 配套软件',
         title: ['光魂 Center'],
-        desc: '一套软件管理全部光魂设备：调参、宏、灯效、固件与配置同步，都在同一个界面里完成。',
+        desc: '一套软件管理全部光魂显示器：色彩与亮度、HDR 与刷新率、校色配置同步，都在同一个界面里完成。',
         mediaTag: '软件界面',
         image: '/media/center/hero.svg',
-        primary: { label: '立即下载', href: '/center' },
+        primary: { label: '立即下载', href: '/downloads' },
         secondary: { label: '查看更新日志', href: '/center' },
       },
       // hero 海报同样通栏，与首页 carousel 保持一致
@@ -632,10 +650,11 @@ function buildTemplates(): Page[] {
       {
         type: 'productHero',
         props: {
-          primaryLabel: '加入对比',
-          primaryHref: '/compare',
-          secondaryLabel: '咨询咨询师',
-          secondaryHref: '/inquiry',
+          // 主 CTA 为线索型动作（不做电商购买）：预约体验 → 体验点；次 CTA 加入对比
+          primaryLabel: '预约体验',
+          primaryHref: '/business/venues',
+          secondaryLabel: '加入对比',
+          secondaryHref: '/compare',
           showBadges: true,
           showPrice: true,
           showSummary: true,
@@ -656,9 +675,9 @@ function buildTemplates(): Page[] {
         props: {
           title: '准备入手？',
           subtitle: '先把参数看明白，再决定也不迟。',
-          primaryLabel: '加入对比',
-          primaryHref: '/compare',
-          secondaryLabel: '咨询咨询师',
+          primaryLabel: '预约体验',
+          primaryHref: '/business/venues',
+          secondaryLabel: '在线顾问',
           secondaryHref: '/inquiry',
         },
       },

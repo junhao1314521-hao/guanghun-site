@@ -45,6 +45,7 @@ export function useSiteNav(): NavItem[] {
         nav: matched?.nav,
         // 角标以后台站点配置为准；未配置时回退本地 NAV_ITEMS 的默认角标
         badge: link.badge ?? matched?.badge,
+        badgeText: link.badgeText ?? matched?.badgeText,
         badgeShake: link.badgeShake ?? matched?.badgeShake,
       }
     })

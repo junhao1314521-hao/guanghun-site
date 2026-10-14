@@ -79,13 +79,23 @@ function LinkListEditor({
                 value={link.badge ?? ''}
                 onChange={(event) => {
                   const value = event.target.value as '' | 'new' | 'hot'
-                  update(index, { badge: value === '' ? undefined : value, ...(value === '' ? { badgeShake: undefined } : {}) })
+                  update(index, { badge: value === '' ? undefined : value, ...(value === '' ? { badgeShake: undefined, badgeText: undefined } : {}) })
                 }}
               >
                 <option value="">无角标</option>
                 <option value="new">NEW</option>
                 <option value="hot">HOT</option>
               </select>
+              <input
+                className="input"
+                type="text"
+                aria-label="角标自定义文案"
+                placeholder="角标文案（可留空）"
+                style={{ width: 120 }}
+                disabled={!link.badge}
+                value={link.badgeText ?? ''}
+                onChange={(event) => update(index, { badgeText: event.target.value || undefined })}
+              />
               <label className="site-link__shake">
                 <input
                   type="checkbox"

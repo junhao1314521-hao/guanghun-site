@@ -12,7 +12,7 @@ import { PRODUCTS } from '../src/data/products'
 import { MediaImg } from '../src/components/ui/MediaImg'
 import type { DeviceVariant } from '../src/components/ui/DeviceArt'
 
-const VARIANTS: DeviceVariant[] = ['mouse', 'keyboard', 'headset', 'pad']
+const VARIANTS: DeviceVariant[] = ['monitor', 'mouse', 'keyboard', 'headset', 'pad']
 
 /** 展开所有视觉位为 [路径, 值] 便于统一断言 */
 function flattenMedia(): Array<[string, string]> {
@@ -115,12 +115,21 @@ describe('MediaImg：正常渲染与失败回退', () => {
     expect(svg!.getAttribute('aria-label')).toBe('鼠标占位')
   })
 
-  it('加载失败 + 无 variant → 不渲染 img（保留容器底色，不出现破图）', () => {
+  it('加载失败 + 无 variant → 不渲染 img，改用代码渐变兜底（不出现破图）', () => {
     const { container } = render(<MediaImg src="/missing.png" alt="" />)
     fireEvent.error(container.querySelector('img')!)
 
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.innerHTML).toBe('')
+    // 回退为「代码渐变」媒体层（见 components/ui/CodeMedia.tsx）
+    expect(container.querySelector('[data-code-media]')).toBeTruthy()
+  })
+
+  it('未提供真实素材（空值 / 内置占位命名空间 /media/）→ 直接渲染代码渐变兜底', () => {
+    for (const src of ['', '#', '/media/home/s0.svg']) {
+      const { container } = render(<MediaImg src={src} alt="" />)
+      expect(container.querySelector('img'), `src=${src} 不应渲染 img`).toBeNull()
+      expect(container.querySelector('[data-code-media]'), `src=${src} 应有代码渐变兜底`).toBeTruthy()
+    }
   })
 })

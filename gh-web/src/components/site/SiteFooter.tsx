@@ -7,6 +7,14 @@ import { BrandMark } from './BrandMark'
 import { QrPlaceholder } from './QrPlaceholder'
 import { IconMail, IconPhone, IconPin } from '../ui/Icon'
 
+/** 社交关注入口（展示用；正式上线可在「站点配置」中维护） */
+const FOOTER_SOCIAL = [
+  { label: '微信公众号', short: '微', href: '#' },
+  { label: '微博', short: '博', href: '#' },
+  { label: '哔哩哔哩', short: 'B', href: '#' },
+  { label: '抖音', short: '抖', href: '#' },
+]
+
 export function SiteFooter() {
   const { t } = useI18n()
   // 页脚分组来自内容库站点配置（回落本地硬编码），法务条目 / 联系方式仍为本地真源
@@ -82,6 +90,14 @@ export function SiteFooter() {
             <div className="site-footer__qrs">
               <QrPlaceholder label={t('footer.wechat')} />
               <QrPlaceholder label={t('footer.miniapp')} />
+            </div>
+            {/* 社交关注：圆形字符图标，hover 提亮 */}
+            <div className="site-footer__social" aria-label="社交关注">
+              {FOOTER_SOCIAL.map((item) => (
+                <a key={item.label} className="site-footer__social-item" href={item.href} aria-label={item.label}>
+                  {item.short}
+                </a>
+              ))}
             </div>
           </div>
         </div>

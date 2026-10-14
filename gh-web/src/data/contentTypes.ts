@@ -114,8 +114,8 @@ export type BlockTypeMeta = {
 }
 
 /** 站点链接（导航 / 页脚复用；契约 §6.1 的 { nav, footer }）
- *  扩展字段：`badge` 为入口右上角角标（new / hot），`badgeShake` 控制其是否摇动。 */
-export type SiteLink = { label: string; href: string; badge?: 'new' | 'hot'; badgeShake?: boolean }
+ *  扩展字段：`badge` 为入口右上角角标样式（new / hot），`badgeText` 覆盖角标文案，`badgeShake` 控制是否摇动。 */
+export type SiteLink = { label: string; href: string; badge?: 'new' | 'hot'; badgeText?: string; badgeShake?: boolean }
 
 /** 页脚分组 */
 export type SiteFooterGroup = { title: string; links: SiteLink[] }

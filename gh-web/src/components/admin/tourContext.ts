@@ -15,7 +15,7 @@ export const ADMIN_TOUR_DONE_KEY = 'gh-admin-tour-done'
  */
 export type TourStep = { target: string; title: string; desc: string; to?: string }
 
-/** 引导步骤：按「照着做一遍就能上手」的顺序编排，只保留真正用得上的 6 步。 */
+/** 引导步骤：按「照着做一遍就能上手」的顺序编排，覆盖日常最常用的 8 步。 */
 export const STEPS: TourStep[] = [
   {
     target: '[data-tour="nav"]',
@@ -31,26 +31,38 @@ export const STEPS: TourStep[] = [
   {
     target: '[data-tour="products"]',
     title: '③ 维护产品与参数',
-    desc: '点「产品列表」→「新建」填写型号、分类与参数（刷新率 / 响应时间 / 接口等），或点行内「编辑」改价格与库存状态。产品会即时出现在前台列表与详情页。',
+    desc: '点「产品列表」→「新建」填写型号、分类与参数（尺寸 / 刷新率 / 响应时间 / 接口等），或点行内「编辑」改价格与库存状态。产品会即时出现在前台列表与详情页。',
     to: '/admin/products',
   },
   {
     target: '[data-tour="assets"]',
     title: '④ 上传图片与文件',
-    desc: '点「素材库」→「上传」图片或 PDF，上传后点素材可复制公开地址，用于装修器配图、产品图或文章封面。',
+    desc: '点「素材库」→「上传」图片或 PDF，上传后点素材可复制公开地址，用于装修器配图、产品图或文章封面。上传前请留意页面标注的可用格式与大小上限。',
     to: '/admin/assets',
   },
   {
-    target: '[data-tour="publish"]',
-    title: '⑤ 发布与版本回滚',
-    desc: '改完内容后到「预览与发布」查看发布记录；如改错，可按版本一键回滚（发布 / 备份为管理员权限）。',
-    to: '/admin/publish',
+    target: '[data-tour="inquiries"]',
+    title: '⑤ 处理客户咨询与评价',
+    desc: '点「客户与服务 → 咨询工单」查看并回复客户提交的咨询；工单完成后再到「服务评价」看评分与反馈，掌握服务质量。',
+    to: '/admin/inquiries',
   },
   {
     target: '[data-tour="styles"]',
     title: '⑥ 站点样式与模板',
-    desc: '「样式」调整站点级主色 / 圆角 / 字体（前台即时生效）；「模板」把一套区块存成快照，复用到其他页面。想再看一遍，点右上角「?」。',
+    desc: '「样式」调整站点级主色 / 圆角 / 字体（前台即时生效）；「模板」把一套区块存成快照，复用到其他页面。',
     to: '/admin/styles',
+  },
+  {
+    target: '[data-tour="site"]',
+    title: '⑦ 调整站点级配置',
+    desc: '点「网站与装修 → 站点配置」可维护导航与页脚、公告条、顶部操作按钮（购买 / 预约体验）等站点级内容。',
+    to: '/admin/site',
+  },
+  {
+    target: '[data-tour="publish"]',
+    title: '⑧ 发布与版本回滚',
+    desc: '改完内容后到「预览与发布」查看发布记录；如改错，可按版本一键回滚（发布 / 备份为管理员权限）。想再看一遍，点右上角「?」。',
+    to: '/admin/publish',
   },
 ]
 

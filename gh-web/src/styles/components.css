@@ -12,6 +12,38 @@
 /* ============================================================
    操作
    ============================================================ */
+/* 代码渐变媒体兜底（媒体位无素材时填充；见 components/ui/CodeMedia.tsx） */
+.code-media {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 100% at 78% 10%, color-mix(in srgb, var(--color-accent) 26%, transparent), transparent 60%),
+    radial-gradient(90% 90% at 12% 90%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 60%),
+    linear-gradient(140deg, var(--color-bg-subtle), var(--color-bg-muted));
+}
+.code-media::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(127, 140, 170, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 140, 170, .12) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: .6;
+}
+.code-media--anim::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, .10) 50%, transparent 58%);
+  transform: translateX(-45%);
+  animation: code-sheen 4.8s linear infinite;
+}
+@keyframes code-sheen { to { transform: translateX(45%); } }
+@media (prefers-reduced-motion: reduce) { .code-media--anim::after { animation: none; } }
+/* 首屏媒体层内的代码动画 / 代码渐变铺满容器 */
+.blk-hero__code { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   gap: var(--gh-space-2);

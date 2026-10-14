@@ -10,6 +10,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconChevronLeft, IconChevronRight } from '../components/ui/Icon'
 import { prefersReducedMotion } from '../lib/motion'
+import { CodeBackdrop } from '../components/site/CodeBackdrop'
+import { CodeMedia, isPlaceholderMedia } from '../components/ui/CodeMedia'
+import { MediaImg } from '../components/ui/MediaImg'
 import { asArray, asBool, asLink, asRecord, asStatItems, asString, asStringArray } from './blockUtils'
 
 const DURATION = 6000
@@ -83,16 +86,15 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
               aria-hidden={!active}
             >
               <div className="blk-hero__bg">
-                <picture>
-                  {slide.imageMobile && <source media="(max-width: 900px)" srcSet={slide.imageMobile} />}
-                  <img
-                    src={slide.image}
-                    alt=""
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={i === 0 ? 'high' : undefined}
-                    decoding="async"
-                  />
-                </picture>
+                {/* 首屏第一张海报为特例：固定使用 canvas 代码动画（需求汇总 §13「海报例外」）；
+                    其余幻灯片：有素材显示素材，无素材用代码渐变兜底。 */}
+                {i === 0 ? (
+                  <CodeBackdrop className="blk-hero__code" />
+                ) : isPlaceholderMedia(slide.image) ? (
+                  <CodeMedia className="blk-hero__code" />
+                ) : (
+                  <MediaImg src={slide.image} alt="" loading="lazy" />
+                )}
               </div>
               <div className="blk-hero__grid">
                 <div className="hero__content">

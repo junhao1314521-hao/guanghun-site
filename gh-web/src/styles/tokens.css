@@ -84,11 +84,11 @@
   --gh-space-10: 128px;
 
   /* —— 圆角 —— */
-  --gh-radius-sm:   6px;
-  --gh-radius-md:   8px;
-  --gh-radius-lg:   12px;
-  --gh-radius-xl:   16px;
-  --gh-radius-2xl:  24px;
+  --gh-radius-sm:   4px;
+  --gh-radius-md:   6px;
+  --gh-radius-lg:   8px;
+  --gh-radius-xl:   10px;
+  --gh-radius-2xl:  14px;
   --gh-radius-full: 9999px;
 
   /* —— 动效 —— */

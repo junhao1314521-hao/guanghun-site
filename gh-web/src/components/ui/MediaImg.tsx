@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DeviceArt, type DeviceVariant } from './DeviceArt'
+import { CodeMedia, isPlaceholderMedia } from './CodeMedia'
 import { useSrcSetFor } from './mediaSrcSet'
 
 type Props = {
@@ -46,7 +47,11 @@ export function MediaImg({
 }: Props) {
   const [failed, setFailed] = useState(false)
   const { srcSet, sizes: resolvedSizes } = useSrcSetFor(src, sizes)
-  if (failed) return variant ? <DeviceArt variant={variant} className={className} label={label} /> : null
+  // 未提供真实素材 → 代码渐变兜底（不再出现空白 / 破图）；带 variant 时仍优先用矢量产品图
+  if (isPlaceholderMedia(src)) {
+    return variant ? <DeviceArt variant={variant} className={className} label={label} /> : <CodeMedia className={className} />
+  }
+  if (failed) return variant ? <DeviceArt variant={variant} className={className} label={label} /> : <CodeMedia className={className} />
   return (
     <img
       className={className}

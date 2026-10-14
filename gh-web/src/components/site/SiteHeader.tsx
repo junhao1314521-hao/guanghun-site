@@ -187,7 +187,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                     className={`nav-badge nav-badge--${item.badge}${item.badgeShake ? ' nav-badge--shake' : ''}`}
                     aria-hidden="true"
                   >
-                    {item.badge.toUpperCase()}
+                    {item.badgeText ?? item.badge.toUpperCase()}
                   </span>
                 )}
               </span>

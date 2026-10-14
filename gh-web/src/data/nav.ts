@@ -12,23 +12,24 @@ export type NavItem = {
   menu: string
   /** 顶栏高亮归属（未设置则不参与高亮） */
   nav?: string
-  /** 右上角角标：new / hot（缺省无） */
+  /** 右上角角标：new / hot（缺省无）；badgeText 覆盖默认文案（如「免费」） */
   badge?: 'new' | 'hot'
+  badgeText?: string
   /** 角标是否摇动（隔几秒摇一下；缺省不摇） */
   badgeShake?: boolean
 }
 
 /**
  * 一级导航。
- * Center 为单页展示（无需下拉），`menu: ''` → 顶栏/抽屉都按普通链接直达 `/center`。
+ * 光魂 Center 为单页展示（无需下拉），`menu: ''` → 顶栏/抽屉都按普通链接直达 `/center`。
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: '产品', to: '/products', menu: 'products', nav: 'products' },
-  { label: 'Center 软件', to: '/center', menu: '', nav: 'center' },
+  { label: '光魂 Center', to: '/center', menu: '', nav: 'center', badge: 'new', badgeShake: true },
   { label: '天梯榜', to: '/ladder', menu: 'ladder', nav: 'ladder', badge: 'hot', badgeShake: true },
-  { label: '文章', to: '/articles', menu: 'articles' },
+  { label: '评测与资讯', to: '/articles', menu: 'articles' },
   { label: '服务支持', to: '/support', menu: 'support', nav: 'support' },
-  { label: '商业合作', to: '/business', menu: 'business', nav: 'business', badge: 'new', badgeShake: true },
+  { label: '商业合作', to: '/business', menu: 'business', nav: 'business' },
   { label: '关于光魂', to: '/about', menu: 'about', nav: 'about' },
 ]
 

@@ -1,22 +1,13 @@
-# 光魂官网 · robots.txt
-# 注意：域名与 Sitemap 地址为占位，上线前替换为正式域名（当前占位 www.guanghun.example）
+# 由 scripts/gen-seo.ts 从 src/data/meta.ts 生成，请勿手改
 User-agent: *
 Allow: /
-
-# 会话 / 查询 / 表单类页面无收录价值
 Disallow: /search
-Disallow: /account
 Disallow: /compare
 Disallow: /inquiry
 Disallow: /login
 Disallow: /register
 Disallow: /forgot
 Disallow: /me
-
-# 后台管理系统不收录
-Disallow: /admin
-
-# 错误状态页不收录
 Disallow: /403
 Disallow: /500
 
