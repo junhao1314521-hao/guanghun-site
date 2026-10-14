@@ -1428,18 +1428,25 @@ body.drawer-open { overflow: hidden; }
 }
 
 /* ============================================================
-   页面切换过渡：柔和遮罩化开 + 新页面轻微「收放」淡入
+   页面切换过渡：品牌幕布「向中心收拢」
+   0–30%  幕布快速盖上（遮住内容瞬时切换）
+   30–100% 幕布从上下向中线收拢成一条线并消失 → 露出新页面
+   新页面同时轻微「收放」淡入，避免露出瞬间生硬。
    ============================================================ */
 .page-veil {
   position: fixed; inset: 0; z-index: var(--gh-z-modal); pointer-events: none;
-  background: var(--color-bg-page);
-  animation: ghPageVeil .26s var(--gh-ease-standard) both;
+  background: linear-gradient(135deg, var(--gh-neutral-950) 0%, #101A44 58%, var(--gh-blue-700) 100%);
+  animation: ghVeilCollapse .54s var(--gh-ease-accent) both;
 }
-@keyframes ghPageVeil { from { opacity: .92; } to { opacity: 0; } }
-/* 新页面从 99.2% 收放到 100%：读作「被轻轻收进来」，而非硬切 */
-.page-enter { animation: ghPageZoom .36s var(--gh-ease-accent) both; }
+@keyframes ghVeilCollapse {
+  0%   { opacity: 0; clip-path: inset(0 0 0 0); }
+  14%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  30%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 1; clip-path: inset(50% 0 50% 0); }
+}
+.page-enter { animation: ghPageZoom .4s var(--gh-ease-accent) .06s both; }
 @keyframes ghPageZoom {
-  from { opacity: 0; transform: scale(.992); }
+  from { opacity: 0; transform: scale(.994); }
   to   { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
