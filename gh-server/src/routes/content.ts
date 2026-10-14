@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import * as about from '../data/about'
-import * as account from '../data/account'
 import * as business from '../data/business'
 import * as center from '../data/center'
 import * as home from '../data/home'
@@ -21,10 +20,10 @@ import {
 
 /**
  * 内容型端点（各返回单份聚合载荷）：
- * GET /api/home、/api/support、/api/business、/api/about、/api/center、/api/account
+ * GET /api/home、/api/support、/api/business、/api/about、/api/center
  *
  * 键名严格对齐契约：home/support/business 为 camelCase；
- * about/center/account 沿用原始大写常量名（切勿统一）。
+ * about/center 沿用原始大写常量名（切勿统一）。
  *
  * 单一数据源（契约 §11.4 收口）：聚合载荷中可由结构化集合承载的列表改为从集合存储派生
  * （产品 / 榜单 / 文章 / 下载 / 问答 / 合作案例），后台改集合 → 聚合端点同步反映；
@@ -104,19 +103,5 @@ contentRouter.get('/center', (req, res) => {
     CHANGELOG: center.CHANGELOG,
     // Center 专属问答无对应结构化集合，仍取自内容模块（形状不变）。
     CENTER_FAQS: center.CENTER_FAQS,
-  })
-})
-
-contentRouter.get('/account', (_req, res) => {
-  // 注意：占位实现不校验登录；真实上线需接入鉴权（见契约 §5 待确认）
-  res.json({
-    PROFILE: account.PROFILE,
-    ACCOUNT_NAV: account.ACCOUNT_NAV,
-    OVERVIEW_STATS: account.OVERVIEW_STATS,
-    OVERVIEW_ALERT: account.OVERVIEW_ALERT,
-    ACCOUNT_DEVICES: account.ACCOUNT_DEVICES,
-    ACCOUNT_TICKETS: account.ACCOUNT_TICKETS,
-    FAVORITES: account.FAVORITES,
-    SECURITY: account.SECURITY,
   })
 })

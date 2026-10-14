@@ -168,7 +168,6 @@ export const PAGE_META: PageMeta[] = [
 
   // —— 不收录（会话 / 查询 / 表单 / 错误类，或内容未建设）——
   { path: '/search', title: '搜索 · 光魂', description: '全站搜索结果。', indexable: false },
-  { path: '/account', title: '我的账号 · 光魂', description: '设备、工单、收藏与安全设置。', indexable: false },
   { path: '/compare', title: '产品对比 · 光魂', description: '多款产品的参数对比。', indexable: false },
   { path: '/inquiry', title: '提交咨询 · 光魂', description: '在线提交咨询与售后工单。', indexable: false },
   { path: '/login', title: '登录 · 光魂', description: '登录光魂账号。', indexable: false },

@@ -347,9 +347,9 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
   .compare-bar__item button { min-width: 44px; min-height: 44px; }
 }
 
-/* 演示环境提示条：固定右下角，外观复用组件库 .toast。
+/* 轻提示条（对比上限等本地校验）：固定右下角，外观复用组件库 .toast。
    bottom 抬高以避开右下角悬浮按钮组（FAB）。 */
-.demo-toast {
+.toast--float {
   position: fixed;
   right: var(--gh-space-5);
   bottom: calc(var(--gh-space-5) + 162px);

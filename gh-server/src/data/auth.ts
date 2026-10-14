@@ -1,27 +1,12 @@
 /**
- * 账号体系数据（本地占位鉴权 / 内存态，不落库）。
+ * 工单（咨询）数据与详情装配。
  *
- * 说明：V1 不接数据库、不发真实邮件；
- * 登录态仅以占位 token 表示，`/account/*` 不校验 token。
- * 上线时需替换为真实鉴权（会话 / 密码散列 / 邮件服务）并落库。
+ * 说明：真实会员账号 / 会话 / 重置令牌已由 `userStore.ts` 落库提供；
+ * 本模块仅保留 `inquiries` 集合的种子（由 `account.ts` 的展示数据派生）与
+ * `getInquiryDetail` 的装配逻辑（含会员补充回复的合并）。
  */
 
 import { ACCOUNT_TICKETS } from './account'
-
-/** 当前登录用户（占位：固定用户，不校验 token） */
-export type DemoUser = {
-  id: string
-  name: string
-  account: string
-  email: string
-}
-
-export const DEMO_USER: DemoUser = {
-  id: 'u-0001',
-  name: 'HAO',
-  account: 'hao',
-  email: 'hao@guanghun.example',
-}
 
 /** 工单状态色调：前端直接映射到 `.status--*` */
 export type InquiryStatus = 'info' | 'warning' | 'success' | 'muted'
@@ -44,6 +29,10 @@ export type InquirySummary = {
   /** 问题描述正文 */
   message: string
   status: InquiryStatus
+  /** 归属会员 id（登录用户提交时写入；访客提交无此字段） */
+  userId?: string
+  /** 会员补充回复（客户侧可见，追加在演示时间线之后） */
+  replies?: InquiryTimelineEntry[]
 }
 
 /** 与 ACCOUNT_TICKETS 顺序一一对应的 id 与状态色调 */
@@ -139,6 +128,7 @@ export function getInquiryDetail(inquiries: InquirySummary[], id: string): Inqui
     status: summary.tag,
     createdAt: `${summary.date} 10:12`,
     updatedAt: `${summary.date} 16:40`,
-    timeline: buildTimeline(summary),
+    // 会员补充回复追加在（演示）时间线之后，供客户侧查看
+    timeline: [...buildTimeline(summary), ...(summary.replies ?? [])],
   }
 }

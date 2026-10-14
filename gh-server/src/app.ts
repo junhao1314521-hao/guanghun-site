@@ -79,7 +79,7 @@ export function createApp(): Express {
   const rlWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60_000)
   app.use('/api', rateLimit({ windowMs: rlWindowMs, max: rlMax }))
 
-  // 业务路由（12 条端点）
+  // 业务路由（核心内容端点 + 个人中心等）
   registerRoutes(app)
 
   // 素材库公开访问：/uploads/<文件名>（与 /api 不冲突）。

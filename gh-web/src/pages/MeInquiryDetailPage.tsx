@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { fetchMyInquiry } from '../api/account'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
+import { fetchMyInquiry, replyMyInquiry } from '../api/account'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -9,14 +8,15 @@ import { usePageEffects } from '../hooks/usePageEffects'
 /**
  * 个人中心 · 工单详情（三级页面 · 骨架层）：客户侧时间线 + 补充回复。
  * 时间线仅展示面向客户的条目（客户回复 / 公开回复），内部备注对客户不可见。
- * 补充回复尚未接入后端，提交给出演示提示（不提供失效交互）。
+ * 补充回复为真实接口 `POST /api/account/inquiries/:id/replies`。
  */
 export function MeInquiryDetailPage() {
   const { id = '' } = useParams()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [reply, setReply] = useState('')
-  const { action: demoAction, notify, dismiss } = useDemoToast()
+  const [sending, setSending] = useState(false)
+  const [sendErr, setSendErr] = useState<string | null>(null)
 
   const { data, loading, error } = useApi((signal) => fetchMyInquiry(id, signal), [id, reloadKey])
   // 过滤掉内部备注：只显示面向客户的条目
@@ -25,6 +25,24 @@ export function MeInquiryDetailPage() {
   const readyKey = `${id}:${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
   useHomeEffects(rootRef, readyKey)
+
+  const submit = async () => {
+    if (!reply.trim()) {
+      setSendErr('请输入回复内容')
+      return
+    }
+    setSending(true)
+    setSendErr(null)
+    try {
+      await replyMyInquiry(id, reply.trim())
+      setReply('')
+      setReloadKey((key) => key + 1)
+    } catch (ex) {
+      setSendErr(ex instanceof Error ? ex.message : '提交失败，请稍后重试')
+    } finally {
+      setSending(false)
+    }
+  }
 
   return (
     <div ref={rootRef}>
@@ -129,8 +147,18 @@ export function MeInquiryDetailPage() {
               />
               <span className="field__hint">补充材料后工单状态将回到「处理中」。</span>
             </div>
+            {sendErr && (
+              <span className="field__error" style={{ display: 'block', marginTop: 'var(--gh-space-2)' }}>
+                {sendErr}
+              </span>
+            )}
             <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
-              <button className="btn btn--primary is-magnetic" type="button" onClick={() => notify('提交补充回复')}>
+              <button
+                className={`btn btn--primary is-magnetic${sending ? ' btn--loading' : ''}`}
+                type="button"
+                disabled={sending}
+                onClick={submit}
+              >
                 提交回复
               </button>
               <Link className="btn btn--ghost" to="/me/inquiries">
@@ -140,8 +168,6 @@ export function MeInquiryDetailPage() {
           </section>
         </>
       )}
-
-      <DemoToast action={demoAction} onDismiss={dismiss} />
     </div>
   )
 }

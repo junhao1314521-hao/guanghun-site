@@ -7,7 +7,7 @@
  */
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { deleteAdminResource, fetchAdminResource, runAdminRowAction, type AdminList } from '../../api/admin'
+import { deleteAdminResource, fetchAdminResource, type AdminList } from '../../api/admin'
 import { adminResource, type AdminColumn, type AdminResource } from '../../data/adminResources'
 import type { AdminRow } from '../../data/admin'
 import { useApi } from '../../hooks/useApi'
@@ -25,7 +25,7 @@ import { AdminRolesView } from '../../components/admin/AdminRolesView'
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
 import { OverflowMenu, type OverflowMenuItem } from '../../components/admin/OverflowMenu'
 import { useConfirm, useToast } from '../../components/admin/feedback'
-import { IconClose, IconGrip, IconSearch } from '../../components/ui/Icon'
+import { IconClose, IconSearch } from '../../components/ui/Icon'
 
 /** 每页条数候选 */
 const PAGE_SIZES = [10, 20, 50]
@@ -255,15 +255,6 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
     }
   }
 
-  const onAction = async (row: AdminRow, action: string) => {
-    try {
-      await runAdminRowAction(resource.key, String(row.id), action)
-      toast.success(`已对「${labelOf(row)}」执行「${action}」`)
-    } catch (ex) {
-      toast.error(ex instanceof Error ? ex.message : '操作失败')
-    }
-  }
-
   const onBulkDelete = async () => {
     const ids = Array.from(selected)
     if (ids.length === 0) return
@@ -309,15 +300,12 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
     })
   }
 
-  const hasActions = Boolean(resource.editable || resource.deletable || resource.rowActions?.length)
+  const hasActions = Boolean(resource.editable || resource.deletable)
   const canSelect = Boolean(resource.deletable)
   const colCount = resource.columns.length + (hasActions ? 1 : 0) + (canSelect ? 1 : 0)
 
   const rowActionItems = (row: AdminRow): OverflowMenuItem[] => {
     const items: OverflowMenuItem[] = []
-    for (const action of resource.rowActions ?? []) {
-      items.push({ key: `a-${action}`, label: action, onClick: () => void onAction(row, action) })
-    }
     if (resource.editable) items.push({ key: 'edit', label: '编辑', to: `/admin/${resource.key}/${row.id}` })
     if (resource.deletable) items.push({ key: 'del', label: '删除', danger: true, onClick: () => void onDelete(row) })
     return items
@@ -484,37 +472,6 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
             )}
           </div>
         )
-      ) : resource.view === 'builder' ? (
-        <div className="admin-builder">
-          <div>
-            {state.loading && rows.length === 0 ? (
-              <TableSkeleton columns={1} />
-            ) : (
-              <>
-                {pageRows.map((row) => (
-                  <Link className="admin-block" to={`/admin/${resource.key}/${row.id}`} key={String(row.id)}>
-                    <span className="admin-block__handle" aria-hidden="true">
-                      <IconGrip size={16} />
-                    </span>
-                    <span className="admin-block__name">{String(row.title ?? '')}</span>
-                    <span className="admin-block__type">
-                      <span className="tag">{String(row.status ?? '')}</span>
-                    </span>
-                  </Link>
-                ))}
-                {pageRows.length === 0 && <p className="admin-page__desc">暂无页面。</p>}
-              </>
-            )}
-          </div>
-          <div className="admin-preview">
-            <div>
-              <p style={{ marginBottom: 'var(--gh-space-3)' }}>页面装修器</p>
-              <p style={{ color: 'var(--color-text-secondary)' }}>
-                选择左侧页面进入区块编排：可拖拽区块顺序、编辑文案与素材。演示环境展示区块占位，接入后端后为真实可视化编辑。
-              </p>
-            </div>
-          </div>
-        </div>
       ) : (
         <div className="admin-table-wrap">
           {state.loading && rows.length === 0 ? (
@@ -674,7 +631,7 @@ export function AdminResourceListPage() {
   if (resource.view === 'backups') return <AdminBackupsList />
   // 「预览与发布」栏目为发布记录与回滚：由 AdminPublishList 承载（数据源 /api/admin/publish，需 publish 权限）
   if (resource.view === 'publish') return <AdminPublishList />
-  // 「角色与权限」栏目为只读角色/权限矩阵：由 AdminRolesView 承载（角色真源在服务端）
+  // 「角色与权限」栏目为角色 CRUD 与权限矩阵：由 AdminRolesView 承载（数据源 /api/admin/roles）
   if (resource.view === 'roles') return <AdminRolesView />
   // 「回收站」栏目为真实软删除视图：由 AdminTrashList 承载（数据源 /api/admin/resources/trash）
   if (resource.view === 'trash') return <AdminTrashList />

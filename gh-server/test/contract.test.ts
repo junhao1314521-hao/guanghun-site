@@ -39,7 +39,7 @@ after(async () => {
 
 const get = (path: string, init?: RequestInit) => fetch(base + path, init)
 
-/** 12 条端点 → 期望的顶层键（键名严格对齐契约，勿统一大小写） */
+/** 核心端点 → 期望的顶层键（键名严格对齐契约，勿统一大小写） */
 const ENDPOINTS: Array<{ path: string; keys: string[] }> = [
   { path: '/api/products', keys: ['items', 'total'] },
   { path: '/api/products/gh-m900-pro', keys: ['id', 'model'] },
@@ -52,10 +52,9 @@ const ENDPOINTS: Array<{ path: string; keys: string[] }> = [
   { path: '/api/business', keys: ['directions', 'cases', 'contacts'] },
   { path: '/api/about', keys: ['PHILOSOPHY_POINTS', 'FACTS', 'TIMELINE', 'JOBS'] },
   { path: '/api/center', keys: ['CENTER_VERSION', 'CAPABILITIES', 'CHANGELOG'] },
-  { path: '/api/account', keys: ['PROFILE', 'ACCOUNT_NAV', 'OVERVIEW_STATS', 'FAVORITES'] },
 ]
 
-describe('契约 §2：12 条端点', () => {
+describe('契约 §2：核心端点', () => {
   for (const { path, keys } of ENDPOINTS) {
     it(`${path} → 200 且含预期字段`, async () => {
       const res = await get(path)
@@ -115,7 +114,8 @@ describe('健康检查与响应头', () => {
     assert.equal(data.headers.get('cache-control'), 'no-cache')
     assert.ok(data.headers.get('etag'), '/api/home 应带 ETag')
 
-    const account = await get('/api/account')
+    // 账号类数据不落盘：以个人中心端点（未登录 401）确认响应头仍为 no-store
+    const account = await get('/api/account/me')
     assert.equal(account.headers.get('cache-control'), 'no-store')
   })
 

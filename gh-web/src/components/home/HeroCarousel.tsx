@@ -4,7 +4,6 @@ import type { HeroSlide } from '../../api/home'
 import { MEDIA } from '../../data/media'
 import { prefersReducedMotion } from '../../lib/motion'
 import { MediaImg } from '../ui/MediaImg'
-import { DemoToast, useDemoToast } from '../ui/DemoToast'
 import { IconChevronLeft, IconChevronRight } from '../ui/Icon'
 
 const DURATION = 6000
@@ -94,7 +93,6 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { action, notify, dismiss } = useDemoToast()
 
   const go = (next: number) => setIndex(((next % slides.length) + slides.length) % slides.length)
 
@@ -179,9 +177,9 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                           {slide.primary}
                         </Link>
                       ) : (
-                        <button className="btn btn--primary btn--lg" type="button" onClick={() => notify(slide.primary)}>
+                        <Link className="btn btn--primary btn--lg" to="/products">
                           {slide.primary}
-                        </button>
+                        </Link>
                       )}
                       {slide.secondaryTo ? (
                         <Link
@@ -192,14 +190,13 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                           {slide.secondary}
                         </Link>
                       ) : (
-                        <button
+                        <Link
                           className="btn btn--secondary btn--lg"
-                          type="button"
+                          to="/compare"
                           style={{ borderColor: 'rgba(255, 255, 255, 0.24)', color: 'var(--gh-neutral-50)' }}
-                          onClick={() => notify(slide.secondary)}
                         >
                           {slide.secondary}
-                        </button>
+                        </Link>
                       )}
                     </div>
                     <div className="hero__stats" data-anim="4">
@@ -251,8 +248,6 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           </button>
         ))}
       </div>
-
-      <DemoToast action={action} onDismiss={dismiss} />
     </div>
   )
 }

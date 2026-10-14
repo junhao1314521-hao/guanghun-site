@@ -1,6 +1,5 @@
 import { Router, type Response } from 'express'
 import {
-  ADMIN_OVERVIEW,
   getSessionUser,
   loginAdmin,
   logoutAdmin,
@@ -12,6 +11,7 @@ import {
 } from '../data/admin'
 import { appendAudit, listAudit } from '../data/auditStore'
 import { buildAnalytics } from '../data/analytics'
+import { countSince } from '../data/metricsStore'
 import { getTrashRecord, listTrash, purgeTrash, restoreTrash, softDelete } from '../data/trashStore'
 import { auditWrite, clientIp } from '../middleware/audit'
 import {
@@ -29,7 +29,9 @@ import {
   updateResourceItem,
 } from '../data/adminResourceStore'
 import { readParam, requireSession, sessionToken } from '../middleware/adminAuth'
-import { requireResourceScope } from '../middleware/rbac'
+import { requireResourceScope, requireScope } from '../middleware/rbac'
+import { createRole, deleteRole, listRoles, updateRole } from '../data/roleStore'
+import { ALL_SCOPES } from '../data/roles'
 
 /**
  * 后台管理系统端点（挂载于 /api/admin）。
@@ -49,11 +51,14 @@ import { requireResourceScope } from '../middleware/rbac'
  *   POST /admin/resources/:key                       新建 → { ok: true, item }
  *   PUT  /admin/resources/:key/:id                   更新 → { ok: true, item }
  *   DELETE /admin/resources/:key/:id                 删除（软删除 → 回收站）→ { ok: true }
- *   POST /admin/resources/:key/:id/action            行内动作（发布 / 备份 / 恢复，占位）
  *   GET    /admin/resources/trash                    回收站列表 { items, total }
  *   POST   /admin/resources/trash/:id/restore        恢复回原集合 / 资源 → { ok: true }（原 id 被占用 409）
  *   DELETE /admin/resources/trash/:id                彻底删除 → { ok: true }
- *   GET  /admin/analytics/:scope                     数据分析（真实统计，响应形状不变）
+ *   GET  /admin/analytics/:scope                     数据分析（真实统计，需 content 权限）
+ *   GET    /admin/roles                              角色列表 { items, allScopes }（system）
+ *   POST   /admin/roles                              新建角色（system）→ { item }（201）
+ *   PUT    /admin/roles/:key                          编辑角色（system）→ { item }
+ *   DELETE /admin/roles/:key                          删除角色（system）→ { ok: true }
  */
 export const adminRouter = Router()
 
@@ -125,7 +130,93 @@ adminRouter.get('/auth/me', requireSession, (_req, res) => {
 /* ---------------- 工作台 ---------------- */
 
 adminRouter.get('/overview', requireSession, (_req, res) => {
-  res.json(ADMIN_OVERVIEW)
+  res.json(buildOverview())
+})
+
+/** 工作台概览（真实统计）：集合计数 + 本月下载埋点 + 审计最近记录 */
+function buildOverview() {
+  const products = listCollection('products').length
+  const articles = listCollection('articles').length
+  const inquiries = listCollection('inquiries')
+  const pendingInquiries = inquiries.filter((item) => item.tag !== '已解决' && item.tag !== '已关闭').length
+  const waitingInquiries = inquiries.filter((item) => item.tag === '等待补充').length
+
+  // 本月（上海时区自然月）起点
+  const shanghai = new Date(Date.now() + 8 * 3600 * 1000)
+  const ym = `${shanghai.getUTCFullYear()}-${String(shanghai.getUTCMonth() + 1).padStart(2, '0')}`
+  const monthDownloads = countSince('download', new Date(`${ym}-01T00:00:00+08:00`).toISOString())
+
+  const recent = listAudit({ limit: 4 }).items.map((entry) => ({
+    id: entry.id,
+    at: entry.at,
+    who: entry.actor,
+    action: entry.action,
+    target: entry.target,
+  }))
+
+  return {
+    stats: [
+      { key: 'products', label: '在售产品', value: products, delta: '—', trend: 'up' as const },
+      { key: 'articles', label: '已发布文章', value: articles, delta: '—', trend: 'up' as const },
+      { key: 'inquiries', label: '待处理咨询', value: pendingInquiries, delta: '—', trend: 'up' as const },
+      { key: 'downloads', label: '本月下载量', value: monthDownloads, delta: '—', trend: 'up' as const },
+    ],
+    todos: [
+      { id: 't-inquiry', label: '待处理咨询', count: pendingInquiries, to: '/admin/inquiries' },
+      { id: 't-waiting', label: '等待补充材料', count: waitingInquiries, to: '/admin/inquiries' },
+    ],
+    recent,
+  }
+}
+
+/* ---------------- 角色与权限（可新建 / 编辑 / 删除） ---------------- */
+
+adminRouter.get('/roles', requireSession, requireScope('system'), (_req, res) => {
+  res.json({ items: listRoles(), allScopes: ALL_SCOPES })
+})
+
+adminRouter.post('/roles', requireSession, requireScope('system'), (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const scopes = Array.isArray(body.scopes) ? body.scopes.map(String) : []
+  const outcome = createRole({
+    key: readString(body.key),
+    name: readString(body.name),
+    desc: readString(body.desc),
+    scopes,
+  })
+  if (!outcome.ok) {
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  appendAudit({ actor: actorOf(res), action: 'create-role', target: `roles/${outcome.role.key}`, ip: clientIp(req) })
+  res.status(201).json({ item: outcome.role })
+})
+
+adminRouter.put('/roles/:key', requireSession, requireScope('system'), (req, res) => {
+  const key = readParam(req, 'key')
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const patch: { name?: string; desc?: string; scopes?: string[] } = {}
+  if ('name' in body) patch.name = readString(body.name)
+  if ('desc' in body) patch.desc = readString(body.desc)
+  if (Array.isArray(body.scopes)) patch.scopes = body.scopes.map(String)
+  const outcome = updateRole(key, patch)
+  if (!outcome.ok) {
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  appendAudit({ actor: actorOf(res), action: 'update-role', target: `roles/${key}`, ip: clientIp(req) })
+  res.json({ item: outcome.role })
+})
+
+adminRouter.delete('/roles/:key', requireSession, requireScope('system'), (req, res) => {
+  const key = readParam(req, 'key')
+  const outcome = deleteRole(key)
+  if (!outcome.ok) {
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  appendAudit({ actor: actorOf(res), action: 'delete-role', target: `roles/${key}`, ip: clientIp(req) })
+  res.json({ ok: true })
 })
 
 /* ---------------- 回收站 ---------------- */
@@ -272,21 +363,9 @@ adminRouter.delete(
   },
 )
 
-adminRouter.post('/resources/:key/:id/action', requireSession, requireResourceScope, (req, res) => {
-  const key = readParam(req, 'key')
-  const id = readParam(req, 'id')
-  const exists = isCollectionKey(key) ? Boolean(getCollectionItem(key, id)) : Boolean(getResourceItem(key, id))
-  if (!exists) {
-    res.status(404).json({ error: '未找到该记录' })
-    return
-  }
-  // 行内动作（发布 / 备份 / 恢复等）：占位，返回成功供前端反馈
-  res.json({ ok: true })
-})
-
 /* ---------------- 数据分析 ---------------- */
 
-adminRouter.get('/analytics/:scope', requireSession, (req, res) => {
+adminRouter.get('/analytics/:scope', requireSession, requireScope('content'), (req, res) => {
   const data = buildAnalytics(readParam(req, 'scope'))
   if (!data) {
     res.status(404).json({ error: '未知分析范围' })

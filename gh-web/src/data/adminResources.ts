@@ -84,11 +84,10 @@ export type AdminField = {
 
 export type AdminFormSection = { title: string; fields: AdminField[] }
 
-/** 列表视图形态：表格 / 素材宫格 / 区块装修器占位 / 内容库页面（自定义，进装修器）/ 站点配置（自定义编辑器）/ 素材库（真实上传数据）/ 组件库（区块类型目录）/ 模板（页面快照）/ 样式（设计令牌）/ 备份（快照管理）/ 发布（发布记录与回滚）/ 角色（角色与权限只读）/ 回收站（软删除记录） */
+/** 列表视图形态：表格 / 素材宫格 / 内容库页面（自定义，进装修器）/ 站点配置（自定义编辑器）/ 素材库（真实上传数据）/ 组件库（区块类型目录）/ 模板（页面快照）/ 样式（设计令牌）/ 备份（快照管理）/ 发布（发布记录与回滚）/ 角色（角色 CRUD）/ 回收站（软删除记录） */
 export type AdminResourceView =
   | 'table'
   | 'gallery'
-  | 'builder'
   | 'pages'
   | 'site'
   | 'uploads'
@@ -117,8 +116,6 @@ export type AdminResource = {
   deletable?: boolean
   /** 搜索参与字段（前端本地过滤） */
   searchKeys?: string[]
-  /** 行内动作（演示占位，如「立即发布」「立即备份」） */
-  rowActions?: string[]
   columns: AdminColumn[]
   filters?: AdminFilter[]
   form?: AdminFormSection[]
@@ -1049,10 +1046,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     label: '角色与权限',
     icon: 'shield',
     title: '角色与权限',
-    desc: '只读展示服务端 RBAC 的已知角色、权限集与「栏目 → 所需权限」对照（角色真源在服务端）。',
-    // 自定义视图：由 AdminRolesView 承载（只读；角色真源 gh-server/src/data/roles.ts）
+    desc: '管理后台角色与权限集（可新建 / 编辑 / 删除；内置角色不可删除）。',
+    // 自定义视图：由 AdminRolesView 承载（数据源 /api/admin/roles，角色真源落库 admin_roles）
     view: 'roles',
-    editable: false,
+    editable: true,
     searchKeys: ['name'],
     columns: [
       { key: 'name', label: '角色名称', type: 'strong' },

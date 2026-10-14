@@ -1,26 +1,33 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchMyFavorites } from '../api/account'
+import { fetchMyFavorites, removeMyFavorite } from '../api/account'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
 
 /**
  * 个人中心 · 收藏（二级页面）：收藏产品列表（数据来自真实接口，按用户隔离）。
- * 「取消收藏」为本地可用的真实交互（仅记录被移除项）。
+ * 「取消收藏」为真实接口 `DELETE /api/account/favorites/:name`。
  */
 export function MeFavoritesPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  // 收藏列表本地可移出，「取消收藏」立即移出列表（数据源仍来自接口）
-  const [removed, setRemoved] = useState<string[]>([])
 
   const { data, loading, error } = useApi((signal) => fetchMyFavorites(signal), [reloadKey])
-  const favorites = (data?.items ?? []).filter((item) => !removed.includes(item.name))
+  const favorites = data?.items ?? []
 
-  const readyKey = `${reloadKey}:${loading ? 'loading' : `ready-${removed.length}`}`
+  const readyKey = `${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
   useHomeEffects(rootRef, readyKey)
+
+  const remove = async (name: string) => {
+    try {
+      await removeMyFavorite(name)
+      setReloadKey((key) => key + 1)
+    } catch {
+      // 失败静默：刷新后列表即最新态
+    }
+  }
 
   return (
     <div ref={rootRef}>
@@ -79,7 +86,7 @@ export function MeFavoritesPage() {
                   {item.spec}
                 </div>
               </div>
-              <button className="btn btn--sm btn--ghost" type="button" onClick={() => setRemoved((prev) => [...prev, item.name])}>
+              <button className="btn btn--sm btn--ghost" type="button" onClick={() => remove(item.name)}>
                 取消收藏
               </button>
             </div>

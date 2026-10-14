@@ -1,59 +1,32 @@
-/** 接口层 · 客户中心 / 个人中心资源：页面通过本模块取数，不直接 import data/* */
+/** 接口层 · 个人中心（/me）：页面通过本模块取数 / 提交，不直接 import data/* */
 import { transport, ApiError } from './client'
-import {
-  ACCOUNT_DEVICES,
-  ACCOUNT_NAV,
-  ACCOUNT_TICKETS,
-  FAVORITES,
-  OVERVIEW_ALERT,
-  OVERVIEW_STATS,
-  PROFILE,
-  SECURITY,
-  type AccountDevice,
-  type FavoriteItem,
-  type SecurityItem,
-} from '../data/account'
 import type { AuthUser, InquiryDetail, InquirySummary, LoginDevice, NotificationSetting } from '../data/auth'
 
-export type { AccountDevice, FavoriteItem } from '../data/account'
-export type { AuthUser, InquiryDetail, InquirySummary, LoginDevice, NotificationSetting, SecurityItem } from '../data/auth'
+export type { AuthUser, InquiryDetail, InquirySummary, LoginDevice, NotificationSetting } from '../data/auth'
 
-export type AccountPayload = {
-  PROFILE: typeof PROFILE
-  ACCOUNT_NAV: typeof ACCOUNT_NAV
-  OVERVIEW_STATS: typeof OVERVIEW_STATS
-  OVERVIEW_ALERT: typeof OVERVIEW_ALERT
-  ACCOUNT_DEVICES: typeof ACCOUNT_DEVICES
-  ACCOUNT_TICKETS: typeof ACCOUNT_TICKETS
-  FAVORITES: typeof FAVORITES
-  SECURITY: typeof SECURITY
+/** 已登记设备（形状对齐后端 `AccountDevice`） */
+export type AccountDevice = {
+  model: string
+  sn: string
+  status: 'success' | 'muted'
+  statusText: string
+  warranty: string
+  action: { label: string; variant: 'secondary' | 'ghost'; to?: string }
 }
 
-/** 客户中心聚合数据（公开页 `/account`）：账号信息、导航、概览、设备、咨询、收藏与安全 */
-export function fetchAccount(signal?: AbortSignal): Promise<AccountPayload> {
-  return transport({ path: '/api/account', signal }, () => ({
-    PROFILE,
-    ACCOUNT_NAV,
-    OVERVIEW_STATS,
-    OVERVIEW_ALERT,
-    ACCOUNT_DEVICES,
-    ACCOUNT_TICKETS,
-    FAVORITES,
-    SECURITY,
-  }))
-}
+/** 收藏项 */
+export type FavoriteItem = { name: string; spec: string; subscribed: boolean }
 
-/* ============================================================
-   个人中心（/me）：全部按当前登录用户隔离，未登录 → 401
-   ============================================================ */
+/** 账号设置页 · 安全项 */
+export type SecurityItem = { k: string; v: string; hint: string }
+
+const EMPTY_USER: AuthUser = { id: '', username: '', name: '', email: '', phone: '' }
 
 /** 个人中心概览：当前用户 + 各分区计数 */
 export type AccountOverview = {
   user: AuthUser
   stats: { devices: number; inquiries: number; favorites: number; notifications: number }
 }
-
-const EMPTY_USER: AuthUser = { id: '', username: '', name: '', email: '', phone: '' }
 
 /** 概览：GET /api/account/me */
 export function fetchAccountOverview(signal?: AbortSignal): Promise<AccountOverview> {
@@ -75,14 +48,43 @@ export function fetchMyInquiry(id: string, signal?: AbortSignal): Promise<Inquir
   })
 }
 
+/** 提交工单补充回复：POST /api/account/inquiries/:id/replies */
+export function replyMyInquiry(id: string, text: string): Promise<{ ok: boolean; detail: InquiryDetail }> {
+  return transport(
+    { path: `/api/account/inquiries/${id}/replies`, method: 'POST', body: { text } },
+    () => ({ ok: true, detail: { id, title: '', model: '', status: '', createdAt: '', updatedAt: '', timeline: [] } }),
+  )
+}
+
 /** 我的设备：GET /api/account/devices */
 export function fetchMyDevices(signal?: AbortSignal): Promise<{ items: AccountDevice[] }> {
   return transport({ path: '/api/account/devices', signal }, () => ({ items: [] }))
 }
 
+/** 登记设备：POST /api/account/devices */
+export function addMyDevice(body: { model: string; sn: string }): Promise<{ items: AccountDevice[] }> {
+  return transport({ path: '/api/account/devices', method: 'POST', body }, () => ({ items: [] }))
+}
+
+/** 删除设备：DELETE /api/account/devices/:sn */
+export function removeMyDevice(sn: string): Promise<{ ok: boolean; items: AccountDevice[] }> {
+  return transport(
+    { path: `/api/account/devices/${encodeURIComponent(sn)}`, method: 'DELETE' },
+    () => ({ ok: true, items: [] }),
+  )
+}
+
 /** 我的收藏：GET /api/account/favorites */
 export function fetchMyFavorites(signal?: AbortSignal): Promise<{ items: FavoriteItem[] }> {
   return transport({ path: '/api/account/favorites', signal }, () => ({ items: [] }))
+}
+
+/** 取消收藏：DELETE /api/account/favorites/:name */
+export function removeMyFavorite(name: string): Promise<{ ok: boolean; items: FavoriteItem[] }> {
+  return transport(
+    { path: `/api/account/favorites/${encodeURIComponent(name)}`, method: 'DELETE' },
+    () => ({ ok: true, items: [] }),
+  )
 }
 
 /** 订阅与通知：GET /api/account/notifications */
@@ -116,4 +118,19 @@ export function fetchMySettings(signal?: AbortSignal): Promise<AccountSettings> 
 /** 更新基本资料：PUT /api/account/settings */
 export function updateMySettings(body: { name?: string; phone?: string }): Promise<{ ok: boolean; user: AuthUser }> {
   return transport({ path: '/api/account/settings', method: 'PUT', body }, () => ({ ok: true, user: EMPTY_USER }))
+}
+
+/** 更换邮箱：POST /api/account/email */
+export function changeMyEmail(email: string): Promise<{ ok: boolean; user: AuthUser }> {
+  return transport({ path: '/api/account/email', method: 'POST', body: { email } }, () => ({ ok: true, user: EMPTY_USER }))
+}
+
+/** 退出指定登录设备（吊销会话）：DELETE /api/account/sessions/:token */
+export function revokeMySession(token: string): Promise<{ ok: boolean }> {
+  return transport({ path: `/api/account/sessions/${encodeURIComponent(token)}`, method: 'DELETE' }, () => ({ ok: true }))
+}
+
+/** 注销账号：POST /api/account/delete */
+export function deleteMyAccount(): Promise<{ ok: boolean }> {
+  return transport({ path: '/api/account/delete', method: 'POST' }, () => ({ ok: true }))
 }

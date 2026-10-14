@@ -14,7 +14,6 @@ import { fetchDownloads } from '../api/support-extra'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { useI18n } from '../i18n'
 import { asBool, asNumber, asString, asStringArray, pickByIds } from './blockUtils'
@@ -63,15 +62,7 @@ function FilterChips({
 type DownloadItem = Awaited<ReturnType<typeof fetchDownloads>>['items'][number]
 
 /** 横滑卡片形态（layout='rail'）：把资料渲染为可横向滚动的卡片，作为表格之外的另种呈现 */
-function DownloadCards({
-  items,
-  showFilter,
-  onDownload,
-}: {
-  items: DownloadItem[]
-  showFilter: boolean
-  onDownload: (id: string) => void
-}) {
+function DownloadCards({ items, showFilter }: { items: DownloadItem[]; showFilter: boolean }) {
   return (
     <div className="blk-scroll-x">
       {items.map((item) => (
@@ -90,11 +81,27 @@ function DownloadCards({
             <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
               查看详情
             </Link>
-            {showFilter && (
-              <button className="btn btn--sm btn--ghost" type="button" onClick={() => onDownload(item.id)}>
-                下载
-              </button>
-            )}
+            {showFilter &&
+              ((item as { fileUrl?: string }).fileUrl ? (
+                <a
+                  className="btn btn--sm btn--ghost"
+                  href={(item as { fileUrl?: string }).fileUrl}
+                  download
+                  rel="noreferrer"
+                  onClick={() => trackDownload(item.id)}
+                >
+                  下载
+                </a>
+              ) : (
+                <span
+                  className="btn btn--sm btn--ghost"
+                  role="note"
+                  title="该资料尚未上传文件，上线后可用"
+                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                >
+                  下载
+                </span>
+              ))}
           </div>
         </div>
       ))}
@@ -115,7 +122,6 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // —— 交互态：仅 showFilter 时使用，无条件声明以遵守 hooks 规则 ——
   const [category, setCategory] = useState('全部')
   const [type, setType] = useState('全部')
-  const { action, notify, dismiss } = useDemoToast()
 
   const { data, loading, error } = useApi((signal) => fetchDownloads(signal), [reloadKey])
   const all = data?.items ?? []
@@ -225,14 +231,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
               </p>
             )
           ) : railCards ? (
-            <DownloadCards
-              items={shown}
-              showFilter={showFilter}
-              onDownload={(id) => {
-                trackDownload(id)
-                notify('下载')
-              }}
-            />
+            <DownloadCards items={shown} showFilter={showFilter} />
           ) : (
             <div className="table-wrap reveal">
               <table className="table">
@@ -264,16 +263,26 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                             <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                               查看详情
                             </Link>
-                            <button
-                              className="btn btn--sm btn--ghost"
-                              type="button"
-                              onClick={() => {
-                                trackDownload(item.id)
-                                notify('下载')
-                              }}
-                            >
-                              下载
-                            </button>
+                            {(item as { fileUrl?: string }).fileUrl ? (
+                              <a
+                                className="btn btn--sm btn--ghost"
+                                href={(item as { fileUrl?: string }).fileUrl}
+                                download
+                                rel="noreferrer"
+                                onClick={() => trackDownload(item.id)}
+                              >
+                                下载
+                              </a>
+                            ) : (
+                              <span
+                                className="btn btn--sm btn--ghost"
+                                role="note"
+                                title="该资料尚未上传文件，上线后可用"
+                                style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                              >
+                                下载
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
@@ -295,8 +304,6 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
           )}
         </>
       )}
-
-      {showFilter && <DemoToast action={action} onDismiss={dismiss} />}
     </div>
   )
 }

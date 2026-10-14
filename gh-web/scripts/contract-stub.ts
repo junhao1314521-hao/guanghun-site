@@ -22,7 +22,6 @@ import * as support from '../src/data/support'
 import * as business from '../src/data/business'
 import * as about from '../src/data/about'
 import * as center from '../src/data/center'
-import * as account from '../src/data/account'
 import * as legal from '../src/data/legal'
 
 const PORT = Number(process.env.PORT ?? 8788)
@@ -97,17 +96,6 @@ function resolve(pathname: string, query: URLSearchParams): unknown | null {
         REQUIREMENTS: center.REQUIREMENTS,
         CHANGELOG: center.CHANGELOG,
         CENTER_FAQS: center.CENTER_FAQS,
-      }
-    case '/api/account':
-      return {
-        PROFILE: account.PROFILE,
-        ACCOUNT_NAV: account.ACCOUNT_NAV,
-        OVERVIEW_STATS: account.OVERVIEW_STATS,
-        OVERVIEW_ALERT: account.OVERVIEW_ALERT,
-        ACCOUNT_DEVICES: account.ACCOUNT_DEVICES,
-        ACCOUNT_TICKETS: account.ACCOUNT_TICKETS,
-        FAVORITES: account.FAVORITES,
-        SECURITY: account.SECURITY,
       }
     case '/api/legal':
       return legal.LEGAL_DOCS

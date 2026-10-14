@@ -1,12 +1,14 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchSearchResults } from '../api/search'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
 import { IconSearch } from '../components/ui/Icon'
 import { HOT_QUERIES, SEARCH_KINDS, SEARCH_SORTS, highlight, type SearchKind } from '../data/search'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+
+/** 搜索结果每页条数 */
+const PAGE_SIZE = 8
 
 function renderHighlight(text: string, query: string) {
   return highlight(text, query).map((part, index) =>
@@ -45,7 +47,6 @@ export function SearchPage() {
   const [kind, setKind] = useState<'全部' | SearchKind>('全部')
   const [sort, setSort] = useState(SEARCH_SORTS[0])
   const [reloadKey, setReloadKey] = useState(0)
-  const { action, notify, dismiss } = useDemoToast()
 
   const { data, loading, error } = useApi((signal) => fetchSearchResults(query, signal), [query, reloadKey])
   const counts = data?.counts
@@ -64,6 +65,15 @@ export function SearchPage() {
   })
   const sorted = sort === '最新' ? [...matched].sort((a, b) => b.date.localeCompare(a.date)) : matched
   const totalLabel = q || kind !== '全部' ? sorted.length : (counts?.['全部'] ?? sorted.length)
+
+  // 分页：关键词 / 类别 / 排序变化时回到第 1 页（用签名比较，避免额外副作用）
+  const pageKey = `${query}|${kind}|${sort}`
+  const [pageState, setPageState] = useState({ key: pageKey, page: 1 })
+  const page = pageState.key === pageKey ? pageState.page : 1
+  const setPage = (next: number) => setPageState({ key: pageKey, page: next })
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paged = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -172,7 +182,7 @@ export function SearchPage() {
         ) : sorted.length > 0 ? (
           <>
             <div className="card" style={{ padding: 'var(--gh-space-3) var(--gh-space-5)' }}>
-              {sorted.map((result) => (
+              {paged.map((result) => (
                 <Link className="sresult" key={result.id} to={result.to}>
                   <span className="sresult__kind">
                     <span className={`tag${result.kind === '产品' ? ' tag--accent' : ''}`}>{result.kind}</span>
@@ -201,25 +211,34 @@ export function SearchPage() {
             {/* 分页 */}
             <div className="row" style={{ justifyContent: 'space-between', marginTop: 'var(--gh-space-6)' }}>
               <span className="section__desc" style={{ margin: 0, fontSize: 'var(--gh-font-size-body-sm)' }}>
-                第 1 / 12 页
+                第 {safePage} / {totalPages} 页
               </span>
-              <div className="pagination" role="navigation" aria-label="分页">
-                <button type="button" aria-label="上一页" disabled>
-                  ‹
-                </button>
-                <button type="button" className="is-active" onClick={() => notify('分页')}>
-                  1
-                </button>
-                <button type="button" onClick={() => notify('分页')}>
-                  2
-                </button>
-                <button type="button" onClick={() => notify('分页')}>
-                  3
-                </button>
-                <button type="button" aria-label="下一页" onClick={() => notify('分页')}>
-                  ›
-                </button>
-              </div>
+              {totalPages > 1 && (
+                <div className="pagination" role="navigation" aria-label="分页">
+                  <button type="button" aria-label="上一页" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
+                    ‹
+                  </button>
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={n === safePage ? 'is-active' : undefined}
+                      aria-current={n === safePage ? 'page' : undefined}
+                      onClick={() => setPage(n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    aria-label="下一页"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setPage(safePage + 1)}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -254,8 +273,6 @@ export function SearchPage() {
           ))}
         </div>
       </div>
-
-      <DemoToast action={action} onDismiss={dismiss} />
     </div>
   )
 }

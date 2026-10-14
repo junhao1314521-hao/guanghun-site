@@ -1,10 +1,13 @@
 import { Router } from 'express'
-import { getInquiryDetail, type InquirySummary } from '../data/auth'
-import { listCollection } from '../data/collectionStore'
+import { getInquiryDetail, type InquirySummary, type InquiryTimelineEntry } from '../data/auth'
+import { listCollection, updateCollectionItem } from '../data/collectionStore'
 import {
+  addAccountDevice,
+  changeUserEmail,
   changeUserPassword,
   createResetToken,
   createUserSession,
+  deleteUserAccount,
   destroyUserSession,
   findUserByEmail,
   getAccountDevices,
@@ -14,7 +17,10 @@ import {
   listUserSessions,
   loginUser,
   registerUser,
+  removeAccountDevice,
+  removeAccountFavorite,
   resetPasswordWithToken,
+  revokeUserSession,
   saveAccountNotifications,
   updateUserProfile,
   USER_SESSION_COOKIE,
@@ -41,6 +47,12 @@ import { logger } from '../lib/logger'
  *   POST /auth/password  修改密码（需登录）
  *   GET  /account/me | inquiries | inquiries/:id | devices | favorites | notifications | settings
  *   PUT  /account/settings | /account/notifications
+ *   POST /account/devices          登记设备（型号 + 序列号）
+ *   DELETE /account/devices/:sn    删除设备
+ *   DELETE /account/sessions/:token 退出指定登录设备（吊销会话）
+ *   POST /account/email            更换邮箱
+ *   POST /account/delete           注销账号（不可恢复）
+ *   POST /account/inquiries/:id/replies 工单补充回复
  */
 export const authRouter = Router()
 
@@ -301,6 +313,7 @@ authRouter.get('/account/settings', requireUser, (req, res) => {
     meta: session.createdAt,
     place: session.token === token ? '当前设备' : '常用设备',
     current: session.token === token,
+    token: session.token,
   }))
   res.json({ user, security, loginDevices })
 })
@@ -317,4 +330,102 @@ authRouter.put('/account/settings', requireUser, (req, res) => {
     return
   }
   res.json({ ok: true, user: updated })
+})
+
+/* ---------------- 设备登记（增 / 删） ---------------- */
+
+authRouter.post('/account/devices', requireUser, (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const outcome = addAccountDevice(currentUser(res), { model: readString(body.model), sn: readString(body.sn) })
+  if (!outcome.ok) {
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  res.status(201).json({ items: outcome.devices })
+})
+
+authRouter.delete('/account/devices/:sn', requireUser, (req, res) => {
+  const outcome = removeAccountDevice(currentUser(res).id, readParam(req, 'sn'))
+  if (!outcome.ok) {
+    res.status(404).json({ error: outcome.error })
+    return
+  }
+  res.json({ ok: true, items: outcome.devices })
+})
+
+/* ---------------- 收藏（删除） ---------------- */
+
+authRouter.delete('/account/favorites/:name', requireUser, (req, res) => {
+  const outcome = removeAccountFavorite(currentUser(res).id, readParam(req, 'name'))
+  if (!outcome.ok) {
+    res.status(404).json({ error: outcome.error })
+    return
+  }
+  res.json({ ok: true, items: outcome.items })
+})
+
+/* ---------------- 登录设备（吊销单个会话） ---------------- */
+
+authRouter.delete('/account/sessions/:token', requireUser, (req, res) => {
+  const token = readParam(req, 'token')
+  if (token === userToken(req)) {
+    res.status(400).json({ error: '当前设备会话不可在此退出' })
+    return
+  }
+  if (!revokeUserSession(currentUser(res).id, token)) {
+    res.status(404).json({ error: '未找到该登录设备' })
+    return
+  }
+  res.json({ ok: true })
+})
+
+/* ---------------- 更换邮箱 ---------------- */
+
+authRouter.post('/account/email', requireUser, (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const outcome = changeUserEmail(currentUser(res).id, readString(body.email))
+  if (!outcome.ok) {
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  res.json({ ok: true, user: outcome.user })
+})
+
+/* ---------------- 注销账号（不可恢复） ---------------- */
+
+authRouter.post('/account/delete', requireUser, (_req, res) => {
+  if (!deleteUserAccount(currentUser(res).id)) {
+    res.status(404).json({ error: '账号不存在' })
+    return
+  }
+  res.clearCookie(USER_SESSION_COOKIE, { path: '/' })
+  res.json({ ok: true })
+})
+
+/* ---------------- 工单补充回复 ---------------- */
+
+/** 提交补充回复：仅本人工单可回复；追加时间线条目并把状态回到「处理中」 */
+authRouter.post('/account/inquiries/:id/replies', requireUser, (req, res) => {
+  const user = currentUser(res)
+  const id = readParam(req, 'id')
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const text = readString(body.text)
+  if (!text) {
+    res.status(400).json({ error: '请输入回复内容' })
+    return
+  }
+  const owned = inquiriesOf(user.id).find((item) => item.id === id)
+  if (!owned) {
+    res.status(404).json({ error: '未找到该工单' })
+    return
+  }
+  const existing = (owned as { replies?: InquiryTimelineEntry[] }).replies ?? []
+  const entry: InquiryTimelineEntry = {
+    kind: 'customer',
+    author: '我',
+    time: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    text,
+  }
+  updateCollectionItem('inquiries', id, { replies: [...existing, entry], tag: '处理中', status: 'info' })
+  res.json({ ok: true, detail: getInquiryDetail(inquiriesOf(user.id), id) })
 })

@@ -85,19 +85,6 @@ export const SEARCH_RESULTS: SearchResult[] = [
   },
 ]
 
-/** 演示用「超长态」结果：仅在 ?demo=oversize 时并入，用于验证长标题/长摘要的换行与截断 */
-export const OVERSIZE_SEARCH_RESULTS: SearchResult[] = [
-  {
-    id: 'demo-long-1',
-    kind: '文章',
-    title: ['超长标题测试：', '延迟', '与回报率的完整实测方法与置信区间说明（含多次采样、温漂校正与端到端链路的逐段拆解）'],
-    desc: '这是一段刻意写得很长的摘要，用于验证搜索结果在窄屏下的换行、截断与行高策略是否稳定，不会溢出容器或挤压右侧箭头。',
-    source: '评测 · 实验室 · 长文本占位',
-    date: '2026-10-01',
-    to: '/search',
-  },
-]
-
 /** 关键词高亮：把查询词在命中片段用 <mark> 包裹（片段自数据层给出） */
 export function highlight(text: string, query: string): Array<{ text: string; hit: boolean }> {
   const q = query.trim()

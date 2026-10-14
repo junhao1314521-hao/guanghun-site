@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { changePassword } from '../api/auth'
-import { fetchMySettings, updateMySettings } from '../api/account'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
+import { changeMyEmail, deleteMyAccount, fetchMySettings, revokeMySession, updateMySettings } from '../api/account'
 import { invalidateSession } from '../hooks/useSession'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
@@ -10,19 +9,21 @@ import { usePageEffects } from '../hooks/usePageEffects'
 
 /**
  * 个人中心 · 账号设置（二级页面）：账号与安全、基本资料、修改密码、登录设备、注销账号。
- * 基本资料与修改密码为真实接口（`PUT /api/account/settings`、`POST /api/auth/password`）；
- * 注销账号尚未接入后端，点击给出演示提示。
+ * 全部为真实接口：基本资料 `PUT /api/account/settings`、邮箱 `POST /api/account/email`、
+ * 修改密码 `POST /api/auth/password`、退出登录设备 `DELETE /api/account/sessions/:token`、
+ * 注销账号 `POST /api/account/delete`。
  */
 export function MeSettingsPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
-  const { action: demoAction, notify, dismiss } = useDemoToast()
+  const [reloadKey, setReloadKey] = useState(0)
 
-  const { data, loading, error } = useApi((signal) => fetchMySettings(signal), [])
+  const { data, loading, error } = useApi((signal) => fetchMySettings(signal), [reloadKey])
 
-  // 基本资料（改名 / 手机号）
+  // 基本资料（昵称 / 手机号 / 邮箱）
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [profileMsg, setProfileMsg] = useState<string | null>(null)
   const [profileErr, setProfileErr] = useState<string | null>(null)
   const [savingProfile, setSavingProfile] = useState(false)
@@ -35,14 +36,19 @@ export function MeSettingsPage() {
   const [pwdMsg, setPwdMsg] = useState<string | null>(null)
   const [savingPwd, setSavingPwd] = useState(false)
 
+  // 注销账号（两步确认）
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
   useEffect(() => {
     if (data?.user) {
       setName(data.user.name)
       setPhone(data.user.phone)
+      setEmail(data.user.email)
     }
   }, [data])
 
-  const readyKey = loading ? 'loading' : 'ready'
+  const readyKey = `${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
   useHomeEffects(rootRef, readyKey)
 
@@ -52,15 +58,43 @@ export function MeSettingsPage() {
     setProfileErr(null)
     setSavingProfile(true)
     try {
+      // 邮箱变化时先改邮箱（唯一性校验），再保存昵称 / 手机号
+      if (data?.user && email.trim() !== data.user.email) {
+        await changeMyEmail(email.trim())
+      }
       await updateMySettings({ name: name.trim(), phone: phone.trim() })
       invalidateSession()
       setProfileMsg('基本资料已保存。')
+      setReloadKey((key) => key + 1)
     } catch (ex) {
       setProfileErr(ex instanceof Error ? ex.message : '保存失败，请稍后重试')
     } finally {
       setSavingProfile(false)
     }
   }
+
+  const revoke = async (token: string | undefined) => {
+    if (!token) return
+    try {
+      await revokeMySession(token)
+      setReloadKey((key) => key + 1)
+    } catch {
+      // 失败静默：列表刷新后即为最新态
+    }
+  }
+
+  const removeAccount = async () => {
+    setDeleting(true)
+    try {
+      await deleteMyAccount()
+      invalidateSession()
+      navigate('/login', { replace: true })
+    } catch {
+      setDeleting(false)
+      setConfirmDelete(false)
+    }
+  }
+
 
   const submitPassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -174,6 +208,21 @@ export function MeSettingsPage() {
                     placeholder="未绑定"
                     onChange={(event) => setPhone(event.target.value)}
                   />
+                </div>
+                <div className="field">
+                  <label className="field__label" htmlFor="profileEmail">
+                    邮箱
+                  </label>
+                  <input
+                    className="input"
+                    id="profileEmail"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    placeholder="用于登录与找回"
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                  <span className="field__hint">作为登录账号；修改后需用新邮箱登录。</span>
                 </div>
               </div>
               {profileErr && (
@@ -304,7 +353,7 @@ export function MeSettingsPage() {
                         {device.current ? (
                           <span className="tag">当前设备</span>
                         ) : (
-                          <button className="btn btn--sm btn--ghost" type="button" onClick={() => notify('退出该设备')}>
+                          <button className="btn btn--sm btn--ghost" type="button" onClick={() => revoke(device.token)}>
                             退出
                           </button>
                         )}
@@ -331,16 +380,30 @@ export function MeSettingsPage() {
             <div className="card reveal">
               <p className="card__desc">注销前请确认已导出所需资料；绑定关系与历史工单将一并处理。</p>
               <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
-                <button className="btn btn--danger" type="button" onClick={() => notify('注销账号')}>
-                  注销账号
-                </button>
+                {confirmDelete ? (
+                  <>
+                    <button
+                      className={`btn btn--danger${deleting ? ' btn--loading' : ''}`}
+                      type="button"
+                      disabled={deleting}
+                      onClick={removeAccount}
+                    >
+                      确认注销（不可恢复）
+                    </button>
+                    <button className="btn btn--ghost" type="button" onClick={() => setConfirmDelete(false)}>
+                      取消
+                    </button>
+                  </>
+                ) : (
+                  <button className="btn btn--danger" type="button" onClick={() => setConfirmDelete(true)}>
+                    注销账号
+                  </button>
+                )}
               </div>
             </div>
           </section>
         </>
       )}
-
-      <DemoToast action={demoAction} onDismiss={dismiss} />
     </div>
   )
 }

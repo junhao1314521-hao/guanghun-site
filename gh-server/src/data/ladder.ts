@@ -10,11 +10,6 @@ export type LadderRow = {
   tied?: boolean
 }
 
-/** 演示用「超长态」榜单行：仅在 ?demo=oversize 时追加到综合榜，用于验证长型号名的截断 */
-export const OVERSIZE_LADDER_ROWS: LadderRow[] = [
-  { rank: '09', model: 'GH-M900 PRO ULTRA LIMITED EDITION', name: '无线电竞鼠标（联名限量版，超长型号名占位）', score: 68.5 },
-]
-
 export type LadderMetric = {
   id: string
   label: string

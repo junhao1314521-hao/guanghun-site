@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AdminAuthProvider, AdminGuard } from './components/admin/AdminAuth'
 import { ToastProvider } from './components/admin/ToastProvider'
 import { ConfirmProvider } from './components/admin/ConfirmDialog'
@@ -24,7 +24,6 @@ const SupportPage = lazy(() => import('./pages/SupportPage').then((m) => ({ defa
 const BusinessPage = lazy(() => import('./pages/BusinessPage').then((m) => ({ default: m.BusinessPage })))
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })))
 const CenterPage = lazy(() => import('./pages/CenterPage').then((m) => ({ default: m.CenterPage })))
-const AccountPage = lazy(() => import('./pages/AccountPage').then((m) => ({ default: m.AccountPage })))
 const ProductsPage = lazy(() => import('./pages/ProductsPage').then((m) => ({ default: m.ProductsPage })))
 const ProductDetailPage = lazy(() =>
   import('./pages/ProductDetailPage').then((m) => ({ default: m.ProductDetailPage })),
@@ -236,7 +235,8 @@ function AppShell() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/brand/:slug" element={<BrandPage />} />
               <Route path="/center" element={<CenterPage />} />
-              <Route path="/account" element={<AccountPage />} />
+              {/* 旧的「客户中心」已并入个人中心 /me，旧路径做重定向 */}
+              <Route path="/account" element={<Navigate to="/me" replace />} />
               <Route path="/legal/:slug" element={<LegalPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />

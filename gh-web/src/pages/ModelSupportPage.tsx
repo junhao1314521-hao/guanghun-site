@@ -3,9 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { ApiError } from '../api/client'
 import { fetchModelSupport } from '../api/support-extra'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
 import { IconBook, IconChevronDown, IconDownload, IconHelp } from '../components/ui/Icon'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
+import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -27,8 +27,6 @@ export function ModelSupportPage() {
   const { id = '' } = useParams()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  // 下载源尚未接入后端，点击给出演示提示
-  const { action, notify, dismiss } = useDemoToast()
 
   const { data, loading, error } = useApi((signal) => fetchModelSupport(id, signal), [id, reloadKey])
   const notFound = error instanceof ApiError && error.status === 404
@@ -137,9 +135,26 @@ export function ModelSupportPage() {
                         <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                           查看详情
                         </Link>
-                        <button className="btn btn--sm btn--ghost" type="button" onClick={() => notify('下载')}>
-                          下载
-                        </button>
+                        {(item as { fileUrl?: string }).fileUrl ? (
+                          <a
+                            className="btn btn--sm btn--ghost"
+                            href={(item as { fileUrl?: string }).fileUrl}
+                            download
+                            rel="noreferrer"
+                            onClick={() => trackDownload(item.id)}
+                          >
+                            下载
+                          </a>
+                        ) : (
+                          <span
+                            className="btn btn--sm btn--ghost"
+                            role="note"
+                            title="该资料尚未上传文件，上线后可用"
+                            style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                          >
+                            下载
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -247,8 +262,6 @@ export function ModelSupportPage() {
           </div>
         </div>
       </div>
-
-      <DemoToast action={action} onDismiss={dismiss} />
 
       <TemplateBlocks pageKey="template-model" />
     </div>

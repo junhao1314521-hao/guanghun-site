@@ -50,6 +50,8 @@ const put = (p: string, body: unknown, cookie?: string) =>
     body: JSON.stringify(body),
   })
 const get = (p: string, cookie?: string) => fetch(base + p, cookie ? { headers: { Cookie: cookie } } : undefined)
+const del = (p: string, cookie?: string) =>
+  fetch(base + p, { method: 'DELETE', ...(cookie ? { headers: { Cookie: cookie } } : {}) })
 
 /** 从响应 Set-Cookie 中提取 `gh_user=<token>`（供后续请求作为 Cookie 使用） */
 function userCookie(res: Response): string {
@@ -234,5 +236,83 @@ describe('前台账号体系 · 与后台鉴权隔离', () => {
     const admin = await post('/api/admin/auth/login', { username: 'admin', password: 'admin123' })
     assert.equal(admin.status, 200)
     assert.match(admin.headers.get('set-cookie') ?? '', /gh_admin=/)
+  })
+})
+
+describe('前台账号体系 · 个人中心写操作', () => {
+  let cookie = ''
+
+  before(async () => {
+    const r = await post('/api/auth/register', { username: 'writer', email: 'writer@example.com', password: 'pass1234' })
+    cookie = userCookie(r)
+  })
+
+  it('登记设备 → 列表可见；重复序列号 → 400；删除 → 列表消失', async () => {
+    const add = await post('/api/account/devices', { model: 'GH-K870', sn: 'SN-TEST-001' }, cookie)
+    assert.equal(add.status, 201)
+    let items = ((await add.json()) as { items: Array<{ sn: string }> }).items
+    assert.ok(items.some((d) => d.sn === 'SN-TEST-001'))
+
+    assert.equal((await post('/api/account/devices', { model: 'GH-K870', sn: 'SN-TEST-001' }, cookie)).status, 400)
+
+    const removed = await del('/api/account/devices/SN-TEST-001', cookie)
+    assert.equal(removed.status, 200)
+    items = ((await removed.json()) as { items: Array<{ sn: string }> }).items
+    assert.ok(!items.some((d) => d.sn === 'SN-TEST-001'))
+  })
+
+  it('取消收藏后列表减少', async () => {
+    const list = (await (await get('/api/account/favorites', cookie)).json()) as { items: Array<{ name: string }> }
+    const name = list.items[0].name
+    const res = await del(`/api/account/favorites/${encodeURIComponent(name)}`, cookie)
+    assert.equal(res.status, 200)
+    const after = (await (await get('/api/account/favorites', cookie)).json()) as { items: Array<{ name: string }> }
+    assert.ok(!after.items.some((i) => i.name === name))
+  })
+
+  it('更换邮箱：冲突 → 400；成功 → 回读一致', async () => {
+    await post('/api/auth/register', { username: 'taken', email: 'taken@example.com', password: 'pass1234' })
+    assert.equal((await post('/api/account/email', { email: 'taken@example.com' }, cookie)).status, 400)
+
+    const ok = await post('/api/account/email', { email: 'writer2@example.com' }, cookie)
+    assert.equal(ok.status, 200)
+    const me = (await (await get('/api/account/me', cookie)).json()) as { user: { email: string } }
+    assert.equal(me.user.email, 'writer2@example.com')
+  })
+
+  it('工单补充回复：本人工单可见；越权 → 404', async () => {
+    const created = await post(
+      '/api/inquiry',
+      { name: 'W', contact: 'writer2@example.com', model: 'GH-M900 PRO', topic: '补充', message: '原始' },
+      cookie,
+    )
+    const { ticketId } = (await created.json()) as { ticketId: string }
+    const reply = await post(`/api/account/inquiries/${ticketId}/replies`, { text: '补充说明' }, cookie)
+    assert.equal(reply.status, 200)
+    const detail = ((await reply.json()) as { detail: { timeline: Array<{ text: string }> } }).detail
+    assert.ok(detail.timeline.some((entry) => entry.text === '补充说明'))
+
+    const other = await post('/api/auth/register', { username: 'other2', email: 'other2@example.com', password: 'pass1234' })
+    const otherCookie = userCookie(other)
+    assert.equal((await post(`/api/account/inquiries/${ticketId}/replies`, { text: '越权' }, otherCookie)).status, 404)
+  })
+
+  it('退出指定登录设备：吊销后该会话失效', async () => {
+    const second = await post('/api/auth/login', { username: 'writer', password: 'pass1234' })
+    const secondCookie = userCookie(second)
+    const settings = (await (await get('/api/account/settings', cookie)).json()) as {
+      loginDevices: Array<{ token?: string; current?: boolean }>
+    }
+    const other = settings.loginDevices.find((device) => !device.current)
+    assert.ok(other?.token, '应存在非当前会话')
+    assert.equal((await del(`/api/account/sessions/${other!.token}`, cookie)).status, 200)
+    assert.equal((await get('/api/auth/me', secondCookie)).status, 401)
+  })
+
+  it('注销账号：会话失效且无法再登录', async () => {
+    const res = await post('/api/account/delete', {}, cookie)
+    assert.equal(res.status, 200)
+    assert.equal((await get('/api/auth/me', cookie)).status, 401)
+    assert.equal((await post('/api/auth/login', { username: 'writer', password: 'pass1234' })).status, 401)
   })
 })

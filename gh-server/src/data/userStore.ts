@@ -387,3 +387,85 @@ export function saveAccountNotifications(userId: string, items: unknown): Notifi
   writeSection(userId, 'notifications', normalized)
   return normalized
 }
+
+/* ============================================================
+   设备登记（增 / 删）——个人中心「我的设备」真实可用
+   ============================================================ */
+
+export type DeviceOutcome = { ok: true; devices: AccountDevice[] } | { ok: false; error: string }
+
+/** 登记设备：型号必填、序列号在本账号内唯一；新登记默认「未验证 / 待激活」 */
+export function addAccountDevice(profile: UserProfile, input: { model: string; sn: string }): DeviceOutcome {
+  const model = input.model.trim()
+  const sn = input.sn.trim()
+  if (!model || !sn) return { ok: false, error: '请填写型号与序列号' }
+  const devices = getAccountDevices(profile)
+  if (devices.some((device) => device.sn === sn)) return { ok: false, error: '该序列号已登记' }
+  const next: AccountDevice[] = [
+    {
+      model,
+      sn,
+      status: 'muted',
+      statusText: '未验证',
+      warranty: '待激活',
+      action: { label: '申请售后', variant: 'secondary', to: '/support#contact' },
+    },
+    ...devices,
+  ]
+  writeSection(profile.id, 'devices', next)
+  return { ok: true, devices: next }
+}
+
+/** 删除设备（按序列号）；未命中返回失败 */
+export function removeAccountDevice(userId: string, sn: string): DeviceOutcome {
+  const profile = findUserById(userId)
+  if (!profile) return { ok: false, error: '账号不存在' }
+  const devices = getAccountDevices(profile)
+  const next = devices.filter((device) => device.sn !== sn)
+  if (next.length === devices.length) return { ok: false, error: '未找到该设备' }
+  writeSection(userId, 'devices', next)
+  return { ok: true, devices: next }
+}
+
+/** 删除收藏（按名称）；未命中返回失败 */
+export function removeAccountFavorite(userId: string, name: string): { ok: true; items: FavoriteItem[] } | { ok: false; error: string } {
+  const items = getAccountFavorites(userId)
+  const next = items.filter((item) => item.name !== name)
+  if (next.length === items.length) return { ok: false, error: '未找到该收藏' }
+  writeSection(userId, 'favorites', next)
+  return { ok: true, items: next }
+}
+
+/* ============================================================
+   邮箱更换 / 会话吊销 / 注销账号
+   ============================================================ */
+
+/** 更换邮箱（唯一性校验，忽略大小写）；返回更新后的资料 */
+export function changeUserEmail(userId: string, email: string): { ok: true; user: UserProfile } | { ok: false; error: string } {
+  const next = email.trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next)) return { ok: false, error: '请输入有效的邮箱地址' }
+  const current = findUserById(userId)
+  if (!current) return { ok: false, error: '账号不存在' }
+  if (current.email.toLowerCase() !== next && findUserByEmail(next)) return { ok: false, error: '该邮箱已被占用' }
+  getDb().prepare('UPDATE users SET email = ? WHERE id = ?').run(next, userId)
+  return { ok: true, user: { ...current, email: next } }
+}
+
+/** 吊销某账号的一个会话（需 token 属于该账号）；返回是否命中 */
+export function revokeUserSession(userId: string, token: string): boolean {
+  const result = getDb().prepare('DELETE FROM user_sessions WHERE token = ? AND user_id = ?').run(token, userId)
+  return Number(result.changes) > 0
+}
+
+/** 注销账号：删除账号及其会话、个人中心数据、重置令牌（不可恢复） */
+export function deleteUserAccount(userId: string): boolean {
+  const exists = findUserById(userId)
+  if (!exists) return false
+  runInTransaction((tx) => {
+    tx.prepare('DELETE FROM users WHERE id = ?').run(userId)
+    tx.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId)
+    tx.prepare('DELETE FROM user_account_data WHERE user_id = ?').run(userId)
+    tx.prepare('DELETE FROM user_reset_tokens WHERE user_id = ?').run(userId)
+  })
+  return true
+}

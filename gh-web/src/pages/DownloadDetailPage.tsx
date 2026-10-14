@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { ApiError } from '../api/client'
 import { fetchDownload } from '../api/support-extra'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
 import { JsonLdNode } from '../components/site/JsonLd'
 import { downloadJsonLd } from '../components/site/detailJsonLd'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
@@ -18,8 +17,8 @@ export function DownloadDetailPage() {
   const { id = '' } = useParams()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  // 下载源与复制功能尚未接入，点击给出演示提示
-  const { action, notify, dismiss } = useDemoToast()
+  // 复制校验值反馈
+  const [copied, setCopied] = useState(false)
 
   const { data: detail, loading, error } = useApi((signal) => fetchDownload(id, signal), [id, reloadKey])
   const notFound = error instanceof ApiError && error.status === 404
@@ -110,16 +109,14 @@ export function DownloadDetailPage() {
                 下载
               </a>
             ) : (
-              <button
+              <span
                 className="btn btn--primary"
-                type="button"
-                onClick={() => {
-                  trackDownload(detail.id)
-                  notify('下载')
-                }}
+                role="note"
+                title="该资料尚未上传文件，上线后可用"
+                style={{ opacity: 0.6, cursor: 'not-allowed' }}
               >
-                下载
-              </button>
+                下载（文件待上传）
+              </span>
             )}
             <Link className="btn btn--secondary" to="/downloads">
               返回下载中心
@@ -169,8 +166,22 @@ export function DownloadDetailPage() {
               >
                 {detail.sha256}
               </span>
-              <button className="btn btn--ghost btn--sm" type="button" onClick={() => notify('复制校验值')}>
-                复制
+              <button
+                className="btn btn--ghost btn--sm"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard
+                    ?.writeText(detail.sha256)
+                    .then(() => {
+                      setCopied(true)
+                      window.setTimeout(() => setCopied(false), 2000)
+                    })
+                    .catch(() => {
+                      // 剪贴板不可用（非安全上下文等）时静默
+                    })
+                }}
+              >
+                {copied ? '已复制' : '复制'}
               </button>
             </div>
             <span className="field__hint">下载完成后可核对校验值，确认文件完整。</span>
@@ -239,8 +250,6 @@ export function DownloadDetailPage() {
           </div>
         </div>
       </div>
-
-      <DemoToast action={action} onDismiss={dismiss} />
 
       <TemplateBlocks pageKey="template-download" />
     </div>

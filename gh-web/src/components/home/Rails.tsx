@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { FeaturedProduct, Scene, Spot } from '../../api/home'
 import { MEDIA } from '../../data/media'
-import { DemoToast, useDemoToast } from '../ui/DemoToast'
 import { MediaImg } from '../ui/MediaImg'
 import { HScroll } from './HScroll'
 import { SectionHead } from './SectionHead'
@@ -37,7 +36,6 @@ export function SceneRail({ scenes }: { scenes: Scene[] }) {
 
 /** 重点产品：3D 倾斜 + 聚光跟随 */
 export function FeaturedRail({ products }: { products: FeaturedProduct[] }) {
-  const { action, notify, dismiss } = useDemoToast()
   return (
     <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
       <SectionHead
@@ -83,15 +81,14 @@ export function FeaturedRail({ products }: { products: FeaturedProduct[] }) {
                     起
                   </small>
                 </span>
-                <button className="btn btn--sm" type="button" onClick={() => notify(`对比 ${product.model}`)}>
+                <Link className="btn btn--sm" to={`/compare?ids=${product.id}`}>
                   对比
-                </button>
+                </Link>
               </div>
             </div>
           </article>
         ))}
       </HScroll>
-      <DemoToast action={action} onDismiss={dismiss} />
     </div>
   )
 }

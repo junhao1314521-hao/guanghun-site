@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { PRODUCT_TOTAL, getProductDetail } from '../data/products'
+import { getProductDetail } from '../data/products'
 import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
 
@@ -9,9 +9,9 @@ export const catalogRouter = Router()
 
 catalogRouter.get('/', (req, res) => {
   // V1：一次返回全量，筛选/排序/分页在前端完成（见契约 §1）
-  // total 沿用既有占位总量 PRODUCT_TOTAL，保证响应与现状一致
+  // total 为当前集合的真实总数（后台增删产品后即同步）
   const items = listCollection('products', readLocale(req))
-  res.json({ items, total: PRODUCT_TOTAL })
+  res.json({ items, total: items.length })
 })
 
 catalogRouter.get('/:id', (req, res) => {

@@ -32,12 +32,6 @@ export const PRODUCTS: Product[] = [
   { id: 'gh-p400', model: 'GH-P400', name: '超大鼠标垫', category: '配件', specs: ['900×400', '防泼水'], status: { level: 'success', text: '在售' }, price: '¥129', priceValue: 129, releasedAt: '2025-09-30', variant: 'pad' },
 ]
 
-/** 演示用「超长态」数据：仅在 ?demo=oversize 时并入列表，用于验证长型号/长标题的换行与截断策略 */
-export const OVERSIZE_PRODUCTS: Product[] = [
-  { id: 'gh-demo-ultra-1', model: 'GH-M900 PRO ULTRA LIMITED EDITION', name: '无线电竞鼠标（联名限量版，超长名称用于验证卡片标题换行与截断）', category: '鼠标', connection: '无线', specs: ['26,000 DPI 高精度光学引擎', '58 g 超轻量机身'], status: { level: 'success', text: '在售' }, price: '¥1,299', priceValue: 1299, releasedAt: '2026-10-01', variant: 'mouse', flag: '联名' },
-  { id: 'gh-demo-ultra-2', model: 'GH-K870-PRO-MAX-WIRELESS-MECHANICAL', name: '三模机械键盘（超长型号名用于验证列表与详情的边界处理）', category: '键盘', connection: '三模', specs: ['87 键热插拔', '三模连接'], status: { level: 'warning', text: '缺货' }, price: '¥1,049', priceValue: 1049, releasedAt: '2026-10-02', variant: 'keyboard' },
-]
-
 /** 筛选与排序选项 */
 export const CATEGORY_FILTERS: Array<'全部' | ProductCategory> = ['全部', '鼠标', '键盘', '耳机', '配件']
 export const CONNECTION_FILTERS: ProductConnection[] = ['有线', '无线', '三模']
@@ -54,9 +48,6 @@ export const PRICE_RANGES: PriceRange[] = [
 
 /** 更多筛选：库存状态 */
 export const STATUS_FILTERS: Array<'全部' | '在售' | '缺货'> = ['全部', '在售', '缺货']
-
-/** 列表页占位的商品总量（分页用），真实值由接口层提供 */
-export const PRODUCT_TOTAL = 24
 
 /** 详情页：标称 / 实测严格分区，缺失值以「未测量」显式表达，与零值区分 */
 export type SpecSummaryRow = { label: string; value: string; missing?: boolean }

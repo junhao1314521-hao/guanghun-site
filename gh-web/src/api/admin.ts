@@ -83,19 +83,66 @@ export function deleteAdminResource(key: string, id: string): Promise<{ ok: bool
   )
 }
 
-/** 行内动作（发布 / 备份 / 恢复等占位）：POST /api/admin/resources/:key/:id/action */
-export function runAdminRowAction(key: string, id: string, action: string): Promise<{ ok: boolean }> {
-  return transport(
-    { path: `/api/admin/resources/${key}/${id}/action`, method: 'POST', body: { action }, token: getAdminToken() ?? undefined },
-    () => ({ ok: true }),
-  )
-}
-
 /** 数据分析：GET /api/admin/analytics/:scope */
 export function fetchAdminAnalytics(scope: string, signal?: AbortSignal): Promise<AdminAnalytics> {
   return transport({ path: `/api/admin/analytics/${scope}`, signal, token: getAdminToken() ?? undefined }, () => {
     throw new ApiError('分析接口不可用', 503)
   })
+}
+
+/* ---------------- 角色与权限（可新建 / 编辑 / 删除） ---------------- */
+
+/** 后台角色（与后端 roleStore.AdminRole 一致） */
+export type AdminRole = {
+  key: string
+  name: string
+  desc: string
+  scopes: string[]
+  /** 内置角色不可删除（admin / operator） */
+  builtin: boolean
+}
+
+export type AdminRoleList = { items: AdminRole[]; allScopes: string[] }
+
+/** 角色列表：GET /api/admin/roles */
+export function fetchAdminRoles(signal?: AbortSignal): Promise<AdminRoleList> {
+  return transport({ path: '/api/admin/roles', signal, token: getAdminToken() ?? undefined }, () => ({
+    items: [],
+    allScopes: ['content', 'backups', 'publish', 'system'],
+  }))
+}
+
+/** 新建角色：POST /api/admin/roles */
+export function createAdminRole(body: {
+  key?: string
+  name: string
+  desc?: string
+  scopes: string[]
+}): Promise<{ item: AdminRole }> {
+  return transport({ path: '/api/admin/roles', method: 'POST', body, token: getAdminToken() ?? undefined }, () => {
+    throw new ApiError('新建角色接口不可用', 503)
+  })
+}
+
+/** 编辑角色：PUT /api/admin/roles/:key */
+export function updateAdminRole(
+  key: string,
+  body: { name?: string; desc?: string; scopes?: string[] },
+): Promise<{ item: AdminRole }> {
+  return transport(
+    { path: `/api/admin/roles/${encodeURIComponent(key)}`, method: 'PUT', body, token: getAdminToken() ?? undefined },
+    () => {
+      throw new ApiError('编辑角色接口不可用', 503)
+    },
+  )
+}
+
+/** 删除角色：DELETE /api/admin/roles/:key */
+export function deleteAdminRole(key: string): Promise<{ ok: boolean }> {
+  return transport(
+    { path: `/api/admin/roles/${encodeURIComponent(key)}`, method: 'DELETE', token: getAdminToken() ?? undefined },
+    () => ({ ok: true }),
+  )
 }
 
 /* ---------------- 回收站（软删除） ---------------- */

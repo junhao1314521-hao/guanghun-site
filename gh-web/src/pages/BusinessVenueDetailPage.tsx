@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { fetchBizVenue } from '../api/business-extra'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
+import { submitInquiry } from '../api/support-extra'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -24,13 +24,44 @@ export function BusinessVenueDetailPage() {
   const { id = '' } = useParams()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  const { action, notify, dismiss } = useDemoToast()
+
+  // 到店预约：真实提交至咨询工单（与产品咨询共用同一套工单）
+  const [reserveOpen, setReserveOpen] = useState(false)
+  const [reserve, setReserve] = useState({ name: '', contact: '', visitTime: '', note: '' })
+  const [reserveErr, setReserveErr] = useState<string | null>(null)
+  const [reserveTicket, setReserveTicket] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
 
   const { data: detail, loading, error } = useApi((signal) => fetchBizVenue(id, signal), [id, reloadKey])
 
   const readyKey = `${id}:${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
   useHomeEffects(rootRef, readyKey)
+
+  const submitReserve = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setReserveErr(null)
+    if (!reserve.name.trim() || !reserve.contact.trim()) {
+      setReserveErr('请填写称呼与联系方式')
+      return
+    }
+    setSending(true)
+    try {
+      const res = await submitInquiry({
+        name: reserve.name.trim(),
+        contact: reserve.contact.trim(),
+        model: detail?.name ?? '体验点',
+        topic: '预约到店',
+        message: `预约时间：${reserve.visitTime.trim() || '待确认'}\n备注：${reserve.note.trim() || '无'}`,
+      })
+      setReserveTicket(res.ticketId)
+      setReserve({ name: '', contact: '', visitTime: '', note: '' })
+    } catch (ex) {
+      setReserveErr(ex instanceof Error ? ex.message : '提交失败，请稍后重试')
+    } finally {
+      setSending(false)
+    }
+  }
 
   if (loading) return <VenueDetailSkeleton />
 
@@ -122,14 +153,86 @@ export function BusinessVenueDetailPage() {
           <div className="card reveal">
             <h2 className="card__title">到店预约</h2>
             <p className="card__desc">{detail.note}</p>
-            <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
-              <button className="btn btn--primary" type="button" onClick={() => notify('预约到店')}>
-                预约到店
-              </button>
-              <a className="btn btn--secondary" href={`tel:${detail.phone.replace(/[^0-9]/g, '')}`}>
-                拨打 {detail.phone}
-              </a>
-            </div>
+            {reserveTicket ? (
+              <div className="alert alert--success" role="status" style={{ marginTop: 'var(--gh-space-4)' }}>
+                预约已提交，工单号 {reserveTicket}；门店将尽快与你联系确认。
+              </div>
+            ) : null}
+            {reserveOpen ? (
+              <form onSubmit={submitReserve} noValidate style={{ marginTop: 'var(--gh-space-4)' }}>
+                <div className="form-grid-2">
+                  <div className="field">
+                    <label className="field__label" htmlFor="reserveName">
+                      称呼
+                    </label>
+                    <input
+                      className="input"
+                      id="reserveName"
+                      value={reserve.name}
+                      onChange={(event) => setReserve((prev) => ({ ...prev, name: event.target.value }))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="reserveContact">
+                      联系方式
+                    </label>
+                    <input
+                      className="input"
+                      id="reserveContact"
+                      placeholder="手机号 / 邮箱"
+                      value={reserve.contact}
+                      onChange={(event) => setReserve((prev) => ({ ...prev, contact: event.target.value }))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="reserveTime">
+                      期望到店时间
+                    </label>
+                    <input
+                      className="input"
+                      id="reserveTime"
+                      placeholder="如：本周六下午"
+                      value={reserve.visitTime}
+                      onChange={(event) => setReserve((prev) => ({ ...prev, visitTime: event.target.value }))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="reserveNote">
+                      备注
+                    </label>
+                    <input
+                      className="input"
+                      id="reserveNote"
+                      placeholder="想体验的型号 / 需求"
+                      value={reserve.note}
+                      onChange={(event) => setReserve((prev) => ({ ...prev, note: event.target.value }))}
+                    />
+                  </div>
+                </div>
+                {reserveErr && (
+                  <span className="field__error" style={{ display: 'block', marginTop: 'var(--gh-space-3)' }}>
+                    {reserveErr}
+                  </span>
+                )}
+                <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
+                  <button className={`btn btn--primary${sending ? ' btn--loading' : ''}`} type="submit" disabled={sending}>
+                    提交预约
+                  </button>
+                  <button className="btn btn--ghost" type="button" onClick={() => setReserveOpen(false)}>
+                    取消
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
+                <button className="btn btn--primary" type="button" onClick={() => setReserveOpen(true)}>
+                  预约到店
+                </button>
+                <a className="btn btn--secondary" href={`tel:${detail.phone.replace(/[^0-9]/g, '')}`}>
+                  拨打 {detail.phone}
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -173,8 +276,6 @@ export function BusinessVenueDetailPage() {
           </p>
         </div>
       </div>
-
-      <DemoToast action={action} onDismiss={dismiss} />
 
       <TemplateBlocks pageKey="template-venue" />
     </div>

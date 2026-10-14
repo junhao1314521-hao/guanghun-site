@@ -16,7 +16,7 @@ export type HeroSlide = {
   desc: string
   primary: string
   secondary: string
-  /** CTA 的真实跳转目标；缺省时按「演示占位」处理（走 DemoToast），不做死按钮 */
+  /** CTA 跳转目标；缺省时前端回退到默认入口（/products、/compare），不做死按钮 */
   primaryTo?: string
   secondaryTo?: string
   stats: { value: string; label: string }[]

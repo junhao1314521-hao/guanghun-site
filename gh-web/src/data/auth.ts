@@ -68,6 +68,8 @@ export type LoginDevice = {
   meta: string
   place: string
   current?: boolean
+  /** 会话令牌（用于「退出该设备」吊销；仅本人可见） */
+  token?: string
 }
 
 /** 账号设置页 · 安全项 */

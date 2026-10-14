@@ -27,8 +27,9 @@ import { logger } from '../lib/logger'
  * v6：新增前台会员账号体系（users 账号哈希 / user_sessions 会话 / user_reset_tokens 重置令牌 /
  *     user_account_data 按用户隔离的个人中心数据）。与后台 admin_users 完全独立。
  * v7：新增 publish_schedules（定时发布：到点自动应用创建时捕获的内容快照，支持取消）。
+ * v8：新增 admin_roles（后台角色可新建 / 编辑 / 删除；取代代码内固定两角色）。
  */
-export const SCHEMA_VERSION = '7'
+export const SCHEMA_VERSION = '8'
 
 /** meta 键：是否已完成「旧 JSON → SQLite」一次性迁移 */
 const META_MIGRATED = 'migrated_json'
@@ -191,6 +192,16 @@ CREATE TABLE IF NOT EXISTS publish_schedules (
 );
 CREATE INDEX IF NOT EXISTS idx_publish_schedules_at ON publish_schedules(at);
 CREATE INDEX IF NOT EXISTS idx_publish_schedules_status ON publish_schedules(status);
+-- 后台角色（可新建 / 编辑 / 删除）：builtin=1 的内置角色不可删除；scopes 为 JSON 数组
+CREATE TABLE IF NOT EXISTS admin_roles (
+  key        TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  desc       TEXT,
+  scopes     TEXT NOT NULL,
+  builtin    INTEGER NOT NULL DEFAULT 0,
+  sort       INTEGER,
+  created_at TEXT
+);
 `
 
 /** 单例连接与其对应的路径（路径变化时重开，兼容测试 / 多实例场景） */

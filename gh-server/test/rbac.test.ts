@@ -123,3 +123,59 @@ describe('阶段 4C · 按栏目 / 操作鉴权', () => {
     assert.equal((await get('/api/admin/pages')).status, 401)
   })
 })
+
+describe('阶段 4C · 角色 CRUD（/api/admin/roles）', () => {
+  it('列表返回内置角色与权限类别', async () => {
+    const res = await get('/api/admin/roles', { headers: auth(adminToken) })
+    assert.equal(res.status, 200)
+    const body = (await res.json()) as { items: Array<{ key: string; builtin: boolean }>; allScopes: string[] }
+    assert.ok(body.items.some((role) => role.key === 'admin' && role.builtin))
+    assert.ok(body.items.some((role) => role.key === 'operator'))
+    assert.deepEqual(body.allScopes, ['content', 'backups', 'publish', 'system'])
+  })
+
+  it('operator 无权访问角色端点 → 403', async () => {
+    assert.equal((await get('/api/admin/roles', { headers: auth(operatorToken) })).status, 403)
+  })
+
+  it('新建 → 编辑 → 删除自定义角色', async () => {
+    const created = await fetch(`${base}/api/admin/roles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...auth(adminToken) },
+      body: JSON.stringify({ key: 'editor', name: '编辑', desc: '测试角色', scopes: ['content'] }),
+    })
+    assert.equal(created.status, 201)
+    const role = ((await created.json()) as { item: { key: string; scopes: string[] } }).item
+    assert.equal(role.key, 'editor')
+
+    const updated = await fetch(`${base}/api/admin/roles/editor`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...auth(adminToken) },
+      body: JSON.stringify({ name: '高级编辑', scopes: ['content', 'publish'] }),
+    })
+    assert.equal(updated.status, 200)
+    const ur = (await updated.json()) as { item: { name: string; scopes: string[] } }
+    assert.equal(ur.item.name, '高级编辑')
+    assert.deepEqual(ur.item.scopes, ['content', 'publish'])
+
+    const del = await fetch(`${base}/api/admin/roles/editor`, { method: 'DELETE', headers: auth(adminToken) })
+    assert.equal(del.status, 200)
+    assert.equal((await get('/api/admin/roles', { headers: auth(adminToken) })).status, 200)
+  })
+
+  it('内置角色不可删除 → 400', async () => {
+    const res = await fetch(`${base}/api/admin/roles/admin`, { method: 'DELETE', headers: auth(adminToken) })
+    assert.equal(res.status, 400)
+  })
+
+  it('admin 角色权限固定为全部（编辑后仍为 *）', async () => {
+    const res = await fetch(`${base}/api/admin/roles/admin`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...auth(adminToken) },
+      body: JSON.stringify({ name: '超级管理员', scopes: ['content'] }),
+    })
+    assert.equal(res.status, 200)
+    const body = (await res.json()) as { item: { scopes: string[] } }
+    assert.deepEqual(body.item.scopes, ['*'])
+  })
+})

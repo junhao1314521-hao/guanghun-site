@@ -34,21 +34,8 @@ export const SCOPE_DESC: Record<string, string> = {
   system: '角色 / 员工 / 语言 / 接入 / 客户 / 设备 / 服务网点 / 通知 / 操作日志 / 回收站 / 重置',
 }
 
-/** 已知角色（来源：gh-server/src/data/roles.ts `ROLES`） */
-export const ROLES: Array<{ key: string; name: string; desc: string; scopes: ScopeKey[] }> = [
-  {
-    key: 'admin',
-    name: '超级管理员',
-    desc: '拥有全部权限（内容 / 备份 / 发布 / 系统设置）。',
-    scopes: ['*'],
-  },
-  {
-    key: 'operator',
-    name: '内容运营',
-    desc: '内容类权限（页面 / 集合读写、装修、上传）；不含角色 / 备份 / 发布 / 系统设置。',
-    scopes: ['content'],
-  },
-]
+/** 已知角色（来源：服务端 `admin_roles` 表，经 GET /api/admin/roles 提供）——
+ *  前端不再镜像常量；此处仅保留「栏目 → 所需权限」映射，供菜单裁剪与角色页展示。 */
 
 /**
  * 归 `content` 权限的栏目 key：

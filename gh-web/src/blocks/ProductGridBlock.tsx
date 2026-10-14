@@ -7,7 +7,7 @@
  * 当 `showFilter` 开启（列表页由 PageView 注入）时，在区块内保留原产品列表页的
  * 类别 / 连接 / 价格 / 库存筛选、排序、分页与对比选择，避免装修化后交互能力回退。
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { fetchProducts } from '../api/products'
 import { MEDIA } from '../data/media'
@@ -23,12 +23,14 @@ import {
 } from '../data/products'
 import { useApi } from '../hooks/useApi'
 import { MediaImg } from '../components/ui/MediaImg'
-import { DemoToast, useDemoToast } from '../components/ui/DemoToast'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asBool, asNumber, asString, asStringArray, gridClass } from './blockUtils'
 
 /** 对比上限：恰 4 款可对比，第 5 款需先移除 */
 const MAX_COMPARE = 4
+
+/** 列表页每页条数 */
+const PAGE_SIZE = 9
 
 /** 按所选排序方式排序；「综合排序」保持接口返回的原始顺序 */
 function sortProducts(list: Product[], sortBy: string): Product[] {
@@ -86,7 +88,8 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0])
   const [moreOpen, setMoreOpen] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
-  const { action, notify, dismiss } = useDemoToast()
+  // 轻提示（对比上限等本地校验，非演示占位）
+  const [hint, setHint] = useState<string | null>(null)
   const navigate = useNavigate()
 
   const all = data?.items ?? []
@@ -126,8 +129,24 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
 
   const shown = limit > 0 ? filtered.slice(0, limit) : filtered
 
+  // 列表页分页：筛选条件变化时回到第 1 页（用签名比较，避免额外副作用）
+  const filterKey = [category, connections.join(','), priceId, status, sortBy, scope, seriesId, categoryScope].join('|')
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 })
+  const page = pageState.key === filterKey ? pageState.page : 1
+  const setPage = (next: number) => setPageState({ key: filterKey, page: next })
+  const totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paged = showFilter ? shown.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE) : shown
+
   const toggleConnection = (value: ProductConnection) =>
     setConnections((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]))
+
+  // 轻提示自动消失
+  useEffect(() => {
+    if (!hint) return
+    const timer = window.setTimeout(() => setHint(null), 3200)
+    return () => window.clearTimeout(timer)
+  }, [hint])
 
   // 选中以「产品 id」记录（与 /compare?ids= 对齐），展示时再回查型号
   const togglePick = (id: string) => {
@@ -136,7 +155,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       return
     }
     if (picked.length >= MAX_COMPARE) {
-      notify(`对比最多 ${MAX_COMPARE} 款，请先移除已选产品`)
+      setHint(`对比最多 ${MAX_COMPARE} 款，请先移除已选产品`)
       return
     }
     setPicked([...picked, id])
@@ -327,7 +346,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             </p>
           ) : (
             <div className={layout === 'rail' ? 'p-grid-rail' : gridClassName}>
-              {shown.map((item) => {
+              {paged.map((item) => {
                 const isPicked = picked.includes(item.id)
                 return (
                   <article className={`pcard${showFilter && isPicked ? ' is-picked' : ''}`} key={item.id}>
@@ -392,23 +411,30 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             </div>
           )}
 
-          {/* 分页（仅列表页开启；沿用原演示交互） */}
-          {showFilter && (
+          {/* 分页（仅列表页开启；真实翻页） */}
+          {showFilter && totalPages > 1 && (
             <div className="row" style={{ justifyContent: 'center', marginTop: 'var(--gh-space-7)' }}>
               <div className="pagination">
-                <button aria-label="上一页" type="button" onClick={() => notify('分页')}>
+                <button aria-label="上一页" type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
                   ‹
                 </button>
-                <button className="is-active" type="button" onClick={() => notify('分页')}>
-                  1
-                </button>
-                <button type="button" onClick={() => notify('分页')}>
-                  2
-                </button>
-                <button type="button" onClick={() => notify('分页')}>
-                  3
-                </button>
-                <button aria-label="下一页" type="button" onClick={() => notify('分页')}>
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((n) => (
+                  <button
+                    key={n}
+                    className={n === safePage ? 'is-active' : undefined}
+                    type="button"
+                    aria-current={n === safePage ? 'page' : undefined}
+                    onClick={() => setPage(n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  aria-label="下一页"
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setPage(safePage + 1)}
+                >
                   ›
                 </button>
               </div>
@@ -467,7 +493,11 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
         </>
       )}
 
-      {showFilter && <DemoToast action={action} onDismiss={dismiss} />}
+      {hint && (
+        <div className="toast toast--float" role="status" aria-live="polite">
+          {hint}
+        </div>
+      )}
     </div>
   )
 }

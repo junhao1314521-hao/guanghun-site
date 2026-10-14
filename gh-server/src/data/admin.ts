@@ -183,32 +183,8 @@ export function logoutAdmin(token: string | undefined): void {
   if (token) SESSIONS.delete(token)
 }
 
-/* ============================================================
-   工作台概览
-   ============================================================ */
-
+/** 后台资源行（字段名 → 值） */
 export type AdminRow = Record<string, string | number | boolean>
-
-export const ADMIN_OVERVIEW = {
-  stats: [
-    { key: 'products', label: '在售产品', value: 46, delta: '+3', trend: 'up' },
-    { key: 'articles', label: '已发布文章', value: 52, delta: '+5', trend: 'up' },
-    { key: 'inquiries', label: '待处理咨询', value: 12, delta: '+2', trend: 'up' },
-    { key: 'downloads', label: '本月下载量', value: 8642, delta: '-4%', trend: 'down' },
-  ],
-  todos: [
-    { id: 't1', label: '待审核文章', count: 3, to: '/admin/articles' },
-    { id: 't2', label: '待回复咨询', count: 12, to: '/admin/inquiries' },
-    { id: 't3', label: '待发布页面', count: 2, to: '/admin/pages' },
-    { id: 't4', label: '素材待补充', count: 7, to: '/admin/assets' },
-  ],
-  recent: [
-    { id: 'a1', at: '2026-10-11 09:42', who: '运营专员', action: '更新文章', target: '三模键盘续航横评' },
-    { id: 'a2', at: '2026-10-11 09:10', who: '管理员', action: '发布页面', target: '首页 · 秋季专题' },
-    { id: 'a3', at: '2026-10-10 18:20', who: '运营专员', action: '回复咨询', target: 'INQ-2026-004' },
-    { id: 'a4', at: '2026-10-10 16:05', who: '管理员', action: '新增产品', target: 'GH-K680 客制化键盘' },
-  ],
-}
 
 /* ============================================================
    资源数据（key 与前端 data/adminResources.ts 对齐）
