@@ -1,11 +1,12 @@
 /**
  * 登录 / 注册页外壳：左右分栏。
- * - 左栏：上下顶满的「可交互代码动画」+ 品牌信息（品牌统一为「光魂」）。
+ * - 左栏：上下顶满的「可交互代码动画」+ 品牌信息（左上角为正式 LOGO：图形 mark + SVDC 字标）。
  * - 右栏：表单（由调用方传入）。
  * - variant='full' 用于后台登录（整屏、无圆角）；variant='card' 用于站内登录/注册（大卡片、页面内居中）。
  * - 移动端：左栏折叠为顶部背景条，表单优先。
  */
 import type { ReactNode } from 'react'
+import { BrandMark } from './BrandMark'
 import { CodeBackdrop } from './CodeBackdrop'
 
 type Props = {
@@ -22,7 +23,7 @@ type Props = {
 export function AuthShell({
   children,
   variant = 'card',
-  badge = '光魂',
+  badge = '',
   eyebrow = 'SUPER DISPLAY',
   headline = '以实测定义性能',
   subtitle = 'OLED 电竞显示器 · 参数公开、方法公开、来源可查。',
@@ -34,7 +35,8 @@ export function AuthShell({
         <CodeBackdrop className="auth-shell__canvas" />
         <div className="auth-shell__aside-inner">
           <div className="auth-shell__brand">
-            <span className="auth-shell__logo">光魂</span>
+            <BrandMark className="logo__mark" />
+            <span className="logo__word" role="img" aria-label="光魂 · SVDC" />
             {badge && <span className="auth-shell__badge">{badge}</span>}
           </div>
           <div className="auth-shell__pitch">
