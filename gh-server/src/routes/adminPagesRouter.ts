@@ -106,7 +106,16 @@ function parseBlocks(raw: unknown): Block[] | null {
     if (!id || !getBlockTypeMeta(type)) return null
     const props = entry.props && typeof entry.props === 'object' ? (entry.props as Record<string, unknown>) : {}
     const block: Block = { id, type, enabled: entry.enabled !== false, props }
-    if (entry.style && typeof entry.style === 'object') block.style = entry.style as BlockStyle
+    if (entry.style && typeof entry.style === 'object') {
+      const style = { ...(entry.style as BlockStyle) }
+      // 锚点仅允许字母 / 数字 / 连字符 / 下划线；空串或非法值直接剔除，避免注入非法 id
+      if (typeof style.anchor === 'string') {
+        const anchor = style.anchor.trim().replace(/[^A-Za-z0-9_-]/g, '')
+        if (anchor) style.anchor = anchor
+        else delete style.anchor
+      }
+      block.style = style
+    }
     blocks.push(block)
   }
   return blocks

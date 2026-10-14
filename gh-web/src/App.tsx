@@ -39,6 +39,9 @@ const DownloadDetailPage = lazy(() => import('./pages/DownloadDetailPage').then(
 const FaqPage = lazy(() => import('./pages/FaqPage').then((m) => ({ default: m.FaqPage })))
 const FaqDetailPage = lazy(() => import('./pages/FaqDetailPage').then((m) => ({ default: m.FaqDetailPage })))
 const ModelSupportPage = lazy(() => import('./pages/ModelSupportPage').then((m) => ({ default: m.ModelSupportPage })))
+const ModelSupportIndexPage = lazy(() =>
+  import('./pages/ModelSupportIndexPage').then((m) => ({ default: m.ModelSupportIndexPage })),
+)
 const InquiryPage = lazy(() => import('./pages/InquiryPage').then((m) => ({ default: m.InquiryPage })))
 const ContactPage = lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })))
 const BusinessScenesPage = lazy(() => import('./pages/BusinessScenesPage').then((m) => ({ default: m.BusinessScenesPage })))
@@ -200,11 +203,30 @@ function AppShell() {
     document.documentElement.lang = lang
   }, [lang])
 
-  // 切页回顶；带锚点时滚动到对应分区（顶栏下拉菜单的链接依赖锚点）
+  // 切页回顶；带锚点时滚动到对应分区（顶栏下拉菜单的链接依赖锚点）。
+  // 内容库页面（如 /support#warranty）区块为异步加载，锚点元素可能在首帧尚未渲染，
+  // 故在短暂窗口内轮询重试，命中即滚动并停止；始终未命中则回退到顶部。
   useEffect(() => {
-    const target = hash ? document.getElementById(hash.slice(1)) : null
-    if (target) target.scrollIntoView()
-    else window.scrollTo(0, 0)
+    if (!hash) {
+      window.scrollTo(0, 0)
+      return
+    }
+    const id = hash.slice(1)
+    let tries = 0
+    const jump = () => {
+      const target = document.getElementById(id)
+      if (target) {
+        target.scrollIntoView()
+        return true
+      }
+      return false
+    }
+    if (jump()) return
+    const timer = window.setInterval(() => {
+      tries += 1
+      if (jump() || tries >= 15) window.clearInterval(timer)
+    }, 100)
+    return () => window.clearInterval(timer)
   }, [pathname, hash])
 
   return (
@@ -254,6 +276,7 @@ function AppShell() {
               <Route path="/articles/:id" element={<ArticleDetailPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/support" element={<SupportPage />} />
+              <Route path="/support/models" element={<ModelSupportIndexPage />} />
               <Route path="/support/model/:id" element={<ModelSupportPage />} />
               <Route path="/downloads" element={<DownloadsPage />} />
               <Route path="/downloads/:id" element={<DownloadDetailPage />} />

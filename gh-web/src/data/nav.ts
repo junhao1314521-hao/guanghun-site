@@ -36,11 +36,10 @@ export const NAV_ITEMS: NavItem[] = [
 /**
  * 下拉菜单面板（仅保留「点进去确有内容」的链接）。
  *
- * 维护口径：只收录**目标页真实存在**且语义成立的目的地；已移除的失效形态：
- * - 锚点深链（如 `/center#download`、`/support#warranty`）——目标页无对应锚点；
- * - 不存在的详情 id（如 `/articles/latency-test`）与无效榜单指标（`/ladder/weight`）；
- * - 产品列表 `?line= / ?scene= / ?tag=`——筛选状态未走 URL，深链不生效。
- * 若后续需要「按分类/场景直达筛选」，应先把区块筛选改为 URL 驱动再回收这些入口。
+ * 维护口径：只收录**目标页真实存在**且语义成立的目的地。
+ * 随本轮工程改造，以下形态已恢复可用：
+ * - 锚点深链（`/center#download`、`/support#warranty`）——区块已支持 `style.anchor`，可页内定位；
+ * - 产品列表 `?scene=`、评测列表 `?category=`、天梯 `?type=`——筛选状态已「全量进 URL」，深链生效。
  */
 export const MEGA_PANELS: MegaPanel[] = [
   {
@@ -68,6 +67,15 @@ export const MEGA_PANELS: MegaPanel[] = [
           { label: '54027X1QE-W54 540Hz OLED', to: '/products/gh-54027x1qe' },
           { label: '32X1UE-W16 双模 4K OLED', to: '/products/gh-32x1ue' },
           { label: '28027X1QE-W28 280Hz OLED', to: '/products/gh-28027x1qe' },
+        ],
+      },
+      {
+        eyebrow: '按场景选择',
+        links: [
+          { label: '高刷 · 决胜毫秒', to: '/products?scene=scene-01' },
+          { label: '色准 · 创作', to: '/products?scene=scene-02' },
+          { label: '护眼 · 高效', to: '/products?scene=scene-03' },
+          { label: '沉浸 · 影音', to: '/products?scene=scene-04' },
         ],
       },
     ],
@@ -126,6 +134,7 @@ export const MEGA_PANELS: MegaPanel[] = [
         links: [
           { label: '服务支持', to: '/support' },
           { label: '下载中心', to: '/downloads' },
+          { label: '型号支持', to: '/support/models' },
           { label: '常见问题', to: '/faq' },
         ],
       },
@@ -134,6 +143,7 @@ export const MEGA_PANELS: MegaPanel[] = [
         links: [
           { label: '提交咨询', to: '/inquiry' },
           { label: '联系我们', to: '/contact' },
+          { label: '保修与售后', to: '/support#warranty' },
         ],
       },
     ],
@@ -159,10 +169,7 @@ export const MEGA_PANELS: MegaPanel[] = [
     columns: [
       {
         eyebrow: '关于',
-        links: [
-          { label: '关于光魂', to: '/about' },
-          { label: '新闻中心', to: '/news' },
-        ],
+        links: [{ label: '关于光魂', to: '/about' }],
       },
       {
         eyebrow: '品牌',

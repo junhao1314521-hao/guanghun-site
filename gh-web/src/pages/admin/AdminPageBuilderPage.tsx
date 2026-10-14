@@ -347,6 +347,17 @@ function StylePanel({ style, onChange }: { style: BlockStyle | undefined; onChan
           </select>
         </div>
       ))}
+      {/* 页内锚点（扩展字段）：填入后区块外壳生成同名 id，支持 /path#anchor 深链定位 */}
+      <div className="field">
+        <span className="field__label">页内锚点</span>
+        <input
+          className="input"
+          value={typeof current.anchor === 'string' ? (current.anchor as string) : ''}
+          placeholder="如 warranty"
+          onChange={(event) => set('anchor', event.target.value)}
+        />
+        <span className="field__hint">仅字母 / 数字 / 连字符 / 下划线；留空则不生成锚点。</span>
+      </div>
     </div>
   )
 }

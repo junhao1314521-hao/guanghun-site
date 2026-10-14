@@ -348,7 +348,7 @@ function buildCenter(): Page {
         desc: '一套软件管理全部光魂显示器：色彩与亮度、HDR 与刷新率、校色配置同步，都在同一个界面里完成。',
         mediaTag: '软件界面',
         image: '/media/center/hero.svg',
-        primary: { label: '立即下载', href: '/downloads' },
+        primary: { label: '立即下载', href: '/center#download' },
         secondary: { label: '查看更新日志', href: '/center' },
       },
       // hero 海报同样通栏，与首页 carousel 保持一致
@@ -395,6 +395,8 @@ function buildCenter(): Page {
         columns: 2,
         items: center.DOWNLOADS.map((item) => ({ title: item.os, desc: `${item.version} · ${item.size} · ${item.date}` })),
       },
+      // 锚点 #download：供「立即下载」与外部深链直达本区块
+      style: { anchor: 'download' },
     },
     {
       type: 'timeline',
@@ -558,9 +560,10 @@ function buildSupport(): Page {
         items: support.QUICK_ENTRIES.map((entry) => ({ tag: entry.id, title: entry.title, desc: entry.desc, href: SUPPORT_QUICK_HREF[entry.id] ?? '/support' })),
       },
     },
-    // 下载中心：支持首页只放精选（完整列表去 /downloads，避免页面过长）
-    { type: 'downloadList', props: { title: '下载中心', icon: 'download', subtitle: '说明书、固件与调校配置，最新资料优先。', category: 'all', limit: 6, ctaLabel: '查看全部资料', ctaHref: '/downloads' } },
-    { type: 'cards', props: { title: '保修与售后', icon: 'shield', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) } },
+    // 下载中心：支持首页只放精选（完整列表去 /downloads，避免页面过长）；锚点 #download
+    { type: 'downloadList', props: { title: '下载中心', icon: 'download', subtitle: '说明书、固件与调校配置，最新资料优先。', category: 'all', limit: 6, ctaLabel: '查看全部资料', ctaHref: '/downloads' }, style: { anchor: 'download' } },
+    // 保修与售后：锚点 #warranty，供导航「保修与售后」深链直达（不做独立查询页）
+    { type: 'cards', props: { title: '保修与售后', icon: 'shield', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) }, style: { anchor: 'warranty' } },
     // 服务承诺条（三年质保 · 顺丰 · 15 天退换）
     {
       type: 'cards',
@@ -592,7 +595,8 @@ function buildSupport(): Page {
         })),
       },
     },
-    { type: 'faqList', props: { title: '常见问题', source: 'support', limit: 10 } },
+    // FAQ：锚点 #faq，供导航「常见问题」深链直达
+    { type: 'faqList', props: { title: '常见问题', source: 'support', limit: 10 }, style: { anchor: 'faq' } },
     {
       type: 'contact',
       props: {

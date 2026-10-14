@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import {
   backupFilePath,
+  type BackupSnapshot,
   createBackup,
   deleteBackup,
   listBackups,
   readBackup,
   restoreSnapshot,
+  snapshot,
 } from '../data/backupStore'
 import { resetContentToSeed } from '../data/contentStore'
 import { isCollectionKey, resetAllCollections, resetCollection } from '../data/collectionStore'
@@ -128,6 +130,47 @@ backupsRouter.post(
       default:
         res.status(400).json({ error: '未知的重置范围（scope 应为 all | pages | collections | admin）' })
         return
+    }
+    res.json({ ok: true })
+  },
+)
+
+/**
+ * 内容导出 / 导入（工程运营 ⑨E4）：在既有备份模块上扩展的「一键导出 JSON / 导入还原」。
+ *
+ *   GET  /admin/content/export  → 直接回传当前全站内容快照（content_pages / site_config /
+ *                                 collections / admin_resources），作为附件下载；无需先建备份。
+ *   POST /admin/content/import  → body 为快照 JSON；校验结构后先自动留一份 `pre-import`
+ *                                 备份，再整表覆盖还原（失败不落库）。
+ *
+ * 导出沿用 `backups` 读权限；导入等同「整体覆盖」，故按 `system` 权限收紧。
+ */
+backupsRouter.get('/content/export', requireSession, requireScope('backups'), (_req, res) => {
+  const payload = snapshot()
+  const ts = new Date().toISOString().replace(/[:.]/g, '-')
+  res.setHeader('Content-Disposition', `attachment; filename="guanghun-content-${ts}.json"`)
+  res.type('application/json')
+  res.send(JSON.stringify(payload))
+})
+
+backupsRouter.post(
+  '/content/import',
+  requireSession,
+  requireScope('system'),
+  auditWrite('import-content', () => 'all'),
+  (req, res) => {
+    const payload = req.body as BackupSnapshot
+    if (!payload || typeof payload !== 'object' || !payload.data) {
+      res.status(400).json({ error: '导入内容结构不合法：缺少 data 字段' })
+      return
+    }
+    try {
+      // 覆盖前自动留一份「导入前快照」，便于回退
+      createBackup('pre-import')
+      restoreSnapshot(payload)
+    } catch (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : '导入失败' })
+      return
     }
     res.json({ ok: true })
   },

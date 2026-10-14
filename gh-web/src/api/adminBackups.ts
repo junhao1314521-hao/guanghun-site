@@ -75,14 +75,36 @@ export function resetSite(scope: ResetScope, key?: string): Promise<{ ok: boolea
   )
 }
 
-/** 下载备份：GET /api/admin/backups/:id/download → 触发浏览器保存 */
-export async function downloadBackup(id: string): Promise<void> {
+/**
+ * 内容一键导出：GET /api/admin/content/export → 下载全站内容快照 JSON。
+ * 无需先创建备份，直接取当前 content_pages / site_config / collections / admin_resources。
+ */
+export function exportContent(): Promise<void> {
+  return downloadFrom('/api/admin/content/export', 'guanghun-content.json')
+}
+
+/**
+ * 内容一键导入还原：POST /api/admin/content/import（body 为导出的快照 JSON）。
+ * 后端会先自动留一份 `pre-import` 备份再整表覆盖，失败不落库。
+ */
+export function importContent(payload: unknown): Promise<{ ok: boolean }> {
+  return transport<{ ok: boolean }>(
+    { path: '/api/admin/content/import', method: 'POST', body: payload, token: adminToken() },
+    () => ({ ok: true }),
+  )
+}
+
+/**
+ * 通用下载：携带会话凭证 fetch → Blob → 触发浏览器保存。
+ * 优先使用响应头 `Content-Disposition` 中的文件名，回退到调用方给的默认名。
+ */
+async function downloadFrom(path: string, fallbackName: string): Promise<void> {
   const token = getAdminToken()
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
   let res: Response
   try {
-    res = await fetch(endpoint(`/api/admin/backups/${encodeURIComponent(id)}/download`), {
+    res = await fetch(endpoint(path), {
       headers: Object.keys(headers).length ? headers : undefined,
       credentials: 'include',
     })
@@ -99,13 +121,21 @@ export async function downloadBackup(id: string): Promise<void> {
     }
     throw new ApiError(message, res.status)
   }
+  const disposition = res.headers.get('Content-Disposition') ?? ''
+  const matched = /filename="?([^";]+)"?/.exec(disposition)
+  const fileName = matched?.[1]?.trim() || fallbackName
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = id
+  link.download = fileName
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
+}
+
+/** 下载备份：GET /api/admin/backups/:id/download → 触发浏览器保存 */
+export function downloadBackup(id: string): Promise<void> {
+  return downloadFrom(`/api/admin/backups/${encodeURIComponent(id)}/download`, id)
 }

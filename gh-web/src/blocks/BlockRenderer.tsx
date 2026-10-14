@@ -9,7 +9,7 @@
 import type { ReactNode } from 'react'
 import '../styles/blocks.css'
 import type { Block } from './types'
-import { containerClass, shellClass } from './blockUtils'
+import { containerClass, normalizeAnchor, shellClass } from './blockUtils'
 import { HeroBlock } from './HeroBlock'
 import { CarouselBlock } from './CarouselBlock'
 import { VideoBlock } from './VideoBlock'
@@ -107,7 +107,13 @@ export function BlockRenderer({ blocks }: { blocks: Block[] }) {
       {blocks
         .filter((block) => block.enabled)
         .map((block) => (
-          <section key={block.id} className={shellClass(block.style)} data-block={block.type}>
+          // style.anchor → 区块外壳 id，支持 /path#anchor 页内深链定位
+          <section
+            key={block.id}
+            id={normalizeAnchor(block.style?.anchor)}
+            className={shellClass(block.style)}
+            data-block={block.type}
+          >
             {/* 通栏（full）：不套内容容器，允许内容贴边、铺满视口宽度，由区块内部自行控制 */}
             {block.style?.container === 'full' ? (
               renderBlock(block)

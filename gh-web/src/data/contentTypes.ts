@@ -46,6 +46,11 @@ export type BlockStyle = {
   theme?: 'auto' | 'light' | 'dark'
   /** 内容宽度；'full' 表示通栏 / 全宽（破出内容容器，铺满视口宽度） */
   container?: 'wide' | 'normal' | 'narrow' | 'full'
+  /**
+   * 页内锚点 id（扩展字段）：渲染为区块外壳的 `id`，使 `/support#warranty` 这类
+   * 深链可直接定位到该区块。缺省不生成锚点。仅允许字母、数字、连字符与下划线。
+   */
+  anchor?: string
 }
 
 /** 区块（契约 §3） */

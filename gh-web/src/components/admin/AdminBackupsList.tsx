@@ -10,11 +10,13 @@
  *   - 重置为初始：POST /api/admin/reset（强确认，说明会丢弃全部改动）。
  * 取数复用 useApi；各写操作成功后通过 reloadKey 重新拉取列表。
  */
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   createBackup,
   deleteBackup,
   downloadBackup,
+  exportContent,
+  importContent,
   listBackups,
   resetSite,
   restoreBackup,
@@ -44,6 +46,9 @@ export function AdminBackupsList() {
   const confirm = useConfirm()
   const toast = useToast()
   const [busy, setBusy] = useState(false)
+  // 内容导入：隐藏 file input 承载选择，选中后读取并还原
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [importing, setImporting] = useState(false)
 
   const items = state.data?.items ?? []
   const loading = state.loading && items.length === 0
@@ -119,6 +124,56 @@ export function AdminBackupsList() {
     [confirm, toast],
   )
 
+  // 内容一键导出：直接拉取当前全站内容快照并触发下载
+  const onExportContent = useCallback(async () => {
+    setBusy(true)
+    try {
+      await exportContent()
+      toast.success('已开始下载内容快照')
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '导出失败')
+    } finally {
+      setBusy(false)
+    }
+  }, [toast])
+
+  // 内容一键导入：先读本地 JSON → 二次确认 → 覆盖还原（后端自动留「导入前快照」）
+  const onImportContent = useCallback(
+    async (file: File) => {
+      let payload: unknown
+      try {
+        payload = JSON.parse(await file.text())
+      } catch {
+        toast.error('文件不是合法的 JSON 快照')
+        return
+      }
+      const ok = await confirm({
+        title: '导入内容',
+        message: (
+          <>
+            确认用「{file.name}」<strong>覆盖还原</strong>当前全站内容？
+            <br />
+            系统会先自动生成一份「导入前快照」以便回退。
+          </>
+        ),
+        confirmText: '覆盖导入',
+        danger: true,
+      })
+      if (!ok) return
+      setImporting(true)
+      try {
+        await importContent(payload)
+        toast.success('内容已导入还原')
+        setReloadKey((key) => key + 1)
+      } catch (ex) {
+        toast.error(ex instanceof Error ? ex.message : '导入失败')
+      } finally {
+        setImporting(false)
+      }
+    },
+    [confirm, toast],
+  )
+
   const onReset = useCallback(async () => {
     const ok = await confirm({
       title: '重置为初始',
@@ -173,6 +228,35 @@ export function AdminBackupsList() {
 
       <div className="admin-toolbar">
         <span className="admin-table__count">共 {items.length} 份备份</span>
+        <div className="admin-table__actions">
+          <button
+            type="button"
+            className={`btn btn--ghost btn--sm${busy ? ' btn--loading' : ''}`}
+            onClick={() => void onExportContent()}
+            disabled={busy}
+          >
+            导出内容
+          </button>
+          <button
+            type="button"
+            className={`btn btn--ghost btn--sm${importing ? ' btn--loading' : ''}`}
+            onClick={() => fileRef.current?.click()}
+            disabled={importing}
+          >
+            {importing ? '导入中…' : '导入内容'}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            style={{ display: 'none' }}
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              event.target.value = ''
+              if (file) void onImportContent(file)
+            }}
+          />
+        </div>
       </div>
 
       <div className="admin-table-wrap">

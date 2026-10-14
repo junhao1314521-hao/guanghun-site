@@ -93,6 +93,16 @@ export function shellClass(style: BlockStyle | undefined): string {
   return classes.join(' ')
 }
 
+/**
+ * 区块锚点 → 合法 id（仅保留字母 / 数字 / 连字符 / 下划线；空串或非法返回 undefined）。
+ * 用于 `/support#warranty` 这类页内深链定位；不改变 shellClass 的视觉语义。
+ */
+export function normalizeAnchor(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const id = value.trim().replace(/[^A-Za-z0-9_-]/g, '')
+  return id.length > 0 ? id : undefined
+}
+
 /** 正文多行文本 → 段落数组（内容库以 `\n` 连接多段） */
 export function splitBody(body: string): string[] {
   return body
