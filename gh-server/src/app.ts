@@ -56,7 +56,8 @@ export function createApp(): Express {
   app.use(cors(corsOrigins.length ? { origin: corsOrigins } : undefined))
   if (corsOrigins.length) logger.info('CORS 白名单已启用', { origins: corsOrigins })
 
-  app.use(express.json())
+  // JSON 体积上限放宽到 10MB：后台「法律条款」导入 Word 时会以 base64 提交文件内容
+  app.use(express.json({ limit: '10mb' }))
 
   // API 缓存策略（对齐契约 §5.1 #10）：数据类允许缓存但须回源校验；账号类数据不落盘。
   // ETag 由 express 默认对 res.json 生成（#10 的可选项），故协商缓存开箱可用。

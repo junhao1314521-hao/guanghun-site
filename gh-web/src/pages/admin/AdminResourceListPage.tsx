@@ -5,9 +5,9 @@
  * 支持：本地搜索、筛选、排序、分页（窗口化 + 每页条数）、批量选择删除、
  * 行内动作（超过 2 个收进「⋯」溢出菜单）、删除确认（ConfirmDialog）与右下角 Toast。
  */
-import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { deleteAdminResource, fetchAdminResource, type AdminList } from '../../api/admin'
+import { useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { deleteAdminResource, fetchAdminResource, parseLegalDoc, saveAdminResource, type AdminList } from '../../api/admin'
 import { adminResource, type AdminColumn, type AdminResource } from '../../data/adminResources'
 import type { AdminRow } from '../../data/admin'
 import { useApi } from '../../hooks/useApi'
@@ -179,6 +179,72 @@ function TableSkeleton({ columns }: { columns: number }) {
         </div>
       ))}
     </div>
+  )
+}
+
+/** 读取文件为 base64（去掉 dataURL 前缀） */
+function readAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ''))
+    reader.onerror = () => reject(new Error('读取文件失败'))
+    reader.readAsDataURL(file)
+  })
+}
+
+const LEGAL_EXT = ['docx', 'docm', 'dotx']
+
+/**
+ * 「法律条款」栏目专用：导入 Word 文档。
+ * 流程：选文件 → 后端解析（仅解析，不落库）→ 生成草稿记录 → 跳转编辑页人工核对保存。
+ */
+function LegalImportButton() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const toast = useToast()
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState(false)
+
+  const onFile = async (file: File | undefined) => {
+    if (!file) return
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+    if (!LEGAL_EXT.includes(ext)) {
+      toast.error('仅支持 .docx / .docm / .dotx；老式 .doc 请先另存为 .docx')
+      return
+    }
+    setBusy(true)
+    try {
+      const data = await readAsBase64(file)
+      const { doc } = await parseLegalDoc(file.name, data)
+      const saved = await saveAdminResource('legal', undefined, { ...doc })
+      const id = saved.item?.id ? String(saved.item.id) : ''
+      toast.success('已导入并生成草稿，请核对后保存。')
+      if (id) navigate(`/admin/legal/${id}`)
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '导入失败，请稍后重试')
+    } finally {
+      setBusy(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".docx,.docm,.dotx"
+        style={{ display: 'none' }}
+        onChange={(event) => void onFile(event.target.files?.[0])}
+      />
+      <button
+        type="button"
+        className={`btn btn--secondary btn--sm${busy ? ' btn--loading' : ''}`}
+        disabled={busy}
+        onClick={() => inputRef.current?.click()}
+      >
+        {busy ? '解析中…' : '导入 Word'}
+      </button>
+    </>
   )
 }
 
@@ -426,11 +492,14 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
         title={resource.title}
         desc={resource.desc}
         actions={
-          resource.creatable ? (
-            <Link className="btn btn--primary btn--sm" to={`/admin/${resource.key}/new`}>
-              新建
-            </Link>
-          ) : undefined
+          <>
+            {resource.key === 'legal' && <LegalImportButton />}
+            {resource.creatable && (
+              <Link className="btn btn--primary btn--sm" to={`/admin/${resource.key}/new`}>
+                新建
+              </Link>
+            )}
+          </>
         }
       />
 

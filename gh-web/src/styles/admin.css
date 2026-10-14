@@ -1085,7 +1085,11 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   gap: var(--gh-space-2);
   align-items: center;
 }
+.site-link--badge { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto auto; }
 .site-link__actions { display: flex; align-items: center; gap: var(--gh-space-1); }
+.site-link__badge { display: inline-flex; align-items: center; gap: var(--gh-space-3); }
+.site-link__badge .select { width: auto; min-width: 96px; }
+.site-link__shake { display: inline-flex; align-items: center; gap: 6px; font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); white-space: nowrap; }
 .site-links > .btn,
 .site-groups > .btn { align-self: flex-start; }
 

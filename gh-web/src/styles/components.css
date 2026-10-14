@@ -17,6 +17,7 @@
   gap: var(--gh-space-2);
   height: var(--gh-control-height-md);
   padding: 0 var(--gh-control-pad-x);
+  text-decoration: none;
   border: 1px solid transparent;
   border-radius: var(--gh-radius-md);
   font-family: inherit;

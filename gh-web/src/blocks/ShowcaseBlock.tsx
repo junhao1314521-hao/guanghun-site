@@ -8,12 +8,10 @@
  * 媒体 hover 缓慢推进（Ken Burns）+ 提亮 + 描边高亮；移动端降级为上下堆叠；
  * 复用现有设计令牌与双主题；prefers-reduced-motion 时不动画。
  */
-import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { MediaImg } from '../components/ui/MediaImg'
 import { MEDIA, resolveMedia } from '../data/media'
-import { prefersReducedMotion } from '../lib/motion'
 import { asArray, asBool, asLink, asRecord, asString, asStringArray } from './blockUtils'
 
 type MediaType = 'image' | 'video' | 'gif'
@@ -50,59 +48,6 @@ function itemMedia(item: ShowcaseItem): string {
   if (src) return src
   if (item.productId && MEDIA.product[item.productId]) return MEDIA.product[item.productId]
   return ''
-}
-
-/** 参数拆成「数值 + 单位/标签」：`26,000 DPI` → 26,000 ｜ DPI；无前导数字则整体作数值 */
-function splitSpec(spec: string): { value: string; unit: string } {
-  const matched = spec.match(/^([\d][\d.,]*)\s*(.*)$/)
-  return matched ? { value: matched[1], unit: matched[2] } : { value: spec, unit: '' }
-}
-
-/**
- * 参数数值：进入视口时从 0 滚到目标值（保留千分位与小数位）；
- * 首帧即渲染最终值（无 JS 时也可读）；reduced-motion 或非数字时不做动画。
- */
-function SpecValue({ value }: { value: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const [text, setText] = useState(value)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || prefersReducedMotion()) return
-    const target = Number(value.replace(/,/g, ''))
-    if (!Number.isFinite(target)) return
-    const decimals = (value.split('.')[1] ?? '').length
-    const grouped = value.includes(',')
-    let raf = 0
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return
-        io.disconnect()
-        const start = performance.now()
-        const tick = (now: number) => {
-          const progress = Math.min(1, (now - start) / 900)
-          const eased = 1 - (1 - progress) ** 3
-          const current = target * eased
-          const fixed = current.toFixed(decimals)
-          setText(grouped ? Number(fixed).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : fixed)
-          if (progress < 1) raf = requestAnimationFrame(tick)
-        }
-        raf = requestAnimationFrame(tick)
-      },
-      { threshold: 0.4 },
-    )
-    io.observe(el)
-    return () => {
-      io.disconnect()
-      cancelAnimationFrame(raf)
-    }
-  }, [value])
-
-  return (
-    <span ref={ref} className="showcase__spec-value">
-      {text}
-    </span>
-  )
 }
 
 /** 媒体层：video 用原生循环播放；image / gif 交 MediaImg */
@@ -144,15 +89,11 @@ export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
                 {item.desc && <p className="showcase__desc">{item.desc}</p>}
                 {item.specs.length > 0 && (
                   <ul className="showcase__specs">
-                    {item.specs.map((spec, specIndex) => {
-                      const { value, unit } = splitSpec(spec)
-                      return (
-                        <li className="reveal" data-delay={String(Math.min(specIndex + 1, 6))} key={`${spec}-${specIndex}`}>
-                          <SpecValue value={value} />
-                          {unit && <span className="showcase__spec-unit">{unit}</span>}
-                        </li>
-                      )
-                    })}
+                    {item.specs.map((spec, specIndex) => (
+                      <li className="reveal" data-delay={String(Math.min(specIndex + 1, 6))} key={`${spec}-${specIndex}`}>
+                        <span className="showcase__spec">{spec}</span>
+                      </li>
+                    ))}
                   </ul>
                 )}
                 {(item.cta || detailHref) && (

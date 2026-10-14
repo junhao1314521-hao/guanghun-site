@@ -48,7 +48,7 @@ export type ArticleDetail = ArticleSummary & {
   related: ArticleSummary[]
 }
 
-export type NewsItem = { date: string; tag: string; title: string; href?: string }
+export type NewsItem = { date: string; tag: string; title: string; href?: string; cover?: string; coverImage?: string }
 
 /** 封面语义键 → 本地视觉素材（未覆盖的键回退到就近的实验室图位） */
 const COVER_MEDIA: Record<string, string> = {
@@ -360,10 +360,10 @@ const ARTICLE_SECTIONS: Record<string, ArticleSection[]> = {
 
 /** 新闻与动态：与文章复用同一批内容，取品牌动态 / 产品发布类 */
 export const NEWS: NewsItem[] = [
-  { date: '2026-09-28', tag: '品牌动态', title: '光魂 2026 产品线规划：从延迟到生态', href: '/articles/brand-2026-roadmap' },
-  { date: '2026-09-18', tag: '评测', title: '无线鼠标端到端延迟实测：三款旗舰横评', href: '/articles/latency-end-to-end' },
-  { date: '2026-08-30', tag: '教程', title: '驱动与固件升级指南：从检测到回滚的完整流程', href: '/articles/driver-firmware-guide' },
-  { date: '2026-08-22', tag: '行业观察', title: '为什么我们要公开测试方法论：可复现性的价值', href: '/articles/test-methodology' },
+  { date: '2026-09-28', tag: '品牌动态', title: '光魂 2026 产品线规划：从延迟到生态', href: '/articles/brand-2026-roadmap', cover: 'case' },
+  { date: '2026-09-18', tag: '评测', title: '无线鼠标端到端延迟实测：三款旗舰横评', href: '/articles/latency-end-to-end', cover: 'lab' },
+  { date: '2026-08-30', tag: '教程', title: '驱动与固件升级指南：从检测到回滚的完整流程', href: '/articles/driver-firmware-guide', cover: 'software' },
+  { date: '2026-08-22', tag: '行业观察', title: '为什么我们要公开测试方法论：可复现性的价值', href: '/articles/test-methodology', cover: 'brand' },
 ]
 
 /** 详情合并：摘要 + 小节正文，并按同分类优先挑选 3 篇相关阅读 */

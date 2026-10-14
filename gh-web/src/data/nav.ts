@@ -12,6 +12,10 @@ export type NavItem = {
   menu: string
   /** 顶栏高亮归属（未设置则不参与高亮） */
   nav?: string
+  /** 右上角角标：new / hot（缺省无） */
+  badge?: 'new' | 'hot'
+  /** 角标是否摇动（隔几秒摇一下；缺省不摇） */
+  badgeShake?: boolean
 }
 
 /**
@@ -21,10 +25,10 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { label: '产品', to: '/products', menu: 'products', nav: 'products' },
   { label: 'Center 软件', to: '/center', menu: '', nav: 'center' },
-  { label: '天梯榜', to: '/ladder', menu: 'ladder', nav: 'ladder' },
+  { label: '天梯榜', to: '/ladder', menu: 'ladder', nav: 'ladder', badge: 'hot', badgeShake: true },
   { label: '文章', to: '/articles', menu: 'articles' },
   { label: '服务支持', to: '/support', menu: 'support', nav: 'support' },
-  { label: '商业合作', to: '/business', menu: 'business', nav: 'business' },
+  { label: '商业合作', to: '/business', menu: 'business', nav: 'business', badge: 'new', badgeShake: true },
   { label: '关于光魂', to: '/about', menu: 'about', nav: 'about' },
 ]
 
@@ -51,22 +55,22 @@ export const MEGA_PANELS: MegaPanel[] = [
       {
         eyebrow: '产品系列',
         links: [
-          { label: '鼠标系列', to: '/products/series/mouse' },
-          { label: '键盘系列', to: '/products/series/keyboard' },
-          { label: '耳机系列', to: '/products/series/headset' },
-          { label: '配件系列', to: '/products/series/accessory' },
+          { label: 'OLED 旗舰系列', to: '/products/series/oled' },
+          { label: '双模高刷系列', to: '/products/series/dual' },
+          { label: '电竞 IPS 系列', to: '/products/series/ips' },
+          { label: '桌面周边系列', to: '/products/series/accessory' },
         ],
       },
       {
         eyebrow: '精选型号',
         links: [
-          { label: 'GH-M900 PRO 旗舰鼠标', to: '/products/gh-m900-pro' },
-          { label: 'GH-K870 三模键盘', to: '/products/gh-k870' },
-          { label: 'GH-H500 无线耳机', to: '/products/gh-h500' },
+          { label: '54027X1QE-W54 540Hz OLED', to: '/products/gh-54027x1qe' },
+          { label: '32X1UE-W16 双模 4K OLED', to: '/products/gh-32x1ue' },
+          { label: '28027X1QE-W28 280Hz OLED', to: '/products/gh-28027x1qe' },
         ],
       },
     ],
-    feature: { eyebrow: 'FEATURED', title: 'GH-M900 PRO', desc: '58 g 轻量 · 26,000 DPI 光学引擎' },
+    feature: { eyebrow: 'FEATURED', title: '54027X1QE-W54', desc: '26.5 英寸 2K@540Hz · 0.03 ms GTG' },
   },
   {
     key: 'ladder',
@@ -75,17 +79,17 @@ export const MEGA_PANELS: MegaPanel[] = [
         eyebrow: '榜单',
         links: [
           { label: '综合榜', to: '/ladder' },
-          { label: '鼠标榜', to: '/ladder?type=mouse' },
-          { label: '键盘榜', to: '/ladder?type=keyboard' },
-          { label: '耳机榜', to: '/ladder?type=headset' },
+          { label: 'OLED 旗舰榜', to: '/ladder?type=oled' },
+          { label: '双模高刷榜', to: '/ladder?type=dual' },
+          { label: '电竞 IPS 榜', to: '/ladder?type=ips' },
         ],
       },
       {
         eyebrow: '热门条目',
         links: [
-          { label: '端到端延迟 TOP 10', to: '/ladder/latency' },
-          { label: '续航实测排行', to: '/ladder/battery' },
-          { label: '整机重量排行', to: '/ladder/weight' },
+          { label: '响应时间排行', to: '/ladder/latency' },
+          { label: '峰值亮度排行', to: '/ladder/battery' },
+          { label: '色准排行', to: '/ladder/sensor' },
         ],
       },
     ],

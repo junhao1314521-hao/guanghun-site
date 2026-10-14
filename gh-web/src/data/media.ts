@@ -18,7 +18,7 @@
  */
 import type { DeviceVariant } from '../components/ui/DeviceArt'
 
-type Kind = 'mouse' | 'keyboard' | 'headset' | 'pad' | 'scene' | 'software' | 'brand' | 'lab' | 'case'
+type Kind = 'monitor' | 'mouse' | 'keyboard' | 'headset' | 'pad' | 'scene' | 'software' | 'brand' | 'lab' | 'case'
 
 const BG0 = '#101538'
 const BG1 = '#07080d'
@@ -41,8 +41,17 @@ function fit(w: number, h: number, frac: number): string {
 }
 
 /** 产品剪影（与 DeviceArt 同构，但内联样式，因其渲染于 <img> 隔离文档中） */
-function device(kind: 'mouse' | 'keyboard' | 'headset' | 'pad', w: number, h: number): string {
+function device(kind: 'monitor' | 'mouse' | 'keyboard' | 'headset' | 'pad', w: number, h: number): string {
   const g = `<g transform="${fit(w, h, 0.5)}" fill="none" stroke="${STROKE}" stroke-width="2">`
+  if (kind === 'monitor') {
+    return `${g}
+      <ellipse cx="60" cy="82" rx="30" ry="6" fill="${ACCENT}" opacity="0.3" stroke="none"/>
+      <rect x="12" y="14" width="96" height="58" rx="7" fill="${BODY}"/>
+      <rect x="18" y="20" width="84" height="46" rx="3" fill="${ACCENT}" opacity="0.16" stroke="none"/>
+      <rect x="54" y="72" width="12" height="8" rx="1.5" fill="${ACCENT2}" stroke="none"/>
+      <rect x="38" y="80" width="44" height="4" rx="2" fill="${BODY}"/>
+    </g>`
+  }
   if (kind === 'mouse') {
     return `${g}
       <ellipse cx="60" cy="70" rx="34" ry="9" fill="${ACCENT}" opacity="0.3" stroke="none"/>
@@ -180,7 +189,7 @@ function showcase(w: number, h: number): string {
 function art(kind: Kind, w: number, h: number, desc: string): string {
   const accent = kind === 'case' ? ACCENT2 : ACCENT
   const bodyMarkup =
-    kind === 'mouse' || kind === 'keyboard' || kind === 'headset' || kind === 'pad'
+    kind === 'monitor' || kind === 'mouse' || kind === 'keyboard' || kind === 'headset' || kind === 'pad'
       ? device(kind, w, h)
       : kind === 'scene'
         ? scene(w, h)
@@ -225,7 +234,9 @@ const SQ = 1000
  * 格式：交付物｜主体与机位｜构图｜光线｜色调｜背景｜比例。
  * 产品列表 / 重点产品卡（4:3）与详情页相册（1:1）共用此基调，仅加注用途 / 视角。
  */
-const DEVICE_DESC: Record<'mouse' | 'keyboard' | 'headset' | 'pad', string> = {
+const DEVICE_DESC: Record<'monitor' | 'mouse' | 'keyboard' | 'headset' | 'pad', string> = {
+  monitor:
+    'OLED 电竞显示器 · 产品实拍｜暗色影棚哑光台面，正面略俯视展露窄边框与支架｜居中、下身柔投影与轻微倒影｜顶侧逆光 + 屏幕微光｜深蓝黑底 + 品牌蓝 / 青高光｜无缝影棚背景',
   mouse:
     '旗舰无线电竞鼠标 · 产品实拍｜暗色影棚哑光台面，产品 3/4 侧视置于台面｜居中、下身柔投影与轻微倒影｜顶侧逆光 + 边缘勾光｜深蓝黑底 + 品牌蓝 / 青高光｜无缝影棚背景',
   keyboard:
@@ -311,18 +322,19 @@ export const MEDIA = {
 
   /** 产品列表 / 重点产品卡（按产品 id，4:3） */
   product: {
-    'gh-m900-pro': art('mouse', W43, H43, `${DEVICE_DESC.mouse}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-m700': art('mouse', W43, H43, `${DEVICE_DESC.mouse}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-m500': art('mouse', W43, H43, `${DEVICE_DESC.mouse}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-k870': art('keyboard', W43, H43, `${DEVICE_DESC.keyboard}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-k650': art('keyboard', W43, H43, `${DEVICE_DESC.keyboard}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-h500': art('headset', W43, H43, `${DEVICE_DESC.headset}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-h300': art('headset', W43, H43, `${DEVICE_DESC.headset}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
-    'gh-p400': art('pad', W43, H43, `${DEVICE_DESC.pad}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-54027x1qe': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-28027x1qe': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-32x1ue': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-27x1u': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-27q1f': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-24h1': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-25s1fp': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
+    'gh-arm01': art('pad', W43, H43, `${DEVICE_DESC.pad}｜用途：产品列表 / 重点产品卡缩略图｜4:3`),
   } as Record<string, string>,
 
   /** 产品详情相册（按设备类型给 4 个机位，1:1） */
   views: {
+    monitor: VIEW_ANGLES.map((a) => art('monitor', SQ, SQ, `${DEVICE_DESC.monitor}｜相册机位：${a}｜1:1`)),
     mouse: VIEW_ANGLES.map((a) => art('mouse', SQ, SQ, `${DEVICE_DESC.mouse}｜相册机位：${a}｜1:1`)),
     keyboard: VIEW_ANGLES.map((a) => art('keyboard', SQ, SQ, `${DEVICE_DESC.keyboard}｜相册机位：${a}｜1:1`)),
     headset: VIEW_ANGLES.map((a) => art('headset', SQ, SQ, `${DEVICE_DESC.headset}｜相册机位：${a}｜1:1`)),

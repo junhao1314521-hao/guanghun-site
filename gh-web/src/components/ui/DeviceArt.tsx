@@ -2,13 +2,22 @@
  * 产品 / 场景矢量占位图。
  * 素材未到位时替代真实图片，保持视觉完整（非破图）；上线前由真实素材替换。
  */
-export type DeviceVariant = 'mouse' | 'keyboard' | 'headset' | 'pad'
+export type DeviceVariant = 'monitor' | 'mouse' | 'keyboard' | 'headset' | 'pad'
 
 type Props = { variant: DeviceVariant; className?: string; label?: string }
 
 export function DeviceArt({ variant, className = 'dev', label = '产品图' }: Props) {
   return (
     <svg className={className} viewBox="0 0 120 90" role="img" aria-label={label}>
+      {variant === 'monitor' && (
+        <>
+          <ellipse className="dev-glow" cx="60" cy="82" rx="30" ry="6" />
+          <rect className="dev-body" x="12" y="14" width="96" height="58" rx="7" />
+          <rect className="dev-edge" x="18" y="20" width="84" height="46" rx="3" />
+          <rect className="dev-accent" x="54" y="72" width="12" height="8" rx="1.5" />
+          <rect className="dev-body" x="38" y="80" width="44" height="4" rx="2" />
+        </>
+      )}
       {variant === 'mouse' && (
         <>
           <ellipse className="dev-glow" cx="60" cy="70" rx="34" ry="9" />

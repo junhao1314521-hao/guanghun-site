@@ -42,7 +42,7 @@ const get = (path: string, init?: RequestInit) => fetch(base + path, init)
 /** 核心端点 → 期望的顶层键（键名严格对齐契约，勿统一大小写） */
 const ENDPOINTS: Array<{ path: string; keys: string[] }> = [
   { path: '/api/products', keys: ['items', 'total'] },
-  { path: '/api/products/gh-m900-pro', keys: ['id', 'model'] },
+  { path: '/api/products/gh-54027x1qe', keys: ['id', 'model'] },
   { path: '/api/search', keys: ['items', 'counts'] },
   { path: '/api/ladder', keys: ['metrics', 'meta'] },
   { path: '/api/legal', keys: [] },

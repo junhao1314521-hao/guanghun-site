@@ -1,10 +1,11 @@
-/** 产品列表页数据：型号、价格与库存状态均为占位示例，由商品接口层替换 */
+/** 产品列表页数据（前端镜像，与 gh-server 的 products.ts 同源）：光魂 OLED 电竞显示器 + 少量周边 */
 import type { DeviceVariant } from '../components/ui/DeviceArt'
 
-export type ProductCategory = '鼠标' | '键盘' | '耳机' | '配件'
-export type ProductConnection = '有线' | '无线' | '三模'
+export type ProductCategory = 'OLED旗舰' | '双模高刷' | '电竞IPS' | '周边'
+/** 视频接口规格（显示器主接口） */
+export type ProductConnection = 'DP 2.1' | 'HDMI 2.1' | 'USB-C'
 
-/** 结构化参数项（如 传感器型号 / 回报率 / 按键数 / 兼容系统） */
+/** 结构化参数项（面板 / 分辨率 / 刷新率 / 响应时间 / 亮度 / 接口等） */
 export type ProductAttribute = { label: string; value: string }
 
 export type Product = {
@@ -28,7 +29,7 @@ export type Product = {
   stock?: number
   /** 卖点 / 亮点列表 */
   features?: string[]
-  /** 结构化参数（传感器/DPI/回报率/按键数/尺寸等） */
+  /** 结构化参数（面板 / 分辨率 / 刷新率 / 响应时间 / 亮度 / 接口等） */
   attributes?: ProductAttribute[]
   /** 包装清单 */
   inBox?: string[]
@@ -41,28 +42,48 @@ export type Product = {
 }
 
 export const PRODUCTS: Product[] = [
-  { id: 'gh-m900-pro', model: 'GH-M900 PRO', name: '无线电竞鼠标', category: '鼠标', connection: '无线', specs: ['26,000 DPI', '58 g'], status: { level: 'success', text: '在售' }, price: '¥899', priceValue: 899, releasedAt: '2026-09-12', variant: 'mouse', flag: '旗舰' },
-  { id: 'gh-m700', model: 'GH-M700', name: '有线电竞鼠标', category: '鼠标', connection: '有线', specs: ['20,000 DPI', '62 g'], status: { level: 'success', text: '在售' }, price: '¥379', priceValue: 379, releasedAt: '2026-05-20', variant: 'mouse' },
-  { id: 'gh-m500', model: 'GH-M500', name: '轻量电竞鼠标', category: '鼠标', connection: '有线', specs: ['18,000 DPI', '48 g'], status: { level: 'success', text: '在售' }, price: '¥299', priceValue: 299, releasedAt: '2026-03-08', variant: 'mouse' },
-  { id: 'gh-k870', model: 'GH-K870', name: '三模机械键盘', category: '键盘', connection: '三模', specs: ['87 键', '三模'], status: { level: 'success', text: '在售' }, price: '¥649', priceValue: 649, releasedAt: '2026-07-02', variant: 'keyboard' },
-  { id: 'gh-k650', model: 'GH-K650', name: '紧凑机械键盘', category: '键盘', connection: '无线', specs: ['65% 配列', '无线'], status: { level: 'warning', text: '缺货' }, price: '¥459', priceValue: 459, releasedAt: '2026-01-15', variant: 'keyboard' },
-  { id: 'gh-h500', model: 'GH-H500', name: '电竞头戴耳机', category: '耳机', connection: '无线', specs: ['50 mm', '2.4 G'], status: { level: 'success', text: '在售' }, price: '¥529', priceValue: 529, releasedAt: '2026-06-11', variant: 'headset' },
-  { id: 'gh-h300', model: 'GH-H300', name: '轻量电竞耳机', category: '耳机', connection: '有线', specs: ['40 mm', '有线'], status: { level: 'success', text: '在售' }, price: '¥259', priceValue: 259, releasedAt: '2025-11-28', variant: 'headset' },
-  { id: 'gh-p400', model: 'GH-P400', name: '超大鼠标垫', category: '配件', specs: ['900×400', '防泼水'], status: { level: 'success', text: '在售' }, price: '¥129', priceValue: 129, releasedAt: '2025-09-30', variant: 'pad' },
+  {
+    id: 'gh-54027x1qe', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED显示器', category: 'OLED旗舰', connection: 'DP 2.1',
+    specs: ['26.5 英寸', '2K 540Hz', '0.03 ms', 'W-OLED'], status: { level: 'success', text: '在售' },
+    price: '¥4,999', priceValue: 4999, releasedAt: '2026-09-20', variant: 'monitor', flag: '旗舰',
+    tagline: '26.5 英寸 2K@540Hz · 第四代 W-OLED · 0.03 ms GTG 响应',
+    features: ['第四代 W-OLED 面板，2K 540Hz 满速刷新', '0.03 ms GTG 灰阶响应，告别拖影', '368 万像素级控光，原生 100 万:1 对比度', '满速 DP 2.1（80 Gbps）· 原厂石墨烯散热', 'CNC 阳极氧化铝背板 · AR 光面抗反涂层', '三年质保，含 OLED 烧屏保护'],
+    attributes: [
+      { label: '面板', value: '第四代 W-OLED' },
+      { label: '尺寸 / 分辨率', value: '26.5 英寸 · 2560×1440' },
+      { label: '刷新率', value: '540 Hz' },
+      { label: '响应时间', value: '0.03 ms (GTG)' },
+      { label: '对比度', value: '1,000,000:1' },
+      { label: '色域', value: '99% DCI-P3 · 原生 10bit' },
+      { label: '接口', value: 'DP 2.1 (UHBR20) · HDMI 2.1 · USB-C' },
+      { label: '同步技术', value: 'G-SYNC 兼容 · FreeSync · VRR+' },
+    ],
+    inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
+    warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
+    os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
+    weight: 6500,
+  },
+  { id: 'gh-28027x1qe', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED显示器', category: 'OLED旗舰', connection: 'DP 2.1', specs: ['26.5 英寸', '2K 280Hz', '1500 nit', 'W-OLED'], status: { level: 'success', text: '在售' }, price: '¥2,699', priceValue: 2699, releasedAt: '2026-08-15', variant: 'monitor', flag: '热销' },
+  { id: 'gh-32x1ue', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞显示器', category: '双模高刷', connection: 'DP 2.1', specs: ['31.5 英寸', '4K@165 / FHD@330', 'META OLED'], status: { level: 'success', text: '在售' }, price: '¥5,499', priceValue: 5499, releasedAt: '2026-09-05', variant: 'monitor', flag: '双模' },
+  { id: 'gh-27x1u', model: '27X1U', name: '27 英寸 2K OLED 显示器', category: '双模高刷', connection: 'DP 2.1', specs: ['27 英寸', '2K 240Hz', 'QD-OLED'], status: { level: 'success', text: '在售' }, price: '¥2,199', priceValue: 2199, releasedAt: '2026-06-18', variant: 'monitor' },
+  { id: 'gh-27q1f', model: '27Q1F', name: '27 英寸 2K 电竞显示器', category: '电竞IPS', connection: 'HDMI 2.1', specs: ['27 英寸', '2K 200Hz', 'Fast IPS'], status: { level: 'success', text: '在售' }, price: '¥1,299', priceValue: 1299, releasedAt: '2026-04-10', variant: 'monitor' },
+  { id: 'gh-24h1', model: '24H1', name: '24 英寸 200Hz 电竞显示器', category: '电竞IPS', connection: 'HDMI 2.1', specs: ['23.8 英寸', 'FHD 200Hz', 'HDR400'], status: { level: 'success', text: '在售' }, price: '¥799', priceValue: 799, releasedAt: '2026-02-26', variant: 'monitor', flag: '入门' },
+  { id: 'gh-25s1fp', model: '25S1FP', name: '24.5 英寸 高刷电竞显示器', category: '电竞IPS', connection: 'HDMI 2.1', specs: ['24.5 英寸', 'FHD 240Hz', 'IPS'], status: { level: 'warning', text: '缺货' }, price: '¥999', priceValue: 999, releasedAt: '2025-12-08', variant: 'monitor' },
+  { id: 'gh-arm01', model: 'GH-ARM01', name: '显示器悬臂支架', category: '周边', specs: ['单臂', '承重 9 kg', 'VESA 75/100'], status: { level: 'success', text: '在售' }, price: '¥299', priceValue: 299, releasedAt: '2026-05-20', variant: 'pad' },
 ]
 
 /** 筛选与排序选项 */
-export const CATEGORY_FILTERS: Array<'全部' | ProductCategory> = ['全部', '鼠标', '键盘', '耳机', '配件']
-export const CONNECTION_FILTERS: ProductConnection[] = ['有线', '无线', '三模']
+export const CATEGORY_FILTERS: Array<'全部' | ProductCategory> = ['全部', 'OLED旗舰', '双模高刷', '电竞IPS', '周边']
+export const CONNECTION_FILTERS: ProductConnection[] = ['DP 2.1', 'HDMI 2.1', 'USB-C']
 export const SORT_OPTIONS = ['综合排序', '价格从低到高', '价格从高到低', '上新时间']
 
 /** 更多筛选：价格区间（元） */
 export type PriceRange = { id: string; label: string; min: number; max: number }
 export const PRICE_RANGES: PriceRange[] = [
   { id: 'all', label: '不限', min: 0, max: Infinity },
-  { id: 'lt300', label: '300 元以下', min: 0, max: 299 },
-  { id: '300-600', label: '300–600 元', min: 300, max: 600 },
-  { id: 'gt600', label: '600 元以上', min: 601, max: Infinity },
+  { id: 'lt1000', label: '1000 元以下', min: 0, max: 999 },
+  { id: '1000-3000', label: '1000–3000 元', min: 1000, max: 3000 },
+  { id: 'gt3000', label: '3000 元以上', min: 3001, max: Infinity },
 ]
 
 /** 更多筛选：库存状态 */
@@ -100,41 +121,42 @@ export type ProductDetail = {
   weight?: number
 }
 
-/** 详情页占位数据（以旗舰无线电竞鼠标为完整示例，其余型号复用同一结构） */
+/** 详情页占位数据（以旗舰 540Hz OLED 为完整示例，其余型号复用同一结构） */
 export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
-  'gh-m900-pro': {
-    id: 'gh-m900-pro',
-    model: 'GH-M900 PRO',
-    name: '无线电竞鼠标',
-    badges: ['旗舰', '无线 · 2.4 G'],
+  'gh-54027x1qe': {
+    id: 'gh-54027x1qe',
+    model: '54027X1QE-W54',
+    name: '闪电 540Hz 电竞OLED显示器',
+    badges: ['旗舰', 'W-OLED · DP 2.1'],
     status: { level: 'success', text: '在售' },
-    price: '¥899',
-    tag: '旗舰',
+    price: '¥4,999',
+    tag: 'OLED旗舰',
     summary: [
       {
         title: '标称参数（厂商公布）',
         rows: [
-          { label: '最高分辨率', value: '26,000 DPI' },
-          { label: '最大加速度', value: '50 G' },
-          { label: '整机重量', value: '58 g' },
+          { label: '刷新率', value: '540 Hz' },
+          { label: '响应时间', value: '0.03 ms (GTG)' },
+          { label: '对比度', value: '1,000,000:1' },
         ],
       },
       {
-        title: '实测参数（光魂实验室 · 2026-09-18 · n=5）',
+        title: '实测参数（小雪人评测实验室 · 2026-09-25 · n=3）',
         rows: [
-          { label: '端到端延迟', value: '0.6 ms' },
-          { label: '续航（1000 Hz）', value: '120 h' },
-          { label: '传感器偏移', value: '未测量', missing: true },
+          { label: 'HDR 峰值亮度', value: '1,320 nit' },
+          { label: 'SDR 亮度', value: '468 nit' },
+          { label: '运动响应 BET', value: '1.8 ms' },
+          { label: '均匀度（9 点）', value: '未测量', missing: true },
         ],
       },
     ],
     specTable: [
-      { name: '分辨率', nominal: '26,000 DPI', measured: '25,980 DPI', note: '偏差 0.08%' },
-      { name: '最大加速度', nominal: '50 G', measured: '49.6 G', note: '—' },
-      { name: '整机重量', nominal: '58 g', measured: '57.9 g', note: '不含线材' },
-      { name: '端到端延迟', nominal: '—', measured: '0.6 ms', note: '1000 Hz 上报' },
-      { name: '续航', nominal: '130 h', measured: '120 h', note: '1000 Hz 实测' },
-      { name: '传感器偏移', nominal: '—', measured: '未测量', note: '测试方法审核中', missing: true },
+      { name: '刷新率', nominal: '540 Hz', measured: '540 Hz', note: 'DP 2.1 满速下达成' },
+      { name: '响应时间', nominal: '0.03 ms', measured: '0.04 ms (GTG)', note: '过驱档位「标准」' },
+      { name: 'HDR 峰值亮度', nominal: '1500 nit', measured: '1,320 nit', note: '10% 窗口' },
+      { name: '色域容积', nominal: '99% DCI-P3', measured: '97.6% DCI-P3', note: '实测色域容积' },
+      { name: '对比度', nominal: '1,000,000:1', measured: '∞', note: 'OLED 纯黑，仪器底噪以下' },
+      { name: '均匀度（9 点）', nominal: '—', measured: '未测量', note: '测试方法审核中', missing: true },
     ],
     tabs: ['参数规格', '测试记录', '评测文章', '下载资料'],
   },

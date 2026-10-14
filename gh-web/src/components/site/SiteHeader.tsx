@@ -181,6 +181,11 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                 onClick={openIfMenu}
               >
                 {item.label}
+                {item.badge && (
+                  <span className={`nav-badge nav-badge--${item.badge}${item.badgeShake ? ' nav-badge--shake' : ''}`}>
+                    {item.badge.toUpperCase()}
+                  </span>
+                )}
               </Link>
             )
           })}

@@ -38,10 +38,13 @@ function LinkListEditor({
   links,
   onChange,
   addLabel,
+  showBadge = false,
 }: {
   links: SiteLink[]
   onChange: (links: SiteLink[]) => void
   addLabel: string
+  /** 是否显示「角标」配置（仅主导航需要） */
+  showBadge?: boolean
 }) {
   const update = (index: number, patch: Partial<SiteLink>) => {
     const next = links.slice()
@@ -53,7 +56,7 @@ function LinkListEditor({
     <div className="site-links">
       {links.length === 0 && <span className="field__hint">暂无链接，点击下方「{addLabel}」添加。</span>}
       {links.map((link, index) => (
-        <div className="site-link" key={index}>
+        <div className={`site-link${showBadge ? ' site-link--badge' : ''}`} key={index}>
           <input
             className="input"
             type="text"
@@ -68,6 +71,32 @@ function LinkListEditor({
             value={link.href}
             onChange={(event) => update(index, { href: event.target.value })}
           />
+          {showBadge && (
+            <span className="site-link__badge">
+              <select
+                className="select"
+                aria-label="入口角标"
+                value={link.badge ?? ''}
+                onChange={(event) => {
+                  const value = event.target.value as '' | 'new' | 'hot'
+                  update(index, { badge: value === '' ? undefined : value, ...(value === '' ? { badgeShake: undefined } : {}) })
+                }}
+              >
+                <option value="">无角标</option>
+                <option value="new">NEW</option>
+                <option value="hot">HOT</option>
+              </select>
+              <label className="site-link__shake">
+                <input
+                  type="checkbox"
+                  checked={Boolean(link.badgeShake)}
+                  disabled={!link.badge}
+                  onChange={(event) => update(index, { badgeShake: event.target.checked })}
+                />
+                摇动
+              </label>
+            </span>
+          )}
           <div className="site-link__actions">
             <button
               type="button"
@@ -263,8 +292,9 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </div>
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
             顶栏导航链接列表：顺序即展示顺序，「名称」为展示文案，「链接」为前台路径（如 /products）。
+            可给入口加 NEW / HOT 角标，并让角标隔几秒摇动一下以吸引注意。
           </p>
-          <LinkListEditor links={site.nav} onChange={setNav} addLabel="新增导航链接" />
+          <LinkListEditor links={site.nav} onChange={setNav} addLabel="新增导航链接" showBadge />
         </section>
 
         <section className="admin-panel">

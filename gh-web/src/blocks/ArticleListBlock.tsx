@@ -82,6 +82,9 @@ function NewsRows({ items }: { items: NewsItem[] }) {
     <div className="news-list reveal">
       {items.map((item) => (
         <Link className="news-row" to={item.href ?? '/articles'} key={`${item.date}-${item.title}`}>
+          <span className="news-row__thumb">
+            <MediaImg src={articleCoverSrc(item.cover ?? '', item.coverImage)} alt="" />
+          </span>
           <span className="news-row__date">{item.date}</span>
           <span className="tag">{item.tag}</span>
           <span className="news-row__title">{item.title}</span>

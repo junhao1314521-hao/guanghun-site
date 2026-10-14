@@ -42,10 +42,10 @@ const SITE: SiteConfig = {
   nav: [
     { label: '产品', href: '/products' },
     { label: 'Center', href: '/center' },
-    { label: '天梯榜', href: '/ladder' },
+    { label: '天梯榜', href: '/ladder', badge: 'hot', badgeShake: true },
     { label: '文章', href: '/articles' },
     { label: '服务支持', href: '/support' },
-    { label: '商业合作', href: '/business' },
+    { label: '商业合作', href: '/business', badge: 'new', badgeShake: true },
     { label: '关于光魂', href: '/about' },
   ],
   footer: [
@@ -88,10 +88,10 @@ const SITE: SiteConfig = {
  * key = 产品 id，媒体地址沿用 `/media/products/<id>.svg` 占位，字段支持 image/video/gif。
  */
 const SHOWCASE_COPY: Record<string, string> = {
-  'gh-m900-pro': '旗舰无线电竞鼠标，58 克轻量机身与 0.6 ms 端到端延迟，兼顾续航与手感。',
-  'gh-k870': '87 键三模机械键盘，全键热插拔与低延迟无线连接，长期输入依然稳定。',
-  'gh-h500': '50 mm 大单元电竞耳机，7.1 声道与 2.4 G 低延迟，听声辨位更从容。',
-  'gh-p400': '900×400 超大鼠标垫，防泼水面料与 3 mm 厚度，为大幅度操作留足空间。',
+  'gh-54027x1qe': '闪电序列旗舰：26.5 英寸 2K@540Hz，第四代 W-OLED 面板与 0.03 ms 灰阶响应。',
+  'gh-32x1ue': 'Meta 双模切换：4K@165Hz 与 FHD@330Hz 一机两用，进口 LG META OLED 面板。',
+  'gh-28027x1qe': '26.5 英寸 2K@280Hz，1500 nit 峰值亮度与 368 万像素级控光，平民超跑。',
+  'gh-27q1f': '27 英寸 2K 200Hz Fast IPS，HDR 与广色域兼得的高性价比电竞之选。',
 }
 
 /** 首页：首屏轮播 → 场景 → 重点产品（通栏展示） → 天梯榜 → 评测 → 品牌 → 服务 → 合作 → 新闻 */
@@ -119,7 +119,7 @@ function buildHome(): Page {
       type: 'cards',
       props: {
         title: '按场景选择',
-        subtitle: '从电竞对战到内容创作，按使用场景组合你的外设。',
+        subtitle: '从电竞对战到内容创作，按使用场景组合你的显示方案。',
         ctaLabel: '浏览全部产品',
         ctaHref: '/products',
         layout: 'rail',
@@ -600,9 +600,9 @@ function buildProducts(): Page {
     // 全部产品（带筛选/排序）——productGrid 的范围/呈现/字段全部可配（见后台装修器）
     { type: 'productGrid', props: { title: '全部产品', scope: 'all', limit: 24, columns: 3 } },
     // 样板：手动挑选（挑具体几个产品，顺序即展示顺序）
-    { type: 'productGrid', props: { title: '编辑精选组合', subtitle: '手动挑选的具体型号，顺序可调。', scope: 'manual', ids: ['gh-m900-pro', 'gh-k870', 'gh-h500', 'gh-p400'], limit: 8, columns: 4, showFilter: false } },
+    { type: 'productGrid', props: { title: '编辑精选组合', subtitle: '手动挑选的具体型号，顺序可调。', scope: 'manual', ids: ['gh-54027x1qe', 'gh-32x1ue', 'gh-28027x1qe', 'gh-27q1f'], limit: 8, columns: 4, showFilter: false } },
     // 样板：按分类——只挑一个品类
-    { type: 'productGrid', props: { title: '电竞鼠标', subtitle: '只展示「鼠标」分类的全部型号。', scope: 'category', category: '鼠标', limit: 6, columns: 3, showFilter: false } },
+    { type: 'productGrid', props: { title: 'OLED 旗舰', subtitle: '只展示「OLED旗舰」分类的全部型号。', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false } },
   ])
 }
 

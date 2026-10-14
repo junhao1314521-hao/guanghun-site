@@ -83,6 +83,23 @@ export function deleteAdminResource(key: string, id: string): Promise<{ ok: bool
   )
 }
 
+/* ---------------- 法律条款 · Word 导入 ---------------- */
+
+/** 解析结果（与后端 ParsedLegalDoc 一致） */
+export type ParsedLegalDoc = {
+  title: string
+  eyebrow: string
+  intro: string
+  sections: Array<{ heading: string; body: string }>
+}
+
+/** 解析 Word（.docx/.docm/.dotx，base64）：POST /api/admin/legal/parse（仅解析，不落库） */
+export function parseLegalDoc(filename: string, data: string): Promise<{ doc: ParsedLegalDoc }> {
+  return transport({ path: '/api/admin/legal/parse', method: 'POST', body: { filename, data }, token: getAdminToken() ?? undefined }, () => {
+    throw new ApiError('解析接口不可用', 503)
+  })
+}
+
 /** 数据分析：GET /api/admin/analytics/:scope */
 export function fetchAdminAnalytics(scope: string, signal?: AbortSignal): Promise<AdminAnalytics> {
   return transport({ path: `/api/admin/analytics/${scope}`, signal, token: getAdminToken() ?? undefined }, () => {

@@ -49,7 +49,7 @@ export type ArticleDetail = ArticleSummary & {
   related: ArticleSummary[]
 }
 
-export type NewsItem = { date: string; tag: string; title: string; href?: string }
+export type NewsItem = { date: string; tag: string; title: string; href?: string; cover?: string; coverImage?: string }
 
 export const ARTICLES: ArticleSummary[] = [
   {
@@ -402,7 +402,14 @@ const NEWS_ARTICLE_IDS = [
 export function buildNews(articles: ArticleSummary[]): NewsItem[] {
   return NEWS_ARTICLE_IDS.map((id) => articles.find((item) => item.id === id))
     .filter((item): item is ArticleSummary => item !== undefined && (item.status ?? '已发布') === '已发布')
-    .map((item) => ({ date: item.date, tag: item.categoryLabel, title: item.title, href: `/articles/${item.id}` }))
+    .map((item) => ({
+      date: item.date,
+      tag: item.categoryLabel,
+      title: item.title,
+      href: `/articles/${item.id}`,
+      cover: item.cover,
+      ...(item.coverImage ? { coverImage: item.coverImage } : {}),
+    }))
 }
 
 /** 详情合并：摘要 + 小节正文，并按同分类优先挑选 3 篇相关阅读（摘要来自集合存储） */

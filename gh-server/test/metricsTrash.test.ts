@@ -95,7 +95,7 @@ describe('数据分析：公开埋点 → 真实统计（traffic / downloads）'
 
   it('上报 view 后 traffic 的 PV / 今日浏览 / 热门页面随之变化', async () => {
     for (let i = 0; i < 3; i += 1) {
-      const res = await track('view', { path: '/products/gh-m900-pro' })
+      const res = await track('view', { path: '/products/gh-54027x1qe' })
       assert.equal(res.status, 200)
     }
     await track('view', { path: '/' })
@@ -104,8 +104,8 @@ describe('数据分析：公开埋点 → 真实统计（traffic / downloads）'
     assert.equal(summaryValue(traffic, 'pv'), 4, 'PV 应等于上报次数')
     assert.equal(summaryValue(traffic, 'today'), 4, '今日浏览应为 4')
     assert.equal(summaryValue(traffic, 'pages'), 2, '覆盖页面应为 2 个不同路径')
-    // 热门页面 TOP：/products/gh-m900-pro 出现 3 次
-    const topRow = traffic.rows.find((row) => row[0] === '/products/gh-m900-pro')
+    // 热门页面 TOP：/products/gh-54027x1qe 出现 3 次
+    const topRow = traffic.rows.find((row) => row[0] === '/products/gh-54027x1qe')
     assert.ok(topRow, '热门页面应含该路径')
     assert.equal(topRow[1], 3)
     // 当日序列之和 = 今日浏览
@@ -183,7 +183,7 @@ describe('回收站：软删除 / 恢复 / 彻底删除（集合记录 + 前台�
   })
 
   it('恢复时原 id 被占用 → 409（不覆盖）', async () => {
-    const targetId = 'gh-k870'
+    const targetId = 'gh-28027x1qe'
     assert.equal(
       (await get(`/api/admin/resources/products/${targetId}`, { method: 'DELETE', headers: auth(adminToken) })).status,
       200,
@@ -213,7 +213,7 @@ describe('回收站：软删除 / 恢复 / 彻底删除（集合记录 + 前台�
   })
 
   it('彻底删除 → 回收站不再含该条目', async () => {
-    const targetId = 'gh-h500'
+    const targetId = 'gh-32x1ue'
     await get(`/api/admin/resources/products/${targetId}`, { method: 'DELETE', headers: auth(adminToken) })
     let trash = (await (await get('/api/admin/resources/trash', { headers: auth(adminToken) })).json()) as TrashList
     const entry = trash.items.find((item) => item.key === 'products' && item.recordId === targetId)
@@ -232,7 +232,7 @@ describe('回收站：软删除 / 恢复 / 彻底删除（集合记录 + 前台�
   })
 
   it('软删除 / 恢复 / 彻底删除均写审计', async () => {
-    const targetId = 'gh-m700'
+    const targetId = 'gh-27x1u'
     await get(`/api/admin/resources/products/${targetId}`, { method: 'DELETE', headers: auth(adminToken) })
     let trash = (await (await get('/api/admin/resources/trash', { headers: auth(adminToken) })).json()) as TrashList
     const entry = trash.items.find((item) => item.key === 'products' && item.recordId === targetId)

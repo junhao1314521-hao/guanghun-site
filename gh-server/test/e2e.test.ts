@@ -66,8 +66,8 @@ describe('端到端：同源托管前端 + API', () => {
     assert.match(html, /type="module"/)
   })
 
-  it('SPA 深链 /products/gh-m900-pro → 200 且回退 index.html', async () => {
-    const res = await get('/products/gh-m900-pro', { headers: { Accept: 'text/html' } })
+  it('SPA 深链 /products/gh-54027x1qe → 200 且回退 index.html', async () => {
+    const res = await get('/products/gh-54027x1qe', { headers: { Accept: 'text/html' } })
     assert.equal(res.status, 200)
     assert.match(res.headers.get('content-type') ?? '', /text\/html/)
     assert.match(await res.text(), /<div id="root">/)

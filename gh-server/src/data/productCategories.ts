@@ -17,10 +17,10 @@ export type ProductCategoryItem = {
 }
 
 export const PRODUCT_CATEGORIES: ProductCategoryItem[] = [
-  { id: 'pc-mouse', name: '鼠标', code: 'mouse', count: 3, order: 1, status: '启用' },
-  { id: 'pc-keyboard', name: '键盘', code: 'keyboard', count: 2, order: 2, status: '启用' },
-  { id: 'pc-headset', name: '耳机', code: 'headset', count: 2, order: 3, status: '启用' },
-  { id: 'pc-accessory', name: '配件', code: 'accessory', count: 1, order: 4, status: '启用' },
+  { id: 'pc-oled', name: 'OLED旗舰', code: 'oled', count: 2, order: 1, status: '启用' },
+  { id: 'pc-dual', name: '双模高刷', code: 'dual', count: 2, order: 2, status: '启用' },
+  { id: 'pc-ips', name: '电竞IPS', code: 'ips', count: 3, order: 3, status: '启用' },
+  { id: 'pc-accessory', name: '周边', code: 'accessory', count: 1, order: 4, status: '启用' },
 ]
 
 /** 前台产品筛选项：启用中的分类名（按 order 升序） */

@@ -462,6 +462,16 @@
 }
 .contact-form { max-width: none; }
 .contact-form .form-grid-2 { gap: var(--gh-space-5); }
+/* contact 模块外壳：两种风格 —— soft 浅底浮卡（默认）/ bold 品牌色深色收口 */
+.contact-block { border-radius: var(--gh-radius-2xl); padding: clamp(var(--gh-space-6), 4vw, var(--gh-space-8)); }
+.contact-block--soft { background: var(--color-bg-subtle); border: 1px solid var(--color-border-subtle); }
+.contact-block--soft .contact-form { box-shadow: var(--shadow-lg); }
+.contact-block--bold { background: linear-gradient(140deg, var(--gh-neutral-950) 0%, var(--gh-blue-700) 100%); }
+.contact-block--bold .contact-split__title { color: var(--gh-neutral-50); }
+.contact-block--bold .contact-split__desc,
+.contact-block--bold .contact-points li { color: rgba(255, 255, 255, .82); }
+.contact-block--bold .field__hint { color: rgba(255, 255, 255, .66); }
+.contact-block--bold .contact-cta { border-color: rgba(255, 255, 255, .16); }
 
 /* overlay 卡：媒体铺满，文案浮于底部渐变遮罩之上（固定深色遮罩保证双主题对比度） */
 .blk-card {
@@ -562,12 +572,11 @@
 }
 .showcase__title { margin: 0; font-size: clamp(30px, 3.6vw, 46px); line-height: 1.08; font-weight: var(--gh-weight-semibold); letter-spacing: -.02em; color: var(--color-text-primary); max-width: 16ch; }
 .showcase__desc { margin: 0; max-width: 46ch; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-lg); line-height: 1.65; }
-/* 参数条：数值（等宽大号）+ 单位/标签（大写微字）+ 竖发丝分隔，与首屏规格条同语言 */
-.showcase__specs { list-style: none; margin: var(--gh-space-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; row-gap: var(--gh-space-4); }
-.showcase__specs li { padding: 0 var(--gh-space-5); border-left: 1px solid var(--color-border-default); }
+/* 参数条：每项统一字号与基线，竖发丝分隔（避免「数值/单位」断行、文字项与数字项轻重不一） */
+.showcase__specs { list-style: none; margin: var(--gh-space-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; row-gap: var(--gh-space-3); }
+.showcase__specs li { padding: 0 var(--gh-space-4); border-left: 1px solid var(--color-border-default); }
 .showcase__specs li:first-child { padding-left: 0; border-left: 0; }
-.showcase__spec-value { display: block; font-family: var(--gh-font-mono); font-size: clamp(20px, 1.8vw, 26px); line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--color-text-primary); }
-.showcase__spec-unit { display: block; margin-top: var(--gh-space-1); font-size: var(--gh-font-size-caption); letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-tertiary); }
+.showcase__spec { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-lg); line-height: 1.3; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
 .showcase__cta { margin-top: var(--gh-space-5); display: flex; align-items: center; gap: var(--gh-space-4); flex-wrap: wrap; }
 .showcase__link { display: inline-flex; align-items: center; gap: var(--gh-space-2); color: var(--color-text-secondary); font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium); text-decoration: none; transition: color .25s var(--gh-ease-standard); }
 .showcase__link:hover { color: var(--color-accent-text); }

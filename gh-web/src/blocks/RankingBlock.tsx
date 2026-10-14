@@ -30,12 +30,11 @@ const METRIC_ALIAS: Record<string, string> = {
   dpi: 'overall',
 }
 
-/** 导航菜单参数 → 榜单类型关键词（?type=mouse 等） */
+/** 导航菜单参数 → 榜单系列关键词（?type=oled 等，按型号名称匹配） */
 const TYPE_KEYWORDS: Record<string, string> = {
-  mouse: '鼠标',
-  keyboard: '键盘',
-  headset: '耳机',
-  accessory: '鼠标垫',
+  oled: 'OLED',
+  dual: '双模',
+  ips: 'IPS',
 }
 
 function matchesType(row: LadderRow, keyword?: string): boolean {

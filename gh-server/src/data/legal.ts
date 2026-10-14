@@ -83,24 +83,28 @@ export const LEGAL_DOCS: LegalDoc[] = [
     slug: 'cookies',
     title: 'Cookie 声明',
     eyebrow: 'LEGAL / COOKIES',
-    updated: '2026-10-11',
-    intro: '本页说明光魂使用哪些 Cookie 及类似技术、其用途为何，以及你如何管理与调整偏好。',
+    updated: '2026-10-14',
+    intro: '本页说明光魂网站在何种情况下使用 Cookie 及类似技术、其用途为何，以及你如何进行管理。',
     sections: [
       {
-        heading: '什么是 Cookie',
-        body: 'Cookie 是网站在你设备上存储的小型文本文件，用于记住你的偏好、维持登录状态，并帮助我们了解页面的使用情况。',
+        heading: '我们使用哪些 Cookie',
+        body: '本网站仅使用必要的会话 Cookie：用于维持后台管理端与账号的登录状态（分别名为 gh_admin 与 gh_user）。除登录所必需外，我们不设置统计、广告或第三方营销 Cookie。',
       },
       {
-        heading: '我们使用的 Cookie 类别',
-        body: '必要 Cookie 用于登录与安全；功能 Cookie 记忆主题与语言偏好；统计 Cookie 帮助我们改进页面；营销 Cookie 用于评估推广效果。必要 Cookie 无法关闭，其余类别可由你自行选择。',
+        heading: '这些 Cookie 的作用与属性',
+        body: '会话 Cookie 中仅存放一个随机生成的会话标识，对应的登录数据保存在服务端。Cookie 采用 httpOnly（页面脚本无法读取）、SameSite=Lax（防范跨站请求伪造）；在生产环境经 HTTPS 传输时附加 Secure 属性。',
       },
       {
-        heading: '第三方 Cookie',
-        body: '我们可能使用第三方统计与推广服务，其 Cookie 由相应服务商设置并受其隐私政策约束。我们不会向其提供可直接识别你个人身份的信息。',
+        heading: '不属于 Cookie 的本地存储',
+        body: '主题（明 / 暗）、界面语言、新手引导与后台界面偏好等，保存在浏览器的本地存储（localStorage）中，不作为 Cookie 发送，也不用于识别个人身份。',
       },
       {
-        heading: '如何管理偏好',
-        body: '你可以通过浏览器设置删除或阻止 Cookie，也可以在站内偏好面板中调整非必要类别。停用后，部分功能（如免登录与个性化推荐）可能无法正常使用。',
+        heading: '访问统计说明',
+        body: '我们通过自建的页面与下载埋点统计访问情况，该统计不依赖 Cookie，仅记录页面、来源与时间等汇总信息，不用于识别具体个人。',
+      },
+      {
+        heading: '如何管理',
+        body: '你可以通过浏览器设置随时删除或阻止 Cookie。请注意：由于本网站仅使用登录所必需的会话 Cookie，一旦阻止，将无法保持登录状态，账号与后台相关功能将不可用。',
       },
     ],
   },

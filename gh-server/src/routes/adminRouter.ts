@@ -32,6 +32,7 @@ import { readParam, requireSession, sessionToken } from '../middleware/adminAuth
 import { requireResourceScope, requireScope } from '../middleware/rbac'
 import { createRole, deleteRole, listRoles, updateRole } from '../data/roleStore'
 import { ALL_SCOPES } from '../data/roles'
+import { isSupportedLegalFile, parseLegalDoc } from '../data/legalImport'
 
 /**
  * 后台管理系统端点（挂载于 /api/admin）。
@@ -171,6 +172,44 @@ function buildOverview() {
     recent,
   }
 }
+
+/* ---------------- 法律条款 · Word 导入解析 ---------------- */
+
+/**
+ * POST /admin/legal/parse
+ * 请求体：{ filename: string, data: string }（data 为 base64，可由前端 FileReader 读得）。
+ * 返回：{ doc: { title, eyebrow, intro, sections } }（仅解析，不落库；由前端确认后保存）。
+ * 不支持：老式 .doc（二进制）——返回 415 提示「另存为 .docx」。
+ */
+adminRouter.post('/legal/parse', requireSession, requireScope('content'), async (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const filename = readString(body.filename)
+  const data = typeof body.data === 'string' ? body.data : ''
+  if (!filename || !data) {
+    res.status(400).json({ error: '请提供文件名与文件内容' })
+    return
+  }
+  if (!isSupportedLegalFile(filename)) {
+    res.status(415).json({ error: '仅支持 .docx / .docm / .dotx；老式 .doc 请先另存为 .docx' })
+    return
+  }
+  const buffer = Buffer.from(data, 'base64')
+  if (buffer.byteLength === 0) {
+    res.status(400).json({ error: '文件内容为空' })
+    return
+  }
+  if (buffer.byteLength > 8 * 1024 * 1024) {
+    res.status(413).json({ error: '文件过大（上限 8MB）' })
+    return
+  }
+  try {
+    const doc = await parseLegalDoc(buffer, filename)
+    appendAudit({ actor: actorOf(res), action: 'import-legal', target: `legal/${filename}`, ip: clientIp(req) })
+    res.json({ doc })
+  } catch {
+    res.status(422).json({ error: '无法解析该 Word 文档，请确认文件完整且为 .docx 格式' })
+  }
+})
 
 /* ---------------- 角色与权限（可新建 / 编辑 / 删除） ---------------- */
 

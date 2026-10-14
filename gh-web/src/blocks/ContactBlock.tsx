@@ -222,11 +222,19 @@ export function ContactBlock({ props }: { props: Record<string, unknown> }) {
   const desc = asString(props.desc)
   const channel = asString(props.channel, 'inquiry')
   const showForm = asBool(props.showForm)
+  // 模块样式：soft=浅底浮卡（默认）；bold=品牌色深色收口（文字反白）
+  const variant = asString(props.variant, 'soft') === 'bold' ? 'bold' : 'soft'
   // 左栏要点：可用 props.points 覆盖，缺省按渠道给出
   const configuredPoints = asStringArray(props.points)
   const points = configuredPoints.length > 0 ? configuredPoints : DEFAULT_POINTS[channel] ?? DEFAULT_POINTS.inquiry
+  const blockClass = `contact-block contact-block--${variant}`
 
-  if (showForm) return <ContactForm title={title} desc={desc} points={points} />
+  if (showForm)
+    return (
+      <div className={blockClass}>
+        <ContactForm title={title} desc={desc} points={points} />
+      </div>
+    )
 
   const primary =
     channel === 'business'
@@ -234,25 +242,27 @@ export function ContactBlock({ props }: { props: Record<string, unknown> }) {
       : { label: '提交咨询', href: '/inquiry' }
 
   return (
-    <div
-      className="card reveal"
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--gh-space-5)', flexWrap: 'wrap' }}
-    >
-      <div>
-        {title && (
-          <h2 className="card__title" style={{ marginBottom: 'var(--gh-space-1)' }}>
-            {title}
-          </h2>
-        )}
-        {desc && <p className="card__desc">{desc}</p>}
-      </div>
-      <div className="row">
-        <Link className="btn btn--primary is-magnetic" to={primary.href}>
-          {primary.label}
-        </Link>
-        <Link className="btn btn--secondary" to="/faq">
-          常见问题
-        </Link>
+    <div className={blockClass}>
+      <div
+        className="card reveal contact-cta"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--gh-space-5)', flexWrap: 'wrap' }}
+      >
+        <div>
+          {title && (
+            <h2 className="card__title" style={{ marginBottom: 'var(--gh-space-1)' }}>
+              {title}
+            </h2>
+          )}
+          {desc && <p className="card__desc">{desc}</p>}
+        </div>
+        <div className="row">
+          <Link className="btn btn--primary is-magnetic" to={primary.href}>
+            {primary.label}
+          </Link>
+          <Link className="btn btn--secondary" to="/faq">
+            常见问题
+          </Link>
+        </div>
       </div>
     </div>
   )

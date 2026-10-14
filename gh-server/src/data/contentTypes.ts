@@ -107,8 +107,9 @@ export type BlockTypeMeta = {
   enabled?: boolean
 }
 
-/** 站点链接（导航 / 页脚复用；契约 §6.1 的 { nav, footer }） */
-export type SiteLink = { label: string; href: string }
+/** 站点链接（导航 / 页脚复用；契约 §6.1 的 { nav, footer }）
+ *  扩展字段：`badge` 为入口右上角角标（new / hot），`badgeShake` 控制其是否摇动。 */
+export type SiteLink = { label: string; href: string; badge?: 'new' | 'hot'; badgeShake?: boolean }
 
 /** 页脚分组 */
 export type SiteFooterGroup = { title: string; links: SiteLink[] }

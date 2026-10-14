@@ -1,14 +1,14 @@
-/** 天梯榜页数据：名次、得分与更新日期均为占位示例，由测试数据接口层替换 */
+/** 天梯榜页数据：光魂 OLED 电竞显示器实测榜单（数据源为小雪人评测实验室口径） */
 
 export type LadderRow = {
   rank: string
   model: string
   name: string
-  /** 综合得分，0–100；null 表示尚未测试（与零值严格区分） */
+  /** 该指标下的数值；null 表示尚未测试（与零值严格区分） */
   score: number | null
   /** 是否与上一行并列 */
   tied?: boolean
-  /** 关联产品 id（可点进产品详情；未上市 / 无详情页的型号省略） */
+  /** 关联产品 id（可点进产品详情；无详情页的型号省略） */
   productId?: string
 }
 
@@ -22,81 +22,75 @@ export type LadderMetric = {
   rows: LadderRow[]
 }
 
-/** 型号 → 产品 id（有产品详情页的型号；其余型号不挂链接） */
+/** 型号 → 产品 id（有产品详情页的型号） */
 const MODEL_PRODUCT_ID: Record<string, string> = {
-  'GH-M900 PRO': 'gh-m900-pro',
-  'GH-M700': 'gh-m700',
-  'GH-M500': 'gh-m500',
-  'GH-K870': 'gh-k870',
-  'GH-K650': 'gh-k650',
-  'GH-H500': 'gh-h500',
-  'GH-H300': 'gh-h300',
-  'GH-P400': 'gh-p400',
+  '54027X1QE-W54': 'gh-54027x1qe',
+  '28027X1QE-W28': 'gh-28027x1qe',
+  '32X1UE-W16': 'gh-32x1ue',
+  '27X1U': 'gh-27x1u',
+  '27Q1F': 'gh-27q1f',
+  '24H1': 'gh-24h1',
+  '25S1FP': 'gh-25s1fp',
 }
 
-/** 榜单原始数据（model 尚未关联 productId，构造时统一补齐） */
+/** 榜单原始数据（构造时按型号补齐 productId） */
 const RAW_METRICS: LadderMetric[] = [
   {
     id: 'overall',
     label: '综合',
     unit: '分',
-    pending: 3,
+    pending: 2,
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: '无线电竞鼠标', score: 96.4 },
-      { rank: '02', model: 'GH-M700', name: '有线电竞鼠标', score: 91.2 },
-      { rank: '03', model: 'GH-M500', name: '轻量电竞鼠标', score: 88.7 },
-      { rank: '04', model: 'GH-K870', name: '三模机械键盘', score: 85.3 },
-      { rank: '05', model: 'GH-H500', name: '电竞头戴耳机', score: 82.9 },
-      { rank: '06', model: 'GH-K650', name: '紧凑机械键盘', score: 79.6 },
-      { rank: '07', model: 'GH-H300', name: '轻量电竞耳机', score: 74.1 },
-      { rank: '08', model: 'GH-P400', name: '超大鼠标垫', score: 70.0, tied: true },
-      { rank: '08', model: 'GH-P300', name: '标准鼠标垫', score: 70.0 },
-      { rank: '—', model: 'GH-M100', name: '入门电竞鼠标', score: null },
+      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 96.8 },
+      { rank: '02', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 94.2 },
+      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 92.5 },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 89.6 },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 85.1 },
+      { rank: '06', model: '25S1FP', name: '24.5 英寸 FHD 240Hz IPS', score: 82.4 },
+      { rank: '07', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 79.8 },
     ],
   },
   {
     id: 'sensor',
-    label: '传感器精度',
-    unit: '分',
-    pending: 5,
+    label: '色准',
+    unit: 'ΔE',
+    pending: 3,
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: '无线电竞鼠标', score: 97.1 },
-      { rank: '02', model: 'GH-M700', name: '有线电竞鼠标', score: 92.8 },
-      { rank: '03', model: 'GH-M800', name: '旗舰无线电竞鼠标', score: 89.6 },
-      { rank: '04', model: 'GH-M500', name: '轻量电竞鼠标', score: 86.4, tied: true },
-      { rank: '04', model: 'GH-M600', name: '轻量无线电竞鼠标', score: 86.4 },
-      { rank: '—', model: 'GH-M100', name: '入门电竞鼠标', score: null },
+      { rank: '01', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 0.9 },
+      { rank: '02', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 1.1 },
+      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 1.3 },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 1.6 },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 2.1 },
+      { rank: '06', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 2.8 },
     ],
   },
   {
     id: 'battery',
-    label: '续航',
-    unit: 'h',
-    pending: 6,
+    label: '峰值亮度',
+    unit: 'nit',
+    pending: 2,
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: '无线电竞鼠标', score: 120 },
-      { rank: '02', model: 'GH-K870', name: '三模机械键盘', score: 96 },
-      { rank: '03', model: 'GH-M800', name: '旗舰无线电竞鼠标', score: 88 },
-      { rank: '04', model: 'GH-M600', name: '轻量无线电竞鼠标', score: 58, tied: true },
-      { rank: '04', model: 'GH-M500', name: '轻量电竞鼠标', score: 58 },
-      { rank: '05', model: 'GH-H500', name: '电竞头戴耳机', score: 42 },
-      { rank: '—', model: 'GH-M700', name: '有线电竞鼠标', score: null },
+      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 1320 },
+      { rank: '02', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 1180 },
+      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 1050 },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 960 },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 480 },
+      { rank: '06', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 430 },
     ],
   },
   {
     id: 'latency',
-    label: '延迟',
+    label: '响应时间',
     unit: 'ms',
-    pending: 4,
+    pending: 1,
     rows: [
-      { rank: '01', model: 'GH-M900 PRO', name: '无线电竞鼠标', score: 0.6 },
-      { rank: '02', model: 'GH-M700', name: '有线电竞鼠标', score: 0.9 },
-      { rank: '03', model: 'GH-M800', name: '旗舰无线电竞鼠标', score: 1.2 },
-      { rank: '04', model: 'GH-K870', name: '三模机械键盘', score: 1.8 },
-      { rank: '05', model: 'GH-M600', name: '轻量无线电竞鼠标', score: 2.4, tied: true },
-      { rank: '05', model: 'GH-H300', name: '轻量电竞耳机', score: 2.4 },
-      { rank: '06', model: 'GH-H500', name: '电竞头戴耳机', score: 12.4 },
-      { rank: '—', model: 'GH-M100', name: '入门电竞鼠标', score: null },
+      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 0.04 },
+      { rank: '02', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 0.05 },
+      { rank: '03', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 0.06 },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 0.08 },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 1.2 },
+      { rank: '06', model: '25S1FP', name: '24.5 英寸 FHD 240Hz IPS', score: 1.8 },
+      { rank: '07', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 2.4 },
     ],
   },
 ]
@@ -109,15 +103,15 @@ export const LADDER_METRICS: LadderMetric[] = RAW_METRICS.map((metric) => ({
 
 /** 榜单元信息（测试批次与样本量），页眉展示 */
 export const LADDER_META = {
-  testedAt: '2026-09-18',
-  sample: 'n=5',
-  updatedAt: '2026-09-20',
+  testedAt: '2026-09-25',
+  sample: 'n=3',
+  updatedAt: '2026-10-08',
 }
 
 /**
  * 分值 → 进度条宽度。
- * 综合/精度类为 0–100 分直接映射；延迟与续航为「越小越好 / 越大越好」的量纲，
- * 这里统一按「该指标内的相对占比」展示，避免不同量纲混用造成误读。
+ * 综合为 0–100 分直接映射；其余指标为「该指标内的相对占比」，
+ * 避免不同量纲混用造成误读（延迟 / 响应时间等越小越好的指标同理）。
  */
 export function fillWidth(metric: LadderMetric, score: number | null): number {
   if (score === null) return 0

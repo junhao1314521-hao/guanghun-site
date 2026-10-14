@@ -1,4 +1,4 @@
-/** 首页内容数据：文案与数值均为占位示例，上线前由运营替换 */
+/** 首页内容数据：光魂（小雪人数码）OLED 电竞显示器品牌，文案由运营维护 */
 import type { DeviceVariant } from './device-variant'
 
 /* ---------- 首屏轮播：三种媒体类型（图片 / 动画 / 代码动效）---------- */
@@ -27,33 +27,33 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's0',
     media: { kind: 'image' },
     mediaTag: '品牌主视觉',
-    eyebrow: 'GH SERIES / 2026',
-    title: ['为极致操作', '而生的电竞装备'],
-    desc: '以实测数据定义性能。每一款光魂产品都经过可复现的测试流程，参数公开、方法公开、来源可查。',
+    eyebrow: 'SUPER DISPLAY / 2026',
+    title: ['至尊电竞旗舰', '为极致而生'],
+    desc: '光魂 OLED 电竞显示器，进口三星 / LG 旗舰面板。以实测数据定义性能：参数公开、方法公开、来源可查。',
     primary: '浏览全部产品',
     secondary: '查看天梯榜',
     primaryTo: '/products',
     secondaryTo: '/ladder',
     stats: [
-      { value: '0.6 ms', label: '端到端延迟' },
-      { value: '26,000 DPI', label: '最高分辨率' },
-      { value: '120 h', label: '续航（实测）' },
+      { value: '540 Hz', label: '最高刷新率' },
+      { value: '0.03 ms', label: 'GTG 响应' },
+      { value: '80 Gbps', label: 'DP 2.1 带宽' },
     ],
   },
   {
     id: 's1',
     media: { kind: 'motion' },
     mediaTag: '主视觉动效',
-    eyebrow: 'FLAGSHIP / GH-M900 PRO',
-    title: ['58 克', '轻量化无线电竞鼠标'],
-    desc: '从传感器到微动，逐项实测公开；延迟、重量、续航均为可复现数据。',
+    eyebrow: 'FLAGSHIP / 54027X1QE-W54',
+    title: ['2K@540Hz', '闪电序列旗舰电竞OLED'],
+    desc: '第四代 W-OLED 面板，0.03 ms 灰阶响应与 368 万像素级控光；满速 DP 2.1 一线跑满 540Hz。',
     primary: '查看产品详情',
     secondary: '加入对比',
-    primaryTo: '/products/gh-m900-pro',
+    primaryTo: '/products/gh-54027x1qe',
     stats: [
-      { value: '58 g', label: '整机重量' },
-      { value: '0.6 ms', label: '端到端延迟' },
-      { value: '120 h', label: '续航（实测）' },
+      { value: '2K 540Hz', label: '分辨率 / 刷新率' },
+      { value: '0.03 ms', label: 'GTG 响应' },
+      { value: '1500 nit', label: 'HDR 峰值亮度' },
     ],
   },
   {
@@ -61,15 +61,15 @@ export const HERO_SLIDES: HeroSlide[] = [
     media: { kind: 'canvas' },
     mediaTag: 'Canvas 实时动效',
     eyebrow: 'INTERACTIVE / CANVAS',
-    title: ['数据驱动', '每一次点击'],
-    desc: '由代码实时渲染的动效层，可随产品发布节奏自由替换，不依赖任何外部素材。',
+    title: ['数据驱动', '每一帧决胜'],
+    desc: '由代码实时渲染的动效层，配合可复现的实测方法，把刷新率、响应与色准还原成看得懂的对比。',
     primary: '了解实测方法',
     secondary: '查看天梯榜',
     primaryTo: '/ladder',
     secondaryTo: '/ladder',
     stats: [
-      { value: '32 kHz', label: '采样率' },
-      { value: '8 kHz', label: '回报率' },
+      { value: '540 Hz', label: '刷新率上限' },
+      { value: '0.03 ms', label: '响应时间' },
       { value: '100%', label: '可复现' },
     ],
   },
@@ -91,46 +91,46 @@ export const SCENES: Scene[] = [
   {
     id: 'scene-01',
     label: 'SCENE 01',
-    title: '低延迟 · 高精度',
-    desc: '面向竞技选手与硬核玩家，响应速度与稳定性优先。',
+    title: '高刷 · 决胜毫秒',
+    desc: '面向 FPS / MOBA 竞技，540Hz 刷新与 0.03 ms 响应压缩每一帧延迟。',
     tag: '电竞对战',
     accentTag: true,
     background:
       'radial-gradient(120% 100% at 74% 12%, rgba(32,64,237,.62), transparent 56%), radial-gradient(80% 80% at 10% 90%, rgba(34,211,238,.30), transparent 58%), linear-gradient(165deg, #0E0E10, #17171A)',
-    art: 'mouse',
+    art: 'monitor',
   },
   {
     id: 'scene-02',
     label: 'SCENE 02',
-    title: '手感 · 静谧',
-    desc: '长时间输入与剪辑，强调手感一致性与噪音控制。',
+    title: '色准 · 创作',
+    desc: '99% DCI-P3、原生 10bit 与出厂校色，兼顾设计与影像调色。',
     tag: '内容创作',
     accentTag: false,
     background:
       'radial-gradient(120% 100% at 78% 18%, rgba(91,117,245,.45), transparent 56%), radial-gradient(70% 70% at 12% 86%, rgba(6,182,212,.32), transparent 60%), linear-gradient(165deg, #14101E, #1A1626)',
-    art: 'keyboard',
+    art: 'monitor',
   },
   {
     id: 'scene-03',
     label: 'SCENE 03',
-    title: '耐用 · 无线',
-    desc: '多设备切换与长续航，适配混合办公日常需求。',
+    title: '护眼 · 高效',
+    desc: '硬件低蓝光与无频闪调光，长时间办公与代码依然舒适。',
     tag: '商用办公',
     accentTag: false,
     background:
       'radial-gradient(120% 100% at 70% 14%, rgba(34,211,238,.38), transparent 56%), radial-gradient(80% 80% at 14% 88%, rgba(32,64,237,.34), transparent 58%), linear-gradient(165deg, #0C1220, #111A2E)',
-    art: 'pad',
+    art: 'monitor',
   },
   {
     id: 'scene-04',
     label: 'SCENE 04',
     title: '沉浸 · 影音',
-    desc: '大单元耳机与低延迟连接，兼顾游戏听声辨位与日常影音。',
+    desc: 'OLED 纯黑与 HDR 高亮，主机与影音场景同样从容。',
     tag: '影音娱乐',
     accentTag: false,
     background:
       'radial-gradient(120% 100% at 76% 16%, rgba(129,140,248,.46), transparent 56%), radial-gradient(80% 80% at 12% 88%, rgba(34,211,238,.30), transparent 58%), linear-gradient(165deg, #101022, #17132A)',
-    art: 'headset',
+    art: 'monitor',
   },
 ]
 
@@ -148,45 +148,47 @@ export type FeaturedProduct = {
 
 export const FEATURED_PRODUCTS: FeaturedProduct[] = [
   {
-    id: 'gh-m900-pro',
-    model: 'GH-M900 PRO',
-    name: '无线电竞鼠标',
-    specs: ['26,000 DPI', '0.6 ms', '58 g'],
-    price: '¥899',
+    id: 'gh-54027x1qe',
+    model: '54027X1QE-W54',
+    name: '闪电 540Hz 电竞OLED显示器',
+    specs: ['26.5 英寸 2K', '540 Hz', '0.03 ms'],
+    price: '¥4,999',
     tag: '旗舰',
     background:
       'radial-gradient(120% 100% at 72% 16%, rgba(32,64,237,.55), transparent 58%), linear-gradient(165deg, #0E0E10, #17171A)',
-    art: 'mouse',
+    art: 'monitor',
   },
   {
-    id: 'gh-k870',
-    model: 'GH-K870',
-    name: '三模机械键盘',
-    specs: ['87 键', '三模', '全键热插拔'],
-    price: '¥649',
+    id: 'gh-32x1ue',
+    model: '32X1UE-W16',
+    name: 'Meta 双模 4K 电竞显示器',
+    specs: ['4K@165 / FHD@330', 'META OLED', 'DP 2.1'],
+    price: '¥5,499',
+    tag: '双模',
     background:
       'radial-gradient(120% 100% at 76% 18%, rgba(91,117,245,.5), transparent 58%), linear-gradient(165deg, #121018, #1A1620)',
-    art: 'keyboard',
+    art: 'monitor',
   },
   {
-    id: 'gh-h500',
-    model: 'GH-H500',
-    name: '电竞头戴耳机',
-    specs: ['50 mm', '7.1', '2.4 G'],
-    price: '¥529',
+    id: 'gh-28027x1qe',
+    model: '28027X1QE-W28',
+    name: '闪电 280Hz 电竞OLED显示器',
+    specs: ['26.5 英寸 2K', '280 Hz', '1500 nit'],
+    price: '¥2,699',
+    tag: '热销',
     background:
       'radial-gradient(120% 100% at 70% 14%, rgba(34,211,238,.4), transparent 58%), linear-gradient(165deg, #0C121E, #131C2C)',
-    art: 'headset',
+    art: 'monitor',
   },
   {
-    id: 'gh-p400',
-    model: 'GH-P400',
-    name: '超大鼠标垫',
-    specs: ['900×400', '防泼水', '3 mm'],
-    price: '¥129',
+    id: 'gh-27q1f',
+    model: '27Q1F',
+    name: '27 英寸 2K 电竞显示器',
+    specs: ['27 英寸 2K', '200 Hz', 'Fast IPS'],
+    price: '¥1,299',
     background:
       'radial-gradient(120% 100% at 74% 16%, rgba(32,64,237,.5), transparent 58%), linear-gradient(165deg, #101018, #181820)',
-    art: 'pad',
+    art: 'monitor',
   },
 ]
 
@@ -194,9 +196,9 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
 export type LadderRow = { rank: string; model: string; category: string; fill: string; value: string }
 
 export const LADDER_TEASER_ROWS: LadderRow[] = [
-  { rank: '01', model: 'GH-M900 PRO', category: '无线电竞鼠标', fill: '96%', value: '96.4' },
-  { rank: '02', model: 'GH-M700', category: '有线电竞鼠标', fill: '91%', value: '91.2' },
-  { rank: '03', model: 'GH-M500', category: '轻量电竞鼠标', fill: '88%', value: '88.7' },
+  { rank: '01', model: '54027X1QE-W54', category: '闪电 540Hz 电竞OLED', fill: '97%', value: '96.8' },
+  { rank: '02', model: '32X1UE-W16', category: 'Meta 双模 4K 电竞OLED', fill: '94%', value: '94.2' },
+  { rank: '03', model: '28027X1QE-W28', category: '闪电 280Hz 电竞OLED', fill: '93%', value: '92.5' },
 ]
 
 /* ---------- 技术评测 ---------- */
@@ -207,26 +209,26 @@ export const TECH_ARTICLES: ArticleCard[] = [
     id: 'a1',
     tag: '评测',
     accent: true,
-    title: '无线鼠标端到端延迟实测',
-    desc: '同一套测试条件与设备，对三款无线鼠标做延迟对比，结果标注测试日期与样本数。',
-    date: '2026-09-18',
+    title: '540Hz OLED 电竞显示器响应实测',
+    desc: '在同一套测试条件与仪器下对比三款 OLED 的 GTG 响应与运动清晰度，标注测试日期与样本数。',
+    date: '2026-09-25',
     meta: '方法 v2',
   },
   {
     id: 'a2',
     tag: '技术解析',
     accent: false,
-    title: '从传感器到回报率：延迟链路拆解',
-    desc: '逐段拆解信号从传感器到系统的链路，说明每一环对端到端延迟的贡献与测量方式。',
-    date: '2026-09-05',
+    title: '从面板到像素：OLED 控光链路拆解',
+    desc: '逐段拆解像素级控光、驱动与散热如何影响响应、亮度与寿命，说明每一环的取舍。',
+    date: '2026-09-12',
     meta: '技术解析',
   },
   {
     id: 'a3',
     tag: '测试方法',
     accent: false,
-    title: '可复现测试流程与设备清单',
-    desc: '公开测试所用的设备、环境、样本数与判定口径，任何人都可据此复现。',
+    title: '可复现的显示器实测流程与设备清单',
+    desc: '公开测试所用的仪器、环境、样本数与判定口径，任何人都可据此复现。',
     date: '2026-08-22',
     meta: '方法 v2',
   },
@@ -234,16 +236,16 @@ export const TECH_ARTICLES: ArticleCard[] = [
 
 /* ---------- 品牌介绍 ---------- */
 export const BRAND_STATS = [
-  { value: '2019', label: '成立年份', note: '从外设起步，坚持自有实验室与自研固件。' },
-  { value: '40', unit: '+', label: '研发与测试团队', note: '覆盖结构、电子、固件与体验验证全链路。' },
+  { value: '2016', label: '成立年份', note: '从评测起步，坚持自有实验室与仪器实测。' },
+  { value: '40', unit: '+', label: '研发与测试团队', note: '覆盖面板、驱动、结构与色彩验证全链路。' },
   { value: '1,200', unit: '+', label: '累计测试记录', note: '每一条都可追溯到原始测试条件与样机编号。' },
 ]
 
 /* ---------- 服务入口 ---------- */
 export const SERVICE_ENTRIES = [
   { id: 'model', title: '型号支持', desc: '按型号查看结构化参数、实测记录与常见问题。' },
-  { id: 'download', title: '下载中心', desc: '驱动、固件与说明书，公开资料无需注册即可下载。' },
-  { id: 'faq', title: '常见问题', desc: '安装、连接与售后相关的高频问答与教程。' },
+  { id: 'download', title: '下载中心', desc: '说明书、调色配置与固件，公开资料无需注册即可下载。' },
+  { id: 'faq', title: '常见问题', desc: '安装、连接、HDR 调校与售后相关的高频问答。' },
   { id: 'contact', title: '联系与咨询', desc: '产品服务与商业合作咨询，统一进入同一套工单系统。' },
 ] as const
 
@@ -262,8 +264,8 @@ export const COOP_TAGS = ['赛事合作', '内容共创', '渠道分销', '品�
 export type NewsItem = { date: string; tag: string; title: string }
 
 export const NEWS: NewsItem[] = [
-  { date: '2026-09-28', tag: '产品发布', title: 'GH-M900 PRO 正式发布' },
-  { date: '2026-09-12', tag: '品牌动态', title: '天梯榜测试方法升级至 v2' },
+  { date: '2026-09-20', tag: '产品发布', title: '光魂 54027X1QE-W54 540Hz OLED 正式发布' },
+  { date: '2026-09-12', tag: '品牌动态', title: '天梯榜测试方法升级至 v2（新增色准 / 均匀度）' },
   { date: '2026-08-30', tag: '活动', title: '线下体验点巡回活动预告' },
-  { date: '2026-08-15', tag: '服务', title: '驱动与固件下载中心改版说明' },
+  { date: '2026-08-15', tag: '服务', title: '显示器说明书与调色配置下载中心改版说明' },
 ]
