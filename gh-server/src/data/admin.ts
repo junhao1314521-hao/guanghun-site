@@ -348,6 +348,27 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'bv-002', name: '光魂合作体验点 · 上海', city: '上海', type: '合作体验点', address: '徐汇区漕溪北路', status: '运营中' },
     { id: 'bv-003', name: '光魂合作体验点 · 成都', city: '成都', type: '合作体验点', address: '高新区天府大道', status: '筹备中' },
   ],
+  reviews: [
+    { id: 'rv-001', customer: '陈屿', model: '54027X1QE-W54', ticket: '固件升级后偶发无信号', rating: 5, summary: '工程师远程协助很及时，问题一次解决。', channel: '在线工单', date: '2026-10-06', status: '已回访' },
+    { id: 'rv-002', customer: '林墨', model: '32X1UE-W16', ticket: '双模切换后刷新率偏低', rating: 4, summary: '响应速度不错，希望固件尽快更新。', channel: '在线工单', date: '2026-10-05', status: '待处理' },
+    { id: 'rv-003', customer: '苏晚', model: '27Q1F', ticket: '屏幕局部出现残影', rating: 5, summary: '指导调整过驱档位后残影消失，满意。', channel: '电话', date: '2026-10-04', status: '已回访' },
+    { id: 'rv-004', customer: '周航', model: '54027X1QE-W54', ticket: '发票与烧屏保修咨询', rating: 3, summary: '保修说明清楚，但等待回复时间偏长。', channel: '在线工单', date: '2026-09-30', status: '待处理' },
+    { id: 'rv-005', customer: '顾一', model: 'GH-ARM01', ticket: '支架安装与承重咨询', rating: 4, summary: '到店体验讲解细致，支架安装顺利。', channel: '到店体验', date: '2026-09-28', status: '已回访' },
+    { id: 'rv-006', customer: '何澈', model: '27X1U', ticket: 'HDR 片源偏暗', rating: 5, summary: '提供了片源与设置建议，HDR 观感明显提升。', channel: '邮件', date: '2026-09-25', status: '已忽略' },
+    { id: 'rv-007', customer: '许知', model: '27Q1F', ticket: '显示器无法被 Center 识别', rating: 2, summary: '按建议更换接口后仍未识别，需继续跟进。', channel: '在线工单', date: '2026-09-22', status: '待处理' },
+  ],
+  // 迭代需求池：来源=本次改版（预置），覆盖六类分类；后续支持手动新增 / 一键转入
+  requirements: [
+    { id: 'req-001', title: '登录注册补图形验证码与密码强度提示', category: '功能', priority: 'Must', version: 'v1.1', impact: 5, cost: 3, source: '本次改版', owner: '前端组', status: '进行中', createdAt: '2026-10-08', note: '按需求汇总第 9 项「登录注册增强」实施。' },
+    { id: 'req-002', title: '个人中心设备关联资料与保修到期提醒', category: '功能', priority: 'Should', version: 'v1.1', impact: 4, cost: 3, source: '本次改版', owner: '前端组', status: '已排期', createdAt: '2026-10-08', note: '型号 → 说明书 / 固件 / FAQ 联动；到期前 30 天提醒。' },
+    { id: 'req-003', title: '模块子尺寸与栅格科学化（卡片等高等宽）', category: '体验', priority: 'Should', version: 'v1.0', impact: 4, cost: 2, source: '本次改版', owner: '设计组', status: '已完成', createdAt: '2026-10-07', note: '对应 UI 规范第 13 项。' },
+    { id: 'req-004', title: '媒体槽规则：未插入素材回退代码动画', category: '体验', priority: 'Must', version: 'v1.0', impact: 4, cost: 3, source: '本次改版', owner: '前端组', status: '进行中', createdAt: '2026-10-07', note: '插入素材后自动覆盖代码兜底。' },
+    { id: 'req-005', title: '评测与资讯分类口径改为 MECE 四类 + 主题标签', category: '内容', priority: 'Must', version: 'v1.0', impact: 3, cost: 2, source: '本次改版', owner: '内容组', status: '已完成', createdAt: '2026-10-06', note: '评测 / 教程 / 技术 / 资讯。' },
+    { id: 'req-006', title: '合作流程与品牌资料下载（渠道落地物料）', category: '内容', priority: 'Could', version: 'v1.2', impact: 3, cost: 2, source: '本次改版', owner: '内容组', status: '待评审', createdAt: '2026-10-06', note: '需市场部提供可下载物料。' },
+    { id: 'req-007', title: '手机号短信验证码与微信 / QQ 第三方登录接入', category: '渠道对接', priority: "Won't", version: '待定', impact: 4, cost: 5, source: '本次改版', owner: '平台组', status: '暂缓', createdAt: '2026-10-05', note: '暂不放外部入口，先登记待接入。' },
+    { id: 'req-008', title: '多语言覆盖提示：标出缺英文的页面与字段', category: '数据合规', priority: 'Could', version: 'v1.2', impact: 2, cost: 3, source: '本次改版', owner: '平台组', status: '待评审', createdAt: '2026-10-05', note: '英文内容为待补能力。' },
+    { id: 'req-009', title: '全站内容一键导出 JSON / 导入还原', category: '其他', priority: 'Could', version: 'v1.2', impact: 3, cost: 3, source: '本次改版', owner: '平台组', status: '待评审', createdAt: '2026-10-05', note: '基于现有备份模块扩展。' },
+  ],
   staff: [
     { id: 'sf-001', name: '管理员', account: 'admin', role: '超级管理员', dept: '运营中心', lastLogin: '2026-10-11', status: '启用' },
     { id: 'sf-002', name: '运营专员', account: 'operator', role: '内容运营', dept: '内容组', lastLogin: '2026-10-11', status: '启用' },

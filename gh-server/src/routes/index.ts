@@ -7,6 +7,7 @@ import { catalogMetaRouter } from './catalogMeta'
 import { backupsRouter } from './backupsRouter'
 import { brandRouter } from './brandRouter'
 import { businessExtraRouter } from './businessExtraRouter'
+import { captchaRouter } from './captchaRouter'
 import { catalogRouter } from './catalog'
 import { contentRouter } from './content'
 import { contentStoreRouter } from './contentStoreRouter'
@@ -41,6 +42,8 @@ export function registerRoutes(app: Express): void {
   app.use('/api', businessExtraRouter) // /business/scenes、/business/cases、/business/venues
   app.use('/api', catalogMetaRouter) // /taxonomy、/product-categories、/test-records、/methods、/service-info
   app.use('/api', brandRouter) // /brand/:slug
+  // 公开图形验证码：/api/captcha（登录 / 注册 / 公开表单反垃圾用）
+  app.use('/api/captcha', captchaRouter)
   app.use('/api', authRouter) // /auth/*、/account/inquiries
   // 公开埋点（无需登录）：/api/track/view、/api/track/download
   app.use('/api/track', trackRouter)

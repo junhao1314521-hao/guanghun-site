@@ -137,6 +137,15 @@ export function AdminTourProvider({ children }: { children: ReactNode }) {
                   跳过
                 </button>
               )}
+              {step > 0 && (
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  onClick={() => setStep((value) => Math.max(0, value - 1))}
+                >
+                  上一步
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn--primary btn--sm"

@@ -22,6 +22,7 @@ import { AdminStylesPage } from '../../components/admin/AdminStylesPage'
 import { AdminBackupsList } from '../../components/admin/AdminBackupsList'
 import { AdminPublishList } from '../../components/admin/AdminPublishList'
 import { AdminRolesView } from '../../components/admin/AdminRolesView'
+import { AdminRequirementsView } from '../../components/admin/AdminRequirementsView'
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
 import { OverflowMenu, type OverflowMenuItem } from '../../components/admin/OverflowMenu'
 import { useConfirm, useToast } from '../../components/admin/feedback'
@@ -702,6 +703,8 @@ export function AdminResourceListPage() {
   if (resource.view === 'publish') return <AdminPublishList />
   // 「角色与权限」栏目为角色 CRUD 与权限矩阵：由 AdminRolesView 承载（数据源 /api/admin/roles）
   if (resource.view === 'roles') return <AdminRolesView />
+  // 「迭代需求池」栏目为列表 / 看板 / 四象限三视图：由 AdminRequirementsView 承载（数据源 /api/admin/resources/requirements）
+  if (resource.view === 'board') return <AdminRequirementsView />
   // 「回收站」栏目为真实软删除视图：由 AdminTrashList 承载（数据源 /api/admin/resources/trash）
   if (resource.view === 'trash') return <AdminTrashList />
   return <ResourceListBody key={resource.key} resource={resource} />

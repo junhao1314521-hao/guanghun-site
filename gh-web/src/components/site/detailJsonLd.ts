@@ -68,12 +68,13 @@ export function faqJsonLd(detail: FaqDetail): Record<string, unknown> {
   }
 }
 
-/** 下载类型 → SoftwareApplication 分类 */
+/** 下载类型 → SoftwareApplication 分类（键须与 DownloadType 五类枚举一致） */
 const APP_CATEGORY: Record<DownloadType, string> = {
-  driver: 'DriverApplication',
-  firmware: 'FirmwareApplication',
   manual: 'ReferenceApplication',
-  tool: 'UtilitiesApplication',
+  firmware: 'FirmwareApplication',
+  driver: 'DriverApplication',
+  software: 'UtilitiesApplication',
+  calibration: 'UtilitiesApplication',
 }
 
 /** 资料详情 → SoftwareApplication（版本 / 发布日期 / 免费 / 下载地址） */

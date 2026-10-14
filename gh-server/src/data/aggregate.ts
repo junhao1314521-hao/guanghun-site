@@ -112,16 +112,16 @@ export function buildBusinessCases(cases: CaseSummary[]): CoopCase[] {
 
 /* ---------------- Center 软件 ---------------- */
 
-/** Center 下载项：取自下载集合中类型为「工具 / 软件」的记录（Center 安装包即在该集合内） */
+/** Center 下载项：取自下载集合中类型为「软件」的记录（Center 安装包即在该集合内） */
 export function buildCenterDownloads(downloads: DownloadItem[]): CenterDownload[] {
   return downloads
-    .filter((item) => item.type === 'tool')
+    .filter((item) => item.type === 'software')
     .map((item) => ({ os: item.note, version: item.version, size: item.size, date: item.date }))
 }
 
 /** Center 版本号：与下载集合中 Center 安装包的版本保持同源 */
 export function buildCenterVersion(downloads: DownloadItem[]): string {
-  return downloads.find((item) => item.type === 'tool')?.version ?? CENTER_VERSION
+  return downloads.find((item) => item.type === 'software')?.version ?? CENTER_VERSION
 }
 
 /* ---------------- 品牌 ---------------- */

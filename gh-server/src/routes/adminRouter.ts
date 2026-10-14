@@ -143,6 +143,9 @@ function buildOverview() {
   const pendingInquiries = inquiries.filter((item) => item.tag !== '已解决' && item.tag !== '已关闭').length
   const waitingInquiries = inquiries.filter((item) => item.tag === '等待补充').length
   const pendingReservations = listCollection('reservations').filter((item) => item.status === '待确认').length
+  // 新增栏目待办：服务评价「待处理」条数、迭代需求池「待评审」条数（均为 admin_resources 资源，非集合）
+  const pendingReviews = (listResource('reviews') ?? []).filter((row) => String(row.status ?? '') === '待处理').length
+  const pendingRequirements = (listResource('requirements') ?? []).filter((row) => String(row.status ?? '') === '待评审').length
 
   // 本月（上海时区自然月）起点
   const shanghai = new Date(Date.now() + 8 * 3600 * 1000)
@@ -168,6 +171,8 @@ function buildOverview() {
       { id: 't-inquiry', label: '待处理咨询', count: pendingInquiries, to: '/admin/inquiries', icon: 'chat' },
       { id: 't-waiting', label: '等待补充材料', count: waitingInquiries, to: '/admin/inquiries', icon: 'chat' },
       { id: 't-reservation', label: '待确认预约', count: pendingReservations, to: '/admin/reservations', icon: 'clock' },
+      { id: 't-review', label: '待评价处理', count: pendingReviews, to: '/admin/reviews', icon: 'trophy' },
+      { id: 't-requirement', label: '需求池待评审', count: pendingRequirements, to: '/admin/requirements', icon: 'venn' },
     ],
     recent,
   }

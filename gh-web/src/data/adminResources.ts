@@ -84,7 +84,7 @@ export type AdminField = {
 
 export type AdminFormSection = { title: string; fields: AdminField[] }
 
-/** 列表视图形态：表格 / 素材宫格 / 内容库页面（自定义，进装修器）/ 站点配置（自定义编辑器）/ 素材库（真实上传数据）/ 组件库（区块类型目录）/ 模板（页面快照）/ 样式（设计令牌）/ 备份（快照管理）/ 发布（发布记录与回滚）/ 角色（角色 CRUD）/ 回收站（软删除记录） */
+/** 列表视图形态：表格 / 素材宫格 / 内容库页面（自定义，进装修器）/ 站点配置（自定义编辑器）/ 素材库（真实上传数据）/ 组件库（区块类型目录）/ 模板（页面快照）/ 样式（设计令牌）/ 备份（快照管理）/ 发布（发布记录与回滚）/ 角色（角色 CRUD）/ 回收站（软删除记录）/ 看板（迭代需求池：列表 + 看板 + 影响×成本四象限） */
 export type AdminResourceView =
   | 'table'
   | 'gallery'
@@ -98,6 +98,8 @@ export type AdminResourceView =
   | 'publish'
   | 'roles'
   | 'trash'
+  /** 迭代需求池专用：列表 / 看板 / 四象限三视图（见 components/admin/AdminRequirementsView.tsx） */
+  | 'board'
 
 export type AdminResource = {
   /** 路由段与接口 key，如 products */
@@ -459,7 +461,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     ],
     filters: [
       { key: 'category', label: '分类', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
-      { key: 'type', label: '类型', options: ['driver', 'firmware', 'manual', 'tool'] },
+      { key: 'type', label: '类型', options: ['manual', 'firmware', 'driver', 'software', 'calibration'] },
     ],
     form: [
       {
@@ -468,7 +470,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '资源名称', type: 'text', span: 2, required: true },
           { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
-          { key: 'type', label: '类型', type: 'select', options: ['driver', 'firmware', 'manual', 'tool'] },
+          { key: 'type', label: '类型', type: 'select', options: ['manual', 'firmware', 'driver', 'software', 'calibration'] },
           { key: 'version', label: '版本', type: 'text' },
           { key: 'size', label: '文件大小', type: 'text' },
           { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows 10 / 11' },
@@ -838,14 +840,14 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'category', label: '分类', type: 'tag' },
       { key: 'a', label: '答案' },
     ],
-    filters: [{ key: 'category', label: '分类', options: ['下载与安装', '连接与配对', '固件与更新', '保修与售后'] }],
+    filters: [{ key: 'category', label: '分类', options: ['安装', '连接', 'HDR', '售后'] }],
     form: [
       {
         title: '问答信息',
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'q', label: '问题', type: 'text', span: 2, required: true },
-          { key: 'category', label: '分类', type: 'select', options: ['下载与安装', '连接与配对', '固件与更新', '保修与售后'] },
+          { key: 'category', label: '分类', type: 'select', options: ['安装', '连接', 'HDR', '售后'] },
           { key: 'a', label: '答案', type: 'textarea', span: 2 },
           { key: 'steps', label: '操作步骤', type: 'list', span: 2, hint: '每行一步；详情页「操作步骤」按此展示' },
         ],
@@ -930,7 +932,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             recordFields: [
               { key: 'name', label: '名称', type: 'text' },
               { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
-              { key: 'type', label: '类型', type: 'select', options: ['driver', 'firmware', 'manual', 'tool'] },
+              { key: 'type', label: '类型', type: 'select', options: ['manual', 'firmware', 'driver', 'software', 'calibration'] },
               { key: 'models', label: '适用型号', type: 'list' },
               { key: 'version', label: '版本', type: 'text' },
               { key: 'size', label: '大小', type: 'text' },
@@ -952,7 +954,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             recordFields: [
               { key: 'q', label: '问题', type: 'textarea' },
               { key: 'a', label: '答案', type: 'textarea' },
-              { key: 'category', label: '分类', type: 'select', options: ['下载与安装', '连接与配对', '固件与更新', '保修与售后'] },
+              { key: 'category', label: '分类', type: 'select', options: ['安装', '连接', 'HDR', '售后'] },
             ],
           },
         ],
@@ -1153,6 +1155,116 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
 
   /* ---------- 系统设置 ---------- */
+  {
+    key: 'reviews',
+    label: '服务评价',
+    icon: 'trophy',
+    title: '服务评价',
+    desc: '汇总客户对咨询与售后服务的评价：评分、渠道与处理状态，便于跟进未处理反馈。',
+    creatable: true,
+    editable: true,
+    deletable: true,
+    searchKeys: ['customer', 'model', 'ticket', 'summary'],
+    columns: [
+      { key: 'customer', label: '客户', type: 'strong' },
+      { key: 'model', label: '型号', type: 'mono' },
+      { key: 'ticket', label: '来源工单' },
+      { key: 'rating', label: '评分', type: 'number', align: 'right' },
+      { key: 'summary', label: '评价摘要' },
+      { key: 'channel', label: '渠道', type: 'tag' },
+      { key: 'date', label: '时间', type: 'date' },
+      { key: 'status', label: '状态', type: 'status' },
+    ],
+    filters: [
+      // 评分筛选：值以字符串与记录的 number 评分比对（见列表页 String(row[key]) 过滤口径）
+      { key: 'rating', label: '评分', options: ['5', '4', '3', '2', '1'] },
+      { key: 'status', label: '状态', options: ['待处理', '已回访', '已忽略'] },
+    ],
+    form: [
+      {
+        title: '评价信息',
+        fields: [
+          { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
+          { key: 'customer', label: '客户', type: 'text', required: true, hint: '提交评价的客户称呼' },
+          { key: 'model', label: '型号', type: 'text', placeholder: '54027X1QE-W54' },
+          { key: 'ticket', label: '来源工单', type: 'text', hint: '关联的咨询工单编号或主题' },
+          { key: 'rating', label: '评分（1–5）', type: 'number', hint: '1 分最低、5 分最高' },
+          { key: 'channel', label: '渠道', type: 'select', options: ['在线工单', '电话', '到店体验', '邮件'] },
+          { key: 'date', label: '评价时间', type: 'date' },
+          { key: 'status', label: '处理状态', type: 'select', options: ['待处理', '已回访', '已忽略'] },
+          { key: 'summary', label: '评价摘要', type: 'textarea', span: 2, hint: '客户原话要点；留空则不展示' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'requirements',
+    label: '迭代需求池',
+    icon: 'venn',
+    title: '迭代需求池',
+    desc: '收集与排期迭代需求：MoSCoW 优先级、版本 Roadmap，以及「影响×成本」四象限与看板视图。',
+    // 自定义视图：由 AdminRequirementsView 承载（列表 / 看板 / 四象限；数据源 /api/admin/resources/requirements）
+    view: 'board',
+    creatable: true,
+    editable: true,
+    deletable: true,
+    searchKeys: ['title', 'category', 'source', 'owner'],
+    columns: [
+      { key: 'title', label: '需求', type: 'strong' },
+      { key: 'category', label: '分类', type: 'tag' },
+      { key: 'priority', label: '优先级', type: 'tag' },
+      { key: 'version', label: '版本', type: 'mono' },
+      { key: 'impact', label: '影响', type: 'number', align: 'right' },
+      { key: 'cost', label: '成本', type: 'number', align: 'right' },
+      { key: 'source', label: '来源', type: 'tag' },
+      { key: 'status', label: '状态', type: 'status' },
+      { key: 'createdAt', label: '提出时间', type: 'date' },
+    ],
+    filters: [
+      // 分类固定六类（功能 / 体验 / 内容 / 渠道对接 / 数据合规 / 其他）
+      { key: 'category', label: '分类', options: ['功能', '体验', '内容', '渠道对接', '数据合规', '其他'] },
+      // MoSCoW 优先级
+      { key: 'priority', label: '优先级', options: ['Must', 'Should', 'Could', "Won't"] },
+      { key: 'status', label: '状态', options: ['待评审', '已排期', '进行中', '已完成', '暂缓'] },
+    ],
+    form: [
+      {
+        title: '需求信息',
+        fields: [
+          { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
+          { key: 'title', label: '需求标题', type: 'text', span: 2, required: true, hint: '一句话描述需求目标' },
+          {
+            key: 'category',
+            label: '分类',
+            type: 'select',
+            options: ['功能', '体验', '内容', '渠道对接', '数据合规', '其他'],
+            hint: '六类之一，便于按维度汇总',
+          },
+          {
+            key: 'priority',
+            label: 'MoSCoW 优先级',
+            type: 'select',
+            options: ['Must', 'Should', 'Could', "Won't"],
+            hint: 'Must 必须做 / Should 应该做 / Could 可以做 / Won’t 本期不做',
+          },
+          { key: 'version', label: '目标版本', type: 'text', placeholder: 'v1.1 / 2026Q4', hint: 'Roadmap 版本或迭代批次' },
+          { key: 'impact', label: '影响（1–5）', type: 'number', hint: '对业务 / 用户的价值，越大越优先' },
+          { key: 'cost', label: '成本（1–5）', type: 'number', hint: '开发与协作成本，越小越容易落地' },
+          {
+            key: 'source',
+            label: '来源',
+            type: 'select',
+            options: ['本次改版', '手动新增', '一键转入', '用户反馈', '运营提报'],
+            hint: '一键转入为后续能力，先按来源登记',
+          },
+          { key: 'owner', label: '负责人', type: 'text' },
+          { key: 'status', label: '状态', type: 'select', options: ['待评审', '已排期', '进行中', '已完成', '暂缓'] },
+          { key: 'createdAt', label: '提出时间', type: 'date' },
+          { key: 'note', label: '说明', type: 'textarea', span: 2, hint: '背景 / 验收要点；留空则不展示' },
+        ],
+      },
+    ],
+  },
   {
     key: 'staff',
     label: '工作人员',
@@ -1399,6 +1511,8 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     key: 'system',
     label: '系统设置',
     items: [
+      { kind: 'resource', key: 'reviews' },
+      { kind: 'resource', key: 'requirements' },
       { kind: 'resource', key: 'staff' },
       { kind: 'resource', key: 'roles' },
       { kind: 'resource', key: 'languages' },

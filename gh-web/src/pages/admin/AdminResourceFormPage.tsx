@@ -79,12 +79,16 @@ function FormField({
   const textareaClass = `textarea${invalid ? ' input--error' : ''}`
 
   if (field.type === 'switch') {
+    // 开关字段：label 与控件同行，说明文字（用途 / 示例）仍按统一规范渲染在下方
     return (
-      <label className="switch" htmlFor={fieldId}>
-        <input id={fieldId} type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(field.key, event.target.checked)} />
-        <span className="switch__track" />
-        <span>{field.label}</span>
-      </label>
+      <>
+        <label className="switch" htmlFor={fieldId}>
+          <input id={fieldId} type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(field.key, event.target.checked)} />
+          <span className="switch__track" />
+          <span>{field.label}</span>
+        </label>
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
     )
   }
 

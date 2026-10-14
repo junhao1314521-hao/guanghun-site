@@ -5,7 +5,14 @@
 
 /* —— 下载中心 —— */
 
-export type DownloadType = 'driver' | 'firmware' | 'manual' | 'tool'
+/**
+ * 下载资料类型（契约口径：说明书 / 固件 / 驱动 / 软件 / 调校配置 五类）。
+ * - manual 说明书；firmware 固件升级包；driver 系统驱动（INF）；
+ * - software 调校软件安装包（Center，含 Windows / macOS）；
+ * - calibration 调校配置与色彩配置文件（ICC 等）。
+ * 值即存储契约，改名会破坏既有集合记录，勿改动这些枚举字面量。
+ */
+export type DownloadType = 'manual' | 'firmware' | 'driver' | 'software' | 'calibration'
 
 export type DownloadItem = {
   id: string
@@ -28,14 +35,15 @@ export type DownloadItem = {
 
 /** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
 export const DOWNLOAD_CATEGORIES = ['全部', '软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边']
-export const DOWNLOAD_TYPES = ['全部', '驱动', '固件', '说明书', '工具']
+export const DOWNLOAD_TYPES = ['全部', '说明书', '固件', '驱动', '软件', '调校配置']
 
 /** 类型枚举 → 中文标签（表格展示与 chip 过滤共用） */
 export const DOWNLOAD_TYPE_LABELS: Record<DownloadType, string> = {
-  driver: '驱动',
-  firmware: '固件',
   manual: '说明书',
-  tool: '工具',
+  firmware: '固件',
+  driver: '驱动',
+  software: '软件',
+  calibration: '调校配置',
 }
 
 export const DOWNLOAD_ITEMS: DownloadItem[] = [
@@ -43,7 +51,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     id: 'center-win',
     name: 'Center 显示器调校软件 · Windows 安装包',
     category: '软件',
-    type: 'tool',
+    type: 'software',
     models: ['全部支持型号'],
     version: 'v2.4.1',
     size: '86.4 MB',
@@ -55,7 +63,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     id: 'center-mac',
     name: 'Center 显示器调校软件 · macOS 安装包',
     category: '软件',
-    type: 'tool',
+    type: 'software',
     models: ['全部支持型号'],
     version: 'v2.4.1',
     size: '92.1 MB',
@@ -79,7 +87,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     id: 'gh-54027x1qe-icc',
     name: '54027X1QE-W54 色彩配置文件（ICC）',
     category: 'OLED 旗舰',
-    type: 'tool',
+    type: 'calibration',
     models: ['54027X1QE-W54'],
     version: 'v2.1',
     size: '1.2 MB',
@@ -139,7 +147,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     id: 'gh-24h1-icc',
     name: '24H1 色彩配置文件（ICC）',
     category: '电竞 IPS',
-    type: 'tool',
+    type: 'calibration',
     models: ['24H1'],
     version: 'v1.0',
     size: '0.9 MB',
@@ -183,9 +191,13 @@ const DOWNLOAD_CHANGELOG: Record<DownloadType, DownloadChangelogEntry[]> = {
     { version: 'v1.3', date: '2026-07-20', notes: ['补充双模切换与 OSD 说明', '更新接口与支架示意'] },
     { version: 'v1.2', date: '2026-04-10', notes: ['修正出厂色彩章节表述'] },
   ],
-  tool: [
+  software: [
     { version: 'v2.4.1', date: '2026-09-20', notes: ['修复显示器休眠唤醒后偶发无信号', '优化色彩配置同步冲突提示'] },
     { version: 'v2.4.0', date: '2026-08-28', notes: ['新增显示配置云同步，多台设备共用一套配置'] },
+  ],
+  calibration: [
+    { version: 'v2.1', date: '2026-09-12', notes: ['更新 sRGB / DCI-P3 双色彩配置', '修正暗部灰阶偏移'] },
+    { version: 'v2.0', date: '2026-06-18', notes: ['随新版固件同步出厂校准数据'] },
   ],
 }
 
@@ -203,7 +215,8 @@ const DOWNLOAD_INSTALL_STEPS: Record<DownloadType, string[]> = {
     '升级过程中请勿断电或拔线，完成后显示器会自动重启',
   ],
   manual: ['下载并打开说明书文件', '按目录定位到对应章节', '遇到问题可对照「常见问题」排查'],
-  tool: ['下载对应系统的安装包', '双击安装并按提示完成', '首次启动后连接显示器', '登录账号即可同步已有显示配置'],
+  software: ['下载对应系统的安装包', '双击安装并按提示完成', '首次启动后连接显示器', '登录账号即可同步已有显示配置'],
+  calibration: ['下载对应型号的色彩配置文件（ICC）', '在系统「显示」设置中导入并指定该配置文件', '在 Center 中应用同一套显示预设后即可生效'],
 }
 
 /** 由 id 生成确定性的 64 位占位校验值，供界面展示校验字段结构（非真实摘要） */
@@ -234,81 +247,93 @@ export type FaqItem = { id: string; q: string; a: string; category: string; /** 
 
 export type FaqDetail = FaqItem & { steps?: string[]; related: FaqItem[] }
 
-/** 问答类别（首项「全部」表示不筛选） */
-export const FAQ_CATEGORIES = ['全部', '下载与安装', '连接与接口', '固件与更新', '保修与售后']
+/** 问答类别（首项「全部」表示不筛选）；口径：安装 / 连接 / HDR / 售后 四类（MECE） */
+export const FAQ_CATEGORIES = ['全部', '安装', '连接', 'HDR', '售后']
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'faq-download-login',
     q: '下载显示器固件、说明书与色彩配置需要注册账号吗？',
     a: '不需要。公开的固件、说明书、ICC 色彩配置与调校软件访客可直接下载；仅与账号相关的配置同步与工单进度需要登录。',
-    category: '下载与安装',
+    category: '安装',
   },
   {
     id: 'faq-download-old',
     q: '上传了新固件后，旧固件还能下载吗？',
     a: '可以。发布新版本不会删除旧版本，历史版本后台仍有记录；只有运营主动撤回后，前台才不再提供下载。',
-    category: '下载与安装',
+    category: '安装',
   },
   {
     id: 'faq-download-slow',
     q: '下载速度慢或中途中断怎么办？',
     a: '建议更换网络环境后重试；较大的安装包（如调校软件）请避免在下载过程中切换网络。若多次中断，可提交咨询并附上资料名称。',
-    category: '下载与安装',
+    category: '安装',
   },
   {
     id: 'faq-driver-install',
     q: '升级显示器固件前需要先卸载旧版本吗？',
     a: '通常不需要。新版固件会覆盖写入并保留已有设置；如遇识别异常，可先在 Center 中重新检测显示器后再升级。',
-    category: '下载与安装',
+    category: '安装',
   },
   {
     id: 'faq-pair-24g',
     q: 'DP 2.1 连接后为什么跑不满 540Hz？',
     a: '请使用随附的满速 DP 2.1（80 Gbps）线材，并在 OSD 与显卡驱动中都开启对应刷新率；线材或转接器带宽不足会锁定到较低刷新率。仍无法跑满时请提交咨询。',
-    category: '连接与接口',
+    category: '连接',
   },
   {
     id: 'faq-pair-multi',
     q: '双模显示器如何在 4K 与高刷模式间切换？',
     a: '通过 OSD 菜单或 Center 中的「双模切换」选择 4K@165 或 FHD@330；切换后系统会重新识别分辨率与刷新率，建议同时确认线材与接口带宽。',
-    category: '连接与接口',
+    category: '连接',
   },
   {
     id: 'faq-pair-notfound',
     q: 'Center 识别不到显示器怎么办？',
     a: '请用 DP 或 USB-C 直连（不要经转接坞），确认显示器处于对应输入源；若仍无反应，可在「服务支持 → 下载中心」获取最新调校软件后重试。',
-    category: '连接与接口',
+    category: '连接',
+  },
+  {
+    id: 'faq-hdr-grey',
+    q: '开启 HDR 后画面发灰、色彩变淡怎么办？',
+    a: '先在 Windows「显示 → HDR」中确认显示器已切换到 HDR 模式，再按内容类型选择对应的 HDR 预设（如 HDR 电影 / HDR 游戏）；避免在 HDR 下继续套用 sRGB 预设，否则会出现色彩偏淡与灰阶压缩。',
+    category: 'HDR',
+  },
+  {
+    id: 'faq-hdr-brightness',
+    q: 'HDR 下的峰值亮度为什么比 SDR 低？',
+    a: 'HDR 调校以整体亮度与高光动态范围为目标：为保护高光细节，稳定窗口亮度会低于 SDR 全屏峰值。若用于长时间办公，建议切回 SDR 或降低 HDR 亮度档以减轻眼睛负担。',
+    category: 'HDR',
   },
   {
     id: 'faq-fw-fail',
     q: '固件更新失败后显示器还能用吗？',
     a: '可以。更新中断不会清空原固件，显示器仍可正常使用；重新连接后 Center 会提示重试。更新过程中请保持连接与供电。',
-    category: '固件与更新',
+    category: '售后',
   },
   {
     id: 'faq-fw-check',
     q: '怎么知道有没有新固件？',
     a: '打开 Center 进入「固件更新」即可查看当前版本与可用更新；有新版本时会集中提示，并附带变更说明。',
-    category: '固件与更新',
+    category: '售后',
   },
   {
     id: 'faq-warranty-period',
     q: 'OLED 显示器保修多久，是否包含烧屏保护？',
     a: '整机三年质保，含 OLED 烧屏保护；在显示器底部标签或包装盒上找到序列号，使用「保修状态查询」输入即可看到剩余时间。',
-    category: '保修与售后',
+    category: '售后',
   },
   {
     id: 'faq-warranty-serial',
     q: '序列号在哪里查看？',
     a: '序列号通常位于显示器底部标签或包装盒条码处；也可在 Center 的设备信息页直接查看。',
-    category: '保修与售后',
+    category: '售后',
   },
   {
     id: 'faq-warranty-repair',
     q: '寄修前需要准备什么？',
     a: '建议先提交咨询说明型号与现象，附上故障照片或视频；收到回复后再按指引寄出，并保留物流单号以便查询进度。',
-    category: '保修与售后',
+    category: '售后',
   },
 ]
 
@@ -318,6 +343,7 @@ const FAQ_STEPS: Record<string, string[]> = {
   'faq-pair-multi': ['打开 OSD 菜单，进入「双模切换」', '选择 4K@165 或 FHD@330 目标模式', '等待系统重新识别分辨率与刷新率'],
   'faq-fw-check': ['用 DP / USB-C 连接显示器并打开 Center', '进入「固件更新」查看当前版本', '若有可用更新，阅读变更说明后再执行升级'],
   'faq-driver-install': ['在 Center 中重新检测显示器', '下载最新固件并以管理员身份运行', '升级完成后重启显示器与电脑'],
+  'faq-hdr-grey': ['在系统「显示 → HDR」中确认已开启 HDR', '按内容类型选择对应的 HDR 预设', '确认未同时套用 sRGB 预设，必要时重置显示配置'],
   'faq-warranty-repair': ['提交咨询并说明型号与现象', '附上购买凭证与故障照片', '按回复指引寄出并保留物流单号'],
 }
 

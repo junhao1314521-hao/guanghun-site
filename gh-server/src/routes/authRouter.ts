@@ -29,6 +29,7 @@ import {
   type UserProfile,
 } from '../data/userStore'
 import { readCookie, readParam } from '../middleware/adminAuth'
+import { checkCaptcha } from '../lib/formGuard'
 import { logger } from '../lib/logger'
 
 /**
@@ -136,6 +137,8 @@ function inquiriesOf(userId: string): InquirySummary[] {
 
 authRouter.post('/auth/register', (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
+  // 反垃圾第一道闸：图形验证码（开关见 formGuard / 站点配置 site.auth.captcha）
+  if (!checkCaptcha(body, res)) return
   const username = readString(body.username)
   const email = readString(body.email).toLowerCase()
   const password = readRaw(body.password)
@@ -157,6 +160,8 @@ authRouter.post('/auth/register', (req, res) => {
 
 authRouter.post('/auth/login', (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
+  // 反垃圾第一道闸：图形验证码（开关见 formGuard / 站点配置 site.auth.captcha）
+  if (!checkCaptcha(body, res)) return
   const identifier = readString(body.username) || readString(body.account) || readString(body.email)
   const password = readRaw(body.password)
   if (!identifier || !password) {

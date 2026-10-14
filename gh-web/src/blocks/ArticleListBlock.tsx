@@ -9,7 +9,7 @@
  * 当 `showFilter` 开启（列表页由 PageView 注入）时，在区块内保留原文章列表页的
  * 分类筛选（含 URL `?category=` 深链），避免装修化后交互能力回退。
  */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchArticles, fetchNews, fetchTaxonomy } from '../api/articles'
 import {
@@ -146,14 +146,34 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
     setParams(next, { replace: true })
   }
 
-  const filtered =
-    canFilter && active !== '全部'
-      ? (picked as ArticleSummary[]).filter((item) => item.categoryLabel === active)
-      : picked
+  // 主题标签维度（方案 C）：与「分类」正交、可叠加；由文章 tags 去重生成（URL `?tag=` 承载）
+  const tagParam = canFilter ? params.get('tag') ?? '' : ''
+  const tagOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const item of picked as ArticleSummary[]) {
+      for (const label of item.tags?.length ? item.tags : [item.tag]) if (label) set.add(label)
+    }
+    return Array.from(set)
+  }, [picked])
+  const selectTag = (option: string) => {
+    if (!canFilter) return
+    const next = new URLSearchParams(params)
+    if (!option) next.delete('tag')
+    else next.set('tag', option)
+    setParams(next, { replace: true })
+  }
+
+  const filtered = canFilter
+    ? (picked as ArticleSummary[]).filter(
+        (item) =>
+          (active === '全部' || item.categoryLabel === active) &&
+          (!tagParam || (item.tags?.length ? item.tags : [item.tag]).includes(tagParam)),
+      )
+    : picked
   const capped = limit > 0 ? filtered.slice(0, limit) : filtered
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
-  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${source}|${active}`)
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${source}|${active}|${tagParam}`)
   const paged = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   return (
@@ -199,6 +219,30 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
                 共 {filtered.length} 篇
               </span>
+            </div>
+          )}
+          {/* 主题标签（方案 C）：与分类正交、可叠加；同一 chip 再次点击即取消 */}
+          {canFilter && tagOptions.length > 0 && (
+            <div className="row" style={{ gap: 'var(--gh-space-2)', marginBottom: 'var(--gh-space-5)' }}>
+              <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                主题
+              </span>
+              {tagOptions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`chip${tagParam === option ? ' is-active' : ''}`}
+                  aria-pressed={tagParam === option}
+                  onClick={() => selectTag(tagParam === option ? '' : option)}
+                >
+                  {option}
+                </button>
+              ))}
+              {tagParam && (
+                <button className="btn btn--ghost btn--sm" type="button" onClick={() => selectTag('')}>
+                  清除主题
+                </button>
+              )}
             </div>
           )}
 

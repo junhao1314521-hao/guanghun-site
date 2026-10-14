@@ -184,7 +184,7 @@ export function FileField({
             ? '支持格式：png / jpg / jpeg / webp / gif / svg；单个文件建议 ≤ 10MB。填写地址、上传或从素材库选择后显示预览。'
             : isMediaMode
               ? '支持格式：图片（png/jpg/webp）、GIF、视频（mp4/webm）；单个文件建议 ≤ 20MB。上传或从素材库选择后显示预览。'
-              : '支持格式：pdf / docx / xlsx / zip 等常用文档；单个文件建议 ≤ 20MB。填写地址、上传或从素材库选择文件。'}
+              : '支持格式：pdf / zip / txt / md，以及图片（png / jpg / webp / gif / svg）与视频（mp4 / webm / mov）；单个文件建议 ≤ 20MB。填写地址、上传或从素材库选择文件。'}
         </span>
       )}
 

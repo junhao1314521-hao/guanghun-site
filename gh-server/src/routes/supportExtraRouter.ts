@@ -10,6 +10,7 @@ import {
 import { createCollectionItem, getCollectionItem, listCollection } from '../data/collectionStore'
 import { getUserSession, USER_SESSION_COOKIE } from '../data/userStore'
 import { readLocale } from '../data/locale'
+import { checkCaptcha, honeypotHit } from '../lib/formGuard'
 import { readCookie } from '../middleware/adminAuth'
 
 /**
@@ -66,6 +67,13 @@ supportExtraRouter.post('/inquiry', (req, res) => {
   // 前台「咨询 / 留言」表单真实入库：写入 inquiries 集合（与后台「咨询工单」同一份数据）。
   // 形状严格对齐 inquiries 规范（契约 §11.2）：{ id, date, tag, accent?, title, contact, model, message, status }。
   const body = (req.body ?? {}) as Record<string, unknown>
+  // 反垃圾三件套：限流（全局）/ 图形验证码 / 蜜罐字段
+  if (!checkCaptcha(body, res)) return
+  // 蜜罐命中：按「疑似机器人」静默成功（返回合规回执但**不落库**），不给爬虫可观测信号
+  if (honeypotHit(body)) {
+    res.json({ ok: true, ticketId: `INQ-${Date.now()}`, receivedAt: new Date().toISOString() })
+    return
+  }
   const name = readString(body.name)
   const contact = readString(body.contact)
   const model = readString(body.model)
@@ -101,6 +109,12 @@ supportExtraRouter.post('/inquiry', (req, res) => {
 supportExtraRouter.post('/reservation', (req, res) => {
   // 前台「预约到店」真实入库：写入 reservations 集合（独立实体，与咨询工单分离）。
   const body = (req.body ?? {}) as Record<string, unknown>
+  // 反垃圾三件套：限流（全局）/ 图形验证码 / 蜜罐字段
+  if (!checkCaptcha(body, res)) return
+  if (honeypotHit(body)) {
+    res.json({ ok: true, reservationId: `RS-${Date.now()}`, receivedAt: new Date().toISOString() })
+    return
+  }
   const name = readString(body.name)
   const contact = readString(body.contact)
   const venueId = readString(body.venueId)

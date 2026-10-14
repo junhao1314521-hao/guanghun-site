@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { AuthShell } from '../components/site/AuthShell'
+import { CaptchaField } from '../components/ui/CaptchaField'
+import { useSiteAuth } from '../hooks/useSiteConfig'
 import { invalidateSession } from '../hooks/useSession'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -12,6 +14,22 @@ type FieldErrors = {
   password?: string
   confirm?: string
   agreed?: string
+  captcha?: string
+}
+
+/**
+ * 密码强度评估（0–3）：长度 ≥8 记 1 分，含字母与数字各记 1 分，含符号再加 1 分；
+ * 用于注册页即时强度提示（弱 / 中 / 强），与后端「6–64 位且含字母与数字」的硬校验互补。
+ */
+function passwordStrength(password: string): { level: 0 | 1 | 2 | 3; label: string } {
+  if (!password) return { level: 0, label: '' }
+  let score = 0
+  if (password.length >= 8) score += 1
+  if (/[A-Za-z]/.test(password) && /\d/.test(password)) score += 1
+  if (/[^A-Za-z0-9]/.test(password)) score += 1
+  // 长度不足 6 或缺少字母/数字时至少标记为弱
+  const level = Math.min(3, Math.max(1, score)) as 0 | 1 | 2 | 3
+  return { level, label: ['', '弱', '中', '强'][level] }
 }
 
 /**
@@ -31,6 +49,12 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 反垃圾：图形验证码（同登录页）
+  const [captchaCode, setCaptchaCode] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaNonce, setCaptchaNonce] = useState(0)
+  const auth = useSiteAuth()
+  const strength = passwordStrength(password)
 
   const readyKey = done ? 'done' : 'form'
   usePageEffects(rootRef, readyKey)
@@ -56,16 +80,20 @@ export function RegisterPage() {
     else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) next.password = '密码需同时包含字母与数字'
     if (confirm !== password) next.confirm = '两次输入的密码不一致'
     if (!agreed) next.agreed = '请先阅读并同意服务条款与隐私政策'
+    if (auth.captcha && !captchaCode.trim()) next.captcha = '请输入图形验证码'
     setErrors(next)
     if (Object.keys(next).length > 0) return
 
     setSubmitting(true)
     try {
-      await register({ username: name, email: email.trim(), password })
+      await register({ username: name, email: email.trim(), password, captchaToken, captchaCode })
       invalidateSession()
       setDone(true)
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : '注册失败，请稍后重试')
+      // 服务端每次校验都消费令牌，失败后强制刷新验证码
+      setCaptchaCode('')
+      setCaptchaNonce((n) => n + 1)
     } finally {
       setSubmitting(false)
     }
@@ -149,6 +177,15 @@ export function RegisterPage() {
                     ) : (
                       <span className="field__hint">至少 6 位，需包含字母与数字。</span>
                     )}
+                    {/* 密码强度即时提示：三段色条 + 文案（弱 / 中 / 强） */}
+                    {password && (
+                      <div className="pw-strength" aria-live="polite">
+                        <span className={`pw-strength__bar pw-strength__bar--${strength.level}`} />
+                        <span className={`pw-strength__label pw-strength__label--${strength.level}`}>
+                          强度：{strength.label}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="field">
                     <label className="field__label" htmlFor="regConfirm">
@@ -165,6 +202,17 @@ export function RegisterPage() {
                     {errors.confirm && <span className="field__error">{errors.confirm}</span>}
                   </div>
                 </div>
+
+                {/* 反垃圾：图形验证码（后台可关闭，关闭后不渲染） */}
+                <CaptchaField
+                  key={captchaNonce}
+                  inputId="regCaptcha"
+                  code={captchaCode}
+                  onCodeChange={setCaptchaCode}
+                  onTokenChange={setCaptchaToken}
+                  error={errors.captcha}
+                  disabled={submitting}
+                />
 
                 <label className="check" style={{ marginTop: 'var(--gh-space-5)' }}>
                   <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />

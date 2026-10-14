@@ -9,8 +9,9 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { flushSync } from 'react-dom'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchProductCategories, fetchProducts } from '../api/products'
+import { SCENES } from '../data/home'
 import { MEDIA } from '../data/media'
 import {
   CATEGORY_FILTERS,
@@ -31,6 +32,17 @@ const MAX_COMPARE = 4
 
 /** 列表页每页条数 */
 const PAGE_SIZE = 9
+
+/**
+ * 场景 → 适用产品类别（导购映射）：首页「按场景选择」的 `?scene=` 深链据此收敛产品。
+ * 场景是选购入口而非产品字段，故落到具体类别上；产品线调整时同步更新此表即可。
+ */
+const SCENE_CATEGORY_MAP: Record<string, string[]> = {
+  'scene-01': ['双模高刷', 'OLED旗舰'], // 高刷 · 决胜毫秒
+  'scene-02': ['OLED旗舰'], // 色准 · 创作
+  'scene-03': ['电竞IPS'], // 护眼 · 高效
+  'scene-04': ['OLED旗舰', '双模高刷'], // 沉浸 · 影音
+}
 
 /** 按所选排序方式排序；「综合排序」保持接口返回的原始顺序 */
 function sortProducts(list: Product[], sortBy: string): Product[] {
@@ -88,12 +100,28 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       : CATEGORY_FILTERS.filter((name) => name !== '全部')),
   ]
 
-  // —— 交互态：仅 showFilter 时使用，无条件声明以遵守 hooks 规则 ——
-  const [category, setCategory] = useState<string>('全部')
-  const [connections, setConnections] = useState<ProductConnection[]>([])
-  const [priceId, setPriceId] = useState(PRICE_RANGES[0].id)
-  const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('全部')
-  const [sortBy, setSortBy] = useState(SORT_OPTIONS[0])
+  // —— 交互态：仅 showFilter 时使用；筛选状态「全量进 URL」（契约 ⑨D）——
+  // 类别 / 连接 / 价格 / 库存 / 排序 / 场景 / 页码 均以 query 承载，便于分享与深链：
+  // 首页「按场景选择」卡片即指向 /products?scene=scene-01，落地后按场景收敛类别。
+  const [params, setParams] = useSearchParams()
+  const readParam = (key: string) => (showFilter ? params.get(key) ?? '' : '')
+  const category = readParam('category') || '全部'
+  const connections = readParam('conn').split(',').filter(Boolean) as ProductConnection[]
+  const priceId = readParam('price') || PRICE_RANGES[0].id
+  const status = readParam('status') || '全部'
+  const sortBy = readParam('sort') || SORT_OPTIONS[0]
+  const sceneId = readParam('scene')
+  const scene = SCENES.find((item) => item.id === sceneId)
+  /** 写入 URL：空值即删除对应参数；`resetPage` 为真时同时回到第 1 页 */
+  const writeParams = (patch: Record<string, string>, resetPage = true) => {
+    const next = new URLSearchParams(params)
+    for (const [key, value] of Object.entries(patch)) {
+      if (value) next.set(key, value)
+      else next.delete(key)
+    }
+    if (resetPage) next.delete('page')
+    setParams(next, { replace: true })
+  }
   const [moreOpen, setMoreOpen] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
   /**
@@ -125,11 +153,14 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [all, scope, seriesId, categoryScope, manualIds.join(',')])
   const price = PRICE_RANGES.find((item) => item.id === priceId) ?? PRICE_RANGES[0]
+  // 场景收敛（?scene=）：把产品过滤到场景适用的类别集合内
+  const sceneCategories = scene ? SCENE_CATEGORY_MAP[scene.id] ?? [] : []
 
   const filtered = useMemo(() => {
     if (!showFilter) return scoped
+    const base = sceneCategories.length ? scoped.filter((item) => sceneCategories.includes(item.category)) : scoped
     return sortProducts(
-      scoped.filter(
+      base.filter(
         (item) =>
           (category === '全部' || item.category === category) &&
           (connections.length === 0 || (item.connection && connections.includes(item.connection))) &&
@@ -139,21 +170,22 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       ),
       sortBy,
     )
-  }, [scoped, showFilter, category, connections, price, status, sortBy])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scoped, showFilter, sceneCategories.join(','), category, connections.join(','), price, status, sortBy])
 
   const shown = limit > 0 ? filtered.slice(0, limit) : filtered
 
-  // 列表页分页：筛选条件变化时回到第 1 页（用签名比较，避免额外副作用）
-  const filterKey = [category, connections.join(','), priceId, status, sortBy, scope, seriesId, categoryScope].join('|')
-  const [pageState, setPageState] = useState({ key: filterKey, page: 1 })
-  const page = pageState.key === filterKey ? pageState.page : 1
-  const setPage = (next: number) => setPageState({ key: filterKey, page: next })
+  // 列表页分页：页码同样承载于 URL（?page=）；筛选变化由 writeParams 统一清空页码
+  const page = Math.max(1, Math.floor(Number(readParam('page')) || 1))
+  const setPage = (next: number) => writeParams({ page: next > 1 ? String(next) : '' }, false)
   const totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const paged = showFilter ? shown.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE) : shown
 
-  const toggleConnection = (value: ProductConnection) =>
-    setConnections((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]))
+  const toggleConnection = (value: ProductConnection) => {
+    const next = connections.includes(value) ? connections.filter((item) => item !== value) : [...connections, value]
+    writeParams({ conn: next.join(',') })
+  }
 
   // 轻提示自动消失
   useEffect(() => {
@@ -181,21 +213,17 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const incompatible = new Set(pickedItems.map((item) => item.category)).size > 1
   const canCompare = picked.length >= 2 && !incompatible
 
-  const clearAll = () => {
-    setCategory('全部')
-    setConnections([])
-    setPriceId(PRICE_RANGES[0].id)
-    setStatus('全部')
-  }
+  const clearAll = () => writeParams({ category: '', conn: '', price: '', status: '', scene: '' })
 
   const activeChips = [
-    category !== '全部' ? { key: `cat-${category}`, label: `类别：${category}`, clear: () => setCategory('全部') } : null,
+    scene ? { key: `scene-${scene.id}`, label: `场景：${scene.title}`, clear: () => writeParams({ scene: '' }) } : null,
+    category !== '全部' ? { key: `cat-${category}`, label: `类别：${category}`, clear: () => writeParams({ category: '' }) } : null,
     ...connections.map((value) => ({ key: `conn-${value}`, label: `连接：${value}`, clear: () => toggleConnection(value) })),
     price.id !== PRICE_RANGES[0].id
-      ? { key: `price-${price.id}`, label: `价格：${price.label}`, clear: () => setPriceId(PRICE_RANGES[0].id) }
+      ? { key: `price-${price.id}`, label: `价格：${price.label}`, clear: () => writeParams({ price: '' }) }
       : null,
     status !== '全部'
-      ? { key: `status-${status}`, label: `状态：${status}`, clear: () => setStatus('全部') }
+      ? { key: `status-${status}`, label: `状态：${status}`, clear: () => writeParams({ status: '' }) }
       : null,
   ].filter((chip): chip is { key: string; label: string; clear: () => void } => chip !== null)
 
@@ -228,7 +256,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                       type="button"
                       className={`chip${category === option ? ' is-active' : ''}`}
                       aria-pressed={category === option}
-                      onClick={() => setCategory(option)}
+                      onClick={() => writeParams({ category: option === '全部' ? '' : option })}
                     >
                       {option}
                     </button>
@@ -280,7 +308,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                         type="button"
                         className={`chip${priceId === option.id ? ' is-active' : ''}`}
                         aria-pressed={priceId === option.id}
-                        onClick={() => setPriceId(option.id)}
+                        onClick={() => writeParams({ price: option.id === PRICE_RANGES[0].id ? '' : option.id })}
                       >
                         {option.label}
                       </button>
@@ -296,7 +324,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                         type="button"
                         className={`chip${status === option ? ' is-active' : ''}`}
                         aria-pressed={status === option}
-                        onClick={() => setStatus(option)}
+                        onClick={() => writeParams({ status: option === '全部' ? '' : option })}
                       >
                         {option}
                       </button>
@@ -344,7 +372,9 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 id="sort-products"
                 style={{ width: 180 }}
                 value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
+                onChange={(event) =>
+                  writeParams({ sort: event.target.value === SORT_OPTIONS[0] ? '' : event.target.value })
+                }
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option}>{option}</option>

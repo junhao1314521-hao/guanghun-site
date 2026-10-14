@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
 import { AuthShell } from '../components/site/AuthShell'
+import { CaptchaField } from '../components/ui/CaptchaField'
+import { useSiteAuth } from '../hooks/useSiteConfig'
 import { invalidateSession } from '../hooks/useSession'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -22,6 +24,11 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 反垃圾：图形验证码（code 为用户输入，token 为取图令牌）与非重试计数（失败后强制换图）
+  const [captchaCode, setCaptchaCode] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaNonce, setCaptchaNonce] = useState(0)
+  const auth = useSiteAuth()
 
   // 登录成功后跳转目标：来自受保护页的 `?from=`（缺省回个人中心）
   const from = new URLSearchParams(location.search).get('from') || '/me'
@@ -43,13 +50,21 @@ export function LoginPage() {
       setError('请输入账号与密码')
       return
     }
+    // 验证码开启时必填（后台站点配置可关闭，关闭后该字段不渲染）
+    if (auth.captcha && !captchaCode.trim()) {
+      setError('请输入图形验证码')
+      return
+    }
     setSubmitting(true)
     try {
-      await login({ username: username.trim(), password, remember })
+      await login({ username: username.trim(), password, remember, captchaToken, captchaCode })
       invalidateSession()
       setDone(true)
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : '登录失败，请稍后重试')
+      // 服务端每次校验都会消费令牌，失败后强制刷新验证码
+      setCaptchaCode('')
+      setCaptchaNonce((n) => n + 1)
     } finally {
       setSubmitting(false)
     }
@@ -122,6 +137,16 @@ export function LoginPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* 反垃圾：图形验证码（后台可关闭，关闭后不渲染） */}
+                <CaptchaField
+                  key={captchaNonce}
+                  inputId="loginCaptcha"
+                  code={captchaCode}
+                  onCodeChange={setCaptchaCode}
+                  onTokenChange={setCaptchaToken}
+                  disabled={submitting}
+                />
 
                 <div className="row" style={{ marginTop: 'var(--gh-space-4)', justifyContent: 'space-between' }}>
                   <label className="switch">

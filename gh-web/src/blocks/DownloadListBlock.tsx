@@ -9,7 +9,7 @@
  * 类别 / 类型筛选、下载操作与空态，避免装修化后交互能力回退。
  */
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { fetchDownloads } from '../api/support-extra'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
@@ -125,26 +125,39 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // —— 交互态：仅 showFilter 时使用，无条件声明以遵守 hooks 规则 ——
   const [category, setCategory] = useState('全部')
   const [type, setType] = useState('全部')
+  // 型号筛选「进 URL」（?model=型号），便于从「型号支持」页深链直达某型号的可用资料
+  const [params, setParams] = useSearchParams()
+  const model = showFilter ? params.get('model') ?? '全部' : '全部'
 
   const { data, loading, error } = useApi((signal) => fetchDownloads(signal), [reloadKey])
   const all = data?.items ?? []
   // 手动挑选：scope=manual 时按 ids 顺序挑选（优先于类别过滤）
   const base = pickByIds(all, scope, manualIds)
+  // 型号候选：由全部资料的适用型号去重生成（升序，便于查找）
+  const modelOptions = ['全部', ...Array.from(new Set(base.flatMap((item) => item.models))).sort()]
+  const setModel = (option: string) => {
+    const next = new URLSearchParams(params)
+    if (!option || option === '全部') next.delete('model')
+    else next.set('model', option)
+    setParams(next, { replace: true })
+  }
   const filtered = base.filter(
     (item) =>
       (!propCategory || item.category === propCategory) &&
+      (model === '全部' || item.models.includes(model)) &&
       (!showFilter || category === '全部' || item.category === category) &&
       (!showFilter || type === '全部' || DOWNLOAD_TYPE_LABELS[item.type] === type),
   )
   const capped = limit > 0 ? filtered.slice(0, limit) : filtered
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
-  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${propCategory}|${scope}|${category}|${type}`)
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${propCategory}|${scope}|${category}|${type}|${model}`)
   const shown = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   const resetFilters = () => {
     setCategory('全部')
     setType('全部')
+    setModel('全部')
   }
 
   return (
@@ -214,9 +227,11 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
         <>
           {/* 类别 / 类型筛选（仅列表页开启）：与原下载中心一致 */}
           {showFilter && (
-            <div className="row" style={{ gap: 'var(--gh-space-5)', marginBottom: 'var(--gh-space-5)' }}>
+            <div className="row" style={{ gap: 'var(--gh-space-5)', marginBottom: 'var(--gh-space-5)', flexWrap: 'wrap' }}>
               <FilterChips label="类别" options={data?.categories ?? []} value={category} onChange={setCategory} />
               <FilterChips label="类型" options={data?.types ?? []} value={type} onChange={setType} />
+              {/* 型号筛选：型号较多时该行自动换行（flexWrap） */}
+              <FilterChips label="型号" options={modelOptions} value={model} onChange={setModel} />
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
                 共 {filtered.length} 份
               </span>

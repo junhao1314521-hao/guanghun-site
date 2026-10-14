@@ -111,7 +111,7 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
   })
 
   it('新建 / 删除落盘后重新 initCollections()（模拟重启）仍生效', () => {
-    const created = createCollectionItem('faqs', { q: '临时：如何重置？', a: '调用集合存储的 resetCollection。', category: '下载与安装' })
+    const created = createCollectionItem('faqs', { q: '临时：如何重置？', a: '调用集合存储的 resetCollection。', category: '安装' })
     assert.ok(created.id, '新建记录应有 id')
 
     // 落盘断言

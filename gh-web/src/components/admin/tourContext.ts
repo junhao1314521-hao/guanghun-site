@@ -15,7 +15,7 @@ export const ADMIN_TOUR_DONE_KEY = 'gh-admin-tour-done'
  */
 export type TourStep = { target: string; title: string; desc: string; to?: string }
 
-/** 引导步骤：按「照着做一遍就能上手」的顺序编排，覆盖日常最常用的 8 步。 */
+/** 引导步骤：按「照着做一遍就能上手」的顺序编排，共 8 步，覆盖新功能（服务评价 / 迭代需求池 / 站点配置）。 */
 export const STEPS: TourStep[] = [
   {
     target: '[data-tour="nav"]',
@@ -42,27 +42,27 @@ export const STEPS: TourStep[] = [
   },
   {
     target: '[data-tour="inquiries"]',
-    title: '⑤ 处理客户咨询与评价',
-    desc: '点「客户与服务 → 咨询工单」查看并回复客户提交的咨询；工单完成后再到「服务评价」看评分与反馈，掌握服务质量。',
+    title: '⑤ 处理客户咨询工单',
+    desc: '点「客户与服务 → 咨询工单」查看并回复客户提交的咨询，可指派处理人、标注状态；处理完的工单会在「服务评价」里沉淀客户反馈。',
     to: '/admin/inquiries',
   },
   {
-    target: '[data-tour="styles"]',
-    title: '⑥ 站点样式与模板',
-    desc: '「样式」调整站点级主色 / 圆角 / 字体（前台即时生效）；「模板」把一套区块存成快照，复用到其他页面。',
-    to: '/admin/styles',
+    target: '[data-tour="reviews"]',
+    title: '⑥ 跟进服务评价',
+    desc: '点「系统设置 → 服务评价」查看客户评分（1–5）、渠道与评价摘要。把状态为「待处理」的评价回访后再标为「已回访」，工作台「待评价处理」待办会随之下线。',
+    to: '/admin/reviews',
+  },
+  {
+    target: '[data-tour="requirements"]',
+    title: '⑦ 规划迭代需求池',
+    desc: '点「系统设置 → 迭代需求池」用列表 / 看板 / 影响×成本四象限三种视角管理需求：按 MoSCoW 优先级与版本 Roadmap 排期，明确哪些先做、哪些暂缓。',
+    to: '/admin/requirements',
   },
   {
     target: '[data-tour="site"]',
-    title: '⑦ 调整站点级配置',
-    desc: '点「网站与装修 → 站点配置」可维护导航与页脚、公告条、顶部操作按钮（购买 / 预约体验）等站点级内容。',
+    title: '⑧ 站点配置与发布上线',
+    desc: '点「网站与装修 → 站点配置」维护导航 / 页脚、公告条、顶栏按钮（购买 / 预约体验），以及验证码与第三方登录开关、保修参数。改完到「预览与发布」发布或按版本回滚（发布 / 备份为管理员权限）。想再看一遍，点右上角「?」。',
     to: '/admin/site',
-  },
-  {
-    target: '[data-tour="publish"]',
-    title: '⑧ 发布与版本回滚',
-    desc: '改完内容后到「预览与发布」查看发布记录；如改错，可按版本一键回滚（发布 / 备份为管理员权限）。想再看一遍，点右上角「?」。',
-    to: '/admin/publish',
   },
 ]
 

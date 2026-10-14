@@ -22,7 +22,17 @@ import type {
 
 export type DownloadsPayload = { items: DownloadItem[]; categories: string[]; types: string[] }
 export type FaqPayload = { items: FaqItem[]; categories: string[] }
-export type InquiryBody = { name: string; contact: string; model: string; topic: string; message: string }
+/** 咨询表单载荷；captchaToken/captchaCode 为反垃圾验证码，website 为蜜罐字段（真人留空） */
+export type InquiryBody = {
+  name: string
+  contact: string
+  model: string
+  topic: string
+  message: string
+  captchaToken?: string
+  captchaCode?: string
+  website?: string
+}
 export type InquiryResult = { ok: boolean; ticketId: string; receivedAt: string }
 
 /** 下载中心列表：一次返回全部资料与筛选项（类别 / 类型），过滤在前端完成 */
@@ -84,6 +94,9 @@ export type ReservationBody = {
   visitTime: string
   people: number
   note: string
+  captchaToken?: string
+  captchaCode?: string
+  website?: string
 }
 export type ReservationResult = { ok: boolean; reservationId: string; receivedAt: string }
 

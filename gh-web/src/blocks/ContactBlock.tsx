@@ -8,6 +8,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { submitInquiry, type InquiryBody, type InquiryResult } from '../api/support-extra'
+import { CaptchaField, HoneypotField } from '../components/ui/CaptchaField'
+import { useSiteAuth } from '../hooks/useSiteConfig'
 import { INQUIRY_TOPICS } from '../data/support-extra'
 import { asBool, asString, asStringArray } from './blockUtils'
 
@@ -22,6 +24,11 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
   const [status, setStatus] = useState<SubmitStatus>('idle')
   const [result, setResult] = useState<InquiryResult | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
+  // 反垃圾：图形验证码 + 蜜罐字段（真人不可见的隐藏输入）
+  const [captchaCode, setCaptchaCode] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaNonce, setCaptchaNonce] = useState(0)
+  const auth = useSiteAuth()
 
   const update = (key: keyof InquiryBody, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -30,11 +37,14 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    // 蜜罐字段为不受控隐藏输入（真人不可见）：提交时从表单读取，机器人自动填表会带出非空值
+    const honeypot = String(new FormData(event.currentTarget).get('website') ?? '')
     const next: Record<string, string> = {}
     if (!form.name.trim()) next.name = '请填写称呼'
     if (!form.contact.trim()) next.contact = '请填写联系方式'
     if (!form.model.trim()) next.model = '请填写产品型号'
     if (!form.message.trim()) next.message = '请描述你遇到的问题'
+    if (auth.captcha && !captchaCode.trim()) next.captcha = '请输入图形验证码'
     setErrors(next)
     if (Object.keys(next).length > 0) {
       setStatus('idle')
@@ -43,12 +53,15 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
     setStatus('submitting')
     setErrorMsg('')
     try {
-      const res = await submitInquiry({ ...form })
+      const res = await submitInquiry({ ...form, captchaToken, captchaCode, website: honeypot })
       setResult(res)
       setStatus('success')
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : '提交失败，请稍后重试')
       setStatus('error')
+      // 服务端每次校验都消费令牌，失败后强制刷新验证码
+      setCaptchaCode('')
+      setCaptchaNonce((n) => n + 1)
     }
   }
 
@@ -57,6 +70,8 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
     setErrors({})
     setResult(null)
     setErrorMsg('')
+    setCaptchaCode('')
+    setCaptchaNonce((n) => n + 1)
     setStatus('idle')
   }
 
@@ -168,6 +183,18 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
             <span className="field__hint">请勿填写与本次咨询无关的个人信息。</span>
           )}
         </div>
+
+        {/* 反垃圾：蜜罐（隐藏）+ 图形验证码（后台可关闭，关闭后不渲染） */}
+        <HoneypotField />
+        <CaptchaField
+          key={captchaNonce}
+          inputId="contactCaptcha"
+          code={captchaCode}
+          onCodeChange={setCaptchaCode}
+          onTokenChange={setCaptchaToken}
+          error={errors.captcha}
+          disabled={submitting}
+        />
 
         <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
           <button className={`btn btn--primary${submitting ? ' btn--loading' : ''}`} type="submit" disabled={submitting}>

@@ -4,8 +4,8 @@ import type { AuthUser } from '../data/auth'
 
 export type { AuthUser } from '../data/auth'
 
-export type LoginBody = { username: string; password: string; remember?: boolean }
-export type RegisterBody = { username: string; email: string; password: string }
+export type LoginBody = { username: string; password: string; remember?: boolean; captchaToken?: string; captchaCode?: string }
+export type RegisterBody = { username: string; email: string; password: string; captchaToken?: string; captchaCode?: string }
 export type ForgotBody = { email: string }
 export type ResetBody = { token: string; password: string }
 
