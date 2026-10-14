@@ -61,7 +61,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
 
   return (
     <div
-      className="blk-hero"
+      className={`blk-hero${paused ? ' is-paused' : ''}`}
       tabIndex={0}
       role="group"
       aria-label="首屏轮播，可用左右方向键切换"
@@ -146,18 +146,26 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
           <button className="blk-hero__arrow blk-hero__arrow--next" type="button" aria-label="下一张" onClick={() => go(index + 1)}>
             <IconChevronRight />
           </button>
-          <div className="blk-hero__controls" role="tablist" aria-label="海报选择">
-            {slides.map((slide, i) => (
-              <button
-                key={`dot-${slide.mediaTag}-${i}`}
-                className={`blk-hero__dot${i === index ? ' is-active' : ''}`}
-                type="button"
-                role="tab"
-                aria-label={`第 ${i + 1} 张`}
-                aria-selected={i === index}
-                onClick={() => go(i)}
-              />
-            ))}
+          <div className="blk-hero__nav">
+            <div className="blk-hero__count" aria-hidden="true">
+              <b>{String(index + 1).padStart(2, '0')}</b>
+              <span>/ {String(total).padStart(2, '0')}</span>
+            </div>
+            <div className="blk-hero__controls" role="tablist" aria-label="海报选择">
+              {slides.map((slide, i) => (
+                <button
+                  key={`dot-${slide.mediaTag}-${i}`}
+                  className={`blk-hero__dot${i === index ? ' is-active' : ''}`}
+                  type="button"
+                  role="tab"
+                  aria-label={`第 ${i + 1} 张`}
+                  aria-selected={i === index}
+                  onClick={() => go(i)}
+                >
+                  <span className="blk-hero__dot-fill" aria-hidden="true" />
+                </button>
+              ))}
+            </div>
           </div>
         </>
       )}

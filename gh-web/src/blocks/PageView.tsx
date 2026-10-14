@@ -116,18 +116,18 @@ export function PageView({ pageKey, head = true, blockDefaults, headAction }: Pr
       ) : (
         <>
           {head ? (
-            <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-              <nav className="breadcrumb" aria-label="面包屑">
+            <div className="container page-head">
+              <nav className="page-head__crumb" aria-label="面包屑">
                 <Link to="/">首页</Link>
                 <span>/</span>
                 <span>{page.title}</span>
               </nav>
-              <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-4)' }}>
-                <div>
-                  <h1 className="section__title">{page.title}</h1>
-                </div>
+              <span className="page-head__mark" aria-hidden="true" />
+              <div className="page-head__row">
+                <h1 className="page-head__title">{page.title}</h1>
                 {headAction}
               </div>
+              <div className="page-head__rule" aria-hidden="true" />
             </div>
           ) : (
             // 关闭页头时（如自带首屏的页面）仍保留唯一 h1，仅供读屏与 SEO，不占据视觉

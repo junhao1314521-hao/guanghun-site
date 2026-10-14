@@ -114,12 +114,36 @@
   .blk-hero__grid { padding: 46vh var(--gh-space-4) var(--gh-space-7); }
 }
 
-.blk-hero__controls { position: absolute; right: var(--gh-space-5); bottom: var(--gh-space-5); display: flex; gap: var(--gh-space-2); z-index: 3; }
-.blk-hero__dot {
-  width: 28px; height: 4px; padding: 0; border: 0; border-radius: 2px;
-  background: rgba(255, 255, 255, .24); cursor: pointer; transition: background var(--gh-duration-fast) var(--gh-ease-standard);
+/* 底部导航区：序号 + 进度式指示器（品牌色进度随自动播放推进，悬停暂停） */
+.blk-hero__nav {
+  position: absolute; right: var(--gh-space-5); bottom: var(--gh-space-5);
+  z-index: 3; display: flex; align-items: center; gap: var(--gh-space-5);
 }
-.blk-hero__dot.is-active { background: var(--gh-blue-400); }
+.blk-hero__count {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  font-family: var(--gh-font-mono); color: rgba(255, 255, 255, .5);
+  font-size: 11px; letter-spacing: .1em;
+}
+.blk-hero__count b { font-size: 15px; font-weight: var(--gh-weight-medium); color: var(--gh-neutral-50); }
+.blk-hero__controls { position: static; display: flex; gap: var(--gh-space-2); }
+.blk-hero__dot {
+  position: relative; overflow: hidden;
+  width: 30px; height: 3px; padding: 0; border: 0; border-radius: 2px;
+  background: rgba(255, 255, 255, .26); cursor: pointer;
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.blk-hero__dot.is-active { background: rgba(255, 255, 255, .34); }
+.blk-hero__dot-fill {
+  position: absolute; inset: 0; transform-origin: 50% 50%; transform: scaleX(0);
+  background: linear-gradient(90deg, var(--gh-blue-400), var(--gh-cyan-400));
+}
+/* 与组件内 DURATION(=6000ms) 保持一致 */
+.blk-hero__dot.is-active .blk-hero__dot-fill { animation: ghHeroProgress 6s linear both; }
+.blk-hero.is-paused .blk-hero__dot.is-active .blk-hero__dot-fill { animation-play-state: paused; }
+@keyframes ghHeroProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .blk-hero__dot.is-active .blk-hero__dot-fill { animation: none; transform: scaleX(1); }
+}
 .blk-hero__arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
   width: 42px; height: 42px; display: grid; place-items: center;
@@ -579,23 +603,36 @@
 }
 .blk-card__body {
   position: absolute; inset: auto var(--gh-space-5) var(--gh-space-5) var(--gh-space-5); z-index: 2;
-  display: flex; flex-direction: column; align-items: flex-start; gap: var(--gh-space-2);
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--gh-space-3);
 }
+/* 场景卡文案层级：标签(11px) → 主标题(clamp 22–28) → 说明(13px)，标题前加品牌渐变竖条 */
 .blk-card__title {
-  margin: 0; font-size: var(--gh-font-size-h4); font-weight: var(--gh-weight-semibold);
-  letter-spacing: -.01em; line-height: var(--gh-line-height-h4);
+  position: relative; margin: 0;
+  padding-left: calc(4px + var(--gh-space-3));
+  font-size: clamp(22px, 2.1vw, 28px);
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: -.02em; line-height: 1.18;
   color: var(--gh-neutral-50); text-shadow: 0 1px 14px rgba(9, 10, 16, .55);
 }
+.blk-card__title::before {
+  content: ''; position: absolute; left: 0; top: .14em;
+  width: 4px; height: 1em; border-radius: 2px;
+  background: linear-gradient(180deg, var(--gh-blue-400), var(--gh-cyan-400));
+}
 .blk-card__desc {
-  margin: 0; max-width: 34ch; font-size: var(--gh-font-size-body-sm);
-  line-height: var(--gh-line-height-body-sm);
-  color: rgba(255, 255, 255, .84); text-shadow: 0 1px 10px rgba(9, 10, 16, .5);
+  margin: 0; max-width: 34ch;
+  padding-left: calc(4px + var(--gh-space-3));
+  font-size: var(--gh-font-size-body-sm);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, .8); text-shadow: 0 1px 10px rgba(9, 10, 16, .5);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .blk-card--overlay .tag {
   align-self: flex-start;
-  background: rgba(9, 10, 16, .55); color: var(--gh-neutral-50); border-color: rgba(255, 255, 255, .3);
+  background: color-mix(in srgb, var(--gh-blue-500) 80%, transparent);
+  color: #fff; border-color: rgba(255, 255, 255, .28);
   backdrop-filter: blur(4px);
+  font-weight: var(--gh-weight-medium); letter-spacing: .04em;
 }
 
 /* ============================================================
@@ -637,22 +674,47 @@
 .showcase__media-inner:hover video { transform: scale(1.07); filter: brightness(1.06); }
 .showcase__media-fallback { width: 100%; height: 100%; }
 .showcase__copy { min-width: 0; display: flex; flex-direction: column; gap: var(--gh-space-4); }
+/* 型号 / 标签：品牌色胶囊（读作「型号徽标」，替代原等宽细字） */
 .showcase__eyebrow {
-  display: inline-flex; align-items: center; gap: var(--gh-space-3);
+  align-self: flex-start;
+  display: inline-flex; align-items: center;
+  padding: 5px 12px; border-radius: var(--gh-radius-full);
+  background: color-mix(in srgb, var(--gh-blue-500) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gh-blue-500) 28%, transparent);
   font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption);
-  letter-spacing: .14em; text-transform: uppercase; color: var(--color-accent-text);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--color-accent-text);
 }
-.showcase__eyebrow::before {
-  content: ''; width: 24px; height: 1px; flex: none;
-  background: linear-gradient(90deg, var(--color-accent-solid), transparent);
+.showcase__eyebrow::before { content: none; }
+.showcase__title {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 54px); line-height: 1.05;
+  font-weight: var(--gh-weight-semibold); letter-spacing: -.035em;
+  color: var(--color-text-primary); max-width: 15ch; text-wrap: balance;
 }
-.showcase__title { margin: 0; font-size: clamp(30px, 3.6vw, 46px); line-height: 1.08; font-weight: var(--gh-weight-semibold); letter-spacing: -.02em; color: var(--color-text-primary); max-width: 16ch; }
-.showcase__desc { margin: 0; max-width: 46ch; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-lg); line-height: 1.65; }
-/* 参数条：每项统一字号与基线，竖发丝分隔（避免「数值/单位」断行、文字项与数字项轻重不一） */
-.showcase__specs { list-style: none; margin: var(--gh-space-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; row-gap: var(--gh-space-3); }
-.showcase__specs li { padding: 0 var(--gh-space-4); border-left: 1px solid var(--color-border-default); }
-.showcase__specs li:first-child { padding-left: 0; border-left: 0; }
-.showcase__spec { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-lg); line-height: 1.3; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+.showcase__desc {
+  margin: 0; max-width: 44ch; color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-lg); line-height: 1.7;
+}
+/* 卖点参数：改为醒目胶囊。注意**去掉整体等宽字体**——中文落到等宽字体会「串味」 */
+.showcase__specs {
+  list-style: none; margin: var(--gh-space-2) 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: var(--gh-space-3);
+}
+.showcase__specs li { padding: 0; border-left: 0; }
+.showcase__spec {
+  display: inline-flex; align-items: center;
+  padding: 8px 14px; border-radius: var(--gh-radius-full);
+  background: color-mix(in srgb, var(--gh-blue-500) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gh-blue-500) 26%, transparent);
+  font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium);
+  letter-spacing: 0; line-height: 1.25; color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
+  transition: border-color .25s var(--gh-ease-standard), background-color .25s var(--gh-ease-standard);
+}
+.showcase__specs li:hover .showcase__spec {
+  border-color: color-mix(in srgb, var(--gh-blue-500) 52%, transparent);
+  background: color-mix(in srgb, var(--gh-blue-500) 15%, transparent);
+}
 .showcase__cta { margin-top: var(--gh-space-5); display: flex; align-items: center; gap: var(--gh-space-4); flex-wrap: wrap; }
 .showcase__link { display: inline-flex; align-items: center; gap: var(--gh-space-2); color: var(--color-text-secondary); font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium); text-decoration: none; transition: color .25s var(--gh-ease-standard); }
 .showcase__link:hover { color: var(--color-accent-text); }
@@ -664,6 +726,10 @@
   .showcase__item--reverse .showcase__media { order: 0; }
   .showcase__item--reverse .showcase__copy { order: 0; }
   .showcase__media-inner { aspect-ratio: 4 / 3; }
+  /* 手机端：标题降档、参数胶囊收紧，避免换行过碎 */
+  .showcase__title { font-size: clamp(26px, 7.5vw, 34px); letter-spacing: -.03em; }
+  .showcase__desc { font-size: var(--gh-font-size-body); }
+  .showcase__spec { padding: 6px 11px; font-size: var(--gh-font-size-body-sm); }
 }
 
 /* 减弱动效偏好：静止呈现（media 不缩放、卡片不上浮） */

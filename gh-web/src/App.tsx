@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/site/ErrorBoundary'
 import { FloatingActions } from './components/site/FloatingActions'
 import { JsonLd } from './components/site/JsonLd'
 import { MobileDrawer } from './components/site/MobileDrawer'
+import { PageTransition } from './components/site/PageTransition'
 import { SiteFooter } from './components/site/SiteFooter'
 import { SiteHeader } from './components/site/SiteHeader'
 import { usePageMeta } from './hooks/usePageMeta'
@@ -201,6 +202,7 @@ function AppShell() {
       )}
 
       <main id="main" tabIndex={-1}>
+        <PageTransition pathname={pathname}>
         {/* key=pathname：路由切换时重置错误边界，避免上一页异常「粘住」下一页 */}
         <ErrorBoundary key={pathname} renderFallback={(reset) => <PageError reset={reset} />}>
           <Suspense fallback={<PageLoading />}>
@@ -256,6 +258,7 @@ function AppShell() {
             </Routes>
           </Suspense>
         </ErrorBoundary>
+        </PageTransition>
       </main>
 
       <SiteFooter />
