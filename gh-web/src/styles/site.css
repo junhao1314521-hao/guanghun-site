@@ -1428,59 +1428,70 @@ body.drawer-open { overflow: hidden; }
 }
 
 /* ============================================================
-   页面切换过渡（「翻页」效果）：品牌幕布自下铺满 → 从顶部掀开
+   页面切换过渡：柔和遮罩化开 + 新页面轻微「收放」淡入
    ============================================================ */
-.page-curtain {
+.page-veil {
   position: fixed; inset: 0; z-index: var(--gh-z-modal); pointer-events: none;
-  background:
-    radial-gradient(130% 90% at 50% 100%, color-mix(in srgb, var(--gh-blue-500) 55%, transparent), transparent 62%),
-    linear-gradient(180deg, var(--gh-neutral-950) 0%, #0B1230 55%, var(--gh-blue-700) 100%);
-  transform: scaleY(0); will-change: transform;
-  animation: ghCurtain .58s var(--gh-ease-accent) both;
+  background: var(--color-bg-page);
+  animation: ghPageVeil .26s var(--gh-ease-standard) both;
 }
-@keyframes ghCurtain {
-  0%   { transform: scaleY(0); transform-origin: 50% 100%; }
-  46%  { transform: scaleY(1); transform-origin: 50% 100%; }
-  54%  { transform: scaleY(1); transform-origin: 50% 0%; }
-  100% { transform: scaleY(0); transform-origin: 50% 0%; }
+@keyframes ghPageVeil { from { opacity: .92; } to { opacity: 0; } }
+/* 新页面从 99.2% 收放到 100%：读作「被轻轻收进来」，而非硬切 */
+.page-enter { animation: ghPageZoom .36s var(--gh-ease-accent) both; }
+@keyframes ghPageZoom {
+  from { opacity: 0; transform: scale(.992); }
+  to   { opacity: 1; transform: none; }
 }
-/* 新页面在幕布覆盖期间错峰淡入 */
-.page-enter { animation: ghPageIn .44s var(--gh-ease-accent) .2s both; }
-@keyframes ghPageIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .page-curtain { display: none; }
+  .page-veil { display: none; }
   .page-enter { animation: none; }
 }
 
 /* ============================================================
-   首屏海报文案：更大字号阶梯 + 关键词渐变 + 品牌点缀
+   首屏海报文案：极简杂志式
+   层级靠「字号 / 字重 / 明度」三级落差，不靠渐变与发光；
+   品牌色只出现在 眉题 · 发丝分隔线 · 主按钮 三处。
    ============================================================ */
 .hero__eyebrow {
-  font-size: 11px; letter-spacing: .22em; color: rgba(255, 255, 255, .64);
+  font-family: var(--gh-font-mono);
+  font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--gh-blue-300);
 }
-.hero__eyebrow::before {
-  width: 28px; height: 2px; border-radius: 2px;
-  background: linear-gradient(90deg, var(--gh-blue-400), var(--gh-cyan-400));
-}
+.hero__eyebrow::before { content: none; }
 .hero__title {
-  font-size: clamp(44px, 5.4vw, 78px);
-  line-height: 1.02; letter-spacing: -.035em;
-  font-weight: var(--gh-weight-bold);
-  max-width: 14ch;
+  color: var(--gh-neutral-50);
+  font-size: clamp(44px, 5.2vw, 72px);
+  font-weight: var(--gh-weight-semibold);
+  line-height: 1.05; letter-spacing: -.03em;
+  max-width: 15ch;
   margin: var(--gh-space-5) 0 var(--gh-space-5);
   text-wrap: balance;
 }
-/* 标题：纯白统一色（不用渐变字——高级感来自字号/字距/行高，而非装饰） */
 .hero__desc {
-  font-size: var(--gh-font-size-body-lg); line-height: 1.72;
-  color: rgba(255, 255, 255, .78); max-width: 46ch;
+  font-size: var(--gh-font-size-body-lg); line-height: 1.75;
+  color: rgba(255, 255, 255, .68); max-width: 42ch;
+  margin: 0 0 var(--gh-space-7);
 }
 .hero__stats { margin-top: var(--gh-space-8); }
-.hero__stat b { font-size: clamp(24px, 2.2vw, 32px); }
-.hero__stat span { font-size: 11px; letter-spacing: .16em; color: rgba(255, 255, 255, .58); }
+.hero__stat { border-left-color: rgba(255, 255, 255, .14); }
+.hero__stat b { font-size: clamp(24px, 2.2vw, 30px); font-weight: var(--gh-weight-medium); }
+.hero__stat span { font-size: 11px; letter-spacing: .16em; color: rgba(255, 255, 255, .55); }
+/* 次要动作改为「文字 + →」，去掉第二个描边按钮的厚重感 */
+.hero__cta .btn--secondary {
+  height: auto; padding: 0; background: transparent;
+  border-color: transparent; color: rgba(255, 255, 255, .86);
+  font-weight: var(--gh-weight-medium);
+}
+.hero__cta .btn--secondary::after {
+  content: '→'; transition: transform .25s var(--gh-ease-accent);
+}
+.hero__cta .btn--secondary:hover {
+  background: transparent; border-color: transparent; color: var(--gh-neutral-50);
+}
+.hero__cta .btn--secondary:hover::after { transform: translateX(4px); }
 @media (max-width: 900px) {
-  .hero__title { font-size: clamp(34px, 9vw, 46px); letter-spacing: -.03em; }
-  .hero__desc { font-size: var(--gh-font-size-body); }
+  .hero__title { font-size: clamp(34px, 9vw, 46px); letter-spacing: -.028em; }
+  .hero__desc { font-size: var(--gh-font-size-body); max-width: none; }
 }
 
 /* ============================================================
