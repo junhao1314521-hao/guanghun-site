@@ -51,17 +51,23 @@ function ArticleCards({ items, rail }: { items: ArticleSummary[]; rail?: boolean
       {items.map((item) => (
         <Link className="card card--link reveal" to={`/articles/${item.id}`} key={item.id}>
           <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
-            <MediaImg src={articleCoverSrc(item.cover)} alt={item.title} />
+            <MediaImg src={articleCoverSrc(item.cover, item.coverImage)} alt={item.title} />
           </div>
-          <span className={`tag${item.accent ? ' tag--accent' : ''}`}>{item.tag}</span>
+          <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
+            {(item.tags?.length ? item.tags : [item.tag]).map((label, index) => (
+              <span className={`tag${item.accent && index === 0 ? ' tag--accent' : ''}`} key={label}>
+                {label}
+              </span>
+            ))}
+          </div>
           <h3 className="card__title">{item.title}</h3>
           <p className="card__desc">{item.desc}</p>
           <div className="card--link__foot">
-            <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-              {item.date}
-            </span>
             <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-              {item.readingMin} 分钟阅读
+              {item.author}
+            </span>
+            <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+              {item.date} · {item.readingMin} 分钟阅读
             </span>
           </div>
         </Link>
@@ -115,7 +121,9 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
       : CATEGORY_FILTERS.filter((name) => name !== '全部')),
   ]
 
-  const items = data?.items ?? []
+  // 文章模式仅展示「已发布」的内容（新闻条目无 status，原样保留）
+  const rawItems = data?.items ?? []
+  const items = isNews ? rawItems : (rawItems as ArticleSummary[]).filter((item) => !item.status || item.status === '已发布')
   const label = SOURCE_LABEL[source] ?? ''
   const bySource = !isNews && label ? (items as ArticleSummary[]).filter((item) => item.categoryLabel === label) : items
   // 手动挑选：仅在文章模式生效（新闻条目无 id），按 ids 顺序挑选

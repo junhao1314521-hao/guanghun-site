@@ -92,7 +92,13 @@ function LadderRows({
       {ranked.map(({ row, rank, tied }) => (
         <div className="ladder__row" key={row.model}>
           <span className={`ladder__rank${/^0[123]$/.test(rank) ? ' ladder__rank--top' : ''}`}>{rank}</span>
-          <span className="ladder__model">{row.model}</span>
+          {row.productId ? (
+            <Link className="ladder__model ladder__model--link" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
+              {row.model}
+            </Link>
+          ) : (
+            <span className="ladder__model">{row.model}</span>
+          )}
           <span className="ladder__name">{row.name}</span>
           {row.score === null ? (
             <span className="ladder__track" style={{ background: 'transparent', border: '1px dashed var(--color-border-default)' }}>

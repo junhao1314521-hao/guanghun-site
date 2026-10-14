@@ -52,13 +52,13 @@ export function ArticleDetailPage() {
   useDetailSeo({
     title: article ? `${article.title} · 光魂` : undefined,
     description: article?.desc,
-    image: article ? articleCoverSrc(article.cover) : undefined,
+    image: article ? articleCoverSrc(article.cover, article.coverImage) : undefined,
     ogType: 'article',
   })
 
   return (
     <div ref={rootRef}>
-      {article && <JsonLdNode node={articleJsonLd(article, articleCoverSrc(article.cover))} />}
+      {article && <JsonLdNode node={articleJsonLd(article, articleCoverSrc(article.cover, article.coverImage))} />}
       {/* 面包屑 + 标题（数据未就绪时仅显示导航层级） */}
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
         <nav className="breadcrumb" aria-label="面包屑">
@@ -76,7 +76,13 @@ export function ArticleDetailPage() {
         {article && (
           <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)' }}>
             <div>
-              <span className={`tag${article.accent ? ' tag--accent' : ''}`}>{article.tag}</span>
+              <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
+                {(article.tags?.length ? article.tags : [article.tag]).map((label, index) => (
+                  <span className={`tag${article.accent && index === 0 ? ' tag--accent' : ''}`} key={label}>
+                    {label}
+                  </span>
+                ))}
+              </div>
               <h1 className="section__title" style={{ marginTop: 'var(--gh-space-3)' }}>
                 {article.title}
               </h1>
@@ -128,7 +134,7 @@ export function ArticleDetailPage() {
           {/* 封面 */}
           <div className="container" style={{ paddingBottom: 'var(--gh-space-7)' }}>
             <div className="ph-box ph-box--media reveal" style={{ aspectRatio: '16 / 9' }}>
-              <MediaImg src={articleCoverSrc(article.cover)} alt={article.title} loading="eager" />
+              <MediaImg src={articleCoverSrc(article.cover, article.coverImage)} alt={article.title} loading="eager" />
             </div>
           </div>
 
@@ -169,7 +175,7 @@ export function ArticleDetailPage() {
               <div className="grid-3">
                 {article.related.map((item) => (
                   <Link className="card card--link" to={`/articles/${item.id}`} key={item.id}>
-                    <span className={`tag${item.accent ? ' tag--accent' : ''}`}>{item.tag}</span>
+                    <span className={`tag${item.accent ? ' tag--accent' : ''}`}>{item.tags?.[0] ?? item.tag}</span>
                     <h3 className="card__title">{item.title}</h3>
                     <p className="card__desc">{item.desc}</p>
                     <div className="card--link__foot">

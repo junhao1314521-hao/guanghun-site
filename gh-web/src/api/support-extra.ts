@@ -75,6 +75,27 @@ export function submitInquiry(body: InquiryBody, signal?: AbortSignal): Promise<
   }))
 }
 
+/** 到店预约（独立实体）：写入 reservations 集合，与咨询工单分离 */
+export type ReservationBody = {
+  venueId: string
+  venueName: string
+  name: string
+  contact: string
+  visitTime: string
+  people: number
+  note: string
+}
+export type ReservationResult = { ok: boolean; reservationId: string; receivedAt: string }
+
+/** 提交到店预约：真实 POST；占位环境仅回执预约号 */
+export function submitReservation(body: ReservationBody, signal?: AbortSignal): Promise<ReservationResult> {
+  return transport({ path: '/api/reservation', method: 'POST', body, signal }, () => ({
+    ok: true,
+    reservationId: `RS-${Date.now()}`,
+    receivedAt: new Date().toISOString(),
+  }))
+}
+
 /** 联系方式：渠道、服务时间与办公 / 体验点 */
 export function fetchContact(signal?: AbortSignal): Promise<ContactPayload> {
   return transport({ path: '/api/contact', signal }, () => CONTACT_PAYLOAD)

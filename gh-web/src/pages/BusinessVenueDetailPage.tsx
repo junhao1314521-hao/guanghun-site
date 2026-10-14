@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { fetchBizVenue } from '../api/business-extra'
-import { submitInquiry } from '../api/support-extra'
+import { submitReservation } from '../api/support-extra'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -25,11 +25,11 @@ export function BusinessVenueDetailPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
-  // 到店预约：真实提交至咨询工单（与产品咨询共用同一套工单）
+  // 到店预约：独立实体，真实提交至 reservations 集合（不再挤进咨询工单正文）
   const [reserveOpen, setReserveOpen] = useState(false)
-  const [reserve, setReserve] = useState({ name: '', contact: '', visitTime: '', note: '' })
+  const [reserve, setReserve] = useState({ name: '', contact: '', visitTime: '', people: '1', note: '' })
   const [reserveErr, setReserveErr] = useState<string | null>(null)
-  const [reserveTicket, setReserveTicket] = useState<string | null>(null)
+  const [reserveId, setReserveId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
 
   const { data: detail, loading, error } = useApi((signal) => fetchBizVenue(id, signal), [id, reloadKey])
@@ -47,15 +47,17 @@ export function BusinessVenueDetailPage() {
     }
     setSending(true)
     try {
-      const res = await submitInquiry({
+      const res = await submitReservation({
+        venueId: detail?.id ?? '',
+        venueName: detail?.name ?? '体验点',
         name: reserve.name.trim(),
         contact: reserve.contact.trim(),
-        model: detail?.name ?? '体验点',
-        topic: '预约到店',
-        message: `预约时间：${reserve.visitTime.trim() || '待确认'}\n备注：${reserve.note.trim() || '无'}`,
+        visitTime: reserve.visitTime.trim(),
+        people: Math.max(1, Number(reserve.people) || 1),
+        note: reserve.note.trim(),
       })
-      setReserveTicket(res.ticketId)
-      setReserve({ name: '', contact: '', visitTime: '', note: '' })
+      setReserveId(res.reservationId)
+      setReserve({ name: '', contact: '', visitTime: '', people: '1', note: '' })
     } catch (ex) {
       setReserveErr(ex instanceof Error ? ex.message : '提交失败，请稍后重试')
     } finally {
@@ -153,9 +155,9 @@ export function BusinessVenueDetailPage() {
           <div className="card reveal">
             <h2 className="card__title">到店预约</h2>
             <p className="card__desc">{detail.note}</p>
-            {reserveTicket ? (
+            {reserveId ? (
               <div className="alert alert--success" role="status" style={{ marginTop: 'var(--gh-space-4)' }}>
-                预约已提交，工单号 {reserveTicket}；门店将尽快与你联系确认。
+                预约已提交，预约号 {reserveId}；门店将尽快与你联系确认。
               </div>
             ) : null}
             {reserveOpen ? (
@@ -194,6 +196,20 @@ export function BusinessVenueDetailPage() {
                       placeholder="如：本周六下午"
                       value={reserve.visitTime}
                       onChange={(event) => setReserve((prev) => ({ ...prev, visitTime: event.target.value }))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="reservePeople">
+                      到店人数
+                    </label>
+                    <input
+                      className="input"
+                      id="reservePeople"
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={reserve.people}
+                      onChange={(event) => setReserve((prev) => ({ ...prev, people: event.target.value }))}
                     />
                   </div>
                   <div className="field">

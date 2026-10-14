@@ -98,6 +98,40 @@ supportExtraRouter.post('/inquiry', (req, res) => {
   res.json({ ok: true, ticketId: item.id, receivedAt: new Date().toISOString() })
 })
 
+supportExtraRouter.post('/reservation', (req, res) => {
+  // 前台「预约到店」真实入库：写入 reservations 集合（独立实体，与咨询工单分离）。
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const name = readString(body.name)
+  const contact = readString(body.contact)
+  const venueId = readString(body.venueId)
+  const venueName = readString(body.venueName)
+  const visitTime = readString(body.visitTime)
+  const note = readString(body.note)
+  const rawPeople = Number(body.people)
+  const people = Number.isFinite(rawPeople) && rawPeople > 0 ? Math.floor(rawPeople) : 1
+  // 服务端校验：缺失必填项返回 400，不写入空记录
+  if (!name || !contact) {
+    res.status(400).json({ error: '请填写称呼与联系方式' })
+    return
+  }
+  const id = `rs-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+  const sessionUser = getUserSession(readCookie(req, USER_SESSION_COOKIE))
+  const item = createCollectionItem('reservations', {
+    id,
+    venueId,
+    venueName,
+    name,
+    contact,
+    visitTime,
+    people,
+    note,
+    status: '待确认',
+    createdAt: new Date().toISOString().slice(0, 10),
+    ...(sessionUser ? { userId: sessionUser.id } : {}),
+  })
+  res.json({ ok: true, reservationId: item.id, receivedAt: new Date().toISOString() })
+})
+
 supportExtraRouter.get('/contact', (_req, res) => {
   res.json(CONTACT_PAYLOAD)
 })

@@ -584,6 +584,8 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .ladder__rank { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body); color: var(--color-text-tertiary); width: 32px; flex-shrink: 0; }
 .ladder__rank--top { color: var(--color-accent-text); font-weight: var(--gh-weight-semibold); }
 .ladder__model { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body); width: 156px; flex-shrink: 0; }
+.ladder__model--link { color: inherit; text-decoration: none; }
+.ladder__model--link:hover { color: var(--color-accent-text); text-decoration: underline; }
 .ladder__name { font-size: var(--gh-font-size-body); color: var(--color-text-secondary); width: 170px; flex-shrink: 0; }
 .ladder__track { flex: 1; min-width: 80px; height: 12px; background: var(--color-bg-muted); border-radius: var(--gh-radius-full); overflow: hidden; }
 .ladder__fill { display: block; height: 100%; border-radius: var(--gh-radius-full); background: linear-gradient(90deg, var(--color-data-gradient-from), var(--color-data-gradient-to)); transition: width var(--gh-duration-slow) var(--gh-ease-accent); }

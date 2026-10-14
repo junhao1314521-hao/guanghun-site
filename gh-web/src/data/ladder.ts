@@ -8,6 +8,8 @@ export type LadderRow = {
   score: number | null
   /** 是否与上一行并列 */
   tied?: boolean
+  /** 关联产品 id（可点进产品详情；未上市 / 无详情页的型号省略） */
+  productId?: string
 }
 
 export type LadderMetric = {
@@ -20,7 +22,20 @@ export type LadderMetric = {
   rows: LadderRow[]
 }
 
-export const LADDER_METRICS: LadderMetric[] = [
+/** 型号 → 产品 id（有产品详情页的型号；其余型号不挂链接） */
+const MODEL_PRODUCT_ID: Record<string, string> = {
+  'GH-M900 PRO': 'gh-m900-pro',
+  'GH-M700': 'gh-m700',
+  'GH-M500': 'gh-m500',
+  'GH-K870': 'gh-k870',
+  'GH-K650': 'gh-k650',
+  'GH-H500': 'gh-h500',
+  'GH-H300': 'gh-h300',
+  'GH-P400': 'gh-p400',
+}
+
+/** 榜单原始数据（model 尚未关联 productId，构造时统一补齐） */
+const RAW_METRICS: LadderMetric[] = [
   {
     id: 'overall',
     label: '综合',
@@ -75,6 +90,12 @@ export const LADDER_METRICS: LadderMetric[] = [
     ],
   },
 ]
+
+/** 榜单数据：为有产品详情页的型号补齐 productId，供前台点入产品详情 */
+export const LADDER_METRICS: LadderMetric[] = RAW_METRICS.map((metric) => ({
+  ...metric,
+  rows: metric.rows.map((row) => (MODEL_PRODUCT_ID[row.model] ? { ...row, productId: MODEL_PRODUCT_ID[row.model] } : row)),
+}))
 
 /** 榜单元信息（测试批次与样本量），页眉展示 */
 export const LADDER_META = {

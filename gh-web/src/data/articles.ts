@@ -18,12 +18,21 @@ export type ArticleSummary = {
   title: string
   category: ArticleCategory
   categoryLabel: string
+  /** 主标签（卡片 chip 展示） */
   tag: string
+  /** 全部标签（多标签；首项通常与 tag 一致） */
+  tags: string[]
   accent: boolean
   desc: string
   date: string
+  /** 作者 / 发布方 */
+  author: string
+  /** 发布状态：已发布 / 审核中 / 草稿（前台仅展示「已发布」） */
+  status: string
   /** 封面素材语义键，渲染时经 articleCoverSrc 映射到 MEDIA，不直接外链图片 */
   cover: string
+  /** 真实封面图片地址（上传 / 素材库）；填写后优先于 cover 语义键 */
+  coverImage?: string
   meta: string
   readingMin: number
 }
@@ -51,9 +60,9 @@ const COVER_MEDIA: Record<string, string> = {
   case: MEDIA.businessCase[0],
 }
 
-/** 把封面语义键解析为可渲染的素材地址 */
-export function articleCoverSrc(cover: string): string {
-  return COVER_MEDIA[cover] ?? MEDIA.about.lab
+/** 把封面解析为可渲染的素材地址：优先真实封面图（coverImage），否则按语义键映射 */
+export function articleCoverSrc(cover: string, coverImage?: string): string {
+  return coverImage?.trim() || COVER_MEDIA[cover] || MEDIA.about.lab
 }
 
 export const ARTICLES: ArticleSummary[] = [
@@ -63,9 +72,12 @@ export const ARTICLES: ArticleSummary[] = [
     category: 'review',
     categoryLabel: '评测',
     tag: '延迟实测',
+    tags: ['延迟实测', '无线', '鼠标'],
     accent: true,
     desc: '在同一套测试条件与设备下，对三款无线鼠标逐段测量端到端延迟，结果同时给出中位数与 95 分位。',
     date: '2026-09-18',
+    author: '光魂测试实验室',
+    status: '已发布',
     cover: 'lab',
     meta: '实测 · 方法 v2',
     readingMin: 8,
@@ -76,9 +88,12 @@ export const ARTICLES: ArticleSummary[] = [
     category: 'review',
     categoryLabel: '评测',
     tag: '连接实测',
+    tags: ['连接实测', '三模', '键盘'],
     accent: false,
     desc: '把同一把三模键盘分别在三种连接方式下连续击键，对比打字延迟、抖动与续航表现。',
     date: '2026-09-06',
+    author: '光魂测试实验室',
+    status: '已发布',
     cover: 'software-alt',
     meta: '实测 · 方法 v2',
     readingMin: 7,
@@ -89,9 +104,12 @@ export const ARTICLES: ArticleSummary[] = [
     category: 'guide',
     categoryLabel: '教程',
     tag: '固件指南',
+    tags: ['固件指南', '教程', '固件'],
     accent: false,
     desc: '手把手说明如何识别设备、核对固件版本、执行升级，并在异常时安全回滚到上一版本。',
     date: '2026-08-30',
+    author: '光魂产品团队',
+    status: '已发布',
     cover: 'software',
     meta: '教程 · 图文',
     readingMin: 6,
@@ -102,9 +120,12 @@ export const ARTICLES: ArticleSummary[] = [
     category: 'insight',
     categoryLabel: '行业观察',
     tag: '方法论',
+    tags: ['方法论', '可复现'],
     accent: false,
     desc: '公开设备、环境、样本数与判定口径，让任何一个实验室都能复现我们的数值，而不是只看结论。',
     date: '2026-08-22',
+    author: '光魂编辑部',
+    status: '已发布',
     cover: 'brand',
     meta: '方法 · 说明',
     readingMin: 7,
@@ -115,9 +136,12 @@ export const ARTICLES: ArticleSummary[] = [
     category: 'insight',
     categoryLabel: '行业观察',
     tag: '参数解读',
+    tags: ['参数解读', '回报率'],
     accent: false,
     desc: '回报率与采样率常被混为一谈；本篇拆开两者的定义、测量方式以及对实际操作的实际影响。',
     date: '2026-08-12',
+    author: '光魂编辑部',
+    status: '已发布',
     cover: 'scene',
     meta: '解析 · 数据',
     readingMin: 5,
@@ -128,9 +152,12 @@ export const ARTICLES: ArticleSummary[] = [
     category: 'brand',
     categoryLabel: '品牌动态',
     tag: '产品规划',
+    tags: ['产品规划', '品牌'],
     accent: true,
     desc: '围绕低延迟、多设备连接与软件生态三条主线，说明下一代产品在研发与测试上的取舍。',
     date: '2026-09-28',
+    author: '光魂团队',
+    status: '已发布',
     cover: 'case',
     meta: '品牌 · 规划',
     readingMin: 4,
@@ -140,11 +167,9 @@ export const ARTICLES: ArticleSummary[] = [
 /** 演示列表总量（前端分页口径），真实值由接口层提供 */
 export const ARTICLE_TOTAL = ARTICLES.length
 
-/** 正文（作者与小节）；与摘要分离，详情按 id 合并 */
-const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[] }> = {
-  'latency-end-to-end': {
-    author: '光魂测试实验室',
-    sections: [
+/** 结构化小节正文（作者已并入文章摘要，可后台维护）；与摘要分离，详情按 id 合并 */
+const ARTICLE_SECTIONS: Record<string, ArticleSection[]> = {
+  'latency-end-to-end': [
       {
         heading: '测试目的与环境',
         paragraphs: [
@@ -174,10 +199,7 @@ const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[
         ],
       },
     ],
-  },
-  'tri-mode-keyboard-latency': {
-    author: '光魂测试实验室',
-    sections: [
+  'tri-mode-keyboard-latency': [
       {
         heading: '连接方式的差异',
         paragraphs: [
@@ -207,10 +229,7 @@ const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[
         ],
       },
     ],
-  },
-  'driver-firmware-guide': {
-    author: '光魂产品团队',
-    sections: [
+  'driver-firmware-guide': [
       {
         heading: '升级前的准备',
         paragraphs: [
@@ -247,10 +266,7 @@ const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[
         ],
       },
     ],
-  },
-  'test-methodology': {
-    author: '光魂编辑部',
-    sections: [
+  'test-methodology': [
       {
         heading: '为什么要公开方法',
         paragraphs: [
@@ -280,10 +296,7 @@ const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[
         ],
       },
     ],
-  },
-  'report-rate-explained': {
-    author: '光魂编辑部',
-    sections: [
+  'report-rate-explained': [
       {
         heading: '参数的含义',
         paragraphs: [
@@ -313,10 +326,7 @@ const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[
         ],
       },
     ],
-  },
-  'brand-2026-roadmap': {
-    author: '光魂团队',
-    sections: [
+  'brand-2026-roadmap': [
       {
         heading: '产品线概览',
         paragraphs: [
@@ -346,7 +356,6 @@ const ARTICLE_BODIES: Record<string, { author: string; sections: ArticleSection[
         ],
       },
     ],
-  },
 }
 
 /** 新闻与动态：与文章复用同一批内容，取品牌动态 / 产品发布类 */
@@ -357,14 +366,14 @@ export const NEWS: NewsItem[] = [
   { date: '2026-08-22', tag: '行业观察', title: '为什么我们要公开测试方法论：可复现性的价值', href: '/articles/test-methodology' },
 ]
 
-/** 详情合并：摘要 + 正文，并按同分类优先挑选 3 篇相关阅读 */
+/** 详情合并：摘要 + 小节正文，并按同分类优先挑选 3 篇相关阅读 */
 export function getArticleDetail(id: string): ArticleDetail | null {
   const summary = ARTICLES.find((item) => item.id === id)
-  const body = ARTICLE_BODIES[id]
-  if (!summary || !body) return null
+  const sections = ARTICLE_SECTIONS[id]
+  if (!summary || !sections) return null
   const related = [...ARTICLES]
     .filter((item) => item.id !== id)
     .sort((a, b) => Number(b.category === summary.category) - Number(a.category === summary.category))
     .slice(0, 3)
-  return { ...summary, author: body.author, sections: body.sections, related }
+  return { ...summary, sections, related }
 }
