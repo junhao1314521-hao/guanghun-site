@@ -247,41 +247,6 @@ function buildAbout(): Page {
         showForm: false,
       },
     },
-    // ---- 自定义模块（自由内容区块）示例：richText / html / embed 各一，内容为无害占位 ----
-    {
-      type: 'richText',
-      props: {
-        html:
-          '<h3>富文本模块示例</h3>' +
-          '<p>支持<strong>加粗</strong>、<em>斜体</em>、<a href="/products">站内链接</a>，以及图片与 GIF。</p>' +
-          '<ul><li>列表项一</li><li>列表项二</li></ul>' +
-          '<figure><img src="/media/about/brand.svg" alt="示例图片"><figcaption>图片与图注（渲染时经白名单净化）</figcaption></figure>',
-      },
-    },
-    {
-      type: 'html',
-      props: {
-        html:
-          '<h3>HTML 模块示例</h3>' +
-          '<table><thead><tr><th>型号</th><th>刷新率</th></tr></thead>' +
-          '<tbody><tr><td>27Q1F</td><td>200 Hz</td></tr><tr><td>24H1</td><td>200 Hz</td></tr></tbody></table>' +
-          '<p style="color:#8a8a94">以上为无害占位内容，允许静态 HTML（表格 / 内联样式）。</p>',
-        note: '产品参数对比占位示例',
-      },
-    },
-    {
-      type: 'embed',
-      props: {
-        code:
-          '<style>body{margin:0;font-family:system-ui;display:grid;place-items:center;height:100%;background:#0b0c12;color:#e6e7ee}</style>' +
-          '<div id="demo">代码嵌入模块示例</div>' +
-          '<script>document.getElementById("demo").textContent="Hello from sandbox（沙箱内脚本）"</script>',
-        height: 240,
-        allowScripts: true,
-        videoUrl: '',
-        poster: '',
-      },
-    },
   ])
 }
 
@@ -553,8 +518,8 @@ function buildContact(): Page {
 /** 新闻列表 */
 function buildNews(): Page {
   return toPage('news', '/news', '新闻列表', '新闻列表装修 + 数据源区块。', [
-    { type: 'text', props: { title: '新闻与动态', body: '产品发布、活动与品牌动态。', align: 'left' } },
-    { type: 'articleList', props: { title: '动态列表', source: 'news', limit: 0, pageSize: 9 } },
+    { type: 'text', props: { body: '产品发布、活动与品牌动态。', align: 'left' } },
+    { type: 'articleList', props: { title: '全部动态', source: 'news', limit: 0, pageSize: 9 } },
   ])
 }
 
@@ -597,11 +562,9 @@ function buildBrandPage(profile: brand.BrandProfile): Page {
 /** 产品列表 */
 function buildProducts(): Page {
   return toPage('products', '/products', '产品列表', '产品列表装修 + 数据源区块。', [
-    { type: 'text', props: { title: '产品', body: '按类别、连接方式与价格筛选在售产品。', align: 'left' } },
+    { type: 'text', props: { body: '按类别、连接方式与价格筛选在售产品。', align: 'left' } },
     // 全部产品（带筛选/排序）——productGrid 的范围/呈现/字段全部可配（见后台装修器）
     { type: 'productGrid', props: { title: '全部产品', scope: 'all', limit: 24, columns: 3 } },
-    // 样板：手动挑选（挑具体几个产品，顺序即展示顺序）
-    { type: 'productGrid', props: { title: '编辑精选组合', subtitle: '手动挑选的具体型号，顺序可调。', scope: 'manual', ids: ['gh-54027x1qe', 'gh-32x1ue', 'gh-28027x1qe', 'gh-27q1f'], limit: 8, columns: 4, showFilter: false } },
     // 样板：按分类——只挑一个品类
     { type: 'productGrid', props: { title: 'OLED 旗舰', subtitle: '只展示「OLED旗舰」分类的全部型号。', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false } },
   ])
@@ -612,7 +575,7 @@ function buildLadder(): Page {
   return toPage('ladder', '/ladder', '天梯榜', '天梯榜装修 + 数据源区块。', [
     {
       type: 'text',
-      props: { title: '天梯榜', body: '所有数值来自同一套可复现的测试方法。榜单不代表行业结论，仅供选购参考。', align: 'left' },
+      props: { body: '所有数值来自同一套可复现的测试方法。榜单不代表行业结论，仅供选购参考。', align: 'left' },
     },
     { type: 'ranking', props: { title: '综合榜', metric: 'overall', limit: 10 } },
     // 数据源区块：测评方法取自集合 methods（后台「测评方法」维护，改后前台即时生效）
@@ -626,27 +589,23 @@ function buildLadder(): Page {
 /** 文章列表 */
 function buildArticles(): Page {
   return toPage('articles', '/articles', '文章列表', '文章列表装修 + 数据源区块。', [
-    { type: 'text', props: { title: '文章', body: '评测、教程与行业观察；参数与方法公开，来源可查。', align: 'left' } },
+    { type: 'text', props: { body: '评测、教程与行业观察；参数与方法公开，来源可查。', align: 'left' } },
     { type: 'articleList', props: { title: '全部文章', source: 'all', limit: 0, pageSize: 9 } },
-    // 样板：手动挑选（挑具体几篇，顺序即展示顺序）+ 横滑呈现（呈现方式开关的示例）
-    { type: 'articleList', props: { title: '编辑精选', subtitle: '手动挑选的具体文章，顺序可调。', scope: 'manual', ids: ['latency-end-to-end', 'driver-firmware-guide', 'test-methodology'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
 }
 
 /** 下载中心 */
 function buildDownloads(): Page {
   return toPage('downloads', '/downloads', '下载中心', '下载中心装修 + 数据源区块。', [
-    { type: 'text', props: { title: '下载中心', body: '驱动、固件与说明书；同一份资料可关联到多个型号。', align: 'left' } },
+    { type: 'text', props: { body: '驱动、固件与说明书；同一份资料可关联到多个型号。', align: 'left' } },
     { type: 'downloadList', props: { title: '全部资料', category: 'all', limit: 0, pageSize: 10 } },
-    // 样板：手动挑选（挑具体几条资料，顺序即展示顺序）+ 横滑卡片呈现（呈现方式开关的示例）
-    { type: 'downloadList', props: { title: '推荐下载', subtitle: '手动挑选的资料，顺序可调。', scope: 'manual', ids: ['center-win', 'k870-driver', 'h500-manual'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
 }
 
 /** 常见问题 */
 function buildFaq(): Page {
   return toPage('faq', '/faq', '常见问题', '常见问题装修 + 数据源区块。', [
-    { type: 'text', props: { title: '常见问题', body: '驱动安装、连接配对、固件更新与售后相关的高频问答。', align: 'left' } },
+    { type: 'text', props: { body: '驱动安装、连接配对、固件更新与售后相关的高频问答。', align: 'left' } },
     { type: 'faqList', props: { title: '全部问答', source: 'support', limit: 0, pageSize: 10 } },
   ])
 }
