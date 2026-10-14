@@ -986,11 +986,16 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .mega__panel.is-active { display: block; animation: ghMegaPanel .34s var(--gh-ease-accent) both; }
 @keyframes ghMegaPanel { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .site-nav a.is-menu-active { color: var(--color-text-primary); }
-/* 导航入口角标（NEW / HOT）：文字右上角；可隔几秒摇动一下 */
+/* 导航入口角标（NEW / HOT）：文字右上角；可隔几秒摇动一下。
+   注意：`.site-nav a` 为点击涟漪设了 overflow:hidden，会裁掉溢出框外的角标，
+   因此角标挂在**不裁剪的外层 `.site-nav__item`** 上。 */
+.site-nav__item { position: relative; display: inline-flex; }
 .nav-badge {
   position: absolute;
   top: -6px;
   right: -10px;
+  z-index: 1;
+  pointer-events: none;
   padding: 1px 5px;
   border-radius: var(--gh-radius-full);
   font-family: var(--gh-font-mono);

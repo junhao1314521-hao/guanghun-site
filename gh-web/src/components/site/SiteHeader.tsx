@@ -168,25 +168,29 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
               setOpenMenu(item.menu)
             }
             return (
-              <Link
-                key={item.menu || item.to}
-                to={item.to}
-                className={[isActive ? 'is-active' : '', isMenuActive ? 'is-menu-active' : '']
-                  .filter(Boolean)
-                  .join(' ')}
-                aria-haspopup={item.menu ? 'true' : undefined}
-                aria-expanded={item.menu ? isMenuActive : undefined}
-                onMouseEnter={openIfMenu}
-                onFocus={openIfMenu}
-                onClick={openIfMenu}
-              >
-                {item.label}
+              <span key={item.menu || item.to} className="site-nav__item">
+                <Link
+                  to={item.to}
+                  className={[isActive ? 'is-active' : '', isMenuActive ? 'is-menu-active' : '']
+                    .filter(Boolean)
+                    .join(' ')}
+                  aria-haspopup={item.menu ? 'true' : undefined}
+                  aria-expanded={item.menu ? isMenuActive : undefined}
+                  onMouseEnter={openIfMenu}
+                  onFocus={openIfMenu}
+                  onClick={openIfMenu}
+                >
+                  {item.label}
+                </Link>
                 {item.badge && (
-                  <span className={`nav-badge nav-badge--${item.badge}${item.badgeShake ? ' nav-badge--shake' : ''}`}>
+                  <span
+                    className={`nav-badge nav-badge--${item.badge}${item.badgeShake ? ' nav-badge--shake' : ''}`}
+                    aria-hidden="true"
+                  >
                     {item.badge.toUpperCase()}
                   </span>
                 )}
-              </Link>
+              </span>
             )
           })}
         </nav>
