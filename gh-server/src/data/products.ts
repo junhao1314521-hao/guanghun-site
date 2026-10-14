@@ -119,10 +119,75 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
   },
 }
 
+/** 详情页英文标签（数据层双语）：集合英文覆盖层已译 name / specs / flag，此处补齐详情结构 */
+const CATEGORY_EN: Record<string, string> = { 鼠标: 'Mouse', 键盘: 'Keyboard', 耳机: 'Headset', 配件: 'Accessories' }
+const STATUS_EN: Record<string, string> = { 在售: 'In stock', 缺货: 'Out of stock', 预售: 'Pre-order' }
+
+/** 详情页英文数据（结构与中文一致，仅译文案） */
+export const PRODUCT_DETAILS_EN: Record<string, ProductDetail> = {
+  'gh-m900-pro': {
+    id: 'gh-m900-pro',
+    model: 'GH-M900 PRO',
+    name: 'Wireless Gaming Mouse',
+    badges: ['Flagship', 'Wireless · 2.4 G'],
+    status: { level: 'success', text: 'In stock' },
+    price: '¥899',
+    tag: 'Flagship',
+    summary: [
+      {
+        title: 'Nominal (vendor published)',
+        rows: [
+          { label: 'Max resolution', value: '26,000 DPI' },
+          { label: 'Max acceleration', value: '50 G' },
+          { label: 'Weight', value: '58 g' },
+        ],
+      },
+      {
+        title: 'Measured (Guanghun Lab · 2026-09-18 · n=5)',
+        rows: [
+          { label: 'End-to-end latency', value: '0.6 ms' },
+          { label: 'Battery (1000 Hz)', value: '120 h' },
+          { label: 'Sensor drift', value: 'Not measured', missing: true },
+        ],
+      },
+    ],
+    specTable: [
+      { name: 'Resolution', nominal: '26,000 DPI', measured: '25,980 DPI', note: '0.08% deviation' },
+      { name: 'Max acceleration', nominal: '50 G', measured: '49.6 G', note: '—' },
+      { name: 'Weight', nominal: '58 g', measured: '57.9 g', note: 'Excluding cable' },
+      { name: 'End-to-end latency', nominal: '—', measured: '0.6 ms', note: '1000 Hz polling' },
+      { name: 'Battery', nominal: '130 h', measured: '120 h', note: 'Measured at 1000 Hz' },
+      { name: 'Sensor drift', nominal: '—', measured: 'Not measured', note: 'Method under review', missing: true },
+    ],
+    tabs: ['Specifications', 'Test records', 'Reviews', 'Downloads'],
+  },
+}
+
 /** 兜底：把列表数据补成详情结构，保证任意型号进入详情页都不空白（列表来自集合存储，形状与 PRODUCTS 一致） */
-export function getProductDetail(products: Product[], id: string): ProductDetail | null {
+export function getProductDetail(products: Product[], id: string, locale: string = 'zh'): ProductDetail | null {
   const base = products.find((item) => item.id === id)
   if (!base) return null
+  if (locale === 'en') {
+    const detailedEn = PRODUCT_DETAILS_EN[id]
+    if (detailedEn) return detailedEn
+    return {
+      id: base.id,
+      model: base.model,
+      name: base.name,
+      badges: base.flag ? [base.flag, base.specs.join(' · ')] : [base.specs.join(' · ')],
+      status: { level: base.status.level, text: STATUS_EN[base.status.text] ?? base.status.text },
+      price: base.price,
+      tag: CATEGORY_EN[base.category] ?? base.category,
+      summary: [
+        {
+          title: 'Nominal (vendor published)',
+          rows: base.specs.map((spec, index) => ({ label: `Spec ${index + 1}`, value: spec })),
+        },
+      ],
+      specTable: base.specs.map((spec) => ({ name: spec, nominal: '—', measured: 'Not measured', note: 'Pending', missing: true })),
+      tabs: ['Specifications', 'Test records', 'Reviews', 'Downloads'],
+    }
+  }
   const detailed = PRODUCT_DETAILS[id]
   if (detailed) return detailed
   return {

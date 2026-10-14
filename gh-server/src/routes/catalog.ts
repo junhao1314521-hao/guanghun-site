@@ -15,7 +15,8 @@ catalogRouter.get('/', (req, res) => {
 })
 
 catalogRouter.get('/:id', (req, res) => {
-  const detail = getProductDetail(listCollection('products', readLocale(req)), req.params.id)
+  const locale = readLocale(req)
+  const detail = getProductDetail(listCollection('products', locale), req.params.id, locale)
   if (!detail) {
     res.status(404).json({ error: '未找到该产品' })
     return

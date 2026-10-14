@@ -10,6 +10,8 @@ type Props = {
   variant?: DeviceVariant
   className?: string
   loading?: 'eager' | 'lazy'
+  /** 首屏关键图（如首屏海报）可传 high，提升 LCP 优先级 */
+  fetchPriority?: 'high' | 'low' | 'auto'
   /** 回退矢量图的 aria-label */
   label?: string
   /** 显式尺寸：用于无固定宽高比容器时提供内在尺寸，防布局跳动（可选） */
@@ -36,6 +38,7 @@ export function MediaImg({
   variant,
   className,
   loading = 'lazy',
+  fetchPriority,
   label = '',
   width,
   height,
@@ -51,6 +54,7 @@ export function MediaImg({
       alt={alt}
       loading={loading}
       decoding="async"
+      fetchPriority={fetchPriority}
       width={width}
       height={height}
       srcSet={srcSet}

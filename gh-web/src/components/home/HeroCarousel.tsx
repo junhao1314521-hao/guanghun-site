@@ -138,7 +138,8 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                       className="hero__bg-img"
                       src={MEDIA.hero[slide.id as keyof typeof MEDIA.hero]}
                       alt=""
-                      loading="eager"
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={i === 0 ? 'high' : undefined}
                     />
                   </div>
                 )}
@@ -148,7 +149,8 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                       className="hero__bg-img hero__bg-img--motion"
                       src={MEDIA.hero[slide.id as keyof typeof MEDIA.hero]}
                       alt=""
-                      loading="eager"
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={i === 0 ? 'high' : undefined}
                     />
                   </div>
                 )}
@@ -216,7 +218,8 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                       alt="光魂无线鼠标产品主视觉"
                       variant="mouse"
                       label="产品主视觉"
-                      loading="eager"
+                      loading={i === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={i === 0 ? 'high' : undefined}
                     />
                   </div>
                 </div>

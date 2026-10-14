@@ -212,6 +212,16 @@ export function AdminPagesList() {
                   <tr key={item.key}>
                     <td>
                       <strong>{item.title}</strong>
+                      {/* 明细模板：一套内容作用于该类型的所有明细页（如产品详情模板作用于全部产品） */}
+                      {item.key.startsWith('template-') && (
+                        <span
+                          className="tag"
+                          style={{ marginLeft: 'var(--gh-space-2)' }}
+                          title="明细模板：这里的区块作用于该类型的所有明细页，明细数据来自对应集合"
+                        >
+                          明细模板
+                        </span>
+                      )}
                     </td>
                     <td>
                       <span className="mono">{item.key}</span>

@@ -496,6 +496,29 @@ function readAutoSave(): boolean {
   }
 }
 
+/** 区块库「最近使用」：记录最近新增的区块类型（最多 5 个，最近在前） */
+const RECENT_TYPES_KEY = 'gh-builder-recent-types'
+
+function readRecentTypes(): BlockType[] {
+  try {
+    const raw = window.localStorage.getItem(RECENT_TYPES_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.filter((item): item is BlockType => typeof item === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function pushRecentType(type: BlockType): BlockType[] {
+  const next = [type, ...readRecentTypes().filter((item) => item !== type)].slice(0, 5)
+  try {
+    window.localStorage.setItem(RECENT_TYPES_KEY, JSON.stringify(next))
+  } catch {
+    // 忽略隐私模式等写入失败
+  }
+  return next
+}
+
 /* ============================================================
    装修器主体
    ============================================================ */
@@ -533,6 +556,7 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
   // 发布状态（本地记忆）：已发布 / 有未发布变更；草稿自动保存
   const [publishedSig, setPublishedSig] = useState(() => readPublishedSig(pageKey))
   const [autoSave, setAutoSave] = useState(() => readAutoSave())
+  const [recentTypes, setRecentTypes] = useState<BlockType[]>(() => readRecentTypes())
   const [autoSaving, setAutoSaving] = useState(false)
   const [autoSavedAt, setAutoSavedAt] = useState<number | null>(null)
 
@@ -625,12 +649,14 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
     const afterId = insertMode === 'after' ? activeId : null
     mutate((list) => insertBlock(list, block, afterId))
     setSelectedId(block.id)
+    setRecentTypes(pushRecentType(type))
   }
 
   const addChild = (parentId: string, column: number, type: BlockType) => {
     const block = createBlock(type)
     mutate((list) => insertChild(list, parentId, column, block))
     setSelectedId(block.id)
+    setRecentTypes(pushRecentType(type))
   }
 
   /** 预览落点 → 打开区块类型选择器 */
@@ -644,6 +670,7 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
     hist.apply((list) => insertAt(list, block, slot))
     setSelectedId(block.id)
     setInsertSlot(null)
+    setRecentTypes(pushRecentType(type))
   }
 
   /** 复制：props 深拷贝 + 全新 id，插入到原区块之后并选中副本 */
@@ -1097,6 +1124,31 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
                       插入到选中之后
                     </button>
                   </div>
+                  {/* 最近使用：仅无搜索关键字时展示，减少常用区块的查找成本 */}
+                  {!typeQuery.trim() && recentTypes.length > 0 && (
+                    <div className="builder-addgrid__group">
+                      <div className="builder-addgrid__label">最近使用</div>
+                      <div className="builder-addgrid__items">
+                        {recentTypes.map((type) => {
+                          const meta = typeMeta[type]
+                          if (!meta || meta.enabled === false) return null
+                          return (
+                            <button
+                              type="button"
+                              className="builder-typebtn"
+                              key={`recent-${type}`}
+                              onClick={() => addBlock(type)}
+                            >
+                              <span className="builder-typebtn__icon">
+                                <AdminIcon name={blockIcon(type)} size={16} />
+                              </span>
+                              {meta.name}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <TypePicker types={libraryTypes} allowLayout onAdd={addBlock} />
                   <p className="field__hint">
                     点击类型即新增区块：
