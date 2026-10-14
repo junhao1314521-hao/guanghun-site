@@ -41,7 +41,7 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
       cols = Math.max(1, Math.floor(width / FONT_SIZE))
       // 静态模式下把字符铺满整屏（无下落动画）
       drops = Array.from({ length: cols }, () => (reduced ? Math.random() * (height / FONT_SIZE) : Math.random() * -50))
-      speeds = Array.from({ length: cols }, () => 0.35 + Math.random() * 0.85)
+      speeds = Array.from({ length: cols }, () => 0.14 + Math.random() * 0.3)
     }
 
     const paint = (advance: boolean) => {

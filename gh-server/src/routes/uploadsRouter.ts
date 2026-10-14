@@ -48,9 +48,9 @@ export const uploadsRouter = Router()
 /** 按需构造的原始字节流解析器缓存（key = limit），使 UPLOAD_MAX_SIZE 可在请求期动态生效 */
 const rawParsers = new Map<string, RequestHandler>()
 
-/** 解析原始字节流：/* 通配接收，大小上限默认 10MB（UPLOAD_MAX_SIZE 可覆盖），超限由下方错误处理转 413 */
+/** 解析原始字节流：/* 通配接收，大小上限默认 50MB（UPLOAD_MAX_SIZE 可覆盖），超限由下方错误处理转 413 */
 function rawBody(req: Request, res: Response, next: NextFunction): void {
-  const limit = process.env.UPLOAD_MAX_SIZE ?? '10mb'
+  const limit = process.env.UPLOAD_MAX_SIZE ?? '50mb'
   let parser = rawParsers.get(limit)
   if (!parser) {
     parser = express.raw({ type: '*/*', limit })

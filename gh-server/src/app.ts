@@ -135,6 +135,9 @@ export function createApp(): Express {
           if (filePath.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache')
           else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
             res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+          } else if (filePath.includes(`${path.sep}media${path.sep}`)) {
+            // 站点内容图（未带 hash，可能被运营/素材替换）：每次带 ETag 协商，保证改动即时可见
+            res.setHeader('Cache-Control', 'no-cache')
           } else res.setHeader('Cache-Control', 'public, max-age=3600')
         },
       }),

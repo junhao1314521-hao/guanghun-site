@@ -84,7 +84,7 @@ export type BlockFieldMeta = {
   name: string
   label: string
   /** `code`＝等宽代码编辑（html/embed）；`rich`＝轻量富文本编辑（richText）；`ref`＝从集合挑选条目（source 指定集合） */
-  kind: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'list' | 'image' | 'link' | 'code' | 'rich' | 'ref'
+  kind: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'list' | 'image' | 'media' | 'link' | 'code' | 'rich' | 'ref'
   options?: { label: string; value: string }[]
   placeholder?: string
   /** `ref` 字段的数据来源集合（当前支持 'products'），值以 ID 列表保存、顺序即展示顺序 */

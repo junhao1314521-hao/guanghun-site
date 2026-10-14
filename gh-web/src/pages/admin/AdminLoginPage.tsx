@@ -2,9 +2,10 @@
  * 后台登录页（本地鉴权）。提交调用真实 POST /api/admin/auth/login，
  * 成功后写入会话令牌并跳回来源页；已登录访问本页将直接回跳。
  *
- * 演示便利：本地开发（import.meta.env.DEV）默认**自动填充并自动登录**为演示账号，
- * 省去每次输入的麻烦；生产构建（DEV=false）不会自动登录，仍是正常登录页。
- * 需要手动登录（例如验证错误密码 / 测试退出登录）时，访问 `/admin/login?manual=1`。
+ * 免登录（演示便利）：默认**自动填充演示账号并自动登录**，直接进入工作台。
+ *   - 上线前关闭：构建时加 `VITE_ADMIN_AUTO_LOGIN=off`（例如 `VITE_ADMIN_AUTO_LOGIN=off npm run build`），
+ *     即恢复为正常登录页；也可在项目根 `.env` 写入 `VITE_ADMIN_AUTO_LOGIN=off` 长期关闭。
+ *   - 需要临时手动登录（验证错误密码 / 测试退出登录）：访问 `/admin/login?manual=1`。
  */
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -17,8 +18,11 @@ type LoginState = { from?: string } | null
 const DEMO_USER = 'admin'
 const DEMO_PASS = 'admin123'
 
-/** 是否处于「允许自动登录」的演示开发环境 */
-const AUTO_LOGIN_ENABLED = import.meta.env.DEV
+/**
+ * 是否开启「免登录」。默认开启（方便演示与验收）；
+ * 上线前用 `VITE_ADMIN_AUTO_LOGIN=off` 构建即可关闭。显式 `?manual=1` 时始终走手动登录。
+ */
+const AUTO_LOGIN_ENABLED = import.meta.env.VITE_ADMIN_AUTO_LOGIN !== 'off'
 
 export function AdminLoginPage() {
   const { profile, loading, error: sessionError, login } = useAdminAuth()

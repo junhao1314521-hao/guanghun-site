@@ -6,7 +6,6 @@ import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
 import { QrPlaceholder } from './QrPlaceholder'
 import { IconMail, IconPhone, IconPin } from '../ui/Icon'
-import { TOUR_OPEN_EVENT } from './SiteTour'
 
 export function SiteFooter() {
   const { t } = useI18n()
@@ -90,13 +89,6 @@ export function SiteFooter() {
         <div className="site-footer__bottom">
           <span>{t('footer.copyright')}</span>
           <div className="row" style={{ gap: 'var(--gh-space-4)' }}>
-            <button
-              className="site-footer__tour"
-              type="button"
-              onClick={() => window.dispatchEvent(new Event(TOUR_OPEN_EVENT))}
-            >
-              {t('tour.reopen')}
-            </button>
             {FOOTER_LEGAL.map((item) => (
               <Link key={item.label} to={item.to} style={{ color: 'inherit' }}>
                 {item.label}

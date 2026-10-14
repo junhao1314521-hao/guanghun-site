@@ -17,7 +17,7 @@ import { fetchDownloads, fetchFaqs } from '../../api/support-extra'
 import { fetchBizCases, fetchBizVenues } from '../../api/business-extra'
 import { useApi } from '../../hooks/useApi'
 import { emptyItem, isStringList, resolveItemFields } from './blockBuilderUtils'
-import { ImageField } from './ImageField'
+import { ImageField, MediaField } from './ImageField'
 import { RichTextField } from './RichTextField'
 
 /** 挑选器条目：统一呈现（主文案 / 次文案 / 分类） */
@@ -202,6 +202,18 @@ function FieldControl({
         inputId={fieldId}
         label={field.label}
         placeholder={field.placeholder ?? '图片资源地址（URL 或 /uploads/...）'}
+        value={typeof value === 'string' ? value : ''}
+        onChange={(url) => onChange(url)}
+      />
+    )
+  }
+
+  if (field.kind === 'media') {
+    return (
+      <MediaField
+        inputId={fieldId}
+        label={field.label}
+        placeholder={field.placeholder ?? '图片 / GIF / 视频地址（URL 或 /uploads/...）'}
         value={typeof value === 'string' ? value : ''}
         onChange={(url) => onChange(url)}
       />

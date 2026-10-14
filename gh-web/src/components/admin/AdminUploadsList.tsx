@@ -38,7 +38,7 @@ import { useConfirm, useToast } from './feedback'
 
 /** 允许上传的类型（与后端白名单一致） */
 const UPLOAD_ACCEPT =
-  'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,application/pdf,application/zip,text/plain,text/markdown'
+  'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime,application/pdf,application/zip,text/plain,text/markdown'
 
 /** 「全部」文件夹的哨兵值（区别于真实文件 id 与「未分类」） */
 const ALL = 'all'

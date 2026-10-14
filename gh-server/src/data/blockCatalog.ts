@@ -88,7 +88,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     fields: [
       { name: 'title', label: '标题', kind: 'text' },
       { name: 'desc', label: '描述', kind: 'textarea' },
-      { name: 'url', label: '视频地址', kind: 'text' },
+      { name: 'url', label: '视频（可上传 mp4 / webm / mov，或填外链地址）', kind: 'media' },
       { name: 'poster', label: '封面图', kind: 'image' },
     ],
   },
@@ -179,7 +179,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'items', label: '卡片', kind: 'list' },
     ],
     listFields: [
-      { name: 'media', label: '媒体（图/视频/GIF）', kind: 'image' },
+      { name: 'media', label: '媒体（图/视频/GIF）', kind: 'media' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
       { name: 'image', label: '图片（旧字段）', kind: 'image' },
       { name: 'tag', label: '标签', kind: 'text' },
@@ -531,7 +531,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     ],
     listFields: [
       { name: 'productId', label: '关联产品 ID', kind: 'text', placeholder: '可选，如 gh-54027x1qe' },
-      { name: 'media', label: '媒体（图/视频/GIF）', kind: 'image' },
+      { name: 'media', label: '媒体（图/视频/GIF）', kind: 'media' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
       { name: 'eyebrow', label: '眉题', kind: 'text' },
       { name: 'title', label: '标题', kind: 'text' },

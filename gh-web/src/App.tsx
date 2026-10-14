@@ -9,7 +9,6 @@ import { JsonLd } from './components/site/JsonLd'
 import { MobileDrawer } from './components/site/MobileDrawer'
 import { SiteFooter } from './components/site/SiteFooter'
 import { SiteHeader } from './components/site/SiteHeader'
-import { SiteTour } from './components/site/SiteTour'
 import { usePageMeta } from './hooks/usePageMeta'
 import { useRipple } from './hooks/useRipple'
 import { useSiteConfig } from './hooks/useSiteConfig'
@@ -269,8 +268,6 @@ function AppShell() {
         onLangChange={setLang}
         onClose={() => setDrawerOpen(false)}
       />
-
-      <SiteTour />
     </div>
   )
 }

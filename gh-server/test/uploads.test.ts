@@ -160,6 +160,17 @@ describe('后台文件上传 / 素材库', () => {
     assert.ok('error' in ((await res.json()) as object))
   })
 
+  it('视频（.mp4）可上传 → 201，且 URL 公开可取回', async () => {
+    const res = await upload(Buffer.from('\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00'), 'demo.mp4', 'video/mp4')
+    assert.equal(res.status, 201)
+    const { item } = (await res.json()) as { item: { id: string; url: string; type: string } }
+    assert.ok(item.id.endsWith('.mp4'), 'id 应保留 .mp4 扩展名')
+    assert.equal(item.type, 'video/mp4')
+    const pub = await fetch(base + item.url)
+    assert.equal(pub.status, 200, '视频公开 URL 应可访问')
+    assert.equal(pub.headers.get('content-type'), 'video/mp4')
+  })
+
   it('扩展名允许但内容类型不符（.svg 伪装成 html）→ 415', async () => {
     const res = await upload(Buffer.from('<html></html>'), 'fake.svg', 'text/html')
     assert.equal(res.status, 415)

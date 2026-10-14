@@ -1127,6 +1127,12 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   object-fit: cover; border-radius: var(--gh-radius-md);
   border: 1px solid var(--color-border-default); background: var(--color-bg-muted);
 }
+/* 视频字段预览（媒体字段选到视频时） */
+.image-field__video {
+  display: block; width: 100%; max-width: 320px; aspect-ratio: 16 / 9;
+  border-radius: var(--gh-radius-md);
+  border: 1px solid var(--color-border-default); background: #000;
+}
 /* 文件字段（非图片）：文件名链接 */
 .file-field__chip {
   display: inline-flex; align-items: center; gap: var(--gh-space-2);
@@ -1171,6 +1177,7 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .image-picker__tile:hover { border-color: var(--color-accent-solid); }
 .image-picker__thumb { display: block; aspect-ratio: 4 / 3; background: var(--color-bg-muted); overflow: hidden; }
 .image-picker__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.image-picker__thumb video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
 .image-picker__name {
   padding: 0 var(--gh-space-2) var(--gh-space-2);
   font-size: var(--gh-font-size-caption); color: var(--color-text-secondary);

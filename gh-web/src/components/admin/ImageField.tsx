@@ -28,3 +28,12 @@ export type ImageFieldProps = {
 export function ImageField(props: ImageFieldProps) {
   return <FileField variant="image" {...props} />
 }
+
+/**
+ * 媒体字段控件（图片 / GIF / 视频）。
+ * 用于区块编辑器里标注「媒体（图/视频/GIF）」的字段：上传与素材库选择均支持视频，
+ * 预览按类型呈现缩略图或视频播放器。
+ */
+export function MediaField(props: ImageFieldProps) {
+  return <FileField variant="media" {...props} />
+}

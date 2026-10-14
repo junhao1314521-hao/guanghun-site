@@ -70,7 +70,7 @@
 }
 
 /* ============================================================
-   hero / carousel 区块（皮肤层：结构与首页首屏对齐）
+   hero / carousel 区块：全屏海报（背景图铺满 + 文案浮层）
    ============================================================ */
 .blk-hero {
   position: relative; overflow: hidden;
@@ -79,26 +79,41 @@
   border: 1px solid var(--color-border-default);
   color: var(--gh-neutral-50);
 }
-.blk-hero__glow {
-  position: absolute; inset: auto -20% -55% -20%; height: 65%;
-  background: radial-gradient(ellipse at center, var(--gh-blue-500) 0%, transparent 70%);
-  opacity: .3; filter: blur(60px); pointer-events: none;
+.blk-hero__slides { position: relative; min-height: min(62vh, 520px); }
+.blk-hero__slide { display: none; position: relative; }
+.blk-hero__slide.is-active { display: block; animation: blkFadeUp .6s var(--gh-ease-accent) both; }
+@keyframes blkFadeUp { from { opacity: 0; } to { opacity: 1; } }
+
+/* 背景图：铺满整张海报（宽屏 / 手机竖版由 <picture> 切换） */
+.blk-hero__bg { position: absolute; inset: 0; overflow: hidden; }
+.blk-hero__bg picture { display: block; width: 100%; height: 100%; }
+.blk-hero__bg img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  animation: blkKenburns 28s var(--gh-ease-standard) infinite alternate;
 }
-.blk-hero__slides { position: relative; }
-.blk-hero__slide { display: none; }
-.blk-hero__slide.is-active { display: block; animation: blkFadeUp .5s var(--gh-ease-accent) both; }
-@keyframes blkFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes blkKenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .blk-hero__bg img { animation: none; } }
+
+/* 左侧压暗遮罩：保证浮层文案在任意海报上都清晰可读 */
+.blk-hero__scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(4, 6, 14, .92) 0%, rgba(4, 6, 14, .76) 32%, rgba(4, 6, 14, .30) 58%, rgba(4, 6, 14, .58) 100%);
+}
+
+/* 文案浮层：与各板块标题同左边线对齐 */
 .blk-hero__grid {
-  position: relative;
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--gh-space-7); align-items: center; padding: var(--gh-space-8);
+  position: relative; z-index: 2;
+  width: 100%; max-width: var(--gh-container-max); margin-inline: auto;
+  padding: clamp(80px, 15vh, 170px) var(--gh-space-4);
 }
-@media (max-width: 900px) { .blk-hero__grid { grid-template-columns: minmax(0, 1fr); padding: var(--gh-space-7) var(--gh-space-5); } }
-.blk-hero__media {
-  position: relative; aspect-ratio: 16 / 11;
-  border-radius: var(--gh-radius-xl); overflow: hidden; background: var(--gh-neutral-900);
+@media (min-width: 768px) { .blk-hero__grid { padding-inline: var(--gh-space-6); } }
+@media (min-width: 1024px) { .blk-hero__grid { padding-inline: var(--gh-space-7); } }
+@media (max-width: 900px) {
+  /* 手机竖版：遮罩改为自下而上，文案贴近底部 */
+  .blk-hero__scrim { background: linear-gradient(0deg, rgba(4, 6, 14, .94) 0%, rgba(4, 6, 14, .72) 42%, rgba(4, 6, 14, .28) 72%, rgba(4, 6, 14, .45) 100%); }
+  .blk-hero__grid { padding: 46vh var(--gh-space-4) var(--gh-space-7); }
 }
-.blk-hero__media img, .blk-hero__media svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 .blk-hero__controls { position: absolute; right: var(--gh-space-5); bottom: var(--gh-space-5); display: flex; gap: var(--gh-space-2); z-index: 3; }
 .blk-hero__dot {
   width: 28px; height: 4px; padding: 0; border: 0; border-radius: 2px;
@@ -118,10 +133,8 @@
 @media (max-width: 767px) { .blk-hero__arrow { display: none; } }
 
 /* ============================================================
-   通栏（container:'full'）海报：破出内容容器，铺满视口宽度
-   去除卡片化的圆角与描边，给足高度以呈现「全屏海报」感；桌面与移动端一致通栏。
+   通栏（container:'full'）海报：破出内容容器，铺满视口
    ============================================================ */
-/* 通栏区块不再套内容容器，外壳自身的上下留白也归零，让海报紧贴视口边缘 */
 .blk--full[data-block="hero"],
 .blk--full[data-block="carousel"],
 .blk--full[data-block="showcase"] { padding-block: 0; }
@@ -129,25 +142,13 @@
 .blk--full .blk-hero {
   border: 0;
   border-radius: 0;
-  min-height: min(78vh, 720px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  min-height: min(100svh, 940px);
 }
-/* 轮播：滑动区撑满剩余高度并纵向居中，图片/文案不贴顶 */
-.blk--full .blk-hero__slides {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-}
-.blk--full .blk-hero__slide.is-active { width: 100%; }
-
-/* 通栏海报：内容左边线与各板块标题（.container）对齐，避免「海报标题与上下标题不齐」 */
-@media (min-width: 1024px) {
-  .blk--full .blk-hero__grid {
-    padding-left: calc(max(0px, (100% - var(--gh-container-max)) / 2) + var(--gh-space-7));
-    padding-right: calc(max(0px, (100% - var(--gh-container-max)) / 2) + var(--gh-space-7));
-  }
+/* 滑动区撑满海报高度，背景图才能真正「满屏」 */
+.blk--full .blk-hero__slides { min-height: inherit; display: flex; }
+.blk--full .blk-hero__slide.is-active {
+  width: 100%;
+  display: flex; flex-direction: column; justify-content: center;
 }
 
 /* —— cards · spotlight 布局：1 个主卡 + 若干次卡（首页「服务入口」）—— */

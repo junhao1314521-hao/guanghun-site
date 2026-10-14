@@ -8,7 +8,6 @@
  */
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MediaImg } from '../components/ui/MediaImg'
 import { IconChevronLeft, IconChevronRight } from '../components/ui/Icon'
 import { prefersReducedMotion } from '../lib/motion'
 import { asArray, asBool, asLink, asRecord, asStatItems, asString, asStringArray } from './blockUtils'
@@ -21,6 +20,8 @@ type Slide = {
   desc: string
   mediaTag: string
   image: string
+  /** 手机竖版海报（<900px 使用；缺省回退横版） */
+  imageMobile: string
   primary: ReturnType<typeof asLink>
   secondary: ReturnType<typeof asLink>
   stats: ReturnType<typeof asStatItems>
@@ -34,6 +35,7 @@ function toSlide(value: unknown): Slide {
     desc: asString(record.desc),
     mediaTag: asString(record.mediaTag),
     image: asString(record.image),
+    imageMobile: asString(record.imageMobile),
     primary: asLink(record.primary),
     secondary: asLink(record.secondary),
     stats: asStatItems(record.stats),
@@ -70,8 +72,6 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
         if (event.key === 'ArrowLeft') go(index - 1)
       }}
     >
-      <div className="blk-hero__glow" />
-
       <div className="blk-hero__slides">
         {slides.map((slide, i) => {
           const active = i === index
@@ -82,8 +82,21 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
               className={`blk-hero__slide${active ? ' is-active' : ''}`}
               aria-hidden={!active}
             >
+              <div className="blk-hero__bg">
+                <picture>
+                  {slide.imageMobile && <source media="(max-width: 900px)" srcSet={slide.imageMobile} />}
+                  <img
+                    src={slide.image}
+                    alt=""
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : undefined}
+                    decoding="async"
+                  />
+                </picture>
+              </div>
+              <span className="blk-hero__scrim" aria-hidden="true" />
               <div className="blk-hero__grid">
-                <div className="hero__content" style={{ padding: 0 }}>
+                <div className="hero__content">
                   <div className="hero__eyebrow">{slide.eyebrow}</div>
                   <TitleTag className="hero__title">
                     {slide.title.map((line, k) => (
@@ -118,9 +131,6 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
                       ))}
                     </div>
                   )}
-                </div>
-                <div className="blk-hero__media">
-                  <MediaImg src={slide.image} alt={slide.mediaTag} loading={i === 0 ? 'eager' : 'lazy'} />
                 </div>
               </div>
             </article>
