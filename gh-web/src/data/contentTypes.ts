@@ -33,6 +33,8 @@ export type BlockType =
   | 'caseList' | 'venueList'
   // 测评方法数据源区块（集合 methods）
   | 'methodList'
+  // 邮件订阅（首页 / 页脚；写入 subscribers 集合，扩展 §4）
+  | 'subscribe'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {

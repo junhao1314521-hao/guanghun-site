@@ -11,6 +11,7 @@ import { createCollectionItem, getCollectionItem, listCollection } from '../data
 import { getUserSession, USER_SESSION_COOKIE } from '../data/userStore'
 import { readLocale } from '../data/locale'
 import { checkCaptcha, honeypotHit } from '../lib/formGuard'
+import { recordMetric } from '../data/metricsStore'
 import { readCookie } from '../middleware/adminAuth'
 
 /**
@@ -104,6 +105,34 @@ supportExtraRouter.post('/inquiry', (req, res) => {
     ...(sessionUser ? { userId: sessionUser.id } : {}),
   })
   res.json({ ok: true, ticketId: item.id, receivedAt: new Date().toISOString() })
+})
+
+supportExtraRouter.post('/subscribe', (req, res) => {
+  // 首页 / 页脚「邮件订阅」：写入 subscribers 集合（后台「订阅者」可查），并计入 subscribe 埋点。
+  const body = (req.body ?? {}) as Record<string, unknown>
+  // 反垃圾三件套：限流（全局）/ 图形验证码 / 蜜罐字段
+  if (!checkCaptcha(body, res)) return
+  if (honeypotHit(body)) {
+    res.json({ ok: true, receivedAt: new Date().toISOString() })
+    return
+  }
+  const email = readString(body.email)
+  const source = readString(body.source) || 'home'
+  // 邮箱格式校验（宽松）：不合规则 400，不写入
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ error: '请填写有效的邮箱地址' })
+    return
+  }
+  const id = `sub-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+  createCollectionItem('subscribers', {
+    id,
+    email,
+    source,
+    createdAt: new Date().toISOString().slice(0, 10),
+  })
+  // 记一次 subscribe 埋点（供后台「访问分析」事件报表）
+  recordMetric('subscribe', source)
+  res.json({ ok: true, receivedAt: new Date().toISOString() })
 })
 
 supportExtraRouter.post('/reservation', (req, res) => {

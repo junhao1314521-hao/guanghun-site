@@ -826,6 +826,34 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     ],
   },
   {
+    key: 'subscribers',
+    label: '订阅者',
+    icon: 'chat',
+    title: '邮件订阅者',
+    desc: '来自首页 / 页脚「邮件订阅」表单的邮箱，用于新品与固件更新通知。',
+    // 仅由公开表单写入：后台可查看与删除，不手工新建 / 编辑
+    creatable: false,
+    editable: false,
+    deletable: true,
+    searchKeys: ['email', 'source'],
+    columns: [
+      { key: 'email', label: '邮箱', type: 'mono' },
+      { key: 'source', label: '来源', type: 'tag' },
+      { key: 'createdAt', label: '提交日期', type: 'date' },
+    ],
+    filters: [{ key: 'source', label: '来源', options: ['home', 'footer'] }],
+    form: [
+      {
+        title: '订阅信息',
+        fields: [
+          { key: 'email', label: '邮箱', type: 'text', required: true },
+          { key: 'source', label: '来源', type: 'text', hint: 'home / footer' },
+          { key: 'createdAt', label: '提交日期', type: 'date' },
+        ],
+      },
+    ],
+  },
+  {
     key: 'faqs',
     label: '问答管理',
     icon: 'doc',
@@ -1482,6 +1510,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { kind: 'resource', key: 'inquiries' },
       { kind: 'resource', key: 'reservations' },
       { kind: 'resource', key: 'devices' },
+      { kind: 'resource', key: 'subscribers' },
       { kind: 'resource', key: 'faqs' },
       { kind: 'resource', key: 'service-info' },
       { kind: 'resource', key: 'models' },

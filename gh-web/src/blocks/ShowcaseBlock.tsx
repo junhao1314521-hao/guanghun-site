@@ -15,6 +15,7 @@ import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockIcon } from '../components/home/BlockIcon'
 import { MediaImg } from '../components/ui/MediaImg'
 import { MEDIA, resolveMedia } from '../data/media'
+import { trackEvent } from '../lib/track'
 import { asArray, asLink, asRecord, asString, asStringArray } from './blockUtils'
 
 type MediaType = 'image' | 'video' | 'gif'
@@ -98,10 +99,19 @@ export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
               {item.desc && <p className="showcase__desc">{item.desc}</p>}
               {item.price && <span className="showcase__price">{item.price}</span>}
               <div className="showcase__cta">
-                <Link className="btn btn--primary" to="/business/venues">
+                {/* 主 CTA：预约到店体验（埋点 reserve）；次 CTA：把当前产品加入对比（带 ?ids=） */}
+                <Link
+                  className="btn btn--primary"
+                  to="/business/venues"
+                  onClick={() => trackEvent('reserve', item.productId || 'showcase')}
+                >
                   预约体验
                 </Link>
-                <Link className="btn btn--secondary" to="/compare">
+                <Link
+                  className="btn btn--secondary"
+                  to={item.productId ? `/compare?ids=${encodeURIComponent(item.productId)}` : '/compare'}
+                  onClick={() => trackEvent('compare', item.productId || 'showcase')}
+                >
                   加入对比
                 </Link>
                 <Link className="showcase__more" to={detailHref}>

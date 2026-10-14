@@ -59,20 +59,57 @@ function rankWithinScope(rows: LadderRow[]): { row: LadderRow; rank: string; tie
   })
 }
 
+/** 领奖台：取前三名（仅已测试），以「2 - 1 - 3」视觉顺序排列，冠军居中抬高 */
+function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
+  const top = rows.filter((row) => row.score !== null).slice(0, 3)
+  if (top.length < 3) return null
+  const fmt = (score: number) => score.toFixed(metric.unit === '分' || score < 10 ? 1 : 0)
+  const order: { row: LadderRow; place: '1' | '2' | '3' }[] = [
+    { row: top[1], place: '2' },
+    { row: top[0], place: '1' },
+    { row: top[2], place: '3' },
+  ]
+  return (
+    <div className="podium" aria-label={`${metric.label}榜前三名`}>
+      {order.map(({ row, place }) => (
+        <div className={`podium__col podium__col--${place}`} key={row.model}>
+          <div className="podium__card">
+            <span className="podium__thumb" aria-hidden="true">
+              <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
+            </span>
+            {row.productId ? (
+              <Link className="podium__model" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
+                {row.model}
+              </Link>
+            ) : (
+              <span className="podium__model">{row.model}</span>
+            )}
+            <span className="podium__name">{row.name}</span>
+            <span className="podium__score">
+              {fmt(row.score as number)}
+              <em>{metric.unit}</em>
+            </span>
+          </div>
+          <div className="podium__base" aria-hidden="true">
+            <span>{place}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function LadderRows({
   metric,
   rows,
   scoped,
   teaser,
-  baseRanks,
   highlight,
 }: {
   metric: LadderMetric
   rows: LadderRow[]
   scoped: boolean
   teaser?: boolean
-  /** 综合榜名次（型号 → 名次）：用于计算「名次变化 ↑↓」 */
-  baseRanks: Record<string, number>
   /** 用户输入的关键词（型号片段）：命中行高亮 */
   highlight: string
 }) {
@@ -100,10 +137,10 @@ function LadderRows({
       {ranked.map(({ row, rank, tied }) => {
         const top = /^0[123]$/.test(rank)
         const hit = keyword !== '' && row.model.toLowerCase().includes(keyword)
-        // 名次变化：当前榜名次 vs 综合榜名次的差值（正 = 进步）
+        // 名次变化：当前名次 vs 上期名次（prevRank），正 = 名次上升
         const currentRank = Number(rank)
-        const baseRank = baseRanks[row.model]
-        const move = Number.isFinite(currentRank) && baseRank ? baseRank - currentRank : 0
+        const prev = row.prevRank ? Number(row.prevRank) : Number.NaN
+        const move = Number.isFinite(currentRank) && Number.isFinite(prev) ? prev - currentRank : 0
         return (
           <div className={`ladder__row${top ? ' ladder__row--top' : ''}${hit ? ' is-hit' : ''}`} key={row.model}>
             <span className={`ladder__rank${top ? ' ladder__rank--top' : ''}`}>{rank}</span>
@@ -190,13 +227,6 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const tested = rows.filter((row) => row.score !== null)
   const shown = limit > 0 ? rows.slice(0, limit) : rows
   const shownTested = limit > 0 ? tested.slice(0, limit) : tested
-  // 综合榜名次（型号 → 名次数字）：用于「名次变化 ↑↓」基准
-  const baseRanks: Record<string, number> = {}
-  const overallMetric = metrics.find((item) => item.id === 'overall')
-  overallMetric?.rows.forEach((row) => {
-    const n = Number(row.rank)
-    if (Number.isFinite(n)) baseRanks[row.model] = n
-  })
 
   // 分值条生长：以「取数就绪 + 当前指标 / 条数」为刷新键，确保真实榜单渲染后再绑定观察器
   const fillKey = `${metric?.id ?? 'none'}:${limit}:${rows.length}:${loading ? 'loading' : 'ready'}`
@@ -338,7 +368,9 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                   </Link>
                 </div>
               )}
-              <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} baseRanks={baseRanks} highlight={query} />
+              {/* 领奖台（前三）：列表页展示，首页 teaser 省略 */}
+              {!teaser && <Podium metric={metric} rows={shownTested} />}
+              <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} highlight={query} />
             </>
           ) : (
             <div className="empty">

@@ -161,6 +161,20 @@ function buildHome(): Page {
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },
     },
+    // 信任条：首屏下方的实测 / 服务标识（紧凑横排）
+    {
+      type: 'cards',
+      props: {
+        layout: 'trust',
+        columns: 4,
+        items: [
+          { title: '小雪人评测实验室', desc: '统一方法与样本量' },
+          { title: '三年质保', desc: '含 OLED 烧屏保护' },
+          { title: '官方正品', desc: '全国联保' },
+          { title: '顺丰包邮', desc: '15 天无理由退换' },
+        ],
+      },
+    },
     // 按场景选择：横向滑动 rail，卡片链接带 ?scene= 场景参数（筛选走 URL）
     // 顺序调整（按反馈）：场景选择紧贴首屏海报，重点产品随后
     {
@@ -233,6 +247,56 @@ function buildHome(): Page {
         })),
       },
     },
+    // 服务承诺条（三年质保 · 顺丰 · 专属服务）
+    {
+      type: 'cards',
+      props: {
+        title: '服务承诺',
+        icon: 'shield',
+        columns: 3,
+        items: [
+          { title: '三年质保', desc: '全系含 OLED 烧屏保护，全国联保。' },
+          { title: '顺丰包邮', desc: '现货速发，支持 15 天无理由退换。' },
+          { title: '专属服务', desc: '面板服务与技术支持，工单全程可跟进。' },
+        ],
+      },
+    },
+    // 选购指南（按用途 / 看实测 / 读评测 三条主线）
+    {
+      type: 'cards',
+      props: {
+        title: '选购指南',
+        icon: 'compass',
+        subtitle: '不知道从哪看起？按这三条主线快速定位。',
+        ctaLabel: '浏览全部产品',
+        ctaHref: '/products',
+        columns: 3,
+        items: [
+          { tag: '按用途', title: '电竞 / 创作 / 办公怎么选', desc: '按刷新率、色准与接口需求快速收敛范围。', href: '/products' },
+          { tag: '看实测', title: '天梯榜怎么看', desc: '综合、色准、亮度、响应四项指标的口径说明。', href: '/ladder' },
+          { tag: '读评测', title: '评测与解析合集', desc: '参数公开、方法公开，结论可复现。', href: '/articles' },
+        ],
+      },
+    },
+    // 固件更新卡（固件 / 驱动 / Center 三入口）
+    {
+      type: 'cards',
+      props: {
+        title: '固件与驱动',
+        icon: 'download',
+        subtitle: '保持最新版本，获得更好的兼容与调校。',
+        ctaLabel: '前往下载中心',
+        ctaHref: '/downloads',
+        columns: 3,
+        items: [
+          { tag: '固件', title: '显示器固件更新', desc: '通过 Center 一键升级，附带变更说明。', href: '/downloads' },
+          { tag: '驱动', title: '驱动与调色配置', desc: 'ICC / 调色配置，公开资料无需注册即可下载。', href: '/downloads' },
+          { tag: '软件', title: '光魂 Center', desc: '统一管理设备：按键、参数、灯效与固件。', href: '/center' },
+        ],
+      },
+    },
+    // 精选 FAQ（只放高频几条，完整去 /faq）
+    { type: 'faqList', props: { title: '常见问题', source: 'support', limit: 4, ctaLabel: '查看全部问题', ctaHref: '/faq' } },
     {
       type: 'cards',
       props: {
@@ -243,6 +307,16 @@ function buildHome(): Page {
         ctaHref: '/business/venues',
         columns: 3,
         items: home.SPOTS.map((spot) => ({ tag: spot.status, title: spot.name, desc: spot.area, href: '/business/venues' })),
+      },
+    },
+    // 订阅（默认开启）：留下邮箱获取新品与固件更新
+    {
+      type: 'subscribe',
+      props: {
+        title: '订阅新品与固件更新',
+        desc: '留下邮箱，第一时间收到新品发布、固件更新与活动通知。',
+        source: 'home',
+        points: ['新品发布第一时间知悉', '固件更新与调校配置提醒', '不定期线下体验活动邀请'],
       },
     },
     { type: 'articleList', props: { title: '新闻与动态', icon: 'refresh', subtitle: '产品发布、活动与品牌更新。', ctaLabel: '查看全部新闻', ctaHref: '/news', source: 'news', limit: 6 } },

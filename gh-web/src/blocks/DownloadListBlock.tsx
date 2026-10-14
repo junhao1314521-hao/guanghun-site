@@ -122,12 +122,22 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // 呈现方式：表格（默认）/ 横向滑动卡片
   const railCards = asString(props.layout, 'table') === 'rail'
   const [reloadKey, setReloadKey] = useState(0)
-  // —— 交互态：仅 showFilter 时使用，无条件声明以遵守 hooks 规则 ——
-  const [category, setCategory] = useState('全部')
-  const [type, setType] = useState('全部')
-  // 型号筛选「进 URL」（?model=型号），便于从「型号支持」页深链直达某型号的可用资料
+  // —— 交互态：仅 showFilter 时使用；筛选「全量进 URL」（?category=&type=&model=），
+  //    便于分享 / 深链直达（如型号支持页 → /downloads?model=xxx）——
   const [params, setParams] = useSearchParams()
-  const model = showFilter ? params.get('model') ?? '全部' : '全部'
+  const readParam = (key: string) => (showFilter ? params.get(key) ?? '全部' : '全部')
+  const category = readParam('category')
+  const type = readParam('type')
+  const model = readParam('model')
+  const setParam = (key: string, option: string) => {
+    const next = new URLSearchParams(params)
+    if (!option || option === '全部') next.delete(key)
+    else next.set(key, option)
+    setParams(next, { replace: true })
+  }
+  const setCategory = (option: string) => setParam('category', option)
+  const setType = (option: string) => setParam('type', option)
+  const setModel = (option: string) => setParam('model', option)
 
   const { data, loading, error } = useApi((signal) => fetchDownloads(signal), [reloadKey])
   const all = data?.items ?? []
@@ -135,12 +145,6 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   const base = pickByIds(all, scope, manualIds)
   // 型号候选：由全部资料的适用型号去重生成（升序，便于查找）
   const modelOptions = ['全部', ...Array.from(new Set(base.flatMap((item) => item.models))).sort()]
-  const setModel = (option: string) => {
-    const next = new URLSearchParams(params)
-    if (!option || option === '全部') next.delete('model')
-    else next.set('model', option)
-    setParams(next, { replace: true })
-  }
   const filtered = base.filter(
     (item) =>
       (!propCategory || item.category === propCategory) &&
@@ -155,9 +159,12 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   const shown = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   const resetFilters = () => {
-    setCategory('全部')
-    setType('全部')
-    setModel('全部')
+    // 三个筛选一次清空（逐个 setParam 会因闭包拿到同一份旧 params 而互相覆盖）
+    const next = new URLSearchParams(params)
+    next.delete('category')
+    next.delete('type')
+    next.delete('model')
+    setParams(next, { replace: true })
   }
 
   return (

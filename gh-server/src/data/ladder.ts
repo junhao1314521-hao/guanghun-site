@@ -8,6 +8,8 @@ export type LadderRow = {
   score: number | null
   /** 是否与上一行并列 */
   tied?: boolean
+  /** 上期该指标名次（用于「名次变化 ↑↓」；缺省则不显示箭头） */
+  prevRank?: string
   /** 关联产品 id（可点进产品详情；无详情页的型号省略） */
   productId?: string
 }
@@ -41,13 +43,13 @@ const RAW_METRICS: LadderMetric[] = [
     unit: '分',
     pending: 2,
     rows: [
-      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 96.8 },
-      { rank: '02', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 94.2 },
-      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 92.5 },
-      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 89.6 },
-      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 85.1 },
-      { rank: '06', model: '25S1FP', name: '24.5 英寸 FHD 240Hz IPS', score: 82.4 },
-      { rank: '07', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 79.8 },
+      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 96.8, prevRank: '01' },
+      { rank: '02', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 94.2, prevRank: '03' },
+      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 92.5, prevRank: '02' },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 89.6, prevRank: '04' },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 85.1, prevRank: '06' },
+      { rank: '06', model: '25S1FP', name: '24.5 英寸 FHD 240Hz IPS', score: 82.4, prevRank: '05' },
+      { rank: '07', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 79.8, prevRank: '07' },
     ],
   },
   {
@@ -56,12 +58,12 @@ const RAW_METRICS: LadderMetric[] = [
     unit: 'ΔE',
     pending: 3,
     rows: [
-      { rank: '01', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 0.9 },
-      { rank: '02', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 1.1 },
-      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 1.3 },
-      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 1.6 },
-      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 2.1 },
-      { rank: '06', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 2.8 },
+      { rank: '01', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 0.9, prevRank: '02' },
+      { rank: '02', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 1.1, prevRank: '01' },
+      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 1.3, prevRank: '03' },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 1.6, prevRank: '05' },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 2.1, prevRank: '04' },
+      { rank: '06', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 2.8, prevRank: '06' },
     ],
   },
   {
@@ -70,12 +72,12 @@ const RAW_METRICS: LadderMetric[] = [
     unit: 'nit',
     pending: 2,
     rows: [
-      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 1320 },
-      { rank: '02', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 1180 },
-      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 1050 },
-      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 960 },
-      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 480 },
-      { rank: '06', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 430 },
+      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 1320, prevRank: '01' },
+      { rank: '02', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 1180, prevRank: '03' },
+      { rank: '03', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 1050, prevRank: '02' },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 960, prevRank: '05' },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 480, prevRank: '04' },
+      { rank: '06', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 430, prevRank: '06' },
     ],
   },
   {
@@ -84,13 +86,13 @@ const RAW_METRICS: LadderMetric[] = [
     unit: 'ms',
     pending: 1,
     rows: [
-      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 0.04 },
-      { rank: '02', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 0.05 },
-      { rank: '03', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 0.06 },
-      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 0.08 },
-      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 1.2 },
-      { rank: '06', model: '25S1FP', name: '24.5 英寸 FHD 240Hz IPS', score: 1.8 },
-      { rank: '07', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 2.4 },
+      { rank: '01', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED', score: 0.04, prevRank: '02' },
+      { rank: '02', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED', score: 0.05, prevRank: '01' },
+      { rank: '03', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞OLED', score: 0.06, prevRank: '03' },
+      { rank: '04', model: '27X1U', name: '27 英寸 2K OLED', score: 0.08, prevRank: '04' },
+      { rank: '05', model: '27Q1F', name: '27 英寸 2K 电竞 IPS', score: 1.2, prevRank: '06' },
+      { rank: '06', model: '25S1FP', name: '24.5 英寸 FHD 240Hz IPS', score: 1.8, prevRank: '05' },
+      { rank: '07', model: '24H1', name: '24 英寸 FHD 200Hz IPS', score: 2.4, prevRank: '07' },
     ],
   },
 ]

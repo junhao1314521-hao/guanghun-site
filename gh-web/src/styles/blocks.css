@@ -632,6 +632,17 @@
   font-weight: var(--gh-weight-medium); letter-spacing: .04em;
 }
 
+/* —— cards · trust 布局：信任条（实测徽标 / 合作标识 紧凑横排）—— */
+.blk-trust__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-4) var(--gh-space-7); }
+.blk-trust__item { display: inline-flex; align-items: center; gap: var(--gh-space-2); }
+.blk-trust__mark {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 22px; height: 22px; border-radius: var(--gh-radius-full);
+  background: var(--color-accent-subtle); color: var(--color-accent-text);
+}
+.blk-trust__title { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
+.blk-trust__desc { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+
 /* ============================================================
    showcase 通栏产品展示（首页「重点产品」分段式）
    每项占满一屏：大图/大视频一侧 + 文案另一侧，左右交替；移动端上下堆叠。

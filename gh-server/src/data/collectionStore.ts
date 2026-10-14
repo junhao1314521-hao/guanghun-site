@@ -42,6 +42,7 @@ import { TEST_RECORDS, type TestRecord } from './testRecords'
 import { TEST_METHODS, type TestMethod } from './methods'
 import { SERVICE_SPOTS, type ServiceSpot } from './serviceInfo'
 import { RESERVATIONS, type ReservationSummary } from './reservations'
+import { SUBSCRIBERS, type Subscriber } from './subscribers'
 
 /** 集合 key（与后台栏目 key 一致） */
 export type CollectionKey =
@@ -63,6 +64,7 @@ export type CollectionKey =
   | 'methods'
   | 'service-info'
   | 'reservations'
+  | 'subscribers'
 
 /** 集合 → 记录类型（规范形状 = 前台现有形状） */
 export type CollectionMap = {
@@ -84,6 +86,7 @@ export type CollectionMap = {
   methods: TestMethod[]
   'service-info': ServiceSpot[]
   reservations: ReservationSummary[]
+  subscribers: Subscriber[]
 }
 
 /** 某集合的记录类型 */
@@ -109,6 +112,7 @@ export const COLLECTION_KEYS: CollectionKey[] = [
   'methods',
   'service-info',
   'reservations',
+  'subscribers',
 ]
 
 /** 已就绪的数据库路径（DB_PATH 变化时需重新检查 / 回填；显式 initCollections 可重复调用） */
@@ -146,6 +150,7 @@ export function buildCollectionSeed(): CollectionMap {
     methods: TEST_METHODS,
     'service-info': SERVICE_SPOTS,
     reservations: RESERVATIONS,
+    subscribers: SUBSCRIBERS,
   }
   return clone(seed)
 }

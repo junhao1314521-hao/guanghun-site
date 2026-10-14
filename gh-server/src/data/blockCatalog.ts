@@ -172,6 +172,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '网格', value: 'grid' },
           { label: '横向滑动', value: 'rail' },
           { label: '主次聚焦（1 主 + 若干次）', value: 'spotlight' },
+          { label: '信任条（紧凑横排）', value: 'trust' },
         ],
       },
       { name: 'overlay', label: '文字浮于媒体', kind: 'switch' },
@@ -445,6 +446,25 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'showForm', label: '显示表单', kind: 'switch' },
       { name: 'points', label: '左栏要点（每行一条）', kind: 'list', placeholder: '留空则按渠道给出默认要点' },
+    ],
+  },
+  {
+    type: 'subscribe',
+    name: '邮件订阅',
+    group: '结构',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      { name: 'desc', label: '描述', kind: 'textarea' },
+      {
+        name: 'source',
+        label: '来源标记',
+        kind: 'select',
+        options: [
+          { label: '首页', value: 'home' },
+          { label: '页脚', value: 'footer' },
+        ],
+      },
+      { name: 'points', label: '左栏要点（每行一条）', kind: 'list' },
     ],
   },
   {

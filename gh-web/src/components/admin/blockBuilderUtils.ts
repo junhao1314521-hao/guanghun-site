@@ -268,6 +268,8 @@ const BLOCK_ICON: Record<BlockType, string> = {
   venueList: 'grid',
   // 测评方法数据源区块
   methodList: 'doc',
+  // 邮件订阅
+  subscribe: 'chat',
 }
 
 export function blockIcon(type: BlockType): string {

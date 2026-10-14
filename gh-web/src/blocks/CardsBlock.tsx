@@ -204,6 +204,28 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
     )
   }
 
+  // trust：信任条（实测徽标 / 合作标识 的紧凑横排，首屏下方使用）
+  if (layout === 'trust') {
+    return (
+      <div className="blk-trust">
+        {head}
+        <div className="blk-trust__row">
+          {items.map((item, index) => (
+            <div className="blk-trust__item reveal" key={`${item.title}-${index}`} data-delay={(index % 4) + 1}>
+              <span className="blk-trust__mark" aria-hidden="true">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 8.4 6.4 11.8 13 4.6" />
+                </svg>
+              </span>
+              <span className="blk-trust__title">{item.title}</span>
+              {item.desc && <span className="blk-trust__desc">{item.desc}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   // spotlight：1 主 + 若干次（首页「服务入口」）
   if (layout === 'spotlight' && items.length > 0) {
     const [main, ...rest] = items

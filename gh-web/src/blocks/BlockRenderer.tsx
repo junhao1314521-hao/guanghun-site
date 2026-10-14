@@ -25,6 +25,7 @@ import { RankingBlock } from './RankingBlock'
 import { DownloadListBlock } from './DownloadListBlock'
 import { FaqListBlock } from './FaqListBlock'
 import { ContactBlock } from './ContactBlock'
+import { SubscribeBlock } from './SubscribeBlock'
 import { LayoutBlock } from './LayoutBlock'
 import { RichTextBlock } from './RichTextBlock'
 import { HtmlBlock } from './HtmlBlock'
@@ -71,6 +72,8 @@ function renderBlock(block: Block): ReactNode {
       return <FaqListBlock props={props} />
     case 'contact':
       return <ContactBlock props={props} />
+    case 'subscribe':
+      return <SubscribeBlock props={props} />
     case 'layout':
       return <LayoutBlock props={props} render={(blocks) => <BlockRenderer blocks={blocks} />} />
     case 'richText':
