@@ -405,8 +405,10 @@ function buildBusiness(): Page {
       type: 'cards',
       props: {
         title: '品牌资料下载',
+        icon: 'download',
         columns: 2,
-        items: business.BRAND_ASSETS.map((asset) => ({ tag: asset.tag, title: asset.title, desc: asset.format })),
+        // 每项可点：跳转下载中心（品牌资料集中管理）
+        items: business.BRAND_ASSETS.map((asset) => ({ tag: asset.tag, title: asset.title, desc: asset.format, href: '/downloads' })),
       },
     },
     {

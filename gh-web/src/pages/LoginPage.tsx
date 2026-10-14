@@ -18,6 +18,7 @@ export function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
+  const [showPw, setShowPw] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -100,15 +101,26 @@ export function LoginPage() {
                   <label className="field__label" htmlFor="loginPassword">
                     密码
                   </label>
-                  <input
-                    id="loginPassword"
-                    className="input"
-                    type="password"
-                    value={password}
-                    autoComplete="current-password"
-                    placeholder="请输入密码"
-                    onChange={(event) => setPassword(event.target.value)}
-                  />
+                  <div className="pw-field">
+                    <input
+                      id="loginPassword"
+                      className="input"
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      autoComplete="current-password"
+                      placeholder="请输入密码"
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                    {/* 密码可见切换 */}
+                    <button
+                      className="pw-field__toggle"
+                      type="button"
+                      aria-label={showPw ? '隐藏密码' : '显示密码'}
+                      onClick={() => setShowPw((v) => !v)}
+                    >
+                      {showPw ? '隐藏' : '显示'}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="row" style={{ marginTop: 'var(--gh-space-4)', justifyContent: 'space-between' }}>
