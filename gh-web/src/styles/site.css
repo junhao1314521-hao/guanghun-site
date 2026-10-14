@@ -1470,12 +1470,7 @@ body.drawer-open { overflow: hidden; }
   margin: var(--gh-space-5) 0 var(--gh-space-5);
   text-wrap: balance;
 }
-/* 标题第二行起做品牌渐变，形成上下层次（单行标题不受影响） */
-.hero__title > span:not(:first-child) {
-  background: linear-gradient(92deg, #FFFFFF 0%, var(--gh-blue-300) 46%, var(--gh-cyan-400) 100%);
-  -webkit-background-clip: text; background-clip: text;
-  color: transparent;
-}
+/* 标题：纯白统一色（不用渐变字——高级感来自字号/字距/行高，而非装饰） */
 .hero__desc {
   font-size: var(--gh-font-size-body-lg); line-height: 1.72;
   color: rgba(255, 255, 255, .78); max-width: 46ch;
