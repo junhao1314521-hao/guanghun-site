@@ -407,71 +407,146 @@
 @media (max-width: 767px) { .blk-scroll-x > * { flex-basis: 85%; } }
 
 /* ============================================================
-   contact 联系留言（表单态）：左文案 + 右表单的两栏布局（更大气、不空）
+   contact 联系留言：左文案 + 右表单的两栏布局
+   外壳两种风格 —— soft 浅色品牌底（默认，有明显底色）/ bold 品牌深色收口
    ============================================================ */
 .contact-split {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: var(--gh-space-8);
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(var(--gh-space-6), 4vw, var(--gh-space-9));
   align-items: start;
 }
 @media (max-width: 899px) {
   .contact-split { grid-template-columns: 1fr; gap: var(--gh-space-6); }
 }
-.contact-split__aside { position: sticky; top: 96px; }
+
+/* —— 左栏文案 —— */
+.contact-split__aside {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 @media (max-width: 899px) {
   .contact-split__aside { position: static; }
 }
+.contact-split__mark {
+  display: block;
+  width: 40px;
+  height: 4px;
+  border-radius: var(--gh-radius-full);
+  background: linear-gradient(90deg, var(--gh-blue-500), var(--gh-cyan-400));
+  margin-bottom: var(--gh-space-5);
+}
 .contact-split__title {
-  font-size: var(--gh-font-size-h2);
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, var(--gh-font-size-h2));
   font-weight: var(--gh-weight-semibold);
   letter-spacing: -0.02em;
-  line-height: 1.15;
+  line-height: 1.16;
   margin: 0;
+  color: var(--color-text-primary);
+  text-wrap: balance;
 }
 .contact-split__desc {
   margin: var(--gh-space-3) 0 0;
-  max-width: 46ch;
+  max-width: 42ch;
   color: var(--color-text-secondary);
   font-size: var(--gh-font-size-body-lg);
   line-height: var(--gh-line-height-body);
 }
+
+/* —— 左栏要点：浮卡式条目 —— */
 .contact-points {
   list-style: none;
-  margin: var(--gh-space-6) 0 0;
+  margin: var(--gh-space-7) 0 0;
   padding: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--gh-space-4);
+  gap: var(--gh-space-3);
 }
 .contact-points li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--gh-space-3);
+  padding: var(--gh-space-3) var(--gh-space-4);
+  border-radius: var(--gh-radius-lg);
+  background: color-mix(in srgb, var(--color-bg-elevated) 78%, transparent);
+  border: 1px solid var(--color-border-subtle);
   color: var(--color-text-secondary);
   font-size: var(--gh-font-size-body);
   line-height: var(--gh-line-height-body);
 }
 .contact-points__dot {
   flex: none;
-  width: 8px;
-  height: 8px;
-  margin-top: 7px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   border-radius: var(--gh-radius-full);
-  background: linear-gradient(135deg, var(--gh-blue-500), var(--gh-cyan-400));
+  background: color-mix(in srgb, var(--gh-blue-500) 14%, transparent);
+  color: var(--gh-blue-600);
 }
-.contact-form { max-width: none; }
-.contact-form .form-grid-2 { gap: var(--gh-space-5); }
-/* contact 模块外壳：两种风格 —— soft 浅底浮卡（默认）/ bold 品牌色深色收口 */
-.contact-block { border-radius: var(--gh-radius-2xl); padding: clamp(var(--gh-space-6), 4vw, var(--gh-space-8)); }
-.contact-block--soft { background: var(--color-bg-subtle); border: 1px solid var(--color-border-subtle); }
-.contact-block--soft .contact-form { box-shadow: var(--shadow-lg); }
-.contact-block--bold { background: linear-gradient(140deg, var(--gh-neutral-950) 0%, var(--gh-blue-700) 100%); }
+
+/* —— 右栏：表单浮卡 + 法务说明 —— */
+.contact-split__main { display: flex; flex-direction: column; gap: var(--gh-space-4); }
+.contact-form {
+  max-width: none;
+  padding: clamp(var(--gh-space-5), 3vw, var(--gh-space-7));
+  border-radius: var(--gh-radius-xl);
+}
+.contact-form .form-grid-2 { gap: var(--gh-space-4) var(--gh-space-5); }
+.contact-privacy {
+  margin: 0;
+  padding: 0 var(--gh-space-2);
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-caption);
+  line-height: var(--gh-line-height-body);
+}
+.contact-privacy a { color: var(--color-accent-text); }
+
+/* —— 外壳 —— */
+.contact-block {
+  position: relative;
+  border-radius: var(--gh-radius-2xl);
+  padding: clamp(var(--gh-space-6), 4.5vw, var(--gh-space-9));
+  overflow: hidden;
+  isolation: isolate;
+}
+/* soft：可见的浅色品牌底（双角柔光 + 纵向渐变 + 描边 + 柔投影） */
+.contact-block--soft {
+  background:
+    radial-gradient(110% 130% at 100% 0%, color-mix(in srgb, var(--gh-blue-500) 15%, transparent), transparent 58%),
+    radial-gradient(95% 120% at 0% 100%, color-mix(in srgb, var(--gh-cyan-400) 13%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--gh-neutral-50) 0%, var(--gh-neutral-100) 100%);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+}
+.contact-block--soft .contact-form { box-shadow: var(--shadow-lg); border-color: var(--color-border-subtle); }
+/* bold：品牌深色收口 */
+.contact-block--bold {
+  background:
+    radial-gradient(110% 130% at 100% 0%, color-mix(in srgb, var(--gh-blue-500) 40%, transparent), transparent 60%),
+    linear-gradient(140deg, var(--gh-neutral-950) 0%, var(--gh-blue-700) 100%);
+  border: 1px solid rgba(255, 255, 255, .1);
+}
 .contact-block--bold .contact-split__title { color: var(--gh-neutral-50); }
 .contact-block--bold .contact-split__desc,
-.contact-block--bold .contact-points li { color: rgba(255, 255, 255, .82); }
-.contact-block--bold .field__hint { color: rgba(255, 255, 255, .66); }
+.contact-block--bold .contact-points li { color: rgba(255, 255, 255, .84); }
+.contact-block--bold .contact-points li { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .14); }
+.contact-block--bold .contact-points__dot { background: rgba(255, 255, 255, .14); color: #fff; }
+.contact-block--bold .contact-privacy { color: rgba(255, 255, 255, .62); }
+.contact-block--bold .contact-privacy a { color: #fff; }
 .contact-block--bold .contact-cta { border-color: rgba(255, 255, 255, .16); }
+
+/* 暗色主题下 soft 也要有明确底色 */
+[data-theme="dark"] .contact-block--soft {
+  background:
+    radial-gradient(110% 130% at 100% 0%, color-mix(in srgb, var(--gh-blue-500) 30%, transparent), transparent 60%),
+    radial-gradient(95% 120% at 0% 100%, color-mix(in srgb, var(--gh-cyan-400) 20%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--gh-neutral-900) 0%, var(--gh-neutral-950) 100%);
+}
 
 /* overlay 卡：媒体铺满，文案浮于底部渐变遮罩之上（固定深色遮罩保证双主题对比度） */
 .blk-card {

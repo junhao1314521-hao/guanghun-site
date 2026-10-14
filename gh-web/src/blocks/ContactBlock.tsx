@@ -65,19 +65,25 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
   return (
     <div className="contact-split">
       <div className="contact-split__aside">
+        <span className="contact-split__mark" aria-hidden="true" />
         {title && <h2 className="contact-split__title">{title}</h2>}
         {desc && <p className="contact-split__desc">{desc}</p>}
         {points.length > 0 && (
           <ul className="contact-points">
             {points.map((point, index) => (
               <li key={`${point.slice(0, 10)}-${index}`}>
-                <span className="contact-points__dot" aria-hidden="true" />
+                <span className="contact-points__dot" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2.6 7.4 5.7 10.5 11.4 3.9" />
+                  </svg>
+                </span>
                 <span>{point}</span>
               </li>
             ))}
           </ul>
         )}
       </div>
+      <div className="contact-split__main">
       <form className="card contact-form reveal" onSubmit={handleSubmit} noValidate>
         <div className="form-grid-2">
           <div className="field">
@@ -198,14 +204,11 @@ function ContactForm({ title, desc, points }: { title: string; desc: string; poi
         )}
       </form>
 
-      <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
-        <span className="field__hint">
-          提交即表示同意我们按
-          <Link to="/legal/privacy" style={{ color: 'var(--color-accent-text)' }}>
-            隐私政策
-          </Link>
-          处理你的联系方式，仅用于回复本次咨询。
-        </span>
+      <p className="contact-privacy">
+        提交即表示同意我们按
+        <Link to="/legal/privacy">隐私政策</Link>
+        处理你的联系方式，仅用于回复本次咨询。
+      </p>
       </div>
     </div>
   )
