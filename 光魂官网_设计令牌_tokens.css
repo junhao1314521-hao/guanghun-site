@@ -139,13 +139,13 @@
    ② 语义层 · 浅色（默认）
    ============================================================ */
 :root {
-  /* 浅色画布以 #F2F2F4 为基准（柔和冷灰，替代纯白）；内容面保持纯白以拉开层级 */
-  --color-bg-page:     #F2F2F4;
+  /* 浅色：全站唯一画布色 #F5F5F7，白只给卡片/浮层；柔和区块与页脚退回画布色 */
+  --color-bg-page:     #F5F5F7;
   --color-bg-surface:  var(--gh-neutral-0);
   --color-bg-raised:   var(--gh-neutral-0);
-  --color-bg-subtle:   #ECECF0;
-  --color-bg-muted:    #E4E4EA;
-  --color-bg-disabled: #EAEAEE;
+  --color-bg-subtle:   #F5F5F7;
+  --color-bg-muted:    #EAEAEE;
+  --color-bg-disabled: #EDEDF0;
   --color-bg-inverse:  var(--gh-neutral-900);
 
   --color-text-primary:   var(--gh-neutral-900);

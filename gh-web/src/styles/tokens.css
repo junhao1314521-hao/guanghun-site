@@ -143,14 +143,15 @@
    ② 语义层 · 浅色（默认）
    ============================================================ */
 :root {
-  /* 浅色画布以 #F2F2F4 为基准（柔和冷灰，替代纯白）；内容面保持纯白以拉开层级 */
-  --color-bg-page:     #F2F2F4;
+  /* 浅色：全站只有一个画布色 #F5F5F7，白只给卡片/浮层 —— 两级分层，避免多档浅色割裂。
+     通栏与页脚复用同一画布色（--color-bg-subtle 与画布同值），只用留白 + 1px 细线分区。 */
+  --color-bg-page:     #F5F5F7;
   --color-bg-surface:  var(--gh-neutral-0);
   --color-bg-raised:   var(--gh-neutral-0);
   --color-bg-elevated: var(--gh-neutral-0);  /* 悬浮面：磨砂浮层 / 卡片 */
-  --color-bg-subtle:   #ECECF0;              /* 画布更深一档：页脚 / 表头 / hover */
-  --color-bg-muted:    #E4E4EA;
-  --color-bg-disabled: #EAEAEE;
+  --color-bg-subtle:   #F5F5F7;              /* 与画布同值：柔和区块 / 页脚 / hover 均退回画布 */
+  --color-bg-muted:    #EAEAEE;              /* 仅小部件：chip / 进度轨道 / 缩略图底 */
+  --color-bg-disabled: #EDEDF0;
   --color-bg-inverse:  var(--gh-neutral-900);
 
   --color-text-primary:   var(--gh-neutral-900);

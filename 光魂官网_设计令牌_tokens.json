@@ -111,12 +111,12 @@
   "semantic": {
     "light": {
       "bg": {
-        "page":     { "$value": "#F2F2F4",                       "$type": "color", "$description": "浅色画布基准：柔和冷灰（替代纯白），卡片保持纯白以拉开层级" },
+        "page":     { "$value": "#F5F5F7",                       "$type": "color", "$description": "浅色唯一画布色；白只给卡片/浮层（两级分层，避免多档浅色割裂）" },
         "surface":  { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
         "raised":   { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
-        "subtle":   { "$value": "#ECECF0",                       "$type": "color", "$description": "画布更深一档：页脚 / 表头 / hover" },
-        "muted":    { "$value": "#E4E4EA",                       "$type": "color" },
-        "disabled": { "$value": "#EAEAEE",                       "$type": "color" },
+        "subtle":   { "$value": "#F5F5F7",                       "$type": "color", "$description": "与画布同值：柔和区块 / 页脚 / hover 均退回画布" },
+        "muted":    { "$value": "#EAEAEE",                       "$type": "color", "$description": "仅小部件：chip / 进度轨道 / 缩略图底" },
+        "disabled": { "$value": "#EDEDF0",                       "$type": "color" },
         "inverse":  { "$value": "{primitive.color.neutral.900}", "$type": "color" }
       },
       "text": {
