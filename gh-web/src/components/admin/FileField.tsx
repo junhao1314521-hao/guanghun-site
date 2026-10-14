@@ -181,10 +181,10 @@ export function FileField({
       ) : (
         <span className="field__hint">
           {isImageMode
-            ? '填写地址、上传或从素材库选择后，此处显示预览缩略图'
+            ? '支持格式：png / jpg / jpeg / webp / gif / svg；单个文件建议 ≤ 10MB。填写地址、上传或从素材库选择后显示预览。'
             : isMediaMode
-              ? '支持图片 / GIF / 视频；上传或从素材库选择后此处显示预览'
-              : '填写地址、上传或从素材库选择文件'}
+              ? '支持格式：图片（png/jpg/webp）、GIF、视频（mp4/webm）；单个文件建议 ≤ 20MB。上传或从素材库选择后显示预览。'
+              : '支持格式：pdf / docx / xlsx / zip 等常用文档；单个文件建议 ≤ 20MB。填写地址、上传或从素材库选择文件。'}
         </span>
       )}
 

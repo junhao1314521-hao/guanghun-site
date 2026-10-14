@@ -30,7 +30,7 @@ const SOURCE_LABEL: Record<string, string> = {
   all: '',
   review: '评测',
   tech: '教程',
-  method: '行业观察',
+  method: '技术',
 }
 
 /** URL `?category=` → 中文分类名：既接受语义码（review/guide/…）也接受中文名 */

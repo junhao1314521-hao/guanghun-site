@@ -647,6 +647,23 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .ladder__search { max-width: 260px; }
 .ladder__method { color: var(--color-accent-text); font-size: var(--gh-font-size-body-sm); text-decoration: none; }
 .ladder__method:hover { text-decoration: underline; }
+/* —— 文章详情 v2.1：分享按钮 + 目录 TOC —— */
+.article-share { display: inline-flex; gap: var(--gh-space-2); }
+.article-share__btn {
+  font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); background: none;
+  border: 1px solid var(--color-border-default); border-radius: 999px; padding: 3px 10px;
+  cursor: pointer; text-decoration: none; font-family: inherit;
+}
+.article-share__btn:hover { color: var(--color-text-primary); border-color: var(--color-text-primary); }
+.article-toc {
+  max-width: 860px; margin: 0 auto var(--gh-space-5);
+  background: var(--color-bg-subtle); border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-lg); padding: var(--gh-space-5);
+}
+.article-toc__title { display: block; margin-bottom: var(--gh-space-2); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.article-toc ol { margin: 0 0 0 1.2em; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.article-toc a { color: var(--color-text-secondary); text-decoration: none; font-size: var(--gh-font-size-body-sm); }
+.article-toc a:hover { color: var(--color-accent-text); }
 @media (max-width: 767px) {
   .ladder__name { display: none; }
   .ladder__head, .ladder__row { padding: var(--gh-space-3); gap: var(--gh-space-2); }

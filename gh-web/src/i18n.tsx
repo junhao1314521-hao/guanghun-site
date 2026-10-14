@@ -86,7 +86,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.closeLangNotice': '关闭语言提示',
     'lang.notice': '「{lang}」版本内容尚在建设中，页面暂以简体中文展示。',
     'articles.title': '「文章」板块建设中',
-    'articles.desc': '评测、教程与行业观察将陆续上线，敬请期待。',
+    'articles.desc': '评测、教程与技术解析将陆续上线，敬请期待。',
     'notFound.title': '页面未找到',
     'notFound.desc': '你访问的页面不存在或已被移动，请从导航重新进入。',
     'notFound.back': '返回首页',

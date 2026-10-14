@@ -103,6 +103,14 @@ const SERVICE_HREF: Record<string, string> = {
   contact: '/contact',
 }
 
+/** 服务支持页「快速入口」的跳转目标（按 QUICK_ENTRIES 的 id 映射） */
+const SUPPORT_QUICK_HREF: Record<string, string> = {
+  model: '/support',
+  download: '/downloads',
+  faq: '/faq',
+  contact: '/contact',
+}
+
 function buildHome(): Page {
   return toPage('home', '/', '首页', '首页装修：首屏、场景、重点产品、天梯榜、评测、品牌、服务、合作与新闻。', [
     {
@@ -237,6 +245,21 @@ function buildAbout(): Page {
       type: 'imageText',
       props: { image: '/media/about/lab.svg', title: '测试实验室', body: about.LAB_POINTS.join('\n'), side: 'right' },
     },
+    // 光魂实验室：测试流程 + 设备（传达「以实测定义性能」的证据）
+    {
+      type: 'cards',
+      props: {
+        title: '光魂实验室',
+        icon: 'sliders',
+        subtitle: '收样登记 → 仪器实测 → 方法复核，每一步都可追溯。',
+        columns: 3,
+        items: [
+          { tag: '01', title: '收样登记', desc: '记录样机编号、批次与环境条件。' },
+          { tag: '02', title: '仪器实测', desc: '色度计 / 亮度计 / 响应测试仪 / 均匀度台架。' },
+          { tag: '03', title: '方法复核', desc: '样本 n≥3，口径与版本公开，结果可复现。' },
+        ],
+      },
+    },
     {
       type: 'timeline',
       props: { title: '发展历程', items: about.TIMELINE.map((item) => ({ time: item.year, title: item.title, desc: item.tag })) },
@@ -244,13 +267,27 @@ function buildAbout(): Page {
     {
       type: 'cards',
       props: {
-        title: '新闻中心',
+        title: '媒体报道 · 荣誉',
+        icon: 'cap',
         columns: 3,
-        items: about.NEWS.map((item) => ({ tag: item.tag, title: item.title, desc: item.date, href: '/news' })),
+        items: [
+          { tag: '媒体报道', title: '硬件媒体 B · 540Hz OLED 深度评测', desc: '2026-09' },
+          { tag: '媒体报道', title: '电竞媒体 C · 赛场装备专题', desc: '2026-08' },
+          { tag: '荣誉', title: '2026 年度 OLED 旗舰显示器', desc: '编辑部推荐' },
+        ],
       },
     },
-    { type: 'cards', props: { title: '企业文化', columns: 3, items: about.CULTURE_TAGS.map((tag) => ({ title: tag })) } },
-    { type: 'cards', props: { title: '加入我们', columns: 3, items: about.JOBS.map((job) => ({ title: job })) } },
+    { type: 'cards', props: { title: '企业文化', icon: 'venn', columns: 3, items: about.CULTURE_TAGS.map((tag) => ({ title: tag })) } },
+    {
+      type: 'cards',
+      props: {
+        title: '加入我们',
+        icon: 'chat',
+        columns: 3,
+        // 岗位卡带投递入口（此前只有岗位名，无法投递）
+        items: about.JOBS.map((job) => ({ title: job, desc: '投递至 hr@guanghun.example', href: `mailto:hr@guanghun.example?subject=${encodeURIComponent(`应聘：${job}`)}` })),
+      },
+    },
     {
       type: 'cards',
       props: {
@@ -385,8 +422,38 @@ function buildBusiness(): Page {
       type: 'cards',
       props: {
         title: '联系方式',
+        icon: 'chat',
         columns: 3,
         items: business.COOP_CONTACTS.map((item) => ({ title: item.title, desc: item.rows.map((row) => `${row.k}：${row.v}`).join('；') })),
+      },
+    },
+    // 合作权益：告诉对方「能得到什么」
+    {
+      type: 'cards',
+      props: {
+        title: '合作权益',
+        icon: 'shield',
+        columns: 4,
+        items: [
+          { title: '渠道分销', desc: '授权渠道与价格体系支持。' },
+          { title: '赛事合作', desc: '赛场装备与赛事曝光联动。' },
+          { title: '内容共创', desc: '联合评测、直播与内容分发。' },
+          { title: '品牌联名', desc: '联名型号与定制化外观。' },
+        ],
+      },
+    },
+    // 合作流程：提交 → 对接 → 落地
+    {
+      type: 'cards',
+      props: {
+        title: '合作流程',
+        icon: 'refresh',
+        columns: 3,
+        items: [
+          { tag: '01', title: '提交申请', desc: '填写合作表单，说明合作类型与诉求。' },
+          { tag: '02', title: '商务对接', desc: '专人联系，确认方案与合作条款。' },
+          { tag: '03', title: '落地执行', desc: '签订协议，按计划推进并同步进展。' },
+        ],
       },
     },
   ])
@@ -454,12 +521,29 @@ function buildSupport(): Page {
       type: 'cards',
       props: {
         title: '快速入口',
+        icon: 'help',
         columns: 3,
-        items: support.QUICK_ENTRIES.map((entry) => ({ tag: entry.id, title: entry.title, desc: entry.desc })),
+        // 每张卡带跳转目标（此前无链接，点了没反应）
+        items: support.QUICK_ENTRIES.map((entry) => ({ tag: entry.id, title: entry.title, desc: entry.desc, href: SUPPORT_QUICK_HREF[entry.id] ?? '/support' })),
       },
     },
-    { type: 'downloadList', props: { title: '下载中心', category: 'all', limit: 20 } },
-    { type: 'cards', props: { title: '保修与售后', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) } },
+    // 下载中心：支持首页只放精选（完整列表去 /downloads，避免页面过长）
+    { type: 'downloadList', props: { title: '下载中心', icon: 'download', subtitle: '说明书、固件与调校配置，最新资料优先。', category: 'all', limit: 6, ctaLabel: '查看全部资料', ctaHref: '/downloads' } },
+    { type: 'cards', props: { title: '保修与售后', icon: 'shield', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) } },
+    // 服务承诺条（三年质保 · 顺丰 · 15 天退换）
+    {
+      type: 'cards',
+      props: {
+        title: '服务承诺',
+        icon: 'shield',
+        columns: 3,
+        items: [
+          { title: '三年质保', desc: '全系含 OLED 烧屏保护，全国联保。' },
+          { title: '顺丰包邮', desc: '现货速发，支持 15 天无理由退换。' },
+          { title: '专属服务', desc: '面板服务与技术支持，工单全程可跟进。' },
+        ],
+      },
+    },
     // 数据源区块：网点/体验点取自集合 service-info（后台「服务信息」维护，改后前台即时生效）
     {
       type: 'venueList',
@@ -539,7 +623,7 @@ function buildContact(): Page {
 /** 新闻列表 */
 function buildNews(): Page {
   return toPage('news', '/news', '新闻列表', '新闻列表装修 + 数据源区块。', [
-    { type: 'text', props: { body: '产品发布、活动与品牌动态。', align: 'left' } },
+    { type: 'text', props: { body: '产品发布、活动与资讯动态。', align: 'left' } },
     { type: 'articleList', props: { title: '全部动态', source: 'news', limit: 0, pageSize: 9 } },
   ])
 }
@@ -610,7 +694,7 @@ function buildLadder(): Page {
 /** 文章列表 */
 function buildArticles(): Page {
   return toPage('articles', '/articles', '文章列表', '文章列表装修 + 数据源区块。', [
-    { type: 'text', props: { body: '评测、教程与行业观察；参数与方法公开，来源可查。', align: 'left' } },
+    { type: 'text', props: { body: '评测、教程与技术解析；参数与方法公开，来源可查。', align: 'left' } },
     { type: 'articleList', props: { title: '全部文章', source: 'all', limit: 0, pageSize: 9 } },
   ])
 }
@@ -717,6 +801,21 @@ function buildTemplates(): Page[] {
       { type: 'productGrid', props: { title: '可选产品', source: 'all', limit: 8, columns: 4 } },
     ]),
     toPage('template-article', '/articles/:id', '文章详情模板', '文章详情装修区。', [
+      // 文末「相关产品」：导流回产品（区块化，后台可增删）
+      {
+        type: 'productGrid',
+        props: {
+          title: '相关产品',
+          icon: 'monitor',
+          subtitle: '与本文主题相关的型号。',
+          ctaLabel: '查看全部产品',
+          ctaHref: '/products',
+          source: 'featured',
+          limit: 4,
+          columns: 4,
+          showFilter: false,
+        },
+      },
       { type: 'articleList', props: { title: '相关阅读', source: 'all', limit: 3 } },
     ]),
     toPage('template-download', '/downloads/:id', '资源详情模板', '资源详情装修区。', [

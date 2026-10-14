@@ -102,11 +102,17 @@ export const MEGA_PANELS: MegaPanel[] = [
       {
         eyebrow: '分类',
         links: [
-          { label: '全部文章', to: '/articles' },
+          { label: '全部内容', to: '/articles' },
           { label: '评测', to: '/articles?category=review' },
           { label: '教程', to: '/articles?category=guide' },
-          { label: '行业观察', to: '/articles?category=insight' },
-          { label: '品牌动态', to: '/articles?category=brand' },
+          { label: '技术', to: '/articles?category=tech' },
+        ],
+      },
+      {
+        eyebrow: '动态',
+        links: [
+          { label: '新闻中心', to: '/news' },
+          { label: '资讯', to: '/articles?category=news' },
         ],
       },
     ],

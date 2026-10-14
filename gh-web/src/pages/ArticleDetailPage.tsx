@@ -48,6 +48,30 @@ export function ArticleDetailPage() {
   // 富文本正文：存原文、渲染时白名单净化（见 blocks/sanitize.ts）；无 body 时回退到小节展示
   const bodyHtml = useMemo(() => (article?.body ? sanitizeRichText(article.body) : ''), [article])
 
+  // 目录 TOC：扫描正文里的 h2/h3，注入锚点 id，并生成目录项（长文导航）
+  const { tocHtml, toc } = useMemo(() => {
+    const items: Array<{ id: string; text: string }> = []
+    if (!bodyHtml) return { tocHtml: '', toc: items }
+    const html = bodyHtml.replace(/<h([23])([^>]*)>([\s\S]*?)<\/h\1>/g, (_m, level: string, attrs: string, inner: string) => {
+      const text = inner.replace(/<[^>]+>/g, '').trim()
+      if (!text) return `<h${level}${attrs}>${inner}</h${level}>`
+      const id = `sec-${items.length + 1}`
+      items.push({ id, text })
+      return `<h${level}${attrs} id="${id}">${inner}</h${level}>`
+    })
+    return { tocHtml: html, toc: items }
+  }, [bodyHtml])
+
+  // 分享：复制链接（剪贴板）+ 分享到微博（新窗口）
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+    } catch {
+      // 剪贴板不可用时静默失败（不阻断阅读）
+    }
+  }
+
   // SEO 覆盖：真实标题 / 摘要 / 文章类型（封面为内联占位时分享图回退默认图）
   useDetailSeo({
     title: article ? `${article.title} · 光魂` : undefined,
@@ -99,6 +123,20 @@ export function ArticleDetailPage() {
                 <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
                   {article.meta}
                 </span>
+                {/* 分享：复制链接 + 微博 */}
+                <span className="article-share">
+                  <button className="article-share__btn" type="button" onClick={() => void copyLink()}>
+                    复制链接
+                  </button>
+                  <a
+                    className="article-share__btn"
+                    href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(article.title)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    分享到微博
+                  </a>
+                </span>
               </div>
             </div>
           </div>
@@ -140,9 +178,22 @@ export function ArticleDetailPage() {
 
           {/* 正文：优先渲染后台富文本 body（净化后 render），无 body 时回退到小节展示 */}
           <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
+            {/* 目录 TOC（长文导航）：正文里存在 h2/h3 且条目 > 1 时展示 */}
+            {toc.length > 1 && (
+              <nav className="article-toc" aria-label="文章目录">
+                <span className="article-toc__title">目录</span>
+                <ol>
+                  {toc.map((item) => (
+                    <li key={item.id}>
+                      <a href={`#${item.id}`}>{item.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
             <article className="card reveal" style={{ maxWidth: 860, margin: '0 auto' }}>
-              {bodyHtml ? (
-                <div className="blk-rich" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+              {tocHtml ? (
+                <div className="blk-rich" dangerouslySetInnerHTML={{ __html: tocHtml }} />
               ) : (
                 article.sections.map((section, index) => (
                   <section key={section.heading} style={{ marginTop: index === 0 ? 0 : 'var(--gh-space-6)' }}>

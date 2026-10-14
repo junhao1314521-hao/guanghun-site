@@ -364,7 +364,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     label: '文章列表',
     icon: 'book',
     title: '文章列表',
-    desc: '管理评测、教程、行业观察与品牌动态文章的发布状态。',
+    desc: '管理评测、教程、技术与资讯文章的发布状态。',
     creatable: true,
     editable: true,
     deletable: true,
@@ -380,7 +380,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'readingMin', label: '阅读时长（分）', type: 'number', align: 'right' },
     ],
     filters: [
-      { key: 'categoryLabel', label: '分类', options: ['评测', '教程', '行业观察', '品牌动态'] },
+      { key: 'categoryLabel', label: '分类', options: ['评测', '教程', '技术', '资讯'] },
       { key: 'status', label: '发布状态', options: ['已发布', '审核中', '草稿'] },
     ],
     form: [
@@ -389,8 +389,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'title', label: '标题', type: 'text', span: 2, required: true },
-          { key: 'category', label: '分类编码', type: 'select', options: ['review', 'guide', 'insight', 'brand'] },
-          { key: 'categoryLabel', label: '分类名称', type: 'select', options: ['评测', '教程', '行业观察', '品牌动态'] },
+          { key: 'category', label: '分类编码', type: 'select', options: ['review', 'guide', 'tech', 'news'] },
+          { key: 'categoryLabel', label: '分类名称', type: 'select', options: ['评测', '教程', '技术', '资讯'] },
           { key: 'tag', label: '主标签', type: 'text', hint: '卡片上展示的首个标签' },
           { key: 'tags', label: '全部标签', type: 'list', span: 2, hint: '每行一个标签，支持多标签' },
           { key: 'author', label: '作者', type: 'text', placeholder: '光魂测试实验室' },

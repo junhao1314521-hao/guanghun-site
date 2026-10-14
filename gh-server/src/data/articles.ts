@@ -1,16 +1,16 @@
 /** 文章 / 新闻数据：标题、摘要与正文均为显示器评测/教程风格的占位文案，上线前由编辑替换 */
 
-export type ArticleCategory = 'review' | 'guide' | 'insight' | 'brand'
+export type ArticleCategory = 'review' | 'guide' | 'tech' | 'news'
 
 export const CATEGORY_LABEL_BY_CODE: Record<ArticleCategory, string> = {
   review: '评测',
   guide: '教程',
-  insight: '行业观察',
-  brand: '品牌动态',
+  tech: '技术',
+  news: '资讯',
 }
 
-/** 分类筛选 chip 组（首项为「全部」，不参与数据过滤） */
-export const CATEGORY_FILTERS = ['全部', '评测', '教程', '行业观察', '品牌动态']
+/** 分类筛选 chip 组（首项为「全部」，不参与数据过滤）—— 方案 C：评测 / 教程 / 技术 / 资讯 */
+export const CATEGORY_FILTERS = ['全部', '评测', '教程', '技术', '资讯']
 
 export type ArticleSummary = {
   id: string
@@ -125,8 +125,8 @@ export const ARTICLES: ArticleSummary[] = [
   {
     id: 'test-methodology',
     title: '为什么我们要公开显示器测试方法：可复现性的价值',
-    category: 'insight',
-    categoryLabel: '行业观察',
+    category: 'tech',
+    categoryLabel: '技术',
     tag: '方法论',
     tags: ['方法论', '可复现'],
     accent: false,
@@ -148,8 +148,8 @@ export const ARTICLES: ArticleSummary[] = [
   {
     id: 'report-rate-explained',
     title: 'HDR 与峰值亮度解读：参数背后的真实观感',
-    category: 'insight',
-    categoryLabel: '行业观察',
+    category: 'tech',
+    categoryLabel: '技术',
     tag: '参数解读',
     tags: ['参数解读', 'HDR', '峰值亮度'],
     accent: false,
@@ -171,8 +171,8 @@ export const ARTICLES: ArticleSummary[] = [
   {
     id: 'brand-2026-roadmap',
     title: '光魂 2026 显示器产品线规划：从面板到生态',
-    category: 'brand',
-    categoryLabel: '品牌动态',
+    category: 'news',
+    categoryLabel: '资讯',
     tag: '产品规划',
     tags: ['产品规划', '品牌'],
     accent: true,
