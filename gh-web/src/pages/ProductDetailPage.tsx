@@ -14,6 +14,7 @@ import { IconHeart } from '../components/ui/Icon'
 import { JsonLdNode } from '../components/site/JsonLd'
 import { productJsonLd } from '../components/site/detailJsonLd'
 import { useApi } from '../hooks/useApi'
+import { trackEvent } from '../lib/track'
 import { useDetailSeo } from '../hooks/useDetailSeo'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -240,11 +241,15 @@ export function ProductDetailPage() {
               </small>
             </div>
             <div className="detail-buy">
-              <Link className="btn btn--lg btn--primary is-magnetic" to={`/compare?ids=${detail.id}`}>
+              <Link
+                className="btn btn--lg btn--primary is-magnetic"
+                to={`/compare?ids=${detail.id}`}
+                onClick={() => trackEvent('compare', detail.id)}
+              >
                 加入对比
               </Link>
               <Link className="btn btn--secondary btn--lg" to="/inquiry">
-                咨询咨询师
+                在线顾问
               </Link>
               <button
                 className="icon-btn"

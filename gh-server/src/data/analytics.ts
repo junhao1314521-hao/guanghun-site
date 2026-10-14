@@ -25,6 +25,7 @@ import {
   todayCount,
   topKeys,
   totalCount,
+  type MetricKind,
 } from './metricsStore'
 
 /** 分析范围 */
@@ -63,7 +64,7 @@ function share(count: number, total: number): string {
 }
 
 /** 近 7 日 vs 前 7 日的计数环比 */
-function weeklyDelta(kind: 'view' | 'download'): { delta: string; trend: 'up' | 'down' } {
+function weeklyDelta(kind: MetricKind): { delta: string; trend: 'up' | 'down' } {
   const last7 = countSince(kind, isoBefore(WINDOW_DAYS * 86_400_000))
   const prev7 = countSince(kind, isoBefore(2 * WINDOW_DAYS * 86_400_000)) - last7
   return pctDelta(last7, prev7)
@@ -106,6 +107,11 @@ function buildTraffic(): AdminAnalytics {
         delta: '—',
         trend: 'up',
       },
+      // 行为事件（前台埋点：CTA / 预约 / 对比 / 订阅）——与浏览、下载同口径展示
+      { key: 'cta', label: 'CTA 点击', value: totalCount('cta'), ...weeklyDelta('cta') },
+      { key: 'reserve', label: '预约提交', value: totalCount('reserve'), ...weeklyDelta('reserve') },
+      { key: 'compare', label: '加入对比', value: totalCount('compare'), ...weeklyDelta('compare') },
+      { key: 'subscribe', label: '邮件订阅', value: totalCount('subscribe'), ...weeklyDelta('subscribe') },
     ],
     series: daily.map((point) => ({ label: shortDay(point.day), value: point.count })),
     tableTitle: '热门页面',

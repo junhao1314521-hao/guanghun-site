@@ -23,6 +23,7 @@ import {
   type ProductConnection,
 } from '../data/products'
 import { useApi } from '../hooks/useApi'
+import { trackEvent } from '../lib/track'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asBool, asNumber, asString, asStringArray, gridClass } from './blockUtils'
@@ -205,6 +206,8 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       return
     }
     setPicked([...picked, id])
+    // 埋点：加入对比（移除时不计数）
+    trackEvent('compare', id)
   }
 
   const pickedItems = picked

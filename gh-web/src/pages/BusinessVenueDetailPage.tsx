@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { fetchBizVenue } from '../api/business-extra'
 import { submitReservation } from '../api/support-extra'
+import { trackEvent } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -57,6 +58,8 @@ export function BusinessVenueDetailPage() {
         note: reserve.note.trim(),
       })
       setReserveId(res.reservationId)
+      // 埋点：预约提交成功
+      trackEvent('reserve', detail?.id ?? 'venue')
       setReserve({ name: '', contact: '', visitTime: '', people: '1', note: '' })
     } catch (ex) {
       setReserveErr(ex instanceof Error ? ex.message : '提交失败，请稍后重试')
