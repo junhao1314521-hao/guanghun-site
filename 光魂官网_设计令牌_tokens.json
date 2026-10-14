@@ -115,6 +115,7 @@
         "surface":  { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
         "raised":   { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
         "subtle":   { "$value": "#F5F5F7",                       "$type": "color", "$description": "与画布同值：柔和区块 / 页脚 / hover 均退回画布" },
+        "sunken":   { "$value": "#EFEFF2",                       "$type": "color", "$description": "下沉面：比画布再深一档（页脚等）" },
         "muted":    { "$value": "#EAEAEE",                       "$type": "color", "$description": "仅小部件：chip / 进度轨道 / 缩略图底" },
         "disabled": { "$value": "#EDEDF0",                       "$type": "color" },
         "inverse":  { "$value": "{primitive.color.neutral.900}", "$type": "color" }
@@ -181,6 +182,7 @@
         "surface":  { "$value": "{primitive.color.neutral.900}", "$type": "color" },
         "raised":   { "$value": "{primitive.color.neutral.700}", "$type": "color" },
         "subtle":   { "$value": "{primitive.color.neutral.800}", "$type": "color" },
+        "sunken":   { "$value": "{primitive.color.neutral.800}", "$type": "color", "$description": "暗色下维持页脚略亮于画布的既有观感" },
         "muted":    { "$value": "{primitive.color.neutral.800}", "$type": "color" },
         "disabled": { "$value": "{primitive.color.neutral.800}", "$type": "color" },
         "inverse":  { "$value": "{primitive.color.neutral.50}",  "$type": "color" }

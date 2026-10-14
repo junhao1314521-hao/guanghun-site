@@ -150,6 +150,7 @@
   --color-bg-raised:   var(--gh-neutral-0);
   --color-bg-elevated: var(--gh-neutral-0);  /* 悬浮面：磨砂浮层 / 卡片 */
   --color-bg-subtle:   #F5F5F7;              /* 与画布同值：柔和区块 / 页脚 / hover 均退回画布 */
+  --color-bg-sunken:   #EFEFF2;              /* 下沉面：比画布再深一档（页脚等） */
   --color-bg-muted:    #EAEAEE;              /* 仅小部件：chip / 进度轨道 / 缩略图底 */
   --color-bg-disabled: #EDEDF0;
   --color-bg-inverse:  var(--gh-neutral-900);
@@ -220,6 +221,7 @@
   --color-bg-raised:   var(--gh-neutral-700);
   --color-bg-elevated: var(--gh-neutral-700);  /* 悬浮面：磨砂浮层 / 卡片 */
   --color-bg-subtle:   var(--gh-neutral-800);
+  --color-bg-sunken:   var(--gh-neutral-800);  /* 下沉面：暗色下维持页脚略亮于画布的既有观感 */
   --color-bg-muted:    var(--gh-neutral-800);
   --color-bg-disabled: var(--gh-neutral-800);
   --color-bg-inverse:  var(--gh-neutral-50);

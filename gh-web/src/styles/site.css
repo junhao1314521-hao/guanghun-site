@@ -161,7 +161,7 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .section__desc-sub { color: var(--color-text-tertiary); }
 
 /* ---------- 页脚 ---------- */
-.site-footer { border-top: 1px solid var(--color-border-default); background: var(--color-bg-subtle); padding: var(--gh-space-8) 0 var(--gh-space-6); margin-top: var(--gh-space-9); }
+.site-footer { border-top: 1px solid var(--color-border-default); background: var(--color-bg-sunken); padding: var(--gh-space-8) 0 var(--gh-space-6); margin-top: var(--gh-space-9); }
 .site-footer__cols { display: grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 1.4fr; gap: var(--gh-space-7); }
 /* 分组标题：大写微字 + 字距（比普通小标题更克制、更精致） */
 .site-footer h3 { font-size: var(--gh-font-size-caption); font-weight: var(--gh-weight-semibold); letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-tertiary); margin: 0 0 var(--gh-space-4); }
@@ -180,7 +180,10 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .site-footer__contact svg { color: var(--color-text-tertiary); flex-shrink: 0; }
 /* 二维码：白卡 + 细描边 + 大圆角（二维码本身需保持白底以便扫描） */
 .site-footer__qrs { display: flex; gap: var(--gh-space-4); flex-wrap: wrap; }
-.qr { display: flex; flex-direction: column; align-items: center; gap: var(--gh-space-2); }
+/* 二维码块：方块 / 标签 / 说明统一居中（说明文字会换行，必须一并居中，否则左侧会探出方块形成错位感） */
+.qr { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--gh-space-2); }
+/* 每格宽度锁定为方块宽度（96px）：方块、标签、说明同宽同轴，说明文字的换行不会比方块更宽 */
+.site-footer__qrs .qr { width: 96px; }
 .qr__box { width: 96px; height: 96px; padding: 8px; background: #fff; border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-lg); }
 .qr__box svg { width: 100%; height: 100%; display: block; }
 .qr__label { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }

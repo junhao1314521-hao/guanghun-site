@@ -144,6 +144,7 @@
   --color-bg-surface:  var(--gh-neutral-0);
   --color-bg-raised:   var(--gh-neutral-0);
   --color-bg-subtle:   #F5F5F7;
+  --color-bg-sunken:   #EFEFF2;
   --color-bg-muted:    #EAEAEE;
   --color-bg-disabled: #EDEDF0;
   --color-bg-inverse:  var(--gh-neutral-900);
@@ -213,6 +214,7 @@
   --color-bg-surface:  var(--gh-neutral-900);
   --color-bg-raised:   var(--gh-neutral-700);
   --color-bg-subtle:   var(--gh-neutral-800);
+  --color-bg-sunken:   var(--gh-neutral-800);
   --color-bg-muted:    var(--gh-neutral-800);
   --color-bg-disabled: var(--gh-neutral-800);
   --color-bg-inverse:  var(--gh-neutral-50);
