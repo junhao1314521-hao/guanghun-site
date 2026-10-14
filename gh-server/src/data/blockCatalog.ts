@@ -47,7 +47,13 @@ const SLIDE_FIELDS: BlockFieldMeta[] = [
   { name: 'stats', label: '数据', kind: 'list' },
 ]
 
-/** 区块类型目录：16 类基础区块 + 3 类自定义模块 + 扩展类型（showcase / 产品详情三类 / 商业合作两类 / methodList），字段严格对齐契约 §4 */
+/**
+ * 区块类型目录（共 26 类）：
+ * - 16 类基础区块（契约 §4）+ 3 类自定义模块（richText / html / embed）+ showcase（通栏产品展示）= 20；
+ * - 扩展：产品详情主体 3 类（productHero / productSpecs / productBuy）+ 商业合作 2 类（caseList / venueList）
+ *   + 测评方法 1 类（methodList）。
+ * 字段严格对齐契约 §4。
+ */
 export const BLOCK_TYPES: BlockTypeMeta[] = [
   {
     type: 'hero',
@@ -686,7 +692,7 @@ export function getBlockTypeMeta(type: BlockType): BlockTypeMeta | undefined {
   return BLOCK_TYPES.find((meta) => meta.type === type)
 }
 
-/** 全部区块类型（21 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
+/** 全部区块类型（26 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
 export const BLOCK_TYPE_VALUES: BlockType[] = BLOCK_TYPES.map((meta) => meta.type)
 
 /** 新建区块：生成随机稳定 id 的区块对象（后台新增用） */

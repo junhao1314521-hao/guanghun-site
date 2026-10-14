@@ -41,7 +41,7 @@ export type AdminStat = {
 
 export type AdminOverview = {
   stats: AdminStat[]
-  todos: { id: string; label: string; count: number; to: string }[]
+  todos: { id: string; label: string; count: number; to: string; icon?: string }[]
   recent: { id: string; at: string; who: string; action: string; target: string }[]
 }
 

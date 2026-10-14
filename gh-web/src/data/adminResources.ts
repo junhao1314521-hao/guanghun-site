@@ -350,7 +350,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'category', label: '分类', type: 'select', options: ['延迟', '续航', '手感', '稳定性'] },
           { key: 'version', label: '版本', type: 'text' },
           { key: 'owner', label: '负责人', type: 'text' },
-          { key: 'status', label: '状态', type: 'select', options: ['已发布', '草稿'] },
+          { key: 'status', label: '状态', type: 'select', options: ['已发布', '草稿'], hint: '仅「已发布」的方法会在前台天梯榜展示' },
+          { key: 'updatedAt', label: '更新时间', type: 'date' },
           { key: 'detail', label: '方法说明', type: 'textarea', span: 2 },
         ],
       },
@@ -429,6 +430,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'name', label: '名称', type: 'text', required: true },
           { key: 'type', label: '类型', type: 'select', options: ['分类', '标签'] },
+          { key: 'status', label: '状态', type: 'select', options: ['启用', '停用'], hint: '仅「启用」的分类会出现在前台文章筛选' },
           { key: 'order', label: '排序', type: 'number' },
           { key: 'desc', label: '描述', type: 'textarea', span: 2 },
         ],
@@ -615,7 +617,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     label: '组件库',
     icon: 'cube',
     title: '组件库',
-    desc: '区块类型目录（共 21 类）：查看类型、分组、字段数与启用状态，可启用 / 停用；停用后不再出现在装修器「新增区块」选择器。',
+    desc: '区块类型目录（共 26 类）：查看类型、分组、字段数与启用状态，可启用 / 停用；停用后不再出现在装修器「新增区块」选择器。',
     // 自定义视图：由 AdminComponentsList 承载（数据源 /api/content/blocks/types + PUT /api/admin/blocks/enabled）
     view: 'components',
     columns: [

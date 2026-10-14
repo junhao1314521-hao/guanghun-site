@@ -78,7 +78,7 @@ export function AdminWorkbenchPage() {
                   <Link className="admin-todo__item" to={todo.to} key={todo.id}>
                     <span className="admin-todo__label">
                       <span className="admin-kpi__icon" style={{ width: 26, height: 26 }}>
-                        <AdminIcon name="grid" size={14} />
+                        <AdminIcon name={todo.icon ?? 'grid'} size={14} />
                       </span>
                       {todo.label}
                     </span>

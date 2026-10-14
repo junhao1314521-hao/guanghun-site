@@ -38,20 +38,25 @@ export const SCOPE_DESC: Record<string, string> = {
  *  前端不再镜像常量；此处仅保留「栏目 → 所需权限」映射，供菜单裁剪与角色页展示。 */
 
 /**
- * 归 `content` 权限的栏目 key：
- *   - 集合（collectionStore.ts `COLLECTION_KEYS`，共 11 个）：products / rankings / articles /
- *     downloads / faqs / models / biz-content / biz-cases / biz-venues / inquiries / templates；
- *   - 内容类后台资源（roles.ts `CONTENT_ADMIN_RESOURCE_KEYS`，共 9 个）：product-categories /
- *     test-records / methods / taxonomy / assets / components / styles / pages / nav；
+ * 归 `content` 权限的栏目 key（须与后端 `resourceScope` 判定保持一致）：
+ *   - 集合（collectionStore.ts `COLLECTION_KEYS`）：products / rankings / articles / downloads /
+ *     faqs / models / biz-content / biz-cases / biz-venues / inquiries / templates / legal /
+ *     taxonomy / product-categories / test-records / methods / service-info / reservations；
+ *   - 内容类后台资源（roles.ts `CONTENT_ADMIN_RESOURCE_KEYS`）：assets / components / styles /
+ *     pages / nav；
  *   - 站点配置 `site`：经专用端点 PUT /api/admin/site，亦需 content（见 adminPagesRouter.ts）。
  * 其余栏目 → `system`（后端默认拒绝，仅 admin）。
+ *
+ * 说明：后端对**集合 key** 一律归 `content`（`isCollectionKey`），故此处须覆盖全部集合 key，
+ * 否则非管理员（operator）会被前端菜单误隐藏其本有权访问的栏目。
  */
 export const CONTENT_SCOPED_KEYS: ReadonlySet<string> = new Set<string>([
   // 集合（collectionStore.ts COLLECTION_KEYS）
   'products', 'rankings', 'articles', 'downloads', 'faqs', 'models',
   'biz-content', 'biz-cases', 'biz-venues', 'inquiries', 'templates',
+  'legal', 'taxonomy', 'product-categories', 'test-records', 'methods',
+  'service-info', 'reservations',
   // 内容类后台资源（roles.ts CONTENT_ADMIN_RESOURCE_KEYS）
-  'product-categories', 'test-records', 'methods', 'taxonomy',
   'assets', 'components', 'styles', 'pages', 'nav',
   // 站点配置（adminPagesRouter.ts PUT /site）
   'site',

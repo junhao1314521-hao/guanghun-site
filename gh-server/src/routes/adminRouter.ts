@@ -135,11 +135,13 @@ adminRouter.get('/overview', requireSession, (_req, res) => {
 
 /** 工作台概览（真实统计）：集合计数 + 本月下载埋点 + 审计最近记录 */
 function buildOverview() {
-  const products = listCollection('products').length
-  const articles = listCollection('articles').length
+  // 「在售产品」按产品状态文案统计；「已发布文章」只计发布状态为已发布的记录（草稿 / 审核中不计）
+  const onSaleProducts = listCollection('products').filter((item) => item.status.text === '在售').length
+  const publishedArticles = listCollection('articles').filter((item) => (item.status ?? '已发布') === '已发布').length
   const inquiries = listCollection('inquiries')
   const pendingInquiries = inquiries.filter((item) => item.tag !== '已解决' && item.tag !== '已关闭').length
   const waitingInquiries = inquiries.filter((item) => item.tag === '等待补充').length
+  const pendingReservations = listCollection('reservations').filter((item) => item.status === '待确认').length
 
   // 本月（上海时区自然月）起点
   const shanghai = new Date(Date.now() + 8 * 3600 * 1000)
@@ -156,14 +158,15 @@ function buildOverview() {
 
   return {
     stats: [
-      { key: 'products', label: '在售产品', value: products, delta: '—', trend: 'up' as const },
-      { key: 'articles', label: '已发布文章', value: articles, delta: '—', trend: 'up' as const },
+      { key: 'products', label: '在售产品', value: onSaleProducts, delta: '—', trend: 'up' as const },
+      { key: 'articles', label: '已发布文章', value: publishedArticles, delta: '—', trend: 'up' as const },
       { key: 'inquiries', label: '待处理咨询', value: pendingInquiries, delta: '—', trend: 'up' as const },
       { key: 'downloads', label: '本月下载量', value: monthDownloads, delta: '—', trend: 'up' as const },
     ],
     todos: [
-      { id: 't-inquiry', label: '待处理咨询', count: pendingInquiries, to: '/admin/inquiries' },
-      { id: 't-waiting', label: '等待补充材料', count: waitingInquiries, to: '/admin/inquiries' },
+      { id: 't-inquiry', label: '待处理咨询', count: pendingInquiries, to: '/admin/inquiries', icon: 'chat' },
+      { id: 't-waiting', label: '等待补充材料', count: waitingInquiries, to: '/admin/inquiries', icon: 'chat' },
+      { id: 't-reservation', label: '待确认预约', count: pendingReservations, to: '/admin/reservations', icon: 'clock' },
     ],
     recent,
   }
