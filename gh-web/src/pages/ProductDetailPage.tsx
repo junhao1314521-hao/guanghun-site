@@ -217,6 +217,11 @@ export function ProductDetailPage() {
               <span className="detail-info__model">{detail.model}</span>{' '}
               <span className="detail-info__name">{detail.name}</span>
             </h1>
+            {detail.tagline && (
+              <p className="section__desc" style={{ marginTop: 'var(--gh-space-2)', marginBottom: 0 }}>
+                {detail.tagline}
+              </p>
+            )}
             <div className="row" style={{ marginBottom: 'var(--gh-space-4)' }}>
               {detail.badges.map((badge) => (
                 <span className="tag tag--accent" key={badge}>

@@ -4,6 +4,9 @@ import type { DeviceVariant } from './device-variant'
 export type ProductCategory = '鼠标' | '键盘' | '耳机' | '配件'
 export type ProductConnection = '有线' | '无线' | '三模'
 
+/** 结构化参数项（如 传感器型号 / 回报率 / 按键数 / 兼容系统） */
+export type ProductAttribute = { label: string; value: string }
+
 export type Product = {
   id: string
   model: string
@@ -19,10 +22,37 @@ export type Product = {
   releasedAt: string
   variant: DeviceVariant
   flag?: string
+  /** 一句话卖点（运营维护，详情页标题下方展示） */
+  tagline?: string
+  /** 库存数量（0 视为缺货；仅用于展示） */
+  stock?: number
+  /** 卖点 / 亮点列表 */
+  features?: string[]
+  /** 结构化参数（传感器/DPI/回报率/按键数/尺寸等），替代表格中的自由文本 */
+  attributes?: ProductAttribute[]
+  /** 包装清单 */
+  inBox?: string[]
+  /** 保修政策 */
+  warranty?: string
+  /** 兼容系统 */
+  os?: string[]
+  /** 整机重量（克） */
+  weight?: number
 }
 
 export const PRODUCTS: Product[] = [
-  { id: 'gh-m900-pro', model: 'GH-M900 PRO', name: '无线电竞鼠标', category: '鼠标', connection: '无线', specs: ['26,000 DPI', '58 g'], status: { level: 'success', text: '在售' }, price: '¥899', priceValue: 899, releasedAt: '2026-09-12', variant: 'mouse', flag: '旗舰' },
+  { id: 'gh-m900-pro', model: 'GH-M900 PRO', name: '无线电竞鼠标', category: '鼠标', connection: '无线', specs: ['26,000 DPI', '58 g'], status: { level: 'success', text: '在售' }, price: '¥899', priceValue: 899, releasedAt: '2026-09-12', variant: 'mouse', flag: '旗舰',
+    tagline: '26,000 DPI · 58 g 轻量 · 0.6 ms 端到端延迟',
+    features: ['26,000 DPI 高精度光学引擎', '58 g 超轻量机身', '0.6 ms 端到端延迟', '120 h 长续航'],
+    attributes: [
+      { label: '最高分辨率', value: '26,000 DPI' },
+      { label: '最大加速度', value: '50 G' },
+      { label: '整机重量', value: '58 g' },
+      { label: '端到端延迟', value: '0.6 ms' },
+      { label: '续航（1000 Hz）', value: '120 h' },
+    ],
+    os: ['Windows 10 / 11'],
+    weight: 58 },
   { id: 'gh-m700', model: 'GH-M700', name: '有线电竞鼠标', category: '鼠标', connection: '有线', specs: ['20,000 DPI', '62 g'], status: { level: 'success', text: '在售' }, price: '¥379', priceValue: 379, releasedAt: '2026-05-20', variant: 'mouse' },
   { id: 'gh-m500', model: 'GH-M500', name: '轻量电竞鼠标', category: '鼠标', connection: '有线', specs: ['18,000 DPI', '48 g'], status: { level: 'success', text: '在售' }, price: '¥299', priceValue: 299, releasedAt: '2026-03-08', variant: 'mouse' },
   { id: 'gh-k870', model: 'GH-K870', name: '三模机械键盘', category: '键盘', connection: '三模', specs: ['87 键', '三模'], status: { level: 'success', text: '在售' }, price: '¥649', priceValue: 649, releasedAt: '2026-07-02', variant: 'keyboard' },
@@ -68,6 +98,14 @@ export type ProductDetail = {
   summary: SpecSummaryGroup[]
   specTable: SpecTableRow[]
   tabs: string[]
+  /** 以下为运营可维护的扩展字段（来自产品记录，缺省则不展示） */
+  tagline?: string
+  features?: string[]
+  attributes?: ProductAttribute[]
+  inBox?: string[]
+  warranty?: string
+  os?: string[]
+  weight?: number
 }
 
 /** 详情页占位数据（以旗舰无线电竞鼠标为完整示例，其余型号复用同一结构） */
@@ -154,13 +192,26 @@ export const PRODUCT_DETAILS_EN: Record<string, ProductDetail> = {
   },
 }
 
+/** 从产品记录中取出运营可维护的扩展字段（仅取已定义项，供详情合并） */
+function extendedFields(base: Product): Partial<ProductDetail> {
+  const out: Partial<ProductDetail> = {}
+  if (base.tagline !== undefined) out.tagline = base.tagline
+  if (base.features !== undefined) out.features = base.features
+  if (base.attributes !== undefined) out.attributes = base.attributes
+  if (base.inBox !== undefined) out.inBox = base.inBox
+  if (base.warranty !== undefined) out.warranty = base.warranty
+  if (base.os !== undefined) out.os = base.os
+  if (base.weight !== undefined) out.weight = base.weight
+  return out
+}
+
 /** 兜底：把列表数据补成详情结构，保证任意型号进入详情页都不空白（列表来自集合存储，形状与 PRODUCTS 一致） */
 export function getProductDetail(products: Product[], id: string, locale: string = 'zh'): ProductDetail | null {
   const base = products.find((item) => item.id === id)
   if (!base) return null
   if (locale === 'en') {
     const detailedEn = PRODUCT_DETAILS_EN[id]
-    if (detailedEn) return detailedEn
+    if (detailedEn) return { ...detailedEn, ...extendedFields(base) }
     return {
       id: base.id,
       model: base.model,
@@ -177,10 +228,11 @@ export function getProductDetail(products: Product[], id: string, locale: string
       ],
       specTable: base.specs.map((spec) => ({ name: spec, nominal: '—', measured: 'Not measured', note: 'Pending', missing: true })),
       tabs: ['Specifications', 'Test records', 'Reviews', 'Downloads'],
+      ...extendedFields(base),
     }
   }
   const detailed = PRODUCT_DETAILS[id]
-  if (detailed) return detailed
+  if (detailed) return { ...detailed, ...extendedFields(base) }
   return {
     id: base.id,
     model: base.model,
@@ -194,5 +246,6 @@ export function getProductDetail(products: Product[], id: string, locale: string
     ],
     specTable: base.specs.map((spec) => ({ name: spec, nominal: '—', measured: '未测量', note: '待补测', missing: true })),
     tabs: ['参数规格', '测试记录', '评测文章', '下载资料'],
+    ...extendedFields(base),
   }
 }

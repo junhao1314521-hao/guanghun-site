@@ -4,6 +4,9 @@ import type { DeviceVariant } from '../components/ui/DeviceArt'
 export type ProductCategory = '鼠标' | '键盘' | '耳机' | '配件'
 export type ProductConnection = '有线' | '无线' | '三模'
 
+/** 结构化参数项（如 传感器型号 / 回报率 / 按键数 / 兼容系统） */
+export type ProductAttribute = { label: string; value: string }
+
 export type Product = {
   id: string
   model: string
@@ -19,6 +22,22 @@ export type Product = {
   releasedAt: string
   variant: DeviceVariant
   flag?: string
+  /** 一句话卖点（运营维护，详情页标题下方展示） */
+  tagline?: string
+  /** 库存数量（0 视为缺货；仅用于展示） */
+  stock?: number
+  /** 卖点 / 亮点列表 */
+  features?: string[]
+  /** 结构化参数（传感器/DPI/回报率/按键数/尺寸等） */
+  attributes?: ProductAttribute[]
+  /** 包装清单 */
+  inBox?: string[]
+  /** 保修政策 */
+  warranty?: string
+  /** 兼容系统 */
+  os?: string[]
+  /** 整机重量（克） */
+  weight?: number
 }
 
 export const PRODUCTS: Product[] = [
@@ -71,6 +90,14 @@ export type ProductDetail = {
   summary: SpecSummaryGroup[]
   specTable: SpecTableRow[]
   tabs: string[]
+  /** 运营可维护的扩展字段（缺省则前端不展示） */
+  tagline?: string
+  features?: string[]
+  attributes?: ProductAttribute[]
+  inBox?: string[]
+  warranty?: string
+  os?: string[]
+  weight?: number
 }
 
 /** 详情页占位数据（以旗舰无线电竞鼠标为完整示例，其余型号复用同一结构） */

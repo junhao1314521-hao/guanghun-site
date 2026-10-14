@@ -261,6 +261,17 @@ describe('前台账号体系 · 个人中心写操作', () => {
     assert.ok(!items.some((d) => d.sn === 'SN-TEST-001'))
   })
 
+  it('新增收藏后列表包含该项（按名称去重）', async () => {
+    const res = await post('/api/account/favorites', { name: 'GH-TEST 收藏项', spec: '测试 · ¥1' }, cookie)
+    assert.equal(res.status, 201)
+    const items = ((await res.json()) as { items: Array<{ name: string }> }).items
+    assert.ok(items.some((item) => item.name === 'GH-TEST 收藏项'))
+    // 重复新增不产生重复项
+    const again = await post('/api/account/favorites', { name: 'GH-TEST 收藏项' }, cookie)
+    const items2 = ((await again.json()) as { items: Array<{ name: string }> }).items
+    assert.equal(items2.filter((item) => item.name === 'GH-TEST 收藏项').length, 1)
+  })
+
   it('取消收藏后列表减少', async () => {
     const list = (await (await get('/api/account/favorites', cookie)).json()) as { items: Array<{ name: string }> }
     const name = list.items[0].name

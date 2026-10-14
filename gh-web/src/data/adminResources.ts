@@ -172,12 +172,35 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'price', label: '价格', type: 'text', placeholder: '¥899' },
           { key: 'priceValue', label: '价格数值（元）', type: 'number', hint: '用于排序与价格区间筛选' },
           { key: 'releasedAt', label: '上新时间', type: 'date' },
+          { key: 'tagline', label: '一句话卖点', type: 'text', span: 2, hint: '详情页标题下方展示，如：26,000 DPI · 58 g 轻量' },
+          { key: 'stock', label: '库存数量', type: 'number', hint: '数值，0 视为缺货；留空则不展示' },
         ],
       },
       {
         title: '参数',
         fields: [
           { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '每行一项，如：26,000 DPI' },
+        ],
+      },
+      {
+        title: '详情信息（前台展示）',
+        fields: [
+          { key: 'features', label: '产品亮点', type: 'list', span: 2, hint: '每行一项，如：58 g 超轻量机身' },
+          {
+            key: 'attributes',
+            label: '结构化参数',
+            type: 'records',
+            span: 2,
+            hint: '按「参数名 + 取值」逐项维护（传感器 / 回报率 / 按键数等）；可增删改与上下移动',
+            recordFields: [
+              { key: 'label', label: '参数名', type: 'text' },
+              { key: 'value', label: '取值', type: 'text' },
+            ],
+          },
+          { key: 'os', label: '兼容系统', type: 'list', span: 2, hint: '每行一项，如：Windows 10 / 11' },
+          { key: 'weight', label: '整机重量（克）', type: 'number' },
+          { key: 'warranty', label: '保修政策', type: 'text', span: 2 },
+          { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：鼠标 × 1' },
         ],
       },
     ],

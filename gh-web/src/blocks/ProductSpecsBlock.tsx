@@ -75,6 +75,69 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
                 </tbody>
               </table>
             </div>
+
+            {/* 运营维护的扩展信息：卖点 / 结构化参数 / 兼容系统 / 重量 / 保修 / 包装清单（缺省不展示） */}
+            {(Boolean(detail.features?.length) || Boolean(detail.attributes?.length)) && (
+              <div className="grid-2" style={{ marginTop: 'var(--gh-space-5)' }}>
+                {Boolean(detail.features?.length) && (
+                  <div className="card">
+                    <h3 className="card__title">{t('blocks.pd.highlights')}</h3>
+                    <ul className="feature-list" style={{ marginTop: 'var(--gh-space-3)' }}>
+                      {detail.features?.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {Boolean(detail.attributes?.length) && (
+                  <div className="card">
+                    <h3 className="card__title">{t('blocks.pd.attributes')}</h3>
+                    <div className="dl-meta" style={{ marginTop: 'var(--gh-space-3)' }}>
+                      {detail.attributes?.map((attr) => (
+                        <div key={attr.label}>
+                          <div className="dl-meta__k">{attr.label}</div>
+                          <div className="dl-meta__v">{attr.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {(Boolean(detail.os?.length) || detail.weight !== undefined || Boolean(detail.warranty) || Boolean(detail.inBox?.length)) && (
+              <div className="card" style={{ marginTop: 'var(--gh-space-4)' }}>
+                <div className="dl-meta">
+                  {Boolean(detail.os?.length) && (
+                    <div>
+                      <div className="dl-meta__k">{t('blocks.pd.os')}</div>
+                      <div className="dl-meta__v">{detail.os?.join(' / ')}</div>
+                    </div>
+                  )}
+                  {detail.weight !== undefined && (
+                    <div>
+                      <div className="dl-meta__k">{t('blocks.pd.weight')}</div>
+                      <div className="dl-meta__v mono">{detail.weight} g</div>
+                    </div>
+                  )}
+                  {Boolean(detail.warranty) && (
+                    <div>
+                      <div className="dl-meta__k">{t('blocks.pd.warranty')}</div>
+                      <div className="dl-meta__v">{detail.warranty}</div>
+                    </div>
+                  )}
+                </div>
+                {Boolean(detail.inBox?.length) && (
+                  <div style={{ marginTop: 'var(--gh-space-4)' }}>
+                    <div className="dl-meta__k">{t('blocks.pd.inBox')}</div>
+                    <ul className="feature-list" style={{ marginTop: 'var(--gh-space-2)' }}>
+                      {detail.inBox?.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <div className="empty">
