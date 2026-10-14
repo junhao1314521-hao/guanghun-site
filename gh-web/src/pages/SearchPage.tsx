@@ -248,7 +248,7 @@ export function SearchPage() {
             </span>
             <span className="empty__title">没有找到匹配的结果</span>
             <p className="empty__desc">试试更短的关键词、型号前缀，或从下方热门词条选择；也可以直接提交咨询由人工协助。</p>
-            <Link className="btn btn--secondary" to="/support#contact">
+            <Link className="btn btn--secondary" to="/inquiry">
               提交咨询
             </Link>
           </div>

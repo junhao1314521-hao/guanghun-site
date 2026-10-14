@@ -61,6 +61,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'footer.wechat': '微信公众号',
     'footer.miniapp': '官方小程序',
     'footer.qrAria': '{label}二维码',
+    'footer.qrNote': '示意二维码，上线前替换为官方码',
     'footer.copyright':
       '© 2026 光魂科技（深圳）有限公司 ｜ 网站备案信息以上线后公示为准',
 
@@ -290,6 +291,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'footer.wechat': 'WeChat official account',
     'footer.miniapp': 'Official mini program',
     'footer.qrAria': '{label} QR code',
+    'footer.qrNote': 'Placeholder QR — replace with the official code',
     'footer.copyright':
       '© 2026 Guanghun Technology (Shenzhen) Co., Ltd. ｜ Registration details published after launch.',
 

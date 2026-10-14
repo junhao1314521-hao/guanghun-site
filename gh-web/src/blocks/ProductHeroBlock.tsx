@@ -35,7 +35,7 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const primaryLabel = asString(props.primaryLabel, t('blocks.pd.defaultPrimary'))
   const primaryHref = asString(props.primaryHref, '/compare')
   const secondaryLabel = asString(props.secondaryLabel, t('blocks.pd.defaultSecondary'))
-  const secondaryHref = asString(props.secondaryHref, '/support#contact')
+  const secondaryHref = asString(props.secondaryHref, '/inquiry')
 
   return (
     <div className="detail-top">

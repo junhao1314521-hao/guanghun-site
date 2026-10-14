@@ -1,12 +1,14 @@
-import { useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { BlockRenderer } from '../blocks/BlockRenderer'
 import { ProductDetailContext } from '../blocks/ProductDetailContext'
 import { fetchProductDetail } from '../api/products'
 import { fetchPage } from '../api/content'
+import { addMyFavorite, fetchMyFavorites, removeMyFavorite } from '../api/account'
 import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
+import { MODEL_SUPPORTS } from '../data/support-extra'
 import { MediaImg } from '../components/ui/MediaImg'
 import { IconHeart } from '../components/ui/Icon'
 import { JsonLdNode } from '../components/site/JsonLd'
@@ -15,13 +17,24 @@ import { useApi } from '../hooks/useApi'
 import { useDetailSeo } from '../hooks/useDetailSeo'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { useSession } from '../hooks/useSession'
 
 /** 详情页相册的视角数量（front / top / three-quarter / side） */
 const VIEW_COUNT = 4
 
+/** 产品分类 → 系列 slug（用于详情页「同系列」入口） */
+const SERIES_SLUG_BY_CATEGORY: Record<string, string> = {
+  鼠标: 'mouse',
+  键盘: 'keyboard',
+  耳机: 'headset',
+  配件: 'accessory',
+}
+
 /** 产品详情（一级页面 · 骨架层）：展台、标称/实测分区、参数规格表 */
 export function ProductDetailPage() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
+  const { user } = useSession()
   const { data: detail, loading, error } = useApi((signal) => fetchProductDetail(id, signal), [id])
   // 产品详情模板（内容库）：若模板包含「产品展示台」区块，则详情页主体由模板区块渲染（主体区块化）
   const { data: template } = useApi((signal) => fetchPage('template-product', signal), [])
@@ -29,8 +42,51 @@ export function ProductDetailPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [thumb, setThumb] = useState(0)
   const [tab, setTab] = useState(0)
-  const [picked, setPicked] = useState(false)
+  // 收藏：真实落库（登录后），未登录时引导登录
   const [saved, setSaved] = useState(false)
+  const [favBusy, setFavBusy] = useState(false)
+
+  // 登录后回查收藏状态（与个人中心「收藏」同源）
+  useEffect(() => {
+    if (!user || !detail) {
+      setSaved(false)
+      return
+    }
+    let alive = true
+    fetchMyFavorites()
+      .then((res) => {
+        if (alive) setSaved(res.items.some((item) => item.name === detail.name))
+      })
+      .catch(() => {
+        /* 未登录 / 网络失败：保持未收藏态 */
+      })
+    return () => {
+      alive = false
+    }
+  }, [user, detail?.name])
+
+  // 收藏切换：未登录引导登录；已登录调用真实接口
+  const toggleFavorite = async () => {
+    if (!detail || favBusy) return
+    if (!user) {
+      navigate(`/login?from=${encodeURIComponent(`/products/${detail.id}`)}`)
+      return
+    }
+    setFavBusy(true)
+    try {
+      if (saved) {
+        await removeMyFavorite(detail.name)
+        setSaved(false)
+      } else {
+        await addMyFavorite({ name: detail.name, spec: [detail.model, detail.price].filter(Boolean).join(' · ') })
+        setSaved(true)
+      }
+    } catch {
+      /* 失败静默：保持原状态 */
+    } finally {
+      setFavBusy(false)
+    }
+  }
 
   // 数据到位后展台才渲染，用 readyKey 触发一次动效绑定
   const readyKey = `${id}:${loading ? 'loading' : 'ready'}`
@@ -176,14 +232,10 @@ export function ProductDetailPage() {
               </small>
             </div>
             <div className="detail-buy">
-              <button
-                className={`btn btn--lg ${picked ? 'btn--secondary' : 'btn--primary'}`}
-                type="button"
-                onClick={() => setPicked((v) => !v)}
-              >
-                {picked ? '已加入对比' : '加入对比'}
-              </button>
-              <Link className="btn btn--secondary btn--lg" to="/support#contact">
+              <Link className="btn btn--lg btn--primary is-magnetic" to={`/compare?ids=${detail.id}`}>
+                加入对比
+              </Link>
+              <Link className="btn btn--secondary btn--lg" to="/inquiry">
                 咨询咨询师
               </Link>
               <button
@@ -191,7 +243,8 @@ export function ProductDetailPage() {
                 type="button"
                 aria-label={saved ? '取消收藏' : '收藏'}
                 aria-pressed={saved}
-                onClick={() => setSaved((v) => !v)}
+                disabled={favBusy}
+                onClick={toggleFavorite}
                 style={{ color: saved ? 'var(--color-accent-text)' : undefined }}
               >
                 <IconHeart size={18} />
@@ -270,7 +323,7 @@ export function ProductDetailPage() {
                 <p className="empty__desc">
                   {detail.tabs[tab]}将在上线后随测试与内容排期补充；如需相关数据，可提交咨询由咨询师提供。
                 </p>
-                <Link className="btn btn--secondary btn--sm" to="/support#contact">
+                <Link className="btn btn--secondary btn--sm" to="/inquiry">
                   提交咨询
                 </Link>
               </div>
@@ -280,14 +333,40 @@ export function ProductDetailPage() {
               <div className="card" style={{ flex: 1, minWidth: 260 }}>
                 <h3 className="card__title">下载资料</h3>
                 <p className="card__desc">驱动、说明书与固件均在此获取，标注适用型号与版本。</p>
-                <Link className="btn btn--secondary btn--sm" to="/support#downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
+                <Link className="btn btn--secondary btn--sm" to="/downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
                   前往下载中心
                 </Link>
               </div>
+              {MODEL_SUPPORTS.some((entry) => entry.id === detail.id) && (
+                <div className="card" style={{ flex: 1, minWidth: 260 }}>
+                  <h3 className="card__title">型号支持</h3>
+                  <p className="card__desc">该型号的下载资料、常见问答与使用指南。</p>
+                  <Link
+                    className="btn btn--secondary btn--sm"
+                    to={`/support/model/${detail.id}`}
+                    style={{ marginTop: 'var(--gh-space-4)' }}
+                  >
+                    查看型号支持
+                  </Link>
+                </div>
+              )}
+              {SERIES_SLUG_BY_CATEGORY[PRODUCTS.find((item) => item.id === detail.id)?.category ?? ''] && (
+                <div className="card" style={{ flex: 1, minWidth: 260 }}>
+                  <h3 className="card__title">同系列产品</h3>
+                  <p className="card__desc">查看同系列在售型号与参数对比。</p>
+                  <Link
+                    className="btn btn--secondary btn--sm"
+                    to={`/products/series/${SERIES_SLUG_BY_CATEGORY[PRODUCTS.find((item) => item.id === detail.id)?.category ?? '']}`}
+                    style={{ marginTop: 'var(--gh-space-4)' }}
+                  >
+                    查看系列
+                  </Link>
+                </div>
+              )}
               <div className="card" style={{ flex: 1, minWidth: 260 }}>
                 <h3 className="card__title">需要帮助？</h3>
                 <p className="card__desc">对参数或适配有疑问，可提交咨询，由咨询师跟进。</p>
-                <Link className="btn btn--primary btn--sm" to="/support#contact" style={{ marginTop: 'var(--gh-space-4)' }}>
+                <Link className="btn btn--primary btn--sm" to="/inquiry" style={{ marginTop: 'var(--gh-space-4)' }}>
                   提交咨询
                 </Link>
               </div>

@@ -295,8 +295,8 @@ function buildCenter(): Page {
         desc: '一套软件管理全部光魂设备：调参、宏、灯效、固件与配置同步，都在同一个界面里完成。',
         mediaTag: '软件界面',
         image: '/media/center/hero.svg',
-        primary: { label: '立即下载', href: '/center#download' },
-        secondary: { label: '查看更新日志', href: '/center#changelog' },
+        primary: { label: '立即下载', href: '/center' },
+        secondary: { label: '查看更新日志', href: '/center' },
       },
       // hero 海报同样通栏，与首页 carousel 保持一致
       style: { theme: 'dark', container: 'full' },
@@ -359,7 +359,7 @@ function buildBusiness(): Page {
       props: {
         title: '合作方向',
         columns: 3,
-        items: business.COOP_DIRECTIONS.map((item) => ({ tag: item.id, title: item.title, desc: item.desc, href: '/business#apply' })),
+        items: business.COOP_DIRECTIONS.map((item) => ({ tag: item.id, title: item.title, desc: item.desc, href: '/business' })),
       },
     },
     {
@@ -433,7 +433,8 @@ function buildBusinessCases(): Page {
         title: '合作案例',
         subtitle: '与战队、渠道与媒体的合作项目。',
         scope: 'all',
-        limit: 9,
+        limit: 0,
+        pageSize: 9,
         columns: 3,
         showMeta: true,
       },
@@ -450,7 +451,8 @@ function buildBusinessVenues(): Page {
         title: '线下体验点',
         subtitle: '就近体验实机与调参。',
         scope: 'all',
-        limit: 9,
+        limit: 0,
+        pageSize: 9,
         columns: 3,
         showStatus: true,
       },
@@ -554,7 +556,7 @@ function buildContact(): Page {
 function buildNews(): Page {
   return toPage('news', '/news', '新闻列表', '新闻列表装修 + 数据源区块。', [
     { type: 'text', props: { title: '新闻与动态', body: '产品发布、活动与品牌动态。', align: 'left' } },
-    { type: 'articleList', props: { title: '动态列表', source: 'news', limit: 8 } },
+    { type: 'articleList', props: { title: '动态列表', source: 'news', limit: 0, pageSize: 9 } },
   ])
 }
 
@@ -626,7 +628,7 @@ function buildLadder(): Page {
 function buildArticles(): Page {
   return toPage('articles', '/articles', '文章列表', '文章列表装修 + 数据源区块。', [
     { type: 'text', props: { title: '文章', body: '评测、教程与行业观察；参数与方法公开，来源可查。', align: 'left' } },
-    { type: 'articleList', props: { title: '全部文章', source: 'all', limit: 12 } },
+    { type: 'articleList', props: { title: '全部文章', source: 'all', limit: 0, pageSize: 9 } },
     // 样板：手动挑选（挑具体几篇，顺序即展示顺序）+ 横滑呈现（呈现方式开关的示例）
     { type: 'articleList', props: { title: '编辑精选', subtitle: '手动挑选的具体文章，顺序可调。', scope: 'manual', ids: ['latency-end-to-end', 'driver-firmware-guide', 'test-methodology'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
@@ -636,7 +638,7 @@ function buildArticles(): Page {
 function buildDownloads(): Page {
   return toPage('downloads', '/downloads', '下载中心', '下载中心装修 + 数据源区块。', [
     { type: 'text', props: { title: '下载中心', body: '驱动、固件与说明书；同一份资料可关联到多个型号。', align: 'left' } },
-    { type: 'downloadList', props: { title: '全部资料', category: 'all', limit: 20 } },
+    { type: 'downloadList', props: { title: '全部资料', category: 'all', limit: 0, pageSize: 10 } },
     // 样板：手动挑选（挑具体几条资料，顺序即展示顺序）+ 横滑卡片呈现（呈现方式开关的示例）
     { type: 'downloadList', props: { title: '推荐下载', subtitle: '手动挑选的资料，顺序可调。', scope: 'manual', ids: ['center-win', 'k870-driver', 'h500-manual'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
@@ -646,7 +648,7 @@ function buildDownloads(): Page {
 function buildFaq(): Page {
   return toPage('faq', '/faq', '常见问题', '常见问题装修 + 数据源区块。', [
     { type: 'text', props: { title: '常见问题', body: '驱动安装、连接配对、固件更新与售后相关的高频问答。', align: 'left' } },
-    { type: 'faqList', props: { title: '全部问答', source: 'support', limit: 20 } },
+    { type: 'faqList', props: { title: '全部问答', source: 'support', limit: 0, pageSize: 10 } },
   ])
 }
 
@@ -675,7 +677,7 @@ function buildTemplates(): Page[] {
           primaryLabel: '加入对比',
           primaryHref: '/compare',
           secondaryLabel: '咨询咨询师',
-          secondaryHref: '/support#contact',
+          secondaryHref: '/inquiry',
           showBadges: true,
           showPrice: true,
           showSummary: true,
@@ -699,7 +701,7 @@ function buildTemplates(): Page[] {
           primaryLabel: '加入对比',
           primaryHref: '/compare',
           secondaryLabel: '咨询咨询师',
-          secondaryHref: '/support#contact',
+          secondaryHref: '/inquiry',
         },
       },
       {

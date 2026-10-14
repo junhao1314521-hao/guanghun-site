@@ -22,6 +22,7 @@ import {
 import { useApi } from '../hooks/useApi'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, pickByIds } from './blockUtils'
 
 /** source → 文章分类标签（“全部”返回空串，不参与过滤） */
@@ -130,7 +131,11 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
     canFilter && active !== '全部'
       ? (picked as ArticleSummary[]).filter((item) => item.categoryLabel === active)
       : picked
-  const shown = limit > 0 ? filtered.slice(0, limit) : filtered
+  const capped = limit > 0 ? filtered.slice(0, limit) : filtered
+  // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
+  const pageSize = Math.max(0, asNumber(props.pageSize, 0))
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${source}|${active}`)
+  const paged = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   return (
     <div>
@@ -178,7 +183,7 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
             </div>
           )}
 
-          {shown.length === 0 ? (
+          {paged.length === 0 ? (
             canFilter ? (
               <div className="empty">
                 <div className="empty__title">没有符合条件的文章</div>
@@ -193,10 +198,11 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
               </p>
             )
           ) : isNews ? (
-            <NewsRows items={shown as NewsItem[]} />
+            <NewsRows items={paged as NewsItem[]} />
           ) : (
-            <ArticleCards items={shown as ArticleSummary[]} rail={rail} />
+            <ArticleCards items={paged as ArticleSummary[]} rail={rail} />
           )}
+          {pageSize > 0 && <BlockPager page={page} totalPages={totalPages} onChange={setPage} />}
         </>
       )}
     </div>

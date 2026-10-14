@@ -327,7 +327,7 @@ function defaultDevices(profile: UserProfile): AccountDevice[] {
       status: 'success',
       statusText: '在保',
       warranty: '365 天',
-      action: { label: '申请售后', variant: 'secondary', to: '/support#contact' },
+      action: { label: '申请售后', variant: 'secondary', to: '/inquiry' },
     },
   ]
 }
@@ -408,7 +408,7 @@ export function addAccountDevice(profile: UserProfile, input: { model: string; s
       status: 'muted',
       statusText: '未验证',
       warranty: '待激活',
-      action: { label: '申请售后', variant: 'secondary', to: '/support#contact' },
+      action: { label: '申请售后', variant: 'secondary', to: '/inquiry' },
     },
     ...devices,
   ]
@@ -432,6 +432,20 @@ export function removeAccountFavorite(userId: string, name: string): { ok: true;
   const items = getAccountFavorites(userId)
   const next = items.filter((item) => item.name !== name)
   if (next.length === items.length) return { ok: false, error: '未找到该收藏' }
+  writeSection(userId, 'favorites', next)
+  return { ok: true, items: next }
+}
+
+/** 新增收藏（按名称去重，已存在则原样返回）；置顶显示 */
+export function addAccountFavorite(
+  userId: string,
+  input: { name: string; spec?: string },
+): { ok: true; items: FavoriteItem[] } {
+  const name = input.name.trim()
+  const items = getAccountFavorites(userId)
+  if (!name) return { ok: true, items }
+  if (items.some((item) => item.name === name)) return { ok: true, items }
+  const next: FavoriteItem[] = [{ name, spec: (input.spec ?? '').trim(), subscribed: true }, ...items]
   writeSection(userId, 'favorites', next)
   return { ok: true, items: next }
 }

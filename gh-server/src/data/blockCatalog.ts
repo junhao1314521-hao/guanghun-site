@@ -295,6 +295,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
         ],
       },
       { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
     ],
   },
   {
@@ -372,6 +373,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
         ],
       },
       { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
     ],
   },
   {
@@ -406,6 +408,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
         ],
       },
       { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
     ],
   },
   {
@@ -530,7 +533,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'primaryLabel', label: '主按钮文案', kind: 'text', placeholder: '如：加入对比（留空则不显示）' },
       { name: 'primaryHref', label: '主按钮链接', kind: 'text', placeholder: '如：/compare' },
       { name: 'secondaryLabel', label: '次按钮文案', kind: 'text', placeholder: '如：咨询咨询师' },
-      { name: 'secondaryHref', label: '次按钮链接', kind: 'text', placeholder: '如：/support#contact' },
+      { name: 'secondaryHref', label: '次按钮链接', kind: 'text', placeholder: '如：/inquiry' },
       { name: 'showBadges', label: '显示角标 / 状态', kind: 'switch' },
       { name: 'showPrice', label: '显示参考价', kind: 'switch' },
       { name: 'showSummary', label: '显示参数摘要（标称 / 实测）', kind: 'switch' },
@@ -589,6 +592,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
       { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
       { name: 'showMeta', label: '显示合作方 / 年份', kind: 'switch' },
     ],
   },
@@ -619,6 +623,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
       { name: 'limit', label: '数量', kind: 'number' },
+      { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
       { name: 'showStatus', label: '显示营业状态', kind: 'switch' },
     ],
   },

@@ -15,6 +15,7 @@ import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { BlockPager, useBlockPager } from './BlockPager'
 import { useI18n } from '../i18n'
 import { asBool, asNumber, asString, asStringArray, pickByIds } from './blockUtils'
 
@@ -133,7 +134,11 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
       (!showFilter || category === '全部' || item.category === category) &&
       (!showFilter || type === '全部' || DOWNLOAD_TYPE_LABELS[item.type] === type),
   )
-  const shown = limit > 0 ? filtered.slice(0, limit) : filtered
+  const capped = limit > 0 ? filtered.slice(0, limit) : filtered
+  // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
+  const pageSize = Math.max(0, asNumber(props.pageSize, 0))
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${propCategory}|${scope}|${category}|${type}`)
+  const shown = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   const resetFilters = () => {
     setCategory('全部')
@@ -302,6 +307,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
               名称、版本与日期以官方最终公布为准；上传新版后旧版仍可下载。
             </p>
           )}
+          {pageSize > 0 && <BlockPager page={page} totalPages={totalPages} onChange={setPage} />}
         </>
       )}
     </div>

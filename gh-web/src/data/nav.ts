@@ -20,7 +20,7 @@ export type NavItem = {
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: '产品', to: '/products', menu: 'products', nav: 'products' },
-  { label: 'Center', to: '/center', menu: '', nav: 'center' },
+  { label: 'Center 软件', to: '/center', menu: '', nav: 'center' },
   { label: '天梯榜', to: '/ladder', menu: 'ladder', nav: 'ladder' },
   { label: '文章', to: '/articles', menu: 'articles' },
   { label: '服务支持', to: '/support', menu: 'support', nav: 'support' },
@@ -49,6 +49,15 @@ export const MEGA_PANELS: MegaPanel[] = [
         ],
       },
       {
+        eyebrow: '产品系列',
+        links: [
+          { label: '鼠标系列', to: '/products/series/mouse' },
+          { label: '键盘系列', to: '/products/series/keyboard' },
+          { label: '耳机系列', to: '/products/series/headset' },
+          { label: '配件系列', to: '/products/series/accessory' },
+        ],
+      },
+      {
         eyebrow: '精选型号',
         links: [
           { label: 'GH-M900 PRO 旗舰鼠标', to: '/products/gh-m900-pro' },
@@ -74,8 +83,9 @@ export const MEGA_PANELS: MegaPanel[] = [
       {
         eyebrow: '热门条目',
         links: [
-          { label: '端到端延迟 TOP 10', to: '/ladder?metric=latency' },
-          { label: '续航实测排行', to: '/ladder?metric=battery' },
+          { label: '端到端延迟 TOP 10', to: '/ladder/latency' },
+          { label: '续航实测排行', to: '/ladder/battery' },
+          { label: '整机重量排行', to: '/ladder/weight' },
         ],
       },
     ],
@@ -141,6 +151,14 @@ export const MEGA_PANELS: MegaPanel[] = [
         links: [
           { label: '关于光魂', to: '/about' },
           { label: '新闻中心', to: '/news' },
+        ],
+      },
+      {
+        eyebrow: '品牌',
+        links: [
+          { label: '品牌档案 · 光魂', to: '/brand/guanghun' },
+          { label: '光魂实验室', to: '/brand/lab' },
+          { label: '电竞合作', to: '/brand/esports' },
         ],
       },
       {

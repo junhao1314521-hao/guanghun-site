@@ -230,7 +230,7 @@ export function ContactBlock({ props }: { props: Record<string, unknown> }) {
 
   const primary =
     channel === 'business'
-      ? { label: '提交合作申请', href: '/business#apply' }
+      ? { label: '提交合作申请', href: '/business' }
       : { label: '提交咨询', href: '/inquiry' }
 
   return (

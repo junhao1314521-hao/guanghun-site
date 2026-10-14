@@ -119,7 +119,7 @@ function buildHomeEn(): Page {
             desc: 'Tune params, macros, lighting and firmware — all in one place.',
             mediaTag: 'Software',
             image: '/media/home/hero-03.svg',
-            primary: { label: 'Download Center', href: '/center#download' },
+            primary: { label: 'Download Center', href: '/center' },
           },
         ],
         autoplay: true,
@@ -195,8 +195,8 @@ function buildHomeEn(): Page {
         columns: 4,
         items: [
           { title: 'Downloads', desc: 'Drivers, firmware and manuals.', href: '/support' },
-          { title: 'FAQ', desc: 'High-frequency setup and pairing help.', href: '/support#faq' },
-          { title: 'Submit a ticket', desc: 'Model + symptom, tracked in your account.', href: '/support#contact' },
+          { title: 'FAQ', desc: 'High-frequency setup and pairing help.', href: '/faq' },
+          { title: 'Submit a ticket', desc: 'Model + symptom, tracked in your account.', href: '/inquiry' },
           { title: 'Warranty', desc: 'Coverage, claims and service points.', href: '/support' },
         ],
       },
@@ -390,8 +390,8 @@ function buildCenterEn(): Page {
         desc: 'One app to manage every Guanghun device: params, macros, lighting, firmware and config sync — all in one place.',
         mediaTag: 'Software UI',
         image: '/media/center/hero.svg',
-        primary: { label: 'Download', href: '/center#download' },
-        secondary: { label: 'Changelog', href: '/center#changelog' },
+        primary: { label: 'Download', href: '/center' },
+        secondary: { label: 'Changelog', href: '/center' },
       },
       style: { theme: 'dark', container: 'full' },
     },
@@ -478,9 +478,9 @@ function buildBusinessEn(): Page {
         title: 'Partnership directions',
         columns: 3,
         items: [
-          { tag: 'channel', title: 'Channel distribution', desc: 'Regional and category partners.', href: '/business#apply' },
-          { tag: 'review', title: 'Review & sampling', desc: 'Press and creator sampling program.', href: '/business#apply' },
-          { tag: 'esports', title: 'Esports', desc: 'Team and tournament sponsorships.', href: '/business#apply' },
+          { tag: 'channel', title: 'Channel distribution', desc: 'Regional and category partners.', href: '/business' },
+          { tag: 'review', title: 'Review & sampling', desc: 'Press and creator sampling program.', href: '/business' },
+          { tag: 'esports', title: 'Esports', desc: 'Team and tournament sponsorships.', href: '/business' },
         ],
       },
     },
@@ -568,7 +568,8 @@ function buildBusinessCasesEn(): Page {
         title: 'Case studies',
         subtitle: 'Partnerships with teams, retail and press.',
         scope: 'all',
-        limit: 9,
+        limit: 0,
+        pageSize: 9,
         columns: 3,
         showMeta: true,
       },
@@ -584,7 +585,8 @@ function buildBusinessVenuesEn(): Page {
         title: 'Experience spots',
         subtitle: 'Try the gear and tuning in person.',
         scope: 'all',
-        limit: 9,
+        limit: 0,
+        pageSize: 9,
         columns: 3,
         showStatus: true,
       },
@@ -720,7 +722,7 @@ function buildContactEn(): Page {
 function buildNewsEn(): Page {
   return toPage('news', '/news', 'News', 'News + data-source block.', [
     { type: 'text', props: { title: 'News & updates', body: 'Product launches, events and brand updates.', align: 'left' } },
-    { type: 'articleList', props: { title: 'Latest', source: 'news', limit: 8 } },
+    { type: 'articleList', props: { title: 'Latest', source: 'news', limit: 0, pageSize: 9 } },
   ])
 }
 
@@ -752,7 +754,7 @@ function buildLadderEn(): Page {
 function buildArticlesEn(): Page {
   return toPage('articles', '/articles', 'Articles', 'Articles + data-source block.', [
     { type: 'text', props: { title: 'Articles', body: 'Reviews, tutorials and industry notes. Params and methods are public; sources are traceable.', align: 'left' } },
-    { type: 'articleList', props: { title: 'All articles', source: 'all', limit: 12 } },
+    { type: 'articleList', props: { title: 'All articles', source: 'all', limit: 0, pageSize: 9 } },
     // Sample: hand-picked + rail presentation
     { type: 'articleList', props: { title: 'Editor picks', subtitle: 'Hand-picked articles; the order is adjustable.', scope: 'manual', ids: ['latency-end-to-end', 'driver-firmware-guide', 'test-methodology'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
@@ -761,7 +763,7 @@ function buildArticlesEn(): Page {
 function buildDownloadsEn(): Page {
   return toPage('downloads', '/downloads', 'Downloads', 'Downloads + data-source block.', [
     { type: 'text', props: { title: 'Downloads', body: 'Drivers, firmware and manuals. One file can map to multiple models.', align: 'left' } },
-    { type: 'downloadList', props: { title: 'All files', category: 'all', limit: 20 } },
+    { type: 'downloadList', props: { title: 'All files', category: 'all', limit: 0, pageSize: 10 } },
     // Sample: hand-picked + rail card presentation
     { type: 'downloadList', props: { title: 'Recommended', subtitle: 'Hand-picked files; the order is adjustable.', scope: 'manual', ids: ['center-win', 'k870-driver', 'h500-manual'], limit: 0, showFilter: false, layout: 'rail' } },
   ])
@@ -770,7 +772,7 @@ function buildDownloadsEn(): Page {
 function buildFaqEn(): Page {
   return toPage('faq', '/faq', 'FAQ', 'FAQ + data-source block.', [
     { type: 'text', props: { title: 'FAQ', body: 'High-frequency questions on driver install, pairing, firmware and after-sales.', align: 'left' } },
-    { type: 'faqList', props: { title: 'All questions', source: 'support', limit: 20 } },
+    { type: 'faqList', props: { title: 'All questions', source: 'support', limit: 0, pageSize: 10 } },
   ])
 }
 
@@ -808,7 +810,7 @@ function buildTemplatesEn(): Page[] {
             primaryLabel: 'Add to compare',
             primaryHref: '/compare',
             secondaryLabel: 'Talk to a specialist',
-            secondaryHref: '/support#contact',
+            secondaryHref: '/inquiry',
             showBadges: true,
             showPrice: true,
             showSummary: true,
@@ -832,7 +834,7 @@ function buildTemplatesEn(): Page[] {
             primaryLabel: 'Add to compare',
             primaryHref: '/compare',
             secondaryLabel: 'Talk to a specialist',
-            secondaryHref: '/support#contact',
+            secondaryHref: '/inquiry',
             points: [
               'Nationwide warranty per official policy',
               '7-day returns (unused, original packaging)',

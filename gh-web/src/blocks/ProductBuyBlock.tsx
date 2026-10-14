@@ -38,7 +38,7 @@ export function ProductBuyBlock({ props }: { props: Record<string, unknown> }) {
           <CtaButton label={asString(props.primaryLabel, '加入对比')} href={asString(props.primaryHref, '/compare')} primary />
           <CtaButton
             label={asString(props.secondaryLabel, '咨询咨询师')}
-            href={asString(props.secondaryHref, '/support#contact')}
+            href={asString(props.secondaryHref, '/inquiry')}
             primary={false}
           />
         </div>

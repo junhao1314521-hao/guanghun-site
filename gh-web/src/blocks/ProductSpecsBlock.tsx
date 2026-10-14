@@ -80,7 +80,7 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
           <div className="empty">
             <h2 className="empty__title">{t('blocks.pd.tabEmptyTitle', { tab: detail.tabs[tab] ?? '' })}</h2>
             <p className="empty__desc">{t('blocks.pd.tabEmptyDesc', { tab: detail.tabs[tab] ?? '' })}</p>
-            <Link className="btn btn--secondary btn--sm" to="/support#contact">
+            <Link className="btn btn--secondary btn--sm" to="/inquiry">
               {t('blocks.pd.submitTicket')}
             </Link>
           </div>
@@ -91,14 +91,14 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
             <div className="card" style={{ flex: 1, minWidth: 260 }}>
               <h3 className="card__title">{t('blocks.pd.guideDownloads')}</h3>
               <p className="card__desc">{t('blocks.pd.guideDownloadsDesc')}</p>
-              <Link className="btn btn--secondary btn--sm" to="/support#downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
+              <Link className="btn btn--secondary btn--sm" to="/downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {downloadLabel}
               </Link>
             </div>
             <div className="card" style={{ flex: 1, minWidth: 260 }}>
               <h3 className="card__title">{t('blocks.pd.guideHelp')}</h3>
               <p className="card__desc">{t('blocks.pd.guideHelpDesc')}</p>
-              <Link className="btn btn--primary btn--sm" to="/support#contact" style={{ marginTop: 'var(--gh-space-4)' }}>
+              <Link className="btn btn--primary btn--sm" to="/inquiry" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {contactLabel}
               </Link>
             </div>

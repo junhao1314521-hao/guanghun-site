@@ -211,7 +211,7 @@ export function BusinessCaseDetailPage() {
             </h3>
             <p className="card__desc">说明你的合作方向、场地或人群规模，我们会给出针对性方案。</p>
           </div>
-          <Link className="btn btn--primary" to="/business#apply">
+          <Link className="btn btn--primary" to="/business">
             提交合作申请
           </Link>
         </div>

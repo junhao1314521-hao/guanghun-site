@@ -65,7 +65,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     desc: '由代码实时渲染的动效层，可随产品发布节奏自由替换，不依赖任何外部素材。',
     primary: '了解实测方法',
     secondary: '查看天梯榜',
-    primaryTo: '/ladder#method',
+    primaryTo: '/ladder',
     secondaryTo: '/ladder',
     stats: [
       { value: '32 kHz', label: '采样率' },

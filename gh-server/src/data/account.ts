@@ -41,8 +41,8 @@ export type AccountDevice = {
 }
 
 export const ACCOUNT_DEVICES: AccountDevice[] = [
-  { model: 'GH-M900 PRO', sn: 'GH-M900-2026-000128', status: 'success', statusText: '在保', warranty: '640 天', action: { label: '申请售后', variant: 'secondary', to: '/support#contact' } },
-  { model: 'GH-K870', sn: 'GH-K870-2025-004512', status: 'success', statusText: '在保', warranty: '210 天', action: { label: '申请售后', variant: 'secondary', to: '/support#contact' } },
+  { model: 'GH-M900 PRO', sn: 'GH-M900-2026-000128', status: 'success', statusText: '在保', warranty: '640 天', action: { label: '申请售后', variant: 'secondary', to: '/inquiry' } },
+  { model: 'GH-K870', sn: 'GH-K870-2025-004512', status: 'success', statusText: '在保', warranty: '210 天', action: { label: '申请售后', variant: 'secondary', to: '/inquiry' } },
   { model: 'GH-H500', sn: '未验证', status: 'muted', statusText: '未验证', warranty: '暂无', action: { label: '去验证', variant: 'ghost' } },
 ]
 

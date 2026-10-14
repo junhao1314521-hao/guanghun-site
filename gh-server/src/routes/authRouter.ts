@@ -3,6 +3,7 @@ import { getInquiryDetail, type InquirySummary, type InquiryTimelineEntry } from
 import { listCollection, updateCollectionItem } from '../data/collectionStore'
 import {
   addAccountDevice,
+  addAccountFavorite,
   changeUserEmail,
   changeUserPassword,
   createResetToken,
@@ -53,6 +54,8 @@ import { logger } from '../lib/logger'
  *   POST /account/email            更换邮箱
  *   POST /account/delete           注销账号（不可恢复）
  *   POST /account/inquiries/:id/replies 工单补充回复
+ *   POST /account/favorites        收藏（按名称去重）
+ *   DELETE /account/favorites/:name 取消收藏
  */
 export const authRouter = Router()
 
@@ -353,7 +356,16 @@ authRouter.delete('/account/devices/:sn', requireUser, (req, res) => {
   res.json({ ok: true, items: outcome.devices })
 })
 
-/* ---------------- 收藏（删除） ---------------- */
+/* ---------------- 收藏（新增 / 删除） ---------------- */
+
+authRouter.post('/account/favorites', requireUser, (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const outcome = addAccountFavorite(currentUser(res).id, {
+    name: readString(body.name),
+    spec: readString(body.spec),
+  })
+  res.status(201).json({ items: outcome.items })
+})
 
 authRouter.delete('/account/favorites/:name', requireUser, (req, res) => {
   const outcome = removeAccountFavorite(currentUser(res).id, readParam(req, 'name'))

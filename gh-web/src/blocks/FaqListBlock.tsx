@@ -17,6 +17,7 @@ import { useApi } from '../hooks/useApi'
 import { IconChevronDown } from '../components/ui/Icon'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { useI18n } from '../i18n'
+import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, pickByIds } from './blockUtils'
 
 type QaRow = { id?: string; q: string; a: string; category?: string }
@@ -86,7 +87,11 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
   // 手动挑选：scope=manual 时按 ids 顺序挑选（support 来源有条目 id；Center 无 id 则原样返回）
   const pickedRows = pickByIds(rows, scope, manualIds)
   const filtered = canFilter && active !== '全部' ? pickedRows.filter((item) => item.category === active) : pickedRows
-  const shown = limit > 0 ? filtered.slice(0, limit) : filtered
+  const capped = limit > 0 ? filtered.slice(0, limit) : filtered
+  // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
+  const pageSize = Math.max(0, asNumber(props.pageSize, 0))
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, active)
+  const paged = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   return (
     <div>
@@ -126,7 +131,7 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
             </div>
           )}
 
-          {shown.length === 0 ? (
+          {paged.length === 0 ? (
             canFilter ? (
               <div className="empty">
                 <div className="empty__title">该类别下暂无问答</div>
@@ -147,7 +152,7 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
             )
           ) : (
             <div className="qa-list reveal">
-              {shown.map((item, index) => (
+              {paged.map((item, index) => (
                 <details key={item.id ?? `${item.q}-${index}`}>
                   <summary>
                     {item.q}
@@ -167,6 +172,7 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
               ))}
             </div>
           )}
+          {pageSize > 0 && <BlockPager page={page} totalPages={totalPages} onChange={setPage} />}
         </>
       )}
     </div>

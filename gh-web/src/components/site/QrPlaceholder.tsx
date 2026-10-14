@@ -1,8 +1,8 @@
 import { useI18n } from '../../i18n'
 
 /**
- * 二维码占位（纯矢量，非破图）：白底 + 黑模块，保证任何主题下都可扫。
- * 正式上线替换为真实码图；此处的尺寸/留白即为上传规范（正方形、四周留白 ≥ 8%）。
+ * 二维码占位（纯矢量，非破图）：白底 + 黑模块的**示意图形**，不可扫描；
+ * 正式上线替换为真实码图。此处的尺寸 / 留白即为上传规范（正方形、四周留白 ≥ 8%）。
  */
 export function QrBox({ label, className }: { label: string; className?: string }) {
   const { t } = useI18n()
@@ -38,12 +38,16 @@ export function QrBox({ label, className }: { label: string; className?: string 
   )
 }
 
-/** 带标签的二维码占位（页脚「关注我们」用） */
+/** 带标签的二维码占位（页脚「关注我们」用）；附「示意」说明，避免被误当可扫真码 */
 export function QrPlaceholder({ label }: { label: string }) {
+  const { t } = useI18n()
   return (
     <div className="qr">
       <QrBox label={label} />
       <span className="qr__label">{label}</span>
+      <span className="field__hint" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+        {t('footer.qrNote')}
+      </span>
     </div>
   )
 }

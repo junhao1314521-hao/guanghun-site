@@ -28,7 +28,7 @@ export function MeInquiriesPage() {
             点击任一工单查看处理时间线并补充材料。
           </p>
         </div>
-        <Link className="btn btn--primary btn--sm is-magnetic" to="/support#contact">
+        <Link className="btn btn--primary btn--sm is-magnetic" to="/inquiry">
           提交咨询
         </Link>
       </div>
@@ -51,7 +51,7 @@ export function MeInquiriesPage() {
         <div className="empty">
           <div className="empty__title">暂无咨询记录</div>
           <p className="empty__desc">提交咨询后，工单会出现在这里供你跟踪进度。</p>
-          <Link className="btn btn--secondary btn--sm" to="/support#contact">
+          <Link className="btn btn--secondary btn--sm" to="/inquiry">
             提交咨询
           </Link>
         </div>

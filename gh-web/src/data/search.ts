@@ -72,7 +72,7 @@ export const SEARCH_RESULTS: SearchResult[] = [
     desc: '整机保修范围、时长与不保修情形；输入序列号可查询剩余保修时间。',
     source: '服务支持 · 保修',
     date: '2026-07-30',
-    to: '/support#warranty',
+    to: '/support',
   },
   {
     id: 'r6',

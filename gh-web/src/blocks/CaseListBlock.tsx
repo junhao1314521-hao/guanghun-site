@@ -14,6 +14,7 @@ import { fetchBizCases } from '../api/business-extra'
 import { useApi } from '../hooks/useApi'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, gridClass, pickByIds } from './blockUtils'
 
 export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
@@ -27,7 +28,11 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
 
   const { data, loading, error } = useApi((signal) => fetchBizCases(signal), [reloadKey])
   const picked = pickByIds(data?.items ?? [], scope, ids)
-  const shown = limit > 0 ? picked.slice(0, limit) : picked
+  const capped = limit > 0 ? picked.slice(0, limit) : picked
+  // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
+  const pageSize = Math.max(0, asNumber(props.pageSize, 0))
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${scope}|${ids.join(',')}`)
+  const shown = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   return (
     <div>
@@ -77,6 +82,7 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
           ))}
         </div>
       )}
+      {pageSize > 0 && <BlockPager page={page} totalPages={totalPages} onChange={setPage} />}
     </div>
   )
 }

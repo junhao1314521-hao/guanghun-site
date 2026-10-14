@@ -87,6 +87,11 @@ export function removeMyFavorite(name: string): Promise<{ ok: boolean; items: Fa
   )
 }
 
+/** 新增收藏：POST /api/account/favorites */
+export function addMyFavorite(body: { name: string; spec?: string }): Promise<{ items: FavoriteItem[] }> {
+  return transport({ path: '/api/account/favorites', method: 'POST', body }, () => ({ items: [] }))
+}
+
 /** 订阅与通知：GET /api/account/notifications */
 export function fetchMyNotifications(signal?: AbortSignal): Promise<{ items: NotificationSetting[] }> {
   return transport({ path: '/api/account/notifications', signal }, () => ({ items: [] }))
