@@ -1,6 +1,8 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchMyFavorites, removeMyFavorite } from '../api/account'
+import { PRODUCTS } from '../data/products'
+import { trackEvent } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -15,6 +17,14 @@ export function MeFavoritesPage() {
 
   const { data, loading, error } = useApi((signal) => fetchMyFavorites(signal), [reloadKey])
   const favorites = data?.items ?? []
+
+  // 型号 → 产品 id：收藏项的 name 以「型号 + 名称」拼接，取首个空格前的型号段匹配产品
+  const modelToId = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const product of PRODUCTS) map[product.model] = product.id
+    return map
+  }, [])
+  const productIdOf = (name: string) => modelToId[name.trim().split(/\s+/)[0]] ?? ''
 
   const readyKey = `${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
@@ -86,9 +96,20 @@ export function MeFavoritesPage() {
                   {item.spec}
                 </div>
               </div>
-              <button className="btn btn--sm btn--ghost" type="button" onClick={() => remove(item.name)}>
-                取消收藏
-              </button>
+              <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
+                {productIdOf(item.name) && (
+                  <Link
+                    className="btn btn--sm btn--secondary"
+                    to={`/compare?ids=${encodeURIComponent(productIdOf(item.name))}`}
+                    onClick={() => trackEvent('compare', productIdOf(item.name))}
+                  >
+                    加入对比
+                  </Link>
+                )}
+                <button className="btn btn--sm btn--ghost" type="button" onClick={() => remove(item.name)}>
+                  取消收藏
+                </button>
+              </div>
             </div>
           ))}
         </div>

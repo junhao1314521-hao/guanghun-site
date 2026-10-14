@@ -166,7 +166,16 @@ export function MeDevicesPage() {
                   <div className="dl-meta__v">{device.warranty}</div>
                 </div>
               </div>
-              <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
+              {/* 设备关联资料：直达该型号的下载（说明书 / 固件）与常见问题 */}
+              <div className="row" style={{ marginTop: 'var(--gh-space-4)', gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
+                <Link className="btn btn--sm btn--ghost" to={`/downloads?model=${encodeURIComponent(device.model)}`}>
+                  说明书 / 固件
+                </Link>
+                <Link className="btn btn--sm btn--ghost" to="/faq">
+                  常见问题
+                </Link>
+              </div>
+              <div className="row" style={{ marginTop: 'var(--gh-space-3)' }}>
                 {device.action.to ? (
                   <Link className={`btn btn--sm btn--${device.action.variant}`} to={device.action.to}>
                     {device.action.label}
