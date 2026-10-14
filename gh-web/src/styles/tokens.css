@@ -143,13 +143,14 @@
    ② 语义层 · 浅色（默认）
    ============================================================ */
 :root {
-  --color-bg-page:     var(--gh-neutral-0);
+  /* 浅色画布以 #F2F2F4 为基准（柔和冷灰，替代纯白）；内容面保持纯白以拉开层级 */
+  --color-bg-page:     #F2F2F4;
   --color-bg-surface:  var(--gh-neutral-0);
   --color-bg-raised:   var(--gh-neutral-0);
   --color-bg-elevated: var(--gh-neutral-0);  /* 悬浮面：磨砂浮层 / 卡片 */
-  --color-bg-subtle:   var(--gh-neutral-50);
-  --color-bg-muted:    var(--gh-neutral-100);
-  --color-bg-disabled: var(--gh-neutral-100);
+  --color-bg-subtle:   #ECECF0;              /* 画布更深一档：页脚 / 表头 / hover */
+  --color-bg-muted:    #E4E4EA;
+  --color-bg-disabled: #EAEAEE;
   --color-bg-inverse:  var(--gh-neutral-900);
 
   --color-text-primary:   var(--gh-neutral-900);

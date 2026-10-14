@@ -111,12 +111,12 @@
   "semantic": {
     "light": {
       "bg": {
-        "page":     { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
+        "page":     { "$value": "#F2F2F4",                       "$type": "color", "$description": "浅色画布基准：柔和冷灰（替代纯白），卡片保持纯白以拉开层级" },
         "surface":  { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
         "raised":   { "$value": "{primitive.color.neutral.0}",   "$type": "color" },
-        "subtle":   { "$value": "{primitive.color.neutral.50}",  "$type": "color" },
-        "muted":    { "$value": "{primitive.color.neutral.100}", "$type": "color" },
-        "disabled": { "$value": "{primitive.color.neutral.100}", "$type": "color" },
+        "subtle":   { "$value": "#ECECF0",                       "$type": "color", "$description": "画布更深一档：页脚 / 表头 / hover" },
+        "muted":    { "$value": "#E4E4EA",                       "$type": "color" },
+        "disabled": { "$value": "#EAEAEE",                       "$type": "color" },
         "inverse":  { "$value": "{primitive.color.neutral.900}", "$type": "color" }
       },
       "text": {
