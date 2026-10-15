@@ -18,6 +18,9 @@ gh-server/*.sqlite-*
 .publish-live.mjs
 .verify*.mjs
 
+# 交付包（体积较大，不入库；见《交付包说明.md》重建方式）
+/光魂官网_v*_*.zip
+
 # 编辑器与系统
 .DS_Store
 *.log
