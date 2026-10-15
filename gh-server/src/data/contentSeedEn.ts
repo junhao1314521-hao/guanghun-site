@@ -33,7 +33,7 @@ function toPage(baseKey: string, path: string, title: string, description: strin
    英文站点配置（nav / footer 覆盖；enabledBlocks / theme 仍取主配置）
    ============================================================ */
 
-export const SITE_EN: SiteConfig['en'] = {
+export const SITE_EN: NonNullable<SiteConfig['en']> = {
   nav: [
     { label: 'Products', href: '/products' },
     { label: 'Center', href: '/center' },
@@ -43,6 +43,16 @@ export const SITE_EN: SiteConfig['en'] = {
     { label: 'Business', href: '/business' },
     { label: 'About', href: '/about' },
   ],
+  // 公告条与顶栏 CTA 的英文文案：不配则英文语境下不展示（不以中文冒充英文）
+  announcement: {
+    enabled: true,
+    text: '54027X1QE — 4th-gen W-OLED flagship now shipping · Book an in-store demo',
+    href: '/business/venues',
+    dismissible: true,
+  },
+  topCta: {
+    primary: { label: 'Book a demo', href: '/business/venues' },
+  },
   footer: [
     {
       title: 'Products',

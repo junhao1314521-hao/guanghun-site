@@ -188,8 +188,15 @@ export type SiteConfig = {
   /** 页脚社交与二维码（扩展字段；缺省用前台本地真源） */
   social?: SiteSocialConfig
   /**
-   * 英文变体覆盖（扩展字段；缺省 = 无英文，前台切英文时回退到中文 nav/footer）。
-   * 仅覆盖 nav / footer 的文案；enabledBlocks / theme 等仍取主配置。
+   * 英文变体覆盖（扩展字段；缺省 = 无英文）。
+   * - nav / footer：未配英文时**回退中文**（沿用既有行为，保证导航永远可用）；
+   * - announcement / topCta：未配英文时**不展示**——按「不以中文冒充英文」的公测约定，
+   *   英文语境下宁可少一条公告 / 少一个 CTA，也不显示中文文案。
    */
-  en?: { nav: SiteLink[]; footer: SiteFooterGroup[] }
+  en?: {
+    nav: SiteLink[]
+    footer: SiteFooterGroup[]
+    announcement?: SiteAnnouncement
+    topCta?: { primary?: SiteCta; secondary?: SiteCta }
+  }
 }

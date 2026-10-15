@@ -56,6 +56,7 @@ export function initStore(): void {
 /** 追加式回填英文变体：缺失的 `__en` 页写入；`site_config` 缺 `.en` 补英文 nav/footer。 */
 function ensureEnVariants(): void {
   let enPagesAdded = 0
+  let enSitePatched = false
   runInTransaction((tx) => {
     const exists = tx.prepare('SELECT 1 AS x FROM content_pages WHERE key = ?')
     const insert = tx.prepare('INSERT OR REPLACE INTO content_pages(key, data, updated_at) VALUES(?, ?, ?)')
@@ -64,7 +65,8 @@ function ensureEnVariants(): void {
       insert.run(page.key, JSON.stringify(page), page.updatedAt)
       enPagesAdded += 1
     }
-    // 站点配置缺 .en → 补英文 nav/footer（不覆盖 nav/footer/enabledBlocks/theme 等主字段）
+    // 站点配置缺 .en → 补英文 nav/footer；已有 .en 则只补「本版本新增且缺失」的英文子字段
+    // （公告条 / 顶栏 CTA）。一律不覆盖已有值，保持「追加式演进不丢运营写入」。
     const row = tx.prepare('SELECT data FROM site_config WHERE id = 1').get() as { data: string } | undefined
     if (row) {
       let site: SiteConfig
@@ -73,13 +75,28 @@ function ensureEnVariants(): void {
       } catch {
         return
       }
+      let changed = false
       if (!site.en) {
         site.en = SITE_EN
+        changed = true
+      } else {
+        if (!site.en.announcement && SITE_EN.announcement) {
+          site.en.announcement = SITE_EN.announcement
+          changed = true
+        }
+        if (!site.en.topCta && SITE_EN.topCta) {
+          site.en.topCta = SITE_EN.topCta
+          changed = true
+        }
+      }
+      if (changed) {
         tx.prepare('UPDATE site_config SET data = ? WHERE id = 1').run(JSON.stringify(site))
+        enSitePatched = true
       }
     }
   })
   if (enPagesAdded > 0) logger.info('内容库英文变体已追加式回填', { pages: enPagesAdded })
+  if (enSitePatched) logger.info('站点配置英文变体已追加式回填', { fields: 'nav/footer/announcement/topCta' })
 }
 
 /** 页面 → 列表项（不含 blocks） */
@@ -104,13 +121,22 @@ export type PageInput = {
 
 /* ---------------- 读取 ---------------- */
 
-/** 站点配置（locale='en' 时若有 `en` 覆盖则合并 nav/footer，其余字段不变） */
+/**
+ * 站点配置。`locale='en'` 且存在 `en` 覆盖时：
+ * - nav / footer 取英文变体（缺英文时沿用主配置，保证导航可用）；
+ * - announcement / topCta **只取英文变体**，未配置即不展示——不以中文冒充英文。
+ */
 export function getSiteConfig(locale?: Locale): SiteConfig {
   initStore()
   const row = getDb().prepare('SELECT data FROM site_config WHERE id = 1').get() as { data: string }
   const site = JSON.parse(row.data) as SiteConfig
   if (locale === 'en' && site.en) {
-    return { ...site, nav: site.en.nav, footer: site.en.footer }
+    const merged: SiteConfig = { ...site, nav: site.en.nav, footer: site.en.footer }
+    delete merged.announcement
+    delete merged.topCta
+    if (site.en.announcement) merged.announcement = site.en.announcement
+    if (site.en.topCta) merged.topCta = site.en.topCta
+    return merged
   }
   return site
 }
