@@ -1444,13 +1444,42 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   box-shadow: var(--shadow-lg);
   padding: var(--gh-space-4) var(--gh-space-5) var(--gh-space-4);
 }
+/* 卡片聚焦（打开 / 切步时聚焦卡片，供读屏播报）；去掉默认轮廓，改用主题描边 */
+.admin-tour-card:focus { outline: none; }
+.admin-tour-card:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+/* 指向高亮目标的箭头（卡片置于目标右侧，故箭头朝左） */
+.admin-tour-card__arrow {
+  position: absolute;
+  left: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-bg-surface);
+  border-left: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  transform: rotate(45deg);
+}
+.admin-tour-card__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-2); }
 .admin-tour-card__step { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); font-family: var(--gh-font-mono); }
+.admin-tour-card__close { height: 24px; padding: 0 var(--gh-space-1); color: var(--color-text-tertiary); }
+.admin-tour-card__close:hover { color: var(--color-text-primary); }
 .admin-tour-card__title { margin: var(--gh-space-1) 0 var(--gh-space-2); font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); }
 .admin-tour-card__desc { margin: 0; font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); line-height: var(--gh-line-height-body); }
+/* 进度点：当前步拉长为胶囊，已过步半透明，未到步取描边色 */
+.admin-tour-card__dots { display: flex; align-items: center; gap: 6px; margin-top: var(--gh-space-3); }
+.admin-tour-card__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--gh-radius-full);
+  background: var(--color-border-strong);
+  transition: width var(--gh-duration-base) var(--gh-ease-standard), background var(--gh-duration-base) var(--gh-ease-standard);
+}
+.admin-tour-card__dot.is-done { background: var(--color-accent); opacity: .45; }
+.admin-tour-card__dot.is-active { width: 16px; background: var(--color-accent); }
 .admin-tour-card__foot { display: flex; align-items: center; gap: var(--gh-space-2); margin-top: var(--gh-space-4); }
 .admin-tour-card__spacer { flex: 1; }
 @media (max-width: 767px) {
   .admin-tour-card { width: auto; left: var(--gh-space-4) !important; right: var(--gh-space-4) !important; }
+  .admin-tour-card__arrow { display: none; }
 }
 
 /* ---------- 角色与权限（只读视图） ---------- */
