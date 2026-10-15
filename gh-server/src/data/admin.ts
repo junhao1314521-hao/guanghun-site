@@ -29,12 +29,21 @@ export type AdminUser = {
 
 /**
  * 种子账号（仅作为**首次建库时的哈希来源**，明文不落库）：
- * admin / admin123（超级管理员 / role=admin）、operator / oper123（内容运营 / role=operator）。
- * 前端提示的演示凭据与此一致，保持不变。
+ * admin（超级管理员 / role=admin）、operator（内容运营 / role=operator）。
+ * 口令可用环境变量覆盖（生产务必设置强口令）：
+ *   - `ADMIN_PASSWORD`：admin 口令（默认 `admin123`）
+ *   - `ADMIN_OPERATOR_PASSWORD`：operator 口令（默认 `oper123`）
+ * 注意：覆盖仅在**首次建库**（admin_users 表为空）时生效；已有库需清库或手动改库。
  */
 const ADMIN_USER_SEEDS: Array<{ id: string; username: string; name: string; role: RoleKey; password: string }> = [
-  { id: 'u-admin', username: 'admin', name: '管理员', role: 'admin', password: 'admin123' },
-  { id: 'u-operator', username: 'operator', name: '运营专员', role: 'operator', password: 'oper123' },
+  { id: 'u-admin', username: 'admin', name: '管理员', role: 'admin', password: process.env.ADMIN_PASSWORD ?? 'admin123' },
+  {
+    id: 'u-operator',
+    username: 'operator',
+    name: '运营专员',
+    role: 'operator',
+    password: process.env.ADMIN_OPERATOR_PASSWORD ?? 'oper123',
+  },
 ]
 
 /** 会话 Cookie 名 */

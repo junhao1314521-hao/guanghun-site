@@ -12,7 +12,10 @@ services:
       # 前端产物由 Express 同源托管（Dockerfile 内已构建）
       - key: STATIC_DIR
         value: /app/gh-web/dist
-      # 说明：后台「免登录」由 Vite 在**构建期**内联（默认开启）。
-      # 上线前关闭方式：把 Dockerfile 里的构建行改为
-      #   RUN VITE_API_BASE= VITE_ADMIN_AUTO_LOGIN=off npm --prefix gh-web run build
-      # 然后重新部署即可（运行时环境变量对它无效）。
+      # 生产安全：Dockerfile 已默认以 VITE_ADMIN_AUTO_LOGIN=off 构建（进 /admin 必须登录）。
+      # 若确需「免登录」演示：在 Render 的 Docker 构建参数里设 VITE_ADMIN_AUTO_LOGIN=on 后重新部署。
+      # 首次建库时的后台口令（仅表为空时生效）：
+      #   - key: ADMIN_PASSWORD
+      #     value: <改成你的强口令>
+      #   - key: ADMIN_OPERATOR_PASSWORD
+      #     value: <改成你的强口令>

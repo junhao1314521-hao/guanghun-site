@@ -14,9 +14,9 @@ import { AuthShell } from '../../components/site/AuthShell'
 
 type LoginState = { from?: string } | null
 
-/** 演示用后台账号（与后端种子账号一致） */
-const DEMO_USER = 'admin'
-const DEMO_PASS = 'admin123'
+/** 演示用后台账号（与后端种子账号一致）；如需改演示凭据，构建期注入 VITE_ADMIN_DEMO_USER / VITE_ADMIN_DEMO_PASS */
+const DEMO_USER = import.meta.env.VITE_ADMIN_DEMO_USER ?? 'admin'
+const DEMO_PASS = import.meta.env.VITE_ADMIN_DEMO_PASS ?? 'admin123'
 
 /**
  * 是否开启「免登录」。默认开启（方便演示与验收）；

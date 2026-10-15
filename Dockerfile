@@ -15,7 +15,10 @@ WORKDIR /app
 COPY gh-web/package.json gh-web/package-lock.json ./gh-web/
 RUN npm --prefix gh-web ci
 COPY gh-web ./gh-web
-RUN VITE_API_BASE= npm --prefix gh-web run build
+# 后台「免登录」在构建期内联，默认关闭（生产安全：进 /admin 必须登录）。
+# 仅用于内部/短期演示时可传 --build-arg VITE_ADMIN_AUTO_LOGIN=on 重新打开。
+ARG VITE_ADMIN_AUTO_LOGIN=off
+RUN VITE_API_BASE= VITE_ADMIN_AUTO_LOGIN=$VITE_ADMIN_AUTO_LOGIN npm --prefix gh-web run build
 
 # 2) 后端依赖
 COPY gh-server/package.json gh-server/package-lock.json ./gh-server/
