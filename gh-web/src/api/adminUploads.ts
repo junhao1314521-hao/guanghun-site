@@ -207,6 +207,14 @@ export function moveUploads(ids: string[], folderId: string | null): Promise<{ o
   )
 }
 
+/** 素材引用数：GET /api/admin/uploads/:id/references（删除前二次确认用） */
+export function fetchUploadReferences(id: string, signal?: AbortSignal): Promise<{ url: string; count: number }> {
+  return transport<{ url: string; count: number }>(
+    { path: `/api/admin/uploads/${encodeURIComponent(id)}/references`, signal, token: getAdminToken() ?? undefined },
+    () => ({ url: '', count: 0 }),
+  )
+}
+
 /** 删除素材：DELETE /api/admin/uploads/:id（未命中 → 404） */
 export function deleteUpload(id: string): Promise<{ ok: boolean }> {
   return transport<{ ok: boolean }>(

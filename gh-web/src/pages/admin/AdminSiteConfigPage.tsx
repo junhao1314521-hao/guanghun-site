@@ -21,10 +21,10 @@ import type {
   SiteCta,
   SiteFooterGroup,
   SiteLink,
-  SiteSocialConfig,
   SiteWarrantyConfig,
 } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
+import type { SiteSocialItem } from '../../data/contentTypes'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { Select } from '../../components/admin/Select'
 import { ErrorState } from '../../components/admin/states'
@@ -89,7 +89,7 @@ function LinkListEditor({
                 value={link.badge ?? ''}
                 onChange={(value) => {
                   const next = value as '' | 'new' | 'hot'
-                  update(index, { badge: next === '' ? undefined : next, ...(next === '' ? { badgeShake: undefined, badgeText: undefined } : {}) })
+                  update(index, { badge: next === '' ? undefined : next, ...(next === '' ? { badgeText: undefined } : {}) })
                 }}
                 options={[
                   { value: '', label: '无角标' },
@@ -107,15 +107,6 @@ function LinkListEditor({
                 value={link.badgeText ?? ''}
                 onChange={(event) => update(index, { badgeText: event.target.value || undefined })}
               />
-              <label className="site-link__shake">
-                <input
-                  type="checkbox"
-                  checked={Boolean(link.badgeShake)}
-                  disabled={!link.badge}
-                  onChange={(event) => update(index, { badgeShake: event.target.checked })}
-                />
-                摇动
-              </label>
             </span>
           )}
           <div className="site-link__actions">
@@ -234,6 +225,12 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setDirty(true)
   }
 
+  // 下拉面板推荐卡开关（缺省 false）
+  const setNavFeature = (navFeatureEnabled: boolean) => {
+    setSite((prev) => ({ ...prev, navFeatureEnabled }))
+    setDirty(true)
+  }
+
   const setFooter = (footer: SiteFooterGroup[]) => {
     setSite((prev) => ({ ...prev, footer }))
     setDirty(true)
@@ -264,8 +261,15 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setDirty(true)
   }
 
-  const setSocial = (social: SiteSocialConfig) => {
-    setSite((prev) => ({ ...prev, social }))
+  // 页脚社交（§1.9）：每个平台一条（二维码 / 账号 / 链接三项选填）
+  const setSocialItems = (items: SiteSocialItem[]) => {
+    setSite((prev) => ({ ...prev, social: { items } }))
+    setDirty(true)
+  }
+
+  // 留言轻量分流开关（§1.6；缺省开启）
+  const setInquiryRouting = (inquiryRouting: boolean) => {
+    setSite((prev) => ({ ...prev, inquiryRouting }))
     setDirty(true)
   }
 
@@ -343,9 +347,19 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </div>
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
             顶栏导航链接列表：顺序即展示顺序，「名称」为展示文案，「链接」为前台路径（如 /products）。
-            可给入口加 NEW / HOT 角标，并让角标隔几秒摇动一下以吸引注意。
+            可给入口加 NEW / HOT 角标。
           </p>
           <LinkListEditor links={site.nav} onChange={setNav} addLabel="新增导航链接" showBadge />
+          <div className="site-link" style={{ marginTop: 'var(--gh-space-4)' }}>
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={Boolean(site.navFeatureEnabled)}
+                onChange={(event) => setNavFeature(event.target.checked)}
+              />
+              下拉面板显示右侧推荐卡（默认关闭）
+            </label>
+          </div>
         </section>
 
         <section className="admin-panel">
@@ -504,6 +518,14 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             <label className="site-link__shake">
               <input
                 type="checkbox"
+                checked={site.inquiryRouting !== false}
+                onChange={(event) => setInquiryRouting(event.target.checked)}
+              />
+              留言轻量分流（售前 / 售后 / 商务 → 主题联动，默认开）
+            </label>
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
                 checked={Boolean(site.warranty?.snParse)}
                 onChange={(event) => setWarranty({ snParse: event.target.checked })}
               />
@@ -532,69 +554,95 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </div>
         </section>
 
-        {/* —— 页脚社交与二维码：真实化 —— */}
+        {/* —— 页脚社交（§1.9）：每个平台一条（二维码 / 账号 / 链接三项选填）—— */}
         <section className="admin-panel">
           <div className="admin-panel__head">
-            <h2 className="admin-panel__title">页脚社交与二维码</h2>
+            <h2 className="admin-panel__title">页脚社交</h2>
+            <span className="admin-table__count">{(site.social?.items ?? []).length} 个平台</span>
           </div>
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
-            维护页脚社交关注链接（微信 / 微博 / B 站 / 抖音等）与官方二维码图片地址（在「素材库」上传后复制地址填入）。
+            每个平台一条：只填「二维码」→ 悬停 / 点击浮层展示二维码与名称；只填「账号」→ 浮层展示「账号 + 一句提示」；
+            只填「链接」→ 直接跳转、不弹层。二维码地址在「素材库」上传后复制填入。
           </p>
-          <p className="admin-page__desc" style={{ margin: '0 0 var(--gh-space-2)' }}>
-            社交关注
-          </p>
-          <LinkListEditor
-            links={site.social?.links ?? []}
-            addLabel="新增社交入口"
-            onChange={(links) => setSocial({ links, qr: site.social?.qr ?? [] })}
-          />
-          <p className="admin-page__desc" style={{ margin: 'var(--gh-space-4) 0 var(--gh-space-2)' }}>
-            官方二维码
-          </p>
-          <div className="site-links">
-            {(site.social?.qr ?? []).map((item, index) => (
-              <div className="site-link" key={index}>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="二维码名称（如 官方微信）"
-                  value={item.label}
-                  onChange={(event) => {
-                    const qr = (site.social?.qr ?? []).slice()
-                    qr[index] = { ...qr[index], label: event.target.value }
-                    setSocial({ links: site.social?.links ?? [], qr })
-                  }}
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="二维码图片地址（/uploads/…）"
-                  value={item.image}
-                  onChange={(event) => {
-                    const qr = (site.social?.qr ?? []).slice()
-                    qr[index] = { ...qr[index], image: event.target.value }
-                    setSocial({ links: site.social?.links ?? [], qr })
-                  }}
-                />
-                <div className="site-link__actions">
-                  <button
-                    type="button"
-                    className="btn btn--danger-ghost btn--sm"
-                    onClick={() =>
-                      setSocial({ links: site.social?.links ?? [], qr: (site.social?.qr ?? []).filter((_, i) => i !== index) })
-                    }
-                  >
-                    删除
-                  </button>
+          <div className="site-groups">
+            {(site.social?.items ?? []).map((item, index) => {
+              const items = site.social?.items ?? []
+              const patch = (p: Partial<SiteSocialItem>) => {
+                const next = items.slice()
+                next[index] = { ...next[index], ...p }
+                setSocialItems(next)
+              }
+              return (
+                <div className="site-group" key={index}>
+                  <div className="site-group__head">
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="平台名称（如 微信 / 微博 / B 站 / 抖音）"
+                      value={item.label}
+                      onChange={(event) => patch({ label: event.target.value })}
+                    />
+                    <div className="site-link__actions">
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        disabled={index === 0}
+                        title="上移"
+                        onClick={() => setSocialItems(move(items, index, -1))}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        disabled={index === items.length - 1}
+                        title="下移"
+                        onClick={() => setSocialItems(move(items, index, 1))}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--danger-ghost btn--sm"
+                        onClick={() => setSocialItems(items.filter((_, i) => i !== index))}
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                  <div className="site-link">
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="账号（可选，如 guanghun-official）"
+                      value={item.account ?? ''}
+                      onChange={(event) => patch({ account: event.target.value || undefined })}
+                    />
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="二维码图片地址（可选，/uploads/…）"
+                      value={item.qr ?? ''}
+                      onChange={(event) => patch({ qr: event.target.value || undefined })}
+                    />
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="链接（可选，仅有链接则直接跳转）"
+                      value={item.href ?? ''}
+                      onChange={(event) => patch({ href: event.target.value || undefined })}
+                    />
+                  </div>
+                  <span className="field__hint">三项均可留空；二维码 / 账号 / 链接按上方规则决定浮层或跳转。</span>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             <button
               type="button"
               className="btn btn--secondary btn--sm"
-              onClick={() => setSocial({ links: site.social?.links ?? [], qr: [...(site.social?.qr ?? []), { label: '', image: '' }] })}
+              onClick={() => setSocialItems([...(site.social?.items ?? []), { label: '' }])}
             >
-              + 新增二维码
+              + 新增社交平台
             </button>
           </div>
         </section>

@@ -4,7 +4,7 @@
  * 详情页的转化收口：主次按钮（文案与链接可配）+ 保障要点（每行一条）。
  * 复用区块标题组（主标题 / 子标题 / 右侧按钮），与全站调性一致。
  */
-import { Link } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { useI18n } from '../i18n'
 import { asString, asStringArray } from './blockUtils'
@@ -13,9 +13,9 @@ function CtaButton({ label, href, primary }: { label: string; href: string; prim
   if (!label) return null
   const className = `btn ${primary ? 'btn--primary' : 'btn--secondary'} btn--lg`
   return href.startsWith('/') ? (
-    <Link className={className} to={href}>
+    <SafeLink className={className} to={href}>
       {label}
-    </Link>
+    </SafeLink>
   ) : (
     <a className={className} href={href}>
       {label}

@@ -80,6 +80,8 @@ supportExtraRouter.post('/inquiry', (req, res) => {
   const model = readString(body.model)
   const topic = readString(body.topic)
   const message = readString(body.message)
+  // 轻量分流：咨询类型（售前咨询 / 售后报修 / 商务合作），独立落库供后台按类型分派 / 筛选
+  const inquiryType = readString(body.inquiryType)
   // 服务端校验：缺失必填项返回 400，不写入空记录
   if (!name || !contact || !model || !message) {
     res.status(400).json({ error: '请填写称呼、联系方式、产品型号与问题描述' })
@@ -101,6 +103,8 @@ supportExtraRouter.post('/inquiry', (req, res) => {
     model,
     message,
     status: 'info',
+    // 咨询类型（轻量分流）：仅在有值时写入，供后台「按类型分派 / 筛选」
+    ...(inquiryType ? { inquiryType } : {}),
     // 未登录访客提交的咨询无归属（userId 省略），登录用户归其所有
     ...(sessionUser ? { userId: sessionUser.id } : {}),
   })

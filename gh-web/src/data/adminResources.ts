@@ -66,6 +66,8 @@ export type AdminFieldType =
   | 'rich'
   /** 文件地址：上传任意允许类型文件 + 从素材库选择（见 components/admin/FileField） */
   | 'file'
+  /** 多图相册：逐张上传 / 从素材库选择 + 排序（见 components/admin/MultiImageField），值为地址数组 */
+  | 'images'
 
 export type AdminField = {
   key: string
@@ -175,6 +177,14 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'priceValue', label: '价格数值（元）', type: 'number', hint: '用于排序与价格区间筛选' },
           { key: 'releasedAt', label: '上新时间', type: 'date' },
           { key: 'tagline', label: '一句话卖点', type: 'text', span: 2, hint: '详情页标题下方展示，如：2K 540Hz · 0.03ms GTG' },
+          {
+            key: 'buyUrl',
+            label: '购买链接',
+            type: 'text',
+            span: 2,
+            placeholder: 'https://… 或 /inquiry',
+            hint: '详情页 / 对比页主按钮「立即购买」取此链接；留空则回退到区块配置的链接',
+          },
           { key: 'stock', label: '库存数量', type: 'number', hint: '数值，0 视为缺货；留空则不展示' },
         ],
       },
@@ -203,6 +213,20 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'weight', label: '整机重量（克）', type: 'number' },
           { key: 'warranty', label: '保修政策', type: 'text', span: 2 },
           { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：显示器 × 1、电源线 × 1' },
+          {
+            key: 'gallery',
+            label: '相册图片',
+            type: 'images',
+            span: 2,
+            hint: '按产品单独上传 / 从素材库选择，可排序（不设上限，建议 ≤ 20 张）；留空则前台回退内置 4 视角图',
+          },
+          {
+            key: 'detailHtml',
+            label: '详情富文本',
+            type: 'rich',
+            span: 2,
+            hint: '长图 / 图文混排（HTML 原文）；前台详情页「产品详情图文」区块渲染，渲染前经白名单净化，留空则不展示',
+          },
         ],
       },
     ],
@@ -478,6 +502,54 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'date', label: '更新时间', type: 'date' },
           { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一项，如：54027X1QE-W54' },
           { key: 'note', label: '说明', type: 'textarea', span: 2 },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'brand-assets',
+    label: '品牌资料',
+    icon: 'download',
+    title: '品牌资料',
+    desc: '面向 B 端（渠道 / 媒体 / 合作方）的品牌规范、Logo、产品图与送测物料；与 C 端下载中心数据分开。',
+    creatable: true,
+    editable: true,
+    deletable: true,
+    searchKeys: ['name', 'category'],
+    columns: [
+      { key: 'name', label: '资料名称', type: 'strong' },
+      { key: 'category', label: '分类', type: 'tag' },
+      { key: 'format', label: '格式', type: 'tag' },
+      { key: 'size', label: '大小', type: 'mono' },
+      { key: 'fileUrl', label: '文件', type: 'file' },
+      { key: 'requireLead', label: '需留资', type: 'bool' },
+      { key: 'date', label: '更新日期', type: 'date' },
+    ],
+    filters: [{ key: 'category', label: '分类', options: ['规范', 'Logo', '图片', '送测'] }],
+    form: [
+      {
+        title: '资料信息',
+        fields: [
+          { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
+          { key: 'name', label: '资料名称', type: 'text', span: 2, required: true },
+          { key: 'desc', label: '说明', type: 'textarea', span: 2 },
+          { key: 'category', label: '分类', type: 'select', options: ['规范', 'Logo', '图片', '送测'] },
+          { key: 'format', label: '格式', type: 'text', placeholder: 'PDF / ZIP / AI / PNG' },
+          { key: 'size', label: '文件大小', type: 'text', placeholder: '如：12.4 MB' },
+          { key: 'date', label: '更新日期', type: 'date' },
+          {
+            key: 'requireLead',
+            label: '需留资 / 申请授权',
+            type: 'switch',
+            hint: '打开后，前台点击该资料给出留资提示（引导至 /inquiry 提交咨询）',
+          },
+          {
+            key: 'fileUrl',
+            label: '文件',
+            type: 'file',
+            span: 2,
+            hint: '上传或从素材库选择文件，也可直接填外链 / 对象存储地址；前台下载按钮指向该地址',
+          },
         ],
       },
     ],
@@ -1527,6 +1599,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { kind: 'resource', key: 'biz-content' },
       { kind: 'resource', key: 'biz-cases' },
       { kind: 'resource', key: 'biz-venues' },
+      { kind: 'resource', key: 'brand-assets' },
     ],
   },
   {

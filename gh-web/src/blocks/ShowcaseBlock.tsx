@@ -10,7 +10,7 @@
  * props: items:{productId?,media,mediaType?,eyebrow?,model?,title,desc?,price?,specs?:string[],features?:string[],cta?}[]
  */
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockIcon } from '../components/home/BlockIcon'
 import { MediaImg } from '../components/ui/MediaImg'
@@ -100,23 +100,23 @@ export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
               {item.price && <span className="showcase__price">{item.price}</span>}
               <div className="showcase__cta">
                 {/* 主 CTA：预约到店体验（埋点 reserve）；次 CTA：把当前产品加入对比（带 ?ids=） */}
-                <Link
+                <SafeLink
                   className="btn btn--primary"
                   to="/business/venues"
                   onClick={() => trackEvent('reserve', item.productId || 'showcase')}
                 >
                   预约体验
-                </Link>
-                <Link
+                </SafeLink>
+                <SafeLink
                   className="btn btn--secondary"
                   to={item.productId ? `/compare?ids=${encodeURIComponent(item.productId)}` : '/compare'}
                   onClick={() => trackEvent('compare', item.productId || 'showcase')}
                 >
                   加入对比
-                </Link>
-                <Link className="showcase__more" to={detailHref}>
+                </SafeLink>
+                <SafeLink className="showcase__more" to={detailHref}>
                   查看详情<span aria-hidden="true">→</span>
-                </Link>
+                </SafeLink>
               </div>
               {items.length > 1 && (
                 <div className="showcase__pager">

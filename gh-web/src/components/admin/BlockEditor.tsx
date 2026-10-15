@@ -9,14 +9,14 @@
  * layout.children 由父级装修器的布局编排区负责，这里仅给出提示。
  * 契约对齐：《光魂官网 · 内容库与装修契约 v1》§4 / §6.3。
  */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Block, BlockFieldMeta, BlockTypeMeta } from '../../data/contentTypes'
 import { fetchProducts } from '../../api/products'
 import { fetchArticles } from '../../api/articles'
 import { fetchDownloads, fetchFaqs } from '../../api/support-extra'
 import { fetchBizCases, fetchBizVenues } from '../../api/business-extra'
 import { useApi } from '../../hooks/useApi'
-import { emptyItem, isStringList, resolveItemFields } from './blockBuilderUtils'
+import { isStringList, newItem, resolveItemFields } from './blockBuilderUtils'
 import { ImageField, MediaField } from './ImageField'
 import { RichTextField } from './RichTextField'
 import { Select } from './Select'
@@ -221,7 +221,97 @@ function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines
   )
 }
 
-/** 单字段输入控件（text / textarea / number / select / switch / image / link） */
+/** 九宫格快捷位（左 / 中 / 右 × 上 / 中 / 下 → 百分比坐标） */
+const POSITION_PRESETS: { label: string; x: number; y: number }[] = [
+  { label: '左上', x: 8, y: 14 },
+  { label: '中上', x: 50, y: 14 },
+  { label: '右上', x: 92, y: 14 },
+  { label: '左中', x: 8, y: 50 },
+  { label: '正中', x: 50, y: 50 },
+  { label: '右中', x: 92, y: 50 },
+  { label: '左下', x: 8, y: 86 },
+  { label: '中下', x: 50, y: 86 },
+  { label: '右下', x: 92, y: 86 },
+]
+
+/** 0–100 收敛 */
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 50
+  return Math.min(100, Math.max(0, value))
+}
+
+/**
+ * 海报文案位置控件（字段 kind: 'position'）：
+ * 矩形预览区 = 可拖动的小圆点 + 九宫格快捷位，二者写同一个 `{ x, y }` 百分比坐标字段，
+ * 拖动实时更新并显示数值。复用后台既有按钮样式（btn--ghost / btn--primary）与令牌。
+ */
+function PositionField({ value, onChange }: { value: unknown; onChange: (value: unknown) => void }) {
+  const record = value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+  const x = clampPercent(typeof record.x === 'number' ? record.x : 8)
+  const y = clampPercent(typeof record.y === 'number' ? record.y : 50)
+  const areaRef = useRef<HTMLDivElement>(null)
+  const dragging = useRef(false)
+
+  const update = (nextX: number, nextY: number) =>
+    onChange({ x: Math.round(clampPercent(nextX)), y: Math.round(clampPercent(nextY)) })
+
+  const setFromEvent = (clientX: number, clientY: number) => {
+    const el = areaRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return
+    update(((clientX - rect.left) / rect.width) * 100, ((clientY - rect.top) / rect.height) * 100)
+  }
+
+  return (
+    <div className="poster-pos">
+      <div
+        ref={areaRef}
+        className="poster-pos__area"
+        role="application"
+        aria-label="文案位置预览，可拖动圆点调整"
+        onPointerDown={(event) => {
+          dragging.current = true
+          event.currentTarget.setPointerCapture(event.pointerId)
+          setFromEvent(event.clientX, event.clientY)
+        }}
+        onPointerMove={(event) => {
+          if (dragging.current) setFromEvent(event.clientX, event.clientY)
+        }}
+        onPointerUp={(event) => {
+          dragging.current = false
+          event.currentTarget.releasePointerCapture(event.pointerId)
+        }}
+        onPointerCancel={() => {
+          dragging.current = false
+        }}
+      >
+        <span className="poster-pos__dot" style={{ left: `${x}%`, top: `${y}%` }} aria-hidden="true" />
+      </div>
+      <div className="poster-pos__grid" role="group" aria-label="九宫格快捷位置">
+        {POSITION_PRESETS.map((preset) => {
+          const activePreset = x === preset.x && y === preset.y
+          return (
+            <button
+              key={preset.label}
+              type="button"
+              className={`btn btn--sm ${activePreset ? 'btn--primary' : 'btn--ghost'}`}
+              aria-pressed={activePreset}
+              onClick={() => update(preset.x, preset.y)}
+            >
+              {preset.label}
+            </button>
+          )
+        })}
+      </div>
+      <span className="field__hint">
+        横向 {Math.round(x)}% · 纵向 {Math.round(y)}%（拖动圆点或点九宫格快捷位）
+      </span>
+    </div>
+  )
+}
+
+/** 单字段输入控件（text / textarea / number / select / switch / image / link / position） */
 function FieldControl({
   field,
   value,
@@ -288,6 +378,10 @@ function FieldControl({
         />
       </div>
     )
+  }
+
+  if (field.kind === 'position') {
+    return <PositionField value={value} onChange={onChange} />
   }
 
   if (field.kind === 'ref') {
@@ -443,7 +537,7 @@ function ItemListEditor({
           )}
         </div>
       ))}
-      <button type="button" className="btn btn--secondary btn--sm" onClick={() => onChange([...items, emptyItem(itemFields)])}>
+      <button type="button" className="btn btn--secondary btn--sm" onClick={() => onChange([...items, newItem(meta, itemFields)])}>
         + 新增{field.label}
       </button>
     </div>

@@ -23,6 +23,8 @@ export type DownloadItem = {
   note: string
   /** 适用平台（运营维护，缺省不展示） */
   platform?: string
+  /** 可下载文件地址（来自后台 downloads.fileUrl；缺省则前台回退到下载详情页） */
+  fileUrl?: string
 }
 
 /** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
@@ -437,7 +439,7 @@ export const CONTACT_PAYLOAD: ContactPayload = {
   channels: [
     { kind: 'phone', label: '客服热线', value: '400-000-0000', note: '周一至周日 09:00–21:00' },
     { kind: 'mail', label: '技术支持邮箱', value: 'support@guanghun.example', note: '1 个工作日内回复' },
-    { kind: 'chat', label: '在线咨询', value: '提交咨询工单', note: '提交后可在客户中心跟踪进度' },
+    { kind: 'chat', label: '在线咨询', value: '提交咨询工单', note: '提交后可在个人中心跟踪进度' },
   ],
   offices: [
     { city: '上海', address: '静安区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '10:00–21:00' },

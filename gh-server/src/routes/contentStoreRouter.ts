@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { BLOCK_TYPES } from '../data/blockCatalog'
 import { getPage, getSiteConfig, listPages } from '../data/contentStore'
+import { normalizeSocialConfig } from '../data/contentTypes'
 import { readLocale } from '../data/locale'
 
 /**
@@ -39,12 +40,19 @@ contentStoreRouter.get('/site', (req, res) => {
     footer: site.footer,
     ...(site.enabledBlocks ? { enabledBlocks: site.enabledBlocks } : {}),
     ...(site.theme ? { theme: site.theme } : {}),
-    // 扩展字段：公告条 / 顶栏 CTA / 安全开关 / 保修参数 / 页脚社交二维码（未设置则不返回，前台回退本地缺省）
+    // 扩展字段：公告条 / 顶栏 CTA / 安全开关 / 保修参数 / 页脚社交（未设置则不返回，前台回退本地缺省）
     ...(site.announcement ? { announcement: site.announcement } : {}),
     ...(site.topCta ? { topCta: site.topCta } : {}),
     ...(site.auth ? { auth: site.auth } : {}),
     ...(site.warranty ? { warranty: site.warranty } : {}),
-    ...(site.social ? { social: site.social } : {}),
+    // 页脚社交：统一归一化为「每平台一条」（兼容历史 links+qr 两条列表的旧配置）
+    ...(site.social ? { social: normalizeSocialConfig(site.social) } : {}),
+    // 下拉面板推荐卡开关（未设置则不返回，前台缺省即不渲染推荐卡）
+    ...(site.navFeatureEnabled !== undefined ? { navFeatureEnabled: site.navFeatureEnabled } : {}),
+    // 留言轻量分流开关（未设置则不返回，前台缺省 = 开启）
+    ...(site.inquiryRouting !== undefined ? { inquiryRouting: site.inquiryRouting } : {}),
+    // 站点默认主题（未设置则不返回，前台缺省 'auto' = 跟随系统）
+    ...(site.defaultTheme ? { defaultTheme: site.defaultTheme } : {}),
   })
 })
 

@@ -4,6 +4,7 @@ import { MEGA_PANELS } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
 import { useSiteNav } from '../../hooks/useSiteConfig'
+import { useSitePages } from '../../hooks/useSitePages'
 import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
 import { IconChevronDown, IconClose } from '../ui/Icon'
@@ -26,6 +27,8 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
   // 一级导航来自内容库站点配置（回落本地真源），二级栏目按语言选用本地 MEGA_PANELS（中文）/ EN 覆盖
   const navItems = useSiteNav()
   const panels = lang === 'en' ? MEGA_PANELS_EN : MEGA_PANELS
+  // 下线级联：抽屉二级栏目与顶栏下拉同源，统一走 isPathLive 过滤，已下线页面入口不出现
+  const { isPathLive } = useSitePages()
   const [expanded, setExpanded] = useState<string | null>(null)
   // 关闭动画期间保留 DOM（与 .drawer 的 340ms 过渡对齐）
   const [mounted, setMounted] = useState(open)
@@ -138,16 +141,20 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
                 </button>
                 <div className="drawer__sub">
                   <div className="drawer__sub-inner">
-                    {panel.columns.map((column) => (
-                      <Fragment key={column.eyebrow}>
-                        <p className="mega__eyebrow">{column.eyebrow}</p>
-                        {column.links.map((link) => (
-                          <Link className="mega__link" key={link.label} to={link.to} onClick={onClose}>
-                            {link.label}
-                          </Link>
-                        ))}
-                      </Fragment>
-                    ))}
+                    {panel.columns.map((column) => {
+                      const links = column.links.filter((link) => isPathLive(link.to))
+                      if (links.length === 0) return null
+                      return (
+                        <Fragment key={column.eyebrow}>
+                          <p className="mega__eyebrow">{column.eyebrow}</p>
+                          {links.map((link) => (
+                            <Link className="mega__link" key={link.label} to={link.to} onClick={onClose}>
+                              {link.label}
+                            </Link>
+                          ))}
+                        </Fragment>
+                      )
+                    })}
                   </div>
                 </div>
               </div>

@@ -5,7 +5,7 @@
  * body 以 `\n` 分隔：首行作导语，其余作要点列表（对齐 seed 的 `desc\npoints` 形态）。
  * side 表示图片所处一侧：'left' → 图在左（grid-2--flip），'right' → 图在右。
  */
-import { Link } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
 import { MediaImg } from '../components/ui/MediaImg'
 import { asLink, asString, splitBody } from './blockUtils'
 
@@ -39,9 +39,9 @@ export function ImageTextBlock({ props }: { props: Record<string, unknown> }) {
         )}
         {cta && (
           <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
-            <Link className="btn btn--secondary" to={cta.href}>
+            <SafeLink className="btn btn--secondary" to={cta.href}>
               {cta.label}
-            </Link>
+            </SafeLink>
           </div>
         )}
       </div>

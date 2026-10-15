@@ -10,7 +10,8 @@
  * 类别筛选（含 URL `?category=` 深链）与空态，避免装修化后交互能力回退。
  */
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
 import { fetchCenter, type CenterPayload } from '../api/center'
 import { fetchFaqs, type FaqPayload } from '../api/support-extra'
 import { useApi } from '../hooks/useApi'
@@ -61,6 +62,8 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
   const showFilter = asBool(props.showFilter)
   const [reloadKey, setReloadKey] = useState(0)
   const [params, setParams] = useSearchParams()
+  // 关键词搜索：按问题 / 答案过滤（与类别叠加，仅列表页开启）
+  const [query, setQuery] = useState('')
 
   const isCenter = source === 'center'
   // 联合返回类型需显式标注，避免 useApi 泛型推断到单一分支
@@ -86,7 +89,14 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
 
   // 手动挑选：scope=manual 时按 ids 顺序挑选（support 来源有条目 id；Center 无 id 则原样返回）
   const pickedRows = pickByIds(rows, scope, manualIds)
-  const filtered = canFilter && active !== '全部' ? pickedRows.filter((item) => item.category === active) : pickedRows
+  // 类别与关键词叠加过滤（仅列表页开启）：类别命中 + 问题 / 答案关键词命中
+  const keyword = query.trim().toLowerCase()
+  const filtered = pickedRows.filter(
+    (item) =>
+      !canFilter ||
+      ((active === '全部' || item.category === active) &&
+        (!keyword || item.q.toLowerCase().includes(keyword) || item.a.toLowerCase().includes(keyword))),
+  )
   const capped = limit > 0 ? filtered.slice(0, limit) : filtered
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
@@ -98,9 +108,9 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
       <SectionHeadFromProps
         props={props}
         action={
-          <Link className="btn btn--ghost btn--sm" to="/faq">
+          <SafeLink className="btn btn--ghost btn--sm" to="/faq">
             {t('blocks.allFaq')} →
-          </Link>
+          </SafeLink>
         }
       />
       {error ? (
@@ -121,10 +131,19 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
         </div>
       ) : (
         <>
-          {/* 类别筛选（仅列表页开启）：与原常见问题页一致，筛选值写入 URL 便于分享 */}
+          {/* 类别筛选 + 行尾搜索框（仅列表页开启）：筛选值写入 URL 便于分享；关键词按问题 / 答案过滤，与类别叠加 */}
           {canFilter && (
-            <div className="row" style={{ gap: 'var(--gh-space-5)', marginBottom: 'var(--gh-space-5)' }}>
+            <div className="row" style={{ gap: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)', flexWrap: 'wrap', alignItems: 'center' }}>
               <FilterChips options={(data as FaqPayload | null)?.categories ?? []} value={active} onChange={selectCategory} />
+              <input
+                className="input"
+                type="search"
+                value={query}
+                placeholder="搜索问题 / 答案"
+                aria-label="搜索常见问题"
+                style={{ maxWidth: 260, marginLeft: 'auto' }}
+                onChange={(event) => setQuery(event.target.value)}
+              />
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
                 共 {filtered.length} 条
               </span>
@@ -140,9 +159,9 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
                   <button className="btn btn--secondary btn--sm" type="button" onClick={() => selectCategory('全部')}>
                     查看全部问答
                   </button>
-                  <Link className="btn btn--secondary btn--sm" to="/inquiry">
+                  <SafeLink className="btn btn--secondary btn--sm" to="/inquiry">
                     提交咨询
-                  </Link>
+                  </SafeLink>
                 </div>
               </div>
             ) : (
@@ -165,9 +184,9 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
                     {item.a}
                     {item.id && (
                       <div className="row" style={{ marginTop: 'var(--gh-space-3)' }}>
-                        <Link className="btn btn--ghost btn--sm" to={`/faq/${item.id}`}>
+                        <SafeLink className="btn btn--ghost btn--sm" to={`/faq/${item.id}`}>
                           查看详情 →
-                        </Link>
+                        </SafeLink>
                       </div>
                     )}
                   </div>

@@ -210,38 +210,6 @@ export function ArticleDetailPage() {
               )}
             </article>
           </div>
-
-          {/* 相关阅读 */}
-          {article.related.length > 0 && (
-            <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
-              <div className="section__head">
-                <div>
-                  <h2 className="section__title">相关阅读</h2>
-                  <p className="section__desc">与本文主题相近的更多内容。</p>
-                </div>
-                <Link className="btn btn--ghost" to="/articles">
-                  查看全部文章 →
-                </Link>
-              </div>
-              <div className="grid-3">
-                {article.related.map((item) => (
-                  <Link className="card card--link" to={`/articles/${item.id}`} key={item.id}>
-                    <span className={`tag${item.accent ? ' tag--accent' : ''}`}>{item.tags?.[0] ?? item.tag}</span>
-                    <h3 className="card__title">{item.title}</h3>
-                    <p className="card__desc">{item.desc}</p>
-                    <div className="card--link__foot">
-                      <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                        {item.date}
-                      </span>
-                      <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                        {item.readingMin} 分钟阅读
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       )}
       {!error && !loading && article && <TemplateBlocks pageKey="template-article" />}

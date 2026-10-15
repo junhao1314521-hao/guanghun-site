@@ -86,6 +86,9 @@ export function SearchPage() {
     navigate(`/search?q=${encodeURIComponent(word)}`)
   }
 
+  // 「热门搜索」位置（§4.15）：移到搜索框正下方；未输入关键词 / 无结果时显示，出结果后收起
+  const showHot = !query.trim() || (Boolean(data) && sorted.length === 0)
+
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
@@ -123,6 +126,22 @@ export function SearchPage() {
             搜索
           </button>
         </form>
+
+        {/* 热门搜索（§4.15）：紧贴搜索框下方；未输入关键词 / 无结果时显示，出结果后收起 */}
+        {showHot && (
+          <div style={{ marginTop: 'var(--gh-space-5)' }}>
+            <p className="section__desc" style={{ margin: 0, fontSize: 'var(--gh-font-size-body-sm)' }}>
+              热门搜索 · 近期检索量最高的词条
+            </p>
+            <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap', marginTop: 'var(--gh-space-3)' }}>
+              {HOT_QUERIES.map((word) => (
+                <button className="chip" key={word} type="button" onClick={() => pickHot(word)}>
+                  {word}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 结果摘要 + 类型筛选 */}
         <div className="row" style={{ justifyContent: 'space-between', gap: 'var(--gh-space-4)', marginTop: 'var(--gh-space-5)', flexWrap: 'wrap' }}>
@@ -253,25 +272,6 @@ export function SearchPage() {
             </Link>
           </div>
         )}
-      </div>
-
-      {/* 热门搜索 */}
-      <div className="container section--tight" style={{ paddingBottom: 'var(--gh-space-9)' }}>
-        <div className="section__head">
-          <div>
-            <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h4)' }}>
-              热门搜索
-            </h2>
-            <p className="section__desc">近期检索量最高的词条。</p>
-          </div>
-        </div>
-        <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
-          {HOT_QUERIES.map((word) => (
-            <button className="chip" key={word} type="button" onClick={() => pickHot(word)}>
-              {word}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   )

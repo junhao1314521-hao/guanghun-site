@@ -29,6 +29,8 @@ export type InquiryBody = {
   model: string
   topic: string
   message: string
+  /** 轻量分流：咨询类型（售前咨询 / 售后报修 / 商务合作），随提交落库供后台分派 */
+  inquiryType?: string
   captchaToken?: string
   captchaCode?: string
   website?: string

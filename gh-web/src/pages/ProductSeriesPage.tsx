@@ -1,11 +1,13 @@
-import { useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { fetchProductSeries } from '../api/product-extra'
 import { ApiError } from '../api/client'
 import { MediaImg } from '../components/ui/MediaImg'
 import type { DeviceVariant } from '../components/ui/DeviceArt'
 import { MEDIA } from '../data/media'
+import { COMPARE_MAX } from '../data/product-extra'
+import type { Product } from '../data/products'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
@@ -15,6 +17,10 @@ export function ProductSeriesPage() {
   const { slug = '' } = useParams()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  // §4.20：卡片「加入对比」就地累积（最多 COMPARE_MAX 款），不再点击即跳转对比页
+  const [picked, setPicked] = useState<string[]>([])
+  const [hint, setHint] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   const { data, loading, error } = useApi((signal) => fetchProductSeries(slug, signal), [slug, reloadKey])
   const series = data?.series
@@ -27,6 +33,27 @@ export function ProductSeriesPage() {
 
   const notFound = error instanceof ApiError && error.status === 404
   const coverVariant = (series?.cover ?? 'mouse') as DeviceVariant
+
+  const togglePick = (id: string) => {
+    if (picked.includes(id)) {
+      setPicked(picked.filter((value) => value !== id))
+      return
+    }
+    if (picked.length >= COMPARE_MAX) {
+      setHint(`对比最多 ${COMPARE_MAX} 款，请先移除已选产品`)
+      return
+    }
+    setPicked([...picked, id])
+  }
+
+  // 轻提示自动消失
+  useEffect(() => {
+    if (!hint) return
+    const timer = window.setTimeout(() => setHint(null), 3200)
+    return () => window.clearTimeout(timer)
+  }, [hint])
+
+  const pickedItems = picked.map((id) => items.find((item) => item.id === id)).filter((item): item is Product => Boolean(item))
 
   return (
     <div ref={rootRef}>
@@ -134,9 +161,19 @@ export function ProductSeriesPage() {
                       </div>
                       <div className="pcard__foot">
                         <span className="pcard__price">{item.price}</span>
-                        <Link className="btn btn--secondary btn--sm" to={`/compare?ids=${item.id}`}>
-                          加入对比
-                        </Link>
+                        <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
+                          <Link className="btn btn--primary btn--sm" to={`/products/${item.id}`}>
+                            查看详情
+                          </Link>
+                          <button
+                            className={`btn btn--sm${picked.includes(item.id) ? ' btn--primary is-magnetic' : ' btn--secondary'}`}
+                            type="button"
+                            disabled={item.status.level === 'warning'}
+                            onClick={() => togglePick(item.id)}
+                          >
+                            {picked.includes(item.id) ? '对比中' : '加入对比'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -151,10 +188,56 @@ export function ProductSeriesPage() {
                 </Link>
               </div>
             )}
+
+            {/* 对比浮条：就地累积（最多 COMPARE_MAX 款），确认后再进入对比页 */}
+            {picked.length > 0 && (
+              <div className="compare-bar">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-2)' }}>
+                  <div className="row">
+                    <strong style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                      已选 {picked.length} / {COMPARE_MAX} 款
+                    </strong>
+                    <div className="compare-bar__list">
+                      {pickedItems.map((item) => (
+                        <span className="compare-bar__item" key={item.id}>
+                          {item.model}
+                          <button type="button" aria-label={`移除 ${item.model}`} onClick={() => togglePick(item.id)}>
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {picked.length === 1 && (
+                    <p className="field__hint" style={{ margin: 0 }}>
+                      再选 1 款即可开始对比。
+                    </p>
+                  )}
+                </div>
+                <div className="row">
+                  <button className="btn btn--ghost btn--sm" type="button" onClick={() => setPicked([])}>
+                    清空
+                  </button>
+                  <button
+                    className="btn btn--primary btn--sm is-magnetic"
+                    type="button"
+                    disabled={picked.length < 2}
+                    onClick={() => navigate(`/compare?ids=${picked.join(',')}`)}
+                  >
+                    开始对比
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
       {!notFound && !error && !loading && Boolean(series) && <TemplateBlocks pageKey="template-series" />}
+      {hint && (
+        <div className="toast toast--float" role="status" aria-live="polite">
+          {hint}
+        </div>
+      )}
     </div>
   )
 }

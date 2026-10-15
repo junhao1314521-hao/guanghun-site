@@ -13,6 +13,7 @@ import type {
 import { NAV_ITEMS, type NavItem } from '../data/nav'
 import { FOOTER_GROUPS } from '../data/site'
 import { useApi } from './useApi'
+import { useSitePages } from './useSitePages'
 
 /**
  * 站点配置（导航 / 页脚）：优先读内容库 `GET /api/content/site`（契约 §6.1）。
@@ -40,31 +41,44 @@ function fallbackFooter(): SiteFooterGroup[] {
  */
 export function useSiteNav(): NavItem[] {
   const site = useSiteConfig()
+  const { isPathLive } = useSitePages()
   return useMemo(() => {
     const links = site?.nav ?? []
-    if (links.length === 0) return NAV_ITEMS
-    return links.map((link) => {
-      const matched =
-        NAV_ITEMS.find((item) => item.label === link.label) ??
-        NAV_ITEMS.find((item) => item.to === link.href)
-      return {
-        label: link.label,
-        to: link.href,
-        menu: matched?.menu ?? '',
-        nav: matched?.nav,
-        // 角标以后台站点配置为准；未配置时回退本地 NAV_ITEMS 的默认角标
-        badge: link.badge ?? matched?.badge,
-        badgeText: link.badgeText ?? matched?.badgeText,
-        badgeShake: link.badgeShake ?? matched?.badgeShake,
-      }
-    })
-  }, [site])
+    const items =
+      links.length === 0
+        ? NAV_ITEMS
+        : links.map((link) => {
+            const matched =
+              NAV_ITEMS.find((item) => item.label === link.label) ??
+              NAV_ITEMS.find((item) => item.to === link.href)
+            return {
+              label: link.label,
+              to: link.href,
+              menu: matched?.menu ?? '',
+              nav: matched?.nav,
+              // 角标以后台站点配置为准；未配置时回退本地 NAV_ITEMS 的默认角标
+              badge: link.badge ?? matched?.badge,
+              badgeText: link.badgeText ?? matched?.badgeText,
+            }
+          })
+    // 下线级联：过滤指向已停用页面的一级入口，避免死链
+    return items.filter((item) => isPathLive(item.to))
+  }, [site, isPathLive])
 }
 
-/** 页脚分组：优先内容库 `site.footer`，为空 / 不可用时回退本地硬编码 */
+/**
+ * 页脚分组：优先内容库 `site.footer`，为空 / 不可用时回退本地硬编码。
+ * 下线级联：过滤组内指向已停用页面的链接；组内链接被清空时整组不渲染。
+ */
 export function useSiteFooterGroups(): SiteFooterGroup[] {
   const site = useSiteConfig()
-  return useMemo(() => (site?.footer && site.footer.length > 0 ? site.footer : fallbackFooter()), [site])
+  const { isPathLive } = useSitePages()
+  return useMemo(() => {
+    const groups = site?.footer && site.footer.length > 0 ? site.footer : fallbackFooter()
+    return groups
+      .map((group) => ({ ...group, links: group.links.filter((link) => isPathLive(link.href)) }))
+      .filter((group) => group.links.length > 0)
+  }, [site, isPathLive])
 }
 
 /** 页脚社交关注兜底（后台未配置时使用；对齐 data/site.ts 的静态真源） */

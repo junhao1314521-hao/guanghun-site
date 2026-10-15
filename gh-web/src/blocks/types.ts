@@ -31,28 +31,59 @@ export type BlockLink = { label: string; href: string }
 /** 数值 + 说明（stats 条目 / hero 数据） */
 export type StatItem = { value: string; label: string; unit?: string; note?: string }
 
-/** 轮播 / 首屏幻灯片条目（hero 与 carousel 共用字段集） */
+/** 轮播 / 首屏幻灯片条目（hero 与 carousel 共用字段集，字段名一致） */
+export type PosterPosition = { x: number; y: number }
+
 export type Slide = {
   eyebrow: string
+  /** 眉题开关（缺省 = 有内容即显示，兼容历史数据） */
+  eyebrowEnabled?: boolean
   title: string[]
-  desc: string
-  mediaTag: string
-  image: string
+  /** 一句话（历史字段 `desc` 仍兼容） */
+  subtitle?: string
+  desc?: string
+  mediaTag?: string
+  /** 媒体（图片 / 视频 / GIF）；缺省回退 `image` */
+  media?: string
+  mediaType?: 'image' | 'video' | 'gif' | 'code'
+  image?: string
+  imageMobile?: string
+  poster?: string
   primary: BlockLink
   secondary?: BlockLink
   stats: StatItem[]
+  /** 卖点 / 数据点开关（缺省 = 有内容即显示） */
+  statsEnabled?: boolean
+  /** 文案位置（九宫格 9 档或拖拽，同一字段，百分比坐标 0–100） */
+  contentPosition?: PosterPosition
+  /** 高度档位：满屏 / 矮一档 / 自定义（首屏轮播固定满屏） */
+  height?: 'full' | 'short' | 'custom'
+  heightValue?: number
+  /** 背景主题：暗色 / 浅色 */
+  theme?: 'dark' | 'light'
 }
 
-/** 1. hero 全宽海报 */
+/** 1. hero 全宽海报（与 carousel 单张 slide 共用同一套字段） */
 export type HeroProps = {
   eyebrow: string
+  eyebrowEnabled?: boolean
   title: string[]
-  desc: string
-  mediaTag: string
-  image: string
+  subtitle?: string
+  desc?: string
+  mediaTag?: string
+  media?: string
+  mediaType?: 'image' | 'video' | 'gif' | 'code'
+  image?: string
+  imageMobile?: string
+  poster?: string
   primary: BlockLink
   secondary?: BlockLink
   stats: StatItem[]
+  statsEnabled?: boolean
+  contentPosition?: PosterPosition
+  height?: 'full' | 'short' | 'custom'
+  heightValue?: number
+  theme?: 'dark' | 'light'
 }
 
 /** 2. carousel 轮播 */
@@ -84,6 +115,8 @@ export type CardsProps = {
   overlay?: boolean
   /** 媒体宽高比，如 '4 / 5'、'16 / 9'；缺省 16 / 9 */
   ratio?: string
+  /** 自动带最新版本（§1.5 固件驱动）：开启后按 item.downloadType 取下载中心最新一条的版本与日期 */
+  autoVersions?: boolean
   items: {
     image?: string
     /** 媒体地址（图片 / 视频 / GIF）；优先于 image */
@@ -93,6 +126,8 @@ export type CardsProps = {
     title: string
     desc: string
     href?: string
+    /** 下载类型（开启 autoVersions 后按此取最新版本）：firmware / driver / software / manual / calibration */
+    downloadType?: string
   }[]
 }
 
@@ -285,6 +320,68 @@ export type B2bValueProps = {
   showContact?: boolean
 }
 
+/**
+ * 27. productMatrix 产品矩阵（§1.4 新建）。
+ * 卡面：图片铺满整张卡；型号 + 一句话 + 按钮悬浮在图片右下角（半透明面板）。
+ * 数据源：`product` 关联产品（自动带入主图 / 型号 / 详情链接，文案可覆盖）/ `manual` 手填。
+ */
+export type ProductMatrixProps = {
+  title?: string
+  source?: 'product' | 'manual'
+  columns?: 2 | 3 | 4
+  ratio?: '16:9' | '1:1' | '3:4'
+  fullscreen?: boolean
+  cropFocus?: 'center' | 'top' | 'bottom' | 'left' | 'right'
+  mobileLayout?: 'rail' | 'grid'
+  items?: {
+    productId?: string
+    image?: string
+    imageMobile?: string
+    model?: string
+    desc?: string
+    href?: string
+    /** 按钮（可增减，默认 1 个「立即购买」） */
+    buttons?: BlockLink[]
+  }[]
+}
+
+/**
+ * 28. productDetailRich 产品详情 · 详情图文。
+ * 渲染**当前产品**的 `detailHtml`（长图 / 图文混排，经白名单净化）；无内容时不渲染、不占位。
+ * props 为空：内容来自产品集合的 detailHtml，模板级区块仅决定「是否出现」（增删 / 排序 / 停用）。
+ */
+export type ProductDetailRichProps = Record<string, never>
+
+/**
+ * 29. brandAssetList 品牌资料（B 端数据源区块）。
+ * 读取独立集合 brand-assets（后台「品牌资料」维护），与 C 端下载中心数据分开。
+ */
+export type BrandAssetListProps = DataBlockInteraction & {
+  title: string
+  /** 分类筛选：'all' 全部，或 规范 / Logo / 图片 / 送测 … */
+  category?: string
+  limit?: number
+}
+
+/**
+ * 30. trustBar 信任条（§1.7 新建）。
+ * 分隔线横排：四项均分、项间竖分割线、上下细线收边、无卡片底。
+ * 每项配 22px 线性图标（中性色、不发光）：flask 烧瓶 / shield 盾牌 / check 勾选 / box 包裹。
+ */
+export type TrustBarProps = {
+  title?: string
+  /** 列数（默认 4） */
+  columns?: 2 | 3 | 4
+  items?: {
+    /** 图标名：flask / shield / check / box */
+    icon?: string
+    /** 文案 */
+    text?: string
+    /** 可选链接 */
+    href?: string
+  }[]
+}
+
 /** 类型名 → props 类型映射（区块组件用） */
 export type BlockPropsMap = {
   hero: HeroProps
@@ -314,4 +411,8 @@ export type BlockPropsMap = {
   venueList: VenueListProps
   methodList: MethodListProps
   b2bValue: B2bValueProps
+  productMatrix: ProductMatrixProps
+  productDetailRich: ProductDetailRichProps
+  brandAssetList: BrandAssetListProps
+  trustBar: TrustBarProps
 }

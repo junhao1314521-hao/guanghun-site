@@ -244,7 +244,7 @@ export function DownloadDetailPage() {
             <h3 className="card__title" style={{ marginBottom: 'var(--gh-space-1)' }}>
               安装遇到问题？
             </h3>
-            <p className="card__desc">附上型号与现象提交咨询，处理进度与补充材料都在客户中心里跟进。</p>
+            <p className="card__desc">附上型号与现象提交咨询，处理进度与补充材料都在个人中心里跟进。</p>
           </div>
           <div className="row">
             <Link className="btn btn--primary" to="/inquiry">

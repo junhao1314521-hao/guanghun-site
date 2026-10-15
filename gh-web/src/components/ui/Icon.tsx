@@ -514,6 +514,31 @@ export function IconHeart({ size = 18, className }: IconProps) {
   )
 }
 
+/**
+ * 烧瓶 / 量杯（实测实验室）：§1.7 信任条「实测实验室」专用线性图标。
+ * 22px、1.5px 描边、圆头圆角、中性色（颜色继承 currentColor，不发光）。
+ */
+export function IconFlask({ size = 22, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <path
+        d={`M${s * 0.36} ${s * 0.14}h${s * 0.28}M${s * 0.44} ${s * 0.14}v${s * 0.2}L${s * 0.22} ${s * 0.76}a${s * 0.1} ${s * 0.1} 0 0 0 ${s * 0.09} ${s * 0.14}h${s * 0.38}a${s * 0.1} ${s * 0.1} 0 0 0 ${s * 0.09} -${s * 0.14}L${s * 0.56} ${s * 0.34}v-${s * 0.2}`}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d={`M${s * 0.33} ${s * 0.56}h${s * 0.34}`}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 /* ============================================================
    富文本编辑器工具栏图标（16px 线性，颜色继承 currentColor）
    ============================================================ */

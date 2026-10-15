@@ -1,5 +1,7 @@
 import express, { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express'
-import { deleteUpload, listUploads, saveUpload } from '../data/uploadStore'
+import { deleteUpload, listUploads, maxUploadLimit, saveUpload } from '../data/uploadStore'
+import { generateImageVariants } from '../data/imageVariants'
+import { countReferencesToUrl } from '../data/pageRefs'
 import {
   createFolder,
   deleteFolder,
@@ -45,12 +47,16 @@ import { auditWrite } from '../middleware/audit'
  */
 export const uploadsRouter = Router()
 
-/** 按需构造的原始字节流解析器缓存（key = limit），使 UPLOAD_MAX_SIZE 可在请求期动态生效 */
-const rawParsers = new Map<string, RequestHandler>()
+/** 按需构造的原始字节流解析器缓存（key = limit），使限额配置可在请求期动态生效 */
+const rawParsers = new Map<number, RequestHandler>()
 
-/** 解析原始字节流：/* 通配接收，大小上限默认 50MB（UPLOAD_MAX_SIZE 可覆盖），超限由下方错误处理转 413 */
+/**
+ * 解析原始字节流：/* 通配接收。
+ * 解析器上限取「三档中的最大限额」（默认 200MB，可由 UPLOAD_MAX_SIZE_* 覆盖），
+ * 使各类型都能到达 `saveUpload` 内的**按类型分档**校验；超限由下方错误处理转 413。
+ */
 function rawBody(req: Request, res: Response, next: NextFunction): void {
-  const limit = process.env.UPLOAD_MAX_SIZE ?? '50mb'
+  const limit = maxUploadLimit()
   let parser = rawParsers.get(limit)
   if (!parser) {
     parser = express.raw({ type: '*/*', limit })
@@ -104,7 +110,7 @@ function uploadTargetFolder(req: Request): string | null | undefined {
   return normalizeFolderId(raw)
 }
 
-uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWrite('upload', (req) => readFileName(req) || 'upload'), rawBody, (req, res) => {
+uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWrite('upload', (req) => readFileName(req) || 'upload'), rawBody, async (req, res) => {
   const name = readFileName(req)
   if (!name) {
     res.status(400).json({ error: '缺少文件名（请通过 X-File-Name 头或 name 查询参数传入）' })
@@ -128,6 +134,8 @@ uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWri
     return
   }
   if (folderId) setFileFolder(result.item.id, folderId)
+  // 位图：服务端自动生成多尺寸 webp 变体并登记；失败仅记日志、保持单张原图（不抛出）
+  await generateImageVariants(result.item)
   res.status(201).json({ item: mediaItem(result.item) })
 })
 
@@ -146,6 +154,17 @@ uploadsRouter.post('/uploads/:id/variants', requireSession, requireScope('conten
   // 整体替换：天然幂等，重复登记以最后一次为准
   setVariants(id, body.variants)
   res.json({ item: mediaItem(item) })
+})
+
+/** 素材引用数：扫描页面区块 props 中引用该素材 URL 的位置数（删除前二次确认用） */
+uploadsRouter.get('/uploads/:id/references', requireSession, requireScope('content'), (req, res) => {
+  const id = readParam(req, 'id')
+  const item = listUploads().find((entry) => entry.id === id)
+  if (!item) {
+    res.status(404).json({ error: '未找到该素材' })
+    return
+  }
+  res.json({ url: item.url, count: countReferencesToUrl(item.url) })
 })
 
 uploadsRouter.post('/uploads/move', requireSession, requireScope('content'), auditWrite('move-upload', (req) => {

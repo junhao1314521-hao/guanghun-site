@@ -4,8 +4,9 @@
  */
 
 /**
- * 区块类型（共 27 类：契约 §3 的 16 类基础 + 自定义模块 3 类 + `showcase` +
- * 产品详情主体 3 类 + 商业合作 2 类 + 测评方法 1 类 + B2B 采购价值 1 类）。
+ * 区块类型（共 32 类：契约 §3 的 16 类基础 + 自定义模块 3 类 + `showcase` +
+ * 产品详情主体 3 类 + 商业合作 2 类 + 测评方法 1 类 + B2B 采购价值 1 类 + 邮件订阅 1 类 +
+ * 产品矩阵 1 类 + 产品详情图文 1 类 + 品牌资料 1 类 + 信任条 1 类）。
  *
  * `richText` / `html` / `embed` 为「自定义模块（自由内容区块）」三类：
  * - richText：受控富文本（渲染时白名单净化）；
@@ -30,6 +31,14 @@ export type BlockType =
   | 'b2bValue'
   // 邮件订阅（首页 / 页脚；写入 subscribers 集合，扩展 §4）
   | 'subscribe'
+  // 产品矩阵（§1.4 新建：图片铺满卡面 + 半透明面板悬浮右下；关联产品 / 手填两种数据源）
+  | 'productMatrix'
+  // 产品详情 · 详情图文（渲染当前产品的 detailHtml；模板级配置，作用于所有产品）
+  | 'productDetailRich'
+  // 品牌资料（B 端，独立集合 brand-assets；与下载中心数据分开）
+  | 'brandAssetList'
+  // 信任条（§1.7 新建：分隔线横排，四项均分、项间竖线、上下细线收边、无卡片底）
+  | 'trustBar'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {
@@ -75,6 +84,11 @@ export type Page = {
   blocks: Block[]
   /** ISO */
   updatedAt: string
+  /**
+   * 页面启用状态（扩展字段；缺省 / true = 上线，false = 已下线）。
+   * 下线后前台该路由给出「已下线」空态，指向它的导航 / 页脚 / 区块链接被级联过滤。
+   */
+  enabled?: boolean
 }
 
 /** 页面列表项：不含 blocks（契约 §6.1） */
@@ -86,14 +100,17 @@ export type PageMeta = {
   /** 区块数量，供列表展示 */
   blockCount: number
   updatedAt: string
+  /** 页面启用状态（扩展字段；缺省 / true = 上线，false = 已下线） */
+  enabled?: boolean
 }
 
 /** 区块字段元信息（契约 §6.3） */
 export type BlockFieldMeta = {
   name: string
   label: string
-  /** `code`＝等宽代码编辑（html/embed）；`rich`＝轻量富文本编辑（richText）；`ref`＝从集合挑选条目（source 指定集合） */
-  kind: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'list' | 'image' | 'media' | 'link' | 'code' | 'rich' | 'ref'
+  /** `code`＝等宽代码编辑（html/embed）；`rich`＝轻量富文本编辑（richText）；`ref`＝从集合挑选条目（source 指定集合）；
+   *  `position`＝海报文案位置（九宫格快捷位 + 拖拽，值为 `{ x, y }` 百分比坐标 0–100） */
+  kind: 'text' | 'textarea' | 'number' | 'switch' | 'select' | 'list' | 'image' | 'media' | 'link' | 'code' | 'rich' | 'ref' | 'position'
   options?: { label: string; value: string }[]
   placeholder?: string
   /** `ref` 字段的数据来源集合（当前支持 'products'），值以 ID 列表保存、顺序即展示顺序 */
@@ -117,8 +134,8 @@ export type BlockTypeMeta = {
 }
 
 /** 站点链接（导航 / 页脚复用；契约 §6.1 的 { nav, footer }）
- *  扩展字段：`badge` 为入口右上角角标样式（new / hot），`badgeText` 覆盖角标文案，`badgeShake` 控制是否摇动。 */
-export type SiteLink = { label: string; href: string; badge?: 'new' | 'hot'; badgeText?: string; badgeShake?: boolean }
+ *  扩展字段：`badge` 为入口右上角角标样式（new / hot），`badgeText` 覆盖角标文案。 */
+export type SiteLink = { label: string; href: string; badge?: 'new' | 'hot'; badgeText?: string }
 
 /** 页脚分组 */
 export type SiteFooterGroup = { title: string; links: SiteLink[] }
@@ -158,10 +175,33 @@ export type SiteWarrantyConfig = {
   snParse: boolean
 }
 
-/** 页脚社交关注 + 二维码（真实化：链接与二维码图由后台维护） */
+/**
+ * 页脚社交（§1.9）：**每个平台一条**——二维码 / 账号 / 链接三项选填。
+ * - 有二维码 → 浮层展示「二维码 + 名称」；
+ * - 无二维码但有账号 → 浮层展示「账号 + 一句提示」；
+ * - 只有链接 → 直接跳转，不弹层。
+ */
+export type SiteSocialItem = {
+  /** 平台名称（如 微信 / 微博 / B 站 / 抖音） */
+  label: string
+  /** 二维码图片地址（可选） */
+  qr?: string
+  /** 平台账号（可选，如 guanghun-official） */
+  account?: string
+  /** 外链地址（可选） */
+  href?: string
+}
+
+/**
+ * 页脚社交配置。新形态为 `items`（每平台一条）；
+ * 兼容历史「图标+链接」`links` 与「二维码」`qr` 两条列表的旧数据（读取时归一化，不出错）。
+ */
 export type SiteSocialConfig = {
-  links: SiteLink[]
-  qr: { label: string; image: string }[]
+  items?: SiteSocialItem[]
+  /** 旧形态（兼容）：图标 + 链接列表 */
+  links?: SiteLink[]
+  /** 旧形态（兼容）：二维码列表 */
+  qr?: { label: string; image: string }[]
 }
 
 /** 站点配置（契约 §6.1） */
@@ -189,6 +229,19 @@ export type SiteConfig = {
   warranty?: SiteWarrantyConfig
   /** 页脚社交与二维码（扩展字段；缺省用前台本地真源） */
   social?: SiteSocialConfig
+  /** 下拉面板推荐卡开关（扩展字段；缺省 false = 前台不渲染推荐卡） */
+  navFeatureEnabled?: boolean
+  /**
+   * 留言轻量分流开关（§1.6 扩展字段；缺省 = 开启）。
+   * 开启时表单顶部先选「售前咨询 / 售后报修 / 商务合作」，咨询主题随后联动，提交按类型分派。
+   */
+  inquiryRouting?: boolean
+  /**
+   * 站点默认主题（扩展字段；缺省 'auto'）。
+   * - 'auto'：跟随访客系统；'light' / 'dark'：新访客（无本地记录）按此渲染；
+   * - 访客在顶栏的手动选择（localStorage）始终优先于站点默认。
+   */
+  defaultTheme?: 'auto' | 'light' | 'dark'
   /**
    * 英文变体覆盖（扩展字段；缺省 = 无英文）。
    * - nav / footer：未配英文时**回退中文**（沿用既有行为，保证导航永远可用）；
@@ -201,4 +254,68 @@ export type SiteConfig = {
     announcement?: SiteAnnouncement
     topCta?: { primary?: SiteCta; secondary?: SiteCta }
   }
+}
+
+/**
+ * 页脚社交归一化（§1.9 数据兼容）：
+ * - 新形态 `{ items }` 原样收敛为合法 `SiteSocialItem[]`；
+ * - 旧形态 `{ links, qr }` 两条列表按平台名称合并为「每平台一条」
+ *   （同名二维码并入对应链接条目；缺失图片 / 链接则不写入该可选字段）；
+ * - 非法 / 空值一律丢弃，**绝不抛错**，保证已有站点配置不因结构演进而报错。
+ */
+export function normalizeSocialConfig(raw: unknown): SiteSocialConfig {
+  if (!raw || typeof raw !== 'object') return { items: [] }
+  const record = raw as Record<string, unknown>
+  const readText = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
+  // —— 新形态：逐条清洗 ——
+  if (Array.isArray(record.items)) {
+    const items: SiteSocialItem[] = []
+    for (const entry of record.items) {
+      if (!entry || typeof entry !== 'object') continue
+      const e = entry as Record<string, unknown>
+      const label = readText(e.label)
+      if (!label) continue
+      const qr = readText(e.qr)
+      const account = readText(e.account)
+      const href = readText(e.href)
+      items.push({
+        label,
+        ...(qr ? { qr } : {}),
+        ...(account ? { account } : {}),
+        ...(href && href !== '#' ? { href } : {}),
+      })
+    }
+    return { items }
+  }
+  // —— 旧形态：图标+链接 与 二维码 两条列表 → 按名称合并 ——
+  const links = Array.isArray(record.links) ? record.links : []
+  const qr = Array.isArray(record.qr) ? record.qr : []
+  const items: SiteSocialItem[] = []
+  const byLabel = new Map<string, SiteSocialItem>()
+  const push = (item: SiteSocialItem) => {
+    byLabel.set(item.label, item)
+    items.push(item)
+  }
+  for (const link of links) {
+    if (!link || typeof link !== 'object') continue
+    const l = link as Record<string, unknown>
+    const label = readText(l.label)
+    if (!label) continue
+    const href = readText(l.href)
+    push({ label, ...(href && href !== '#' ? { href } : {}) })
+  }
+  for (const entry of qr) {
+    if (!entry || typeof entry !== 'object') continue
+    const q = entry as Record<string, unknown>
+    const label = readText(q.label)
+    const image = readText(q.image)
+    if (!label) continue
+    const existing = byLabel.get(label)
+    if (existing) {
+      if (image) existing.qr = image
+    } else {
+      push({ label, ...(image ? { qr: image } : {}) })
+    }
+  }
+  return { items }
 }

@@ -1707,3 +1707,27 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-root .empty__action { margin-top: var(--gh-space-2); }
 /* 骨架：撑起最小高度，避免加载瞬间高度塌陷造成跳动 */
 .admin-skeleton-table { min-height: 180px; justify-content: center; }
+
+/* —— 海报文案位置控件（字段 kind: position）：矩形预览 + 九宫格快捷位 + 可拖拽圆点 ——
+   复用后台既有按钮与令牌，仅补「预览区 / 圆点」两处新外观。 */
+.poster-pos { display: flex; flex-direction: column; gap: var(--gh-space-3); }
+.poster-pos__area {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 180px;
+  border-radius: var(--gh-radius-md); overflow: hidden;
+  border: 1px dashed var(--color-border-strong);
+  background-color: var(--color-bg-muted);
+  background-image:
+    repeating-linear-gradient(90deg, var(--color-border-subtle) 0 1px, transparent 1px 33.333%),
+    repeating-linear-gradient(0deg, var(--color-border-subtle) 0 1px, transparent 1px 33.333%);
+  cursor: crosshair; touch-action: none;
+}
+.poster-pos__dot {
+  position: absolute; width: 14px; height: 14px; border-radius: var(--gh-radius-full);
+  transform: translate(-50%, -50%);
+  background: var(--color-accent-solid);
+  border: 2px solid var(--color-bg-surface);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+.poster-pos__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gh-space-2); }
+.poster-pos__grid .btn { width: 100%; }

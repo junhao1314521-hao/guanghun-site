@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchBizCases } from '../api/business-extra'
 import { useApi } from '../hooks/useApi'
+import { useSitePages } from '../hooks/useSitePages'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockPager, useBlockPager } from './BlockPager'
@@ -24,6 +25,7 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
   const columns = asNumber(props.columns, 3)
   const rail = asString(props.layout, 'grid') === 'rail'
   const showMeta = props.showMeta === undefined ? true : asBool(props.showMeta)
+  const { isHrefLive } = useSitePages()
   const [reloadKey, setReloadKey] = useState(0)
 
   const { data, loading, error } = useApi((signal) => fetchBizCases(signal), [reloadKey])
@@ -60,26 +62,40 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
         </p>
       ) : (
         <div className={rail ? 'blk-scroll-x' : gridClass(columns)}>
-          {shown.map((item) => (
-            <Link className="card card--link reveal" to={`/business/cases/${item.id}`} key={item.id}>
-              <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
-                <MediaImg src={item.cover} alt={item.title} />
-              </div>
-              <span className="tag">{item.category}</span>
-              <h3 className="card__title">{item.title}</h3>
-              <p className="card__desc">{item.summary}</p>
-              {showMeta && (
-                <div className="card--link__foot">
-                  <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                    {item.partner}
-                  </span>
-                  <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                    {item.year}
-                  </span>
+          {shown.map((item) => {
+            const to = `/business/cases/${item.id}`
+            // 下线级联：详情页已停用时卡片退化为不可点内容（保留内容）
+            const live = isHrefLive(to)
+            const body = (
+              <>
+                <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
+                  <MediaImg src={item.cover} alt={item.title} />
                 </div>
-              )}
-            </Link>
-          ))}
+                <span className="tag">{item.category}</span>
+                <h3 className="card__title">{item.title}</h3>
+                <p className="card__desc">{item.summary}</p>
+                {showMeta && (
+                  <div className="card--link__foot">
+                    <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+                      {item.partner}
+                    </span>
+                    <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+                      {item.year}
+                    </span>
+                  </div>
+                )}
+              </>
+            )
+            return live ? (
+              <Link className="card card--link reveal" to={to} key={item.id}>
+                {body}
+              </Link>
+            ) : (
+              <div className="card reveal" key={item.id}>
+                {body}
+              </div>
+            )
+          })}
         </div>
       )}
       {pageSize > 0 && <BlockPager page={page} totalPages={totalPages} onChange={setPage} />}

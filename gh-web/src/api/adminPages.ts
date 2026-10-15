@@ -58,8 +58,14 @@ export type {
   SiteWarrantyConfig,
 }
 
+/** 页面列表项（含后端附加的引用数 refCount） */
+export type AdminPageListItem = PageMeta & { refCount?: number }
+
 /** 页面列表响应（契约 §6.2） */
-export type AdminPageList = { items: PageMeta[]; total: number }
+export type AdminPageList = { items: AdminPageListItem[]; total: number }
+
+/** 页面引用清单响应（下线级联用） */
+export type PageReferenceList = { count: number; refs: { location: string; href: string }[] }
 
 /** 保存整页的载荷：仅提交的字段会被覆盖（blocks 全量覆盖） */
 export type SavePageBody = {
@@ -67,6 +73,8 @@ export type SavePageBody = {
   title?: string
   description?: string
   blocks?: Block[]
+  /** 页面启用状态（true 上线 / false 下线） */
+  enabled?: boolean
 }
 
 /** 新建页面载荷（key/path/title 必填） */
@@ -76,6 +84,7 @@ export type CreatePageBody = {
   title: string
   description?: string
   blocks?: Block[]
+  enabled?: boolean
 }
 
 /** 当前令牌（未登录为 undefined，传输器据此省略 Authorization 头） */
@@ -141,6 +150,14 @@ export function resetAdminPage(key: string): Promise<Page> {
   ).then((res) => res.page)
 }
 
+/** 页面引用清单：GET /api/admin/pages/:key/references（「当前 N 处引用」展开） */
+export function fetchAdminPageReferences(key: string, signal?: AbortSignal): Promise<PageReferenceList> {
+  return transport<PageReferenceList>(
+    { path: `/api/admin/pages/${encodeURIComponent(key)}/references`, signal, token: adminToken() },
+    () => ({ count: 0, refs: [] }),
+  )
+}
+
 /** 保存站点配置：PUT /api/admin/site */
 export function saveAdminSite(site: SiteConfig): Promise<SiteConfig> {
   return transport<{ site: SiteConfig }>(
@@ -163,6 +180,16 @@ export function saveTheme(theme: Record<string, string>): Promise<Record<string,
     { path: '/api/admin/theme', method: 'PUT', body: { theme }, token: adminToken() },
     () => ({ theme }),
   ).then((res) => res.theme)
+}
+
+/** 保存站点默认主题（样式栏目）：PUT /api/admin/default-theme */
+export function saveDefaultTheme(
+  defaultTheme: 'auto' | 'light' | 'dark',
+): Promise<'auto' | 'light' | 'dark'> {
+  return transport<{ defaultTheme: 'auto' | 'light' | 'dark' }>(
+    { path: '/api/admin/default-theme', method: 'PUT', body: { defaultTheme }, token: adminToken() },
+    () => ({ defaultTheme }),
+  ).then((res) => res.defaultTheme)
 }
 
 /**

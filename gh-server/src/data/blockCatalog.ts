@@ -35,26 +35,77 @@ const STAT_FIELDS: BlockFieldMeta[] = [
   { name: 'note', label: '补充说明', kind: 'text', placeholder: '可选：一句话解释这个数字' },
 ]
 
-/** 轮播 / 首屏幻灯片条目结构（hero 与 carousel 共用字段集） */
-const SLIDE_FIELDS: BlockFieldMeta[] = [
-  { name: 'eyebrow', label: '眉题', kind: 'text' },
-  { name: 'title', label: '标题', kind: 'list', placeholder: '每行一句' },
-  { name: 'desc', label: '描述', kind: 'textarea' },
-  { name: 'mediaTag', label: '媒体标签', kind: 'text' },
-  { name: 'media', label: '媒体（图 / 视频 / GIF）', kind: 'media' },
-  { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
-  { name: 'image', label: '图片（旧字段；未填「媒体」时使用）', kind: 'image' },
-  { name: 'imageMobile', label: '手机竖版图（可选）', kind: 'image' },
-  { name: 'primary', label: '主按钮', kind: 'link' },
-  { name: 'secondary', label: '次按钮', kind: 'link' },
-  { name: 'stats', label: '数据', kind: 'list' },
+/** 海报媒体类型：图片 / 视频 / GIF / 代码动画（§1.2 媒体支持） */
+const POSTER_MEDIA_TYPES: { label: string; value: string }[] = [
+  { label: '图片', value: 'image' },
+  { label: '视频', value: 'video' },
+  { label: 'GIF', value: 'gif' },
+  { label: '代码动画', value: 'code' },
+]
+
+/** 海报高度档位（§1.3）：满屏 / 比首屏矮一档 / 自定义（首屏轮播固定满屏） */
+const POSTER_HEIGHTS: { label: string; value: string }[] = [
+  { label: '满屏', value: 'full' },
+  { label: '矮一档', value: 'short' },
+  { label: '自定义高度', value: 'custom' },
+]
+
+/** 信任条图标（§1.7）：实验室烧瓶 / 质保盾牌 / 正品勾选 / 物流包裹 */
+const TRUST_ICONS: { label: string; value: string }[] = [
+  { label: '实验室（烧瓶）', value: 'flask' },
+  { label: '质保（盾牌）', value: 'shield' },
+  { label: '正品（勾选）', value: 'check' },
+  { label: '物流（包裹）', value: 'box' },
+]
+
+/** 下载资料类型（§1.5 固件驱动「自动带最新版本」按此取下载中心最新一条） */
+const DOWNLOAD_TYPES: { label: string; value: string }[] = [
+  { label: '固件', value: 'firmware' },
+  { label: '驱动', value: 'driver' },
+  { label: '软件', value: 'software' },
+  { label: '说明书', value: 'manual' },
+  { label: '调校配置', value: 'calibration' },
 ]
 
 /**
- * 区块类型目录（共 27 类）：
+ * 海报字段集（§1.2 首屏海报 / §1.3 五张全屏海报）：
+ * **hero（全宽海报）与 carousel 的单张 slide 共用同一组字段**（字段名保持一致），
+ * 后台因此只需一套「海报编辑器」（含九宫格 + 拖拽的 `contentPosition` 位置控件）。
+ *
+ * 兼容说明：`image` / `mediaTag` / `imageMobile` 为既有字段（保留不删）；
+ * `subtitle` 为「一句话」，渲染层同时兼容历史字段 `desc`。
+ */
+const POSTER_FIELDS: BlockFieldMeta[] = [
+  { name: 'media', label: '媒体（图片 / 视频 / GIF / 代码动画）', kind: 'media' },
+  { name: 'mediaType', label: '媒体类型', kind: 'select', options: POSTER_MEDIA_TYPES },
+  { name: 'image', label: '图片（旧字段；未填「媒体」时使用）', kind: 'image' },
+  { name: 'imageMobile', label: '手机竖版图（可选）', kind: 'image' },
+  { name: 'poster', label: '视频封面图（可选）', kind: 'image' },
+  { name: 'mediaTag', label: '媒体标签（无障碍 / 备用）', kind: 'text' },
+  { name: 'title', label: '大标题（每行一句，必填）', kind: 'list', placeholder: '每行一句' },
+  { name: 'subtitle', label: '一句话（必填）', kind: 'textarea', placeholder: '一句话说清这张海报' },
+  { name: 'eyebrow', label: '眉题', kind: 'text' },
+  { name: 'eyebrowEnabled', label: '显示眉题', kind: 'switch' },
+  { name: 'stats', label: '卖点 / 数据点（一行小字）', kind: 'list' },
+  { name: 'statsEnabled', label: '显示卖点 / 数据点', kind: 'switch' },
+  { name: 'primary', label: '按钮①（文字 + 链接，必填）', kind: 'link' },
+  { name: 'secondary', label: '按钮②（留空则只显示 1 个）', kind: 'link' },
+  { name: 'contentPosition', label: '文案位置（九宫格 + 拖拽）', kind: 'position' },
+  { name: 'height', label: '高度档位', kind: 'select', options: POSTER_HEIGHTS },
+  { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
+  { name: 'theme', label: '背景主题', kind: 'select', options: [
+    { label: '暗色', value: 'dark' },
+    { label: '浅色', value: 'light' },
+  ] },
+]
+
+/**
+ * 区块类型目录（共 32 类）：
  * - 16 类基础区块（契约 §4）+ 3 类自定义模块（richText / html / embed）+ showcase（通栏产品展示）= 20；
  * - 扩展：产品详情主体 3 类（productHero / productSpecs / productBuy）+ 商业合作 2 类（caseList / venueList）
- *   + 测评方法 1 类（methodList）+ B2B 采购价值 1 类（b2bValue）。
+ *   + 测评方法 1 类（methodList）+ 邮件订阅 1 类（subscribe）+ B2B 采购价值 1 类（b2bValue）
+ *   + 产品详情图文 1 类（productDetailRich）+ 品牌资料 1 类（brandAssetList）+ 信任条 1 类（trustBar）
+ *   + 产品矩阵 1 类（productMatrix）。
  * 字段严格对齐契约 §4。
  */
 export const BLOCK_TYPES: BlockTypeMeta[] = [
@@ -62,16 +113,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     type: 'hero',
     name: '全宽海报',
     group: '内容',
-    fields: [
-      { name: 'eyebrow', label: '眉题', kind: 'text' },
-      { name: 'title', label: '标题', kind: 'list', placeholder: '每行一句' },
-      { name: 'desc', label: '描述', kind: 'textarea' },
-      { name: 'mediaTag', label: '媒体标签', kind: 'text' },
-      { name: 'image', label: '图片', kind: 'image' },
-      { name: 'primary', label: '主按钮', kind: 'link' },
-      { name: 'secondary', label: '次按钮', kind: 'link' },
-      { name: 'stats', label: '数据', kind: 'list' },
-    ],
+    // 与 carousel 单张 slide 共用同一套字段（后台只有一套「海报编辑器」）
+    fields: POSTER_FIELDS,
     listFields: STAT_FIELDS,
   },
   {
@@ -83,7 +126,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'slides', label: '幻灯片（后续第 2、3… 张）', kind: 'list' },
       { name: 'autoplay', label: '自动播放', kind: 'switch' },
     ],
-    listFields: SLIDE_FIELDS,
+    listFields: POSTER_FIELDS,
   },
   {
     type: 'video',
@@ -183,6 +226,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'overlay', label: '文字浮于媒体', kind: 'switch' },
       { name: 'ratio', label: '媒体宽高比', kind: 'text', placeholder: '如 4 / 5、16 / 9；留空用 16 / 9' },
+      { name: 'autoVersions', label: '自动带最新版本（取下载中心）', kind: 'switch' },
       { name: 'items', label: '卡片', kind: 'list' },
     ],
     listFields: [
@@ -193,6 +237,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'title', label: '标题', kind: 'text' },
       { name: 'desc', label: '描述', kind: 'textarea' },
       { name: 'href', label: '链接', kind: 'text' },
+      { name: 'downloadType', label: '下载类型（开启「自动带最新版本」后按此取最新）', kind: 'select', options: DOWNLOAD_TYPES },
+      { name: 'downloadId', label: '下载资料 ID（精确指定，优先于下载类型）', kind: 'text', placeholder: '如：center-win' },
     ],
   },
   {
@@ -577,6 +623,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     fields: [
       { name: 'primaryLabel', label: '主按钮文案', kind: 'text', placeholder: '如：预约体验（留空则不显示）' },
       { name: 'primaryHref', label: '主按钮链接', kind: 'text', placeholder: '如：/business/venues' },
+      { name: 'primaryFromProduct', label: '主按钮取产品购买链接（buyUrl）', kind: 'switch' },
       { name: 'secondaryLabel', label: '次按钮文案', kind: 'text', placeholder: '如：加入对比' },
       { name: 'secondaryHref', label: '次按钮链接', kind: 'text', placeholder: '如：/compare' },
       { name: 'showBadges', label: '显示角标 / 状态', kind: 'switch' },
@@ -608,6 +655,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'secondaryHref', label: '次按钮链接', kind: 'text' },
       { name: 'points', label: '保障要点（每行一条）', kind: 'list' },
     ],
+  },
+  // —— 产品详情 · 详情图文：渲染**当前产品**的 detailHtml（长图 / 图文混排）；无内容时不渲染、不占位 ——
+  {
+    type: 'productDetailRich',
+    name: '产品详情图文',
+    group: '数据',
+    fields: [],
   },
   // —— 商业合作数据源区块：从集合挑选，支持「全部 / 手动挑选」——
   {
@@ -722,6 +776,105 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'desc', label: '说明', kind: 'textarea', placeholder: '建议不超过两行' },
     ],
   },
+  // —— 品牌资料（B 端）：读取独立集合 brand-assets（后台「品牌资料」维护），与下载中心数据分开 ——
+  {
+    type: 'brandAssetList',
+    name: '品牌资料',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      {
+        name: 'category',
+        label: '分类',
+        kind: 'select',
+        options: [
+          { label: '全部', value: 'all' },
+          { label: '规范', value: '规范' },
+          { label: 'Logo', value: 'Logo' },
+          { label: '图片', value: '图片' },
+          { label: '送测', value: '送测' },
+        ],
+      },
+      { name: 'limit', label: '数量', kind: 'number' },
+    ],
+  },
+  // —— 信任条（§1.7 新建）：分隔线横排，四项均分、项间竖线、上下细线收边、无卡片底 ——
+  {
+    type: 'trustBar',
+    name: '信任条',
+    group: '结构',
+    fields: [
+      { name: 'title', label: '标题（可选）', kind: 'text' },
+      { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
+      { name: 'items', label: '条目', kind: 'list' },
+    ],
+    listFields: [
+      { name: 'icon', label: '图标', kind: 'select', options: TRUST_ICONS },
+      { name: 'text', label: '文案', kind: 'text' },
+      { name: 'href', label: '链接（可选）', kind: 'text' },
+    ],
+  },
+  // —— 产品矩阵（§1.4 新建）：图片铺满卡面 + 半透明面板悬浮右下；两种数据源 ——
+  {
+    type: 'productMatrix',
+    name: '产品矩阵',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      {
+        name: 'source',
+        label: '数据源',
+        kind: 'select',
+        options: [
+          { label: '关联产品（自动带入主图 / 型号 / 详情链接）', value: 'product' },
+          { label: '手动填写', value: 'manual' },
+        ],
+      },
+      { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
+      {
+        name: 'ratio',
+        label: '图片比例',
+        kind: 'select',
+        options: [
+          { label: '16:9', value: '16:9' },
+          { label: '1:1', value: '1:1' },
+          { label: '3:4', value: '3:4' },
+        ],
+      },
+      { name: 'fullscreen', label: '一屏正好放下', kind: 'switch' },
+      {
+        name: 'cropFocus',
+        label: '裁切焦点（同图裁切不变形）',
+        kind: 'select',
+        options: [
+          { label: '居中', value: 'center' },
+          { label: '上', value: 'top' },
+          { label: '下', value: 'bottom' },
+          { label: '左', value: 'left' },
+          { label: '右', value: 'right' },
+        ],
+      },
+      {
+        name: 'mobileLayout',
+        label: '手机端排列',
+        kind: 'select',
+        options: [
+          { label: '横向滑动', value: 'rail' },
+          { label: '保持 2×2', value: 'grid' },
+        ],
+      },
+      { name: 'items', label: '产品条目', kind: 'list' },
+    ],
+    listFields: [
+      { name: 'productId', label: '关联产品 ID（数据源 = 关联产品）', kind: 'text', placeholder: '如 gh-54027x1qe' },
+      { name: 'image', label: '主图（手填 / 覆盖产品主图）', kind: 'media' },
+      { name: 'imageMobile', label: '手机端图（可选，留空沿用主图）', kind: 'image' },
+      { name: 'model', label: '型号（可覆盖产品型号）', kind: 'text', placeholder: '如 54027X1QE-W54' },
+      { name: 'desc', label: '一句话', kind: 'textarea' },
+      { name: 'href', label: '详情链接（留空则用产品详情页）', kind: 'text', placeholder: '如 /products/gh-54027x1qe' },
+      { name: 'buttons', label: '按钮（文字 + 链接，可增减）', kind: 'list' },
+    ],
+  },
 ]
 
 /**
@@ -742,7 +895,9 @@ const TITLE_GROUP_TYPES: BlockType[] = [
   'imageGrid', 'stats', 'cards', 'timeline', 'video',
   'productGrid', 'articleList', 'ranking', 'downloadList', 'faqList', 'showcase',
   // 详情页收口区块 / 商业合作数据源区块 同样支持「主标题 / 子标题 / 右侧按钮」
-  'productBuy', 'caseList', 'venueList', 'methodList',
+  'productBuy', 'caseList', 'venueList', 'methodList', 'productMatrix',
+  // 品牌资料（B 端数据源区块）同样支持「主标题 / 子标题 / 右侧按钮」
+  'brandAssetList',
 ]
 
 const COPY_FIELDS: BlockFieldMeta[] = [
@@ -762,7 +917,7 @@ export function getBlockTypeMeta(type: BlockType): BlockTypeMeta | undefined {
   return BLOCK_TYPES.find((meta) => meta.type === type)
 }
 
-/** 全部区块类型（27 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
+/** 全部区块类型（32 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
 export const BLOCK_TYPE_VALUES: BlockType[] = BLOCK_TYPES.map((meta) => meta.type)
 
 /** 新建区块：生成随机稳定 id 的区块对象（后台新增用） */
@@ -786,6 +941,37 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
       return { code: '', height: 360, allowScripts: false, videoUrl: '', poster: '' }
     case 'showcase':
       return { items: [], alternate: true }
+    // 海报（全宽海报）：新建即为满屏海报，文案默认落在左侧居中
+    case 'hero':
+      return {
+        media: '',
+        mediaType: 'image',
+        title: [],
+        subtitle: '',
+        eyebrow: '',
+        eyebrowEnabled: false,
+        stats: [],
+        statsEnabled: false,
+        primary: { label: '', href: '' },
+        secondary: { label: '', href: '' },
+        contentPosition: { x: 8, y: 50 },
+        height: 'full',
+        theme: 'dark',
+      }
+    case 'carousel':
+      return { slides: [], autoplay: true, motion: true }
+    case 'productMatrix':
+      return {
+        source: 'product',
+        columns: 2,
+        ratio: '16:9',
+        fullscreen: false,
+        cropFocus: 'center',
+        mobileLayout: 'rail',
+        items: [],
+      }
+    case 'trustBar':
+      return { columns: 4, items: [] }
     default:
       return {}
   }

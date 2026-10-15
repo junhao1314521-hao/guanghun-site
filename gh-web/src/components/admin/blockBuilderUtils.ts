@@ -16,6 +16,12 @@ export const STAT_ITEM_FIELDS: BlockFieldMeta[] = [
   { name: 'label', label: '说明', kind: 'text' },
 ]
 
+/** 链接条目字段（productMatrix 卡片按钮等嵌套 link 列表；镜像后端 LINK_FIELDS） */
+export const LINK_ITEM_FIELDS: BlockFieldMeta[] = [
+  { name: 'label', label: '文字', kind: 'text' },
+  { name: 'href', label: '链接', kind: 'text' },
+]
+
 /** layout 列数（仅接受 1 / 2 / 3，缺省 2） */
 export function layoutColumns(block: Block): 1 | 2 | 3 {
   const c = block.props.columns
@@ -272,6 +278,14 @@ const BLOCK_ICON: Record<BlockType, string> = {
   b2bValue: 'cube',
   // 邮件订阅
   subscribe: 'chat',
+  // 产品矩阵
+  productMatrix: 'grid',
+  // 产品详情 · 详情图文
+  productDetailRich: 'book',
+  // 品牌资料（B 端）
+  brandAssetList: 'download',
+  // 信任条
+  trustBar: 'venn',
 }
 
 export function blockIcon(type: BlockType): string {
@@ -334,6 +348,8 @@ export function blockSummary(block: Block): string {
       return `${len(p.items)} 个产品展示`
     case 'b2bValue':
       return str(p.title) || `${len(p.items)} 项采购价值`
+    case 'productMatrix':
+      return `${str(p.source) === 'manual' ? '手填' : '关联产品'} · ${len(p.items)} 项 · ${str(p.columns) || '2'} 列`
     default:
       return block.type
   }
@@ -348,6 +364,8 @@ export function blockSummary(block: Block): string {
  */
 export function resolveItemFields(meta: BlockTypeMeta | undefined, field: BlockFieldMeta): BlockFieldMeta[] {
   if (field.name === 'stats') return STAT_ITEM_FIELDS
+  // 卡片按钮（productMatrix）等嵌套 link 列表：条目为 { 文字, 链接 }
+  if (field.name === 'buttons') return LINK_ITEM_FIELDS
   return meta?.listFields ?? []
 }
 
@@ -371,9 +389,25 @@ export function emptyItem(fields: BlockFieldMeta[]): Record<string, unknown> {
       case 'list':
         item[field.name] = []
         break
+      case 'position':
+        // 海报文案位置：默认落在左侧居中（后台可再拖拽 / 点九宫格）
+        item[field.name] = { x: 8, y: 50 }
+        break
       default:
         item[field.name] = ''
     }
+  }
+  return item
+}
+
+/**
+ * 新建条目初值：通用字段默认 + 按类型补齐语义化默认。
+ * 产品矩阵：卡片默认带 1 个「立即购买」按钮（文字可改、链接待填）。
+ */
+export function newItem(meta: BlockTypeMeta | undefined, fields: BlockFieldMeta[]): Record<string, unknown> {
+  const item = emptyItem(fields)
+  if (meta?.type === 'productMatrix' && Array.isArray(item.buttons)) {
+    item.buttons = [{ label: '立即购买', href: '' }]
   }
   return item
 }

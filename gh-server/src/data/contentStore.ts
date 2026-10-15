@@ -99,7 +99,7 @@ function ensureEnVariants(): void {
   if (enSitePatched) logger.info('站点配置英文变体已追加式回填', { fields: 'nav/footer/announcement/topCta' })
 }
 
-/** 页面 → 列表项（不含 blocks） */
+/** 页面 → 列表项（不含 blocks）；`enabled` 缺省兜底为 true */
 function toMeta(page: Page): PageMeta {
   return {
     key: page.key,
@@ -108,7 +108,13 @@ function toMeta(page: Page): PageMeta {
     ...(page.description ? { description: page.description } : {}),
     blockCount: page.blocks.length,
     updatedAt: page.updatedAt,
+    enabled: page.enabled !== false,
   }
+}
+
+/** 读取兜底：`enabled` 缺省视为 true（不改动 seed 里的每个页面对象，序列化时补齐） */
+function normalizePage(page: Page): Page {
+  return page.enabled === undefined ? { ...page, enabled: true } : page
 }
 
 /** 保存整页时的入参 */
@@ -117,6 +123,8 @@ export type PageInput = {
   title?: string
   description?: string
   blocks?: Block[]
+  /** 页面启用状态（缺省不修改既有值） */
+  enabled?: boolean
 }
 
 /* ---------------- 读取 ---------------- */
@@ -165,10 +173,10 @@ export function getPage(key: string, locale?: Locale): Page | undefined {
     const enRow = getDb().prepare('SELECT data FROM content_pages WHERE key = ?').get(enKeyOf(baseKey)) as
       | { data: string }
       | undefined
-    if (enRow) return JSON.parse(enRow.data) as Page
+    if (enRow) return normalizePage(JSON.parse(enRow.data) as Page)
   }
   const row = getDb().prepare('SELECT data FROM content_pages WHERE key = ?').get(baseKey) as { data: string } | undefined
-  return row ? (JSON.parse(row.data) as Page) : undefined
+  return row ? normalizePage(JSON.parse(row.data) as Page) : undefined
 }
 
 /** 是否为内置页面（禁删） */
@@ -191,6 +199,7 @@ export function savePage(key: string, input: PageInput): Page | undefined {
     updatedAt: new Date().toISOString(),
   }
   if (input.description !== undefined) next.description = input.description
+  if (input.enabled !== undefined) next.enabled = input.enabled
   runInTransaction((db) => {
     db.prepare('UPDATE content_pages SET data = ?, updated_at = ? WHERE key = ?').run(JSON.stringify(next), next.updatedAt, key)
   })
@@ -209,6 +218,7 @@ export function createPage(input: Required<Pick<PageInput, 'path' | 'title'>> & 
     ...(input.description ? { description: input.description } : {}),
     blocks: Array.isArray(input.blocks) ? input.blocks : [],
     updatedAt: new Date().toISOString(),
+    enabled: input.enabled !== false,
   }
   runInTransaction((db) => {
     db.prepare('INSERT INTO content_pages(key, data, updated_at) VALUES(?, ?, ?)').run(key, JSON.stringify(page), page.updatedAt)
@@ -285,6 +295,16 @@ export function setEnabledBlocks(types: string[]): SiteConfig {
 export function setTheme(theme: Record<string, string>): SiteConfig {
   initStore()
   const next: SiteConfig = { ...getSiteConfig(), theme }
+  runInTransaction((db) => {
+    db.prepare('UPDATE site_config SET data = ? WHERE id = 1').run(JSON.stringify(next))
+  })
+  return next
+}
+
+/** 设置站点默认主题（浅合并，仅改 defaultTheme）；写入后立即事务落库 */
+export function setDefaultTheme(defaultTheme: 'auto' | 'light' | 'dark'): SiteConfig {
+  initStore()
+  const next: SiteConfig = { ...getSiteConfig(), defaultTheme }
   runInTransaction((db) => {
     db.prepare('UPDATE site_config SET data = ? WHERE id = 1').run(JSON.stringify(next))
   })

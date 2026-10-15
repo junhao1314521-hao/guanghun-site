@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
-import { fetchBizCase, fetchBizCases } from '../api/business-extra'
-import { MEDIA } from '../data/media'
+import { fetchBizCase } from '../api/business-extra'
 import { MediaImg } from '../components/ui/MediaImg'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
@@ -27,7 +26,6 @@ export function BusinessCaseDetailPage() {
   const [reloadKey, setReloadKey] = useState(0)
 
   const { data: detail, loading, error } = useApi((signal) => fetchBizCase(id, signal), [id, reloadKey])
-  const { data: list } = useApi((signal) => fetchBizCases(signal), [reloadKey])
 
   const readyKey = `${id}:${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
@@ -60,12 +58,6 @@ export function BusinessCaseDetailPage() {
       </div>
     )
   }
-
-  const allCases = list?.items ?? []
-  const related = allCases
-    .map((item, index) => ({ item, cover: MEDIA.businessCase[index % MEDIA.businessCase.length] }))
-    .filter((entry) => entry.item.id !== detail.id)
-    .slice(0, 3)
 
   return (
     <div ref={rootRef}>
@@ -173,32 +165,7 @@ export function BusinessCaseDetailPage() {
         </div>
       </div>
 
-      {/* 相关案例 */}
-      {related.length > 0 && (
-        <div className="container" style={{ paddingBottom: 'var(--gh-space-8)' }}>
-          <div className="section__head">
-            <div>
-              <h2 className="section__title">相关案例</h2>
-              <p className="section__desc">同一合作方向的其他案例。</p>
-            </div>
-            <Link className="btn btn--ghost" to="/business/cases">
-              查看全部案例 →
-            </Link>
-          </div>
-          <div className="grid-3">
-            {related.map(({ item, cover }) => (
-              <Link className="card card--link" to={`/business/cases/${item.id}`} key={item.id}>
-                <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
-                  <MediaImg src={cover} alt={item.title} />
-                </div>
-                <span className="tag tag--pill">{item.category}</span>
-                <h3 className="card__title">{item.title}</h3>
-                <p className="card__desc">{item.summary}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 「相关案例」只保留后台区块那一份（template-case），页面内不再写死（§4.21 统一规则） */}
 
       <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
         <div

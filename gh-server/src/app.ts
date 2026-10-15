@@ -111,8 +111,15 @@ export function createApp(): Express {
     express.static(uploadDir, {
       index: false,
       fallthrough: true,
-      // 素材按内容寻址（文件名唯一），设置较长缓存；删除后 URL 不再复用
-      setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=86400'),
+      setHeaders: (res, filePath) => {
+        // 素材按内容寻址（文件名唯一），设置较长缓存；删除后 URL 不再复用
+        res.setHeader('Cache-Control', 'public, max-age=86400')
+        // SVG 安全加固：公开访问一律强制下载（attachment），避免直开 SVG 执行内联脚本（防 XSS）。
+        // 页面内以 <img> 引用 SVG 不受影响（<img> 不执行脚本）；此处不做标签白名单清洗，实现风险更小。
+        if (filePath.toLowerCase().endsWith('.svg')) {
+          res.setHeader('Content-Disposition', 'attachment')
+        }
+      },
     }),
   )
   logger.info('素材库目录已就绪', { uploadDir })

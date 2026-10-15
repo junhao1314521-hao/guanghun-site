@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { ApiError } from '../api/client'
 import { fetchModelSupport } from '../api/support-extra'
-import { IconBook, IconChevronDown, IconDownload, IconHelp } from '../components/ui/Icon'
+import { IconBook, IconDownload, IconHelp } from '../components/ui/Icon'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
@@ -193,45 +193,7 @@ export function ModelSupportPage() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
-        <div className="section__head">
-          <div>
-            <h2 className="section__title">相关问答</h2>
-            <p className="section__desc">该型号高频问题，展开查看答案。</p>
-          </div>
-          <Link className="btn btn--ghost" to="/faq">
-            查看全部问答 →
-          </Link>
-        </div>
-        {data.faqs.length > 0 ? (
-          <div className="qa-list reveal">
-            {data.faqs.map((item) => (
-              <details key={item.id}>
-                <summary>
-                  {item.q}
-                  <IconChevronDown size={16} />
-                </summary>
-                <div className="qa-list__answer">
-                  {item.a}
-                  <div className="row" style={{ marginTop: 'var(--gh-space-3)' }}>
-                    <Link className="btn btn--ghost btn--sm" to={`/faq/${item.id}`}>
-                      查看详情 →
-                    </Link>
-                  </div>
-                </div>
-              </details>
-            ))}
-          </div>
-        ) : (
-          <div className="empty">
-            <div className="empty__title">该型号暂无相关问答</div>
-            <p className="empty__desc">可在常见问题中查找，或直接提交咨询。</p>
-            <Link className="btn btn--secondary btn--sm" to="/faq">
-              查看常见问题
-            </Link>
-          </div>
-        )}
-      </div>
+      {/* 「相关问答」只保留后台区块那一份（template-model），页面内不再写死（§4.21 统一规则） */}
 
       <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
         <div
@@ -249,7 +211,7 @@ export function ModelSupportPage() {
               <h3 className="card__title" style={{ marginBottom: 'var(--gh-space-1)' }}>
                 还有其它问题？
               </h3>
-              <p className="card__desc">附上型号与现象提交咨询，处理进度可在客户中心跟踪。</p>
+              <p className="card__desc">附上型号与现象提交咨询，处理进度可在个人中心跟踪。</p>
             </div>
           </div>
           <div className="row">

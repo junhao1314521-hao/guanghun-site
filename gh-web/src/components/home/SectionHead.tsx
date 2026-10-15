@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useSitePages } from '../../hooks/useSitePages'
 
 type Props = {
   title: string
@@ -39,11 +40,14 @@ function subtitleText(text: string): ReactNode {
   )
 }
 
-/** 由 props 组装右侧 CTA：文案 + 链接均填写时才渲染（站内链接用 SPA 跳转） */
+/** 由 props 组装右侧 CTA：文案 + 链接均填写时才渲染（站内链接用 SPA 跳转）；
+ *  链接指向已停用页面时整条 CTA 不渲染（下线级联）。 */
 export function SectionCta({ label, href }: { label?: string; href?: string }) {
+  const { isHrefLive } = useSitePages()
   const text = (label ?? '').trim()
   const to = (href ?? '').trim()
   if (!text || !to) return null
+  if (!isHrefLive(to)) return null
   const arrow = <span aria-hidden="true">→</span>
   const external = /^https?:\/\//.test(to)
   return external ? (

@@ -10,8 +10,8 @@ export const CATEGORY_LABEL_BY_CODE: Record<ArticleCategory, string> = {
   news: '资讯',
 }
 
-/** 分类筛选 chip 组（首项为「全部」，不参与数据过滤）—— 方案 C：评测 / 教程 / 技术 / 资讯 */
-export const CATEGORY_FILTERS = ['全部', '评测', '教程', '技术', '资讯']
+/** 分类筛选 chip 组（首项为「全部」，不参与数据过滤）—— 方案 C：评测 / 教程 / 技术（资讯统一到 /news，不再作为文章分类） */
+export const CATEGORY_FILTERS = ['全部', '评测', '教程', '技术']
 
 export type ArticleSummary = {
   id: string
@@ -308,7 +308,7 @@ const ARTICLE_SECTIONS: Record<string, ArticleSection[]> = {
         heading: '常见问题',
         paragraphs: [
           '校准后若观感发生变化，通常来自色温与亮度等设置的复位，请在 OSD 中核对并重新设定。',
-          '仍无法解决时，请提交咨询并附上型号、当前配置与现象描述，处理进度可在客户中心跟进。',
+          '仍无法解决时，请提交咨询并附上型号、当前配置与现象描述，处理进度可在个人中心跟进。',
         ],
       },
     ],

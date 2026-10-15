@@ -49,21 +49,42 @@ export function ensureUploadDir(): string {
   return dir
 }
 
+/**
+ * 通用兜底 MIME：Office / 压缩包等二进制格式，浏览器常以空或 octet-stream 上报，
+ * 故这些类别的白名单额外放行 `application/octet-stream`（不影响图片 / 视频 / SVG 的严格校验）。
+ */
+const OCTET = 'application/octet-stream'
+
 /** 扩展名（小写，不含点）→ 允许的 MIME 白名单 */
 const EXT_MIME: Record<string, string[]> = {
+  // 图片
   png: ['image/png'],
   jpg: ['image/jpeg'],
   jpeg: ['image/jpeg'],
   webp: ['image/webp'],
   gif: ['image/gif'],
   svg: ['image/svg+xml'],
+  // 视频
   mp4: ['video/mp4'],
   webm: ['video/webm'],
   mov: ['video/quicktime'],
+  // 文档 · PDF
   pdf: ['application/pdf'],
-  zip: ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'],
+  // 文档 · 文本
   txt: ['text/plain'],
   md: ['text/markdown', 'text/x-markdown', 'text/plain'],
+  csv: ['text/csv', 'application/csv', 'application/vnd.ms-excel', 'text/plain', OCTET],
+  // 文档 · Office（Word / Excel / PPT）
+  doc: ['application/msword', OCTET],
+  docx: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', OCTET],
+  xls: ['application/vnd.ms-excel', OCTET],
+  xlsx: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', OCTET],
+  ppt: ['application/vnd.ms-powerpoint', OCTET],
+  pptx: ['application/vnd.openxmlformats-officedocument.presentationml.presentation', OCTET],
+  // 压缩包
+  zip: ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip', OCTET],
+  rar: ['application/vnd.rar', 'application/x-rar-compressed', 'application/x-rar', OCTET],
+  '7z': ['application/x-7z-compressed', OCTET],
 }
 
 /** 各扩展名的默认 MIME（请求未带 Content-Type 时回退） */
@@ -78,9 +99,76 @@ const EXT_DEFAULT_MIME: Record<string, string> = {
   webm: 'video/webm',
   mov: 'video/quicktime',
   pdf: 'application/pdf',
-  zip: 'application/zip',
   txt: 'text/plain',
   md: 'text/markdown',
+  csv: 'text/csv',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  zip: 'application/zip',
+  rar: 'application/vnd.rar',
+  '7z': 'application/x-7z-compressed',
+}
+
+/**
+ * 上传大小分档（字节）与类型标签。图片 10MB / 文档 50MB / 视频 200MB。
+ * - 环境变量覆盖：`UPLOAD_MAX_SIZE_IMAGE` / `UPLOAD_MAX_SIZE_DOC` / `UPLOAD_MAX_SIZE_VIDEO`；
+ * - 旧变量 `UPLOAD_MAX_SIZE`（不区分类型）作为**兜底**：当分档变量缺失时对三类同时生效。
+ */
+const MB = 1024 * 1024
+
+/** 尺寸分类：图片 / 视频 / 文档（其余归文档） */
+export type SizeKind = 'image' | 'video' | 'doc'
+
+/** 各分类默认限额（字节） */
+const DEFAULT_LIMITS: Record<SizeKind, number> = { image: 10 * MB, doc: 50 * MB, video: 200 * MB }
+
+/** 分档限额对应的环境变量名 */
+const LIMIT_ENV: Record<SizeKind, string> = {
+  image: 'UPLOAD_MAX_SIZE_IMAGE',
+  doc: 'UPLOAD_MAX_SIZE_DOC',
+  video: 'UPLOAD_MAX_SIZE_VIDEO',
+}
+
+/** 分类中文标签（错误提示用） */
+const LIMIT_LABEL: Record<SizeKind, string> = { image: '图片', doc: '文档', video: '视频' }
+
+/** 解析尺寸串（如 '10mb' / '1kb' / '2097152'）为字节数；无法解析返回 null */
+function parseSize(raw: string | undefined): number | null {
+  if (!raw) return null
+  const matched = /^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/i.exec(raw.trim())
+  if (!matched) return null
+  const value = Number(matched[1])
+  if (!Number.isFinite(value) || value <= 0) return null
+  const unit = (matched[2] ?? 'b').toLowerCase()
+  const factor = unit === 'gb' ? 1024 * MB : unit === 'mb' ? MB : unit === 'kb' ? 1024 : 1
+  return Math.floor(value * factor)
+}
+
+/** 由扩展名推断尺寸分类 */
+export function sizeKindOf(ext: string): SizeKind {
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext)) return 'image'
+  if (['mp4', 'webm', 'mov'].includes(ext)) return 'video'
+  return 'doc'
+}
+
+/** 指定分类的限额（字节）：分档变量优先，其次旧 UPLOAD_MAX_SIZE，最后内置默认 */
+export function limitForKind(kind: SizeKind): number {
+  return parseSize(process.env[LIMIT_ENV[kind]]) ?? parseSize(process.env.UPLOAD_MAX_SIZE) ?? DEFAULT_LIMITS[kind]
+}
+
+/** 三档中的最大限额（字节）；供上传解析器设置整体上限，使各类型都能到达按类型校验 */
+export function maxUploadLimit(): number {
+  return Math.max(limitForKind('image'), limitForKind('doc'), limitForKind('video'))
+}
+
+/** 字节数 → 可读限额（< 1MB 用 KB，否则用 MB；保留 1 位小数） */
+function formatLimit(bytes: number): string {
+  if (bytes < MB) return `${Math.round((bytes / 1024) * 10) / 10}KB`
+  return `${Math.round((bytes / MB) * 10) / 10}MB`
 }
 
 /** 归一化 Content-Type：去掉参数（如 ; charset=utf-8）并转小写 */
@@ -144,6 +232,16 @@ export function saveUpload(
   const mime = normalizeMime(contentType)
   if (mime && !allowed.includes(mime)) {
     return { ok: false, status: 415, error: `文件内容类型不被允许：${mime}` }
+  }
+  // 大小限额按类型分档（图片 / 文档 / 视频）；超限给出含类型与限额的中文提示
+  const kind = sizeKindOf(ext)
+  const limit = limitForKind(kind)
+  if (bytes.length > limit) {
+    return {
+      ok: false,
+      status: 413,
+      error: `${LIMIT_LABEL[kind]}超过大小限制：最大 ${formatLimit(limit)}（当前 ${formatLimit(bytes.length)}）`,
+    }
   }
   const dir = ensureUploadDir()
   const filename = `${Date.now()}-${randomBytes(4).toString('hex')}-${safeName}`

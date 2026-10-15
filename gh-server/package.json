@@ -1,7 +1,7 @@
 {
   "name": "gh-server",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "type": "module",
   "description": "光魂官网后端（占位数据版）——按《光魂官网 · 后端接口契约 v1》实现 12 条端点",
   "scripts": {
@@ -16,7 +16,8 @@
     "compression": "^1.8.2",
     "cors": "^2.8.5",
     "express": "^5.0.0",
-    "mammoth": "^1.13.0"
+    "mammoth": "^1.13.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",

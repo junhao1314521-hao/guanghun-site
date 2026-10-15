@@ -75,7 +75,7 @@ export function LoginPage() {
       <div className="auth-page">
         <AuthShell
           variant="page"
-          badge="客户中心"
+          badge="个人中心"
           eyebrow="ACCOUNT / SIGN IN"
           headline="登录光魂账号"
           subtitle="登录后可跟踪咨询进度、管理已登记设备与订阅通知。"

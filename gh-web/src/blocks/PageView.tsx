@@ -113,6 +113,19 @@ export function PageView({ pageKey, head = true, blockDefaults, headAction }: Pr
         </div>
       ) : loading || !page ? (
         <PageSkeleton head={head} />
+      ) : page.enabled === false ? (
+        // 页面已下线（后台页面开关关闭）：给出明确空态，不白屏、不当成通用报错
+        <div className="container" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }}>
+          <div className="empty">
+            <div className="empty__title">该页面已下线</div>
+            <p className="empty__desc">「{page.title}」当前已被站点管理员下线，暂不对外展示。返回首页继续浏览其他内容。</p>
+            <div className="row" style={{ justifyContent: 'center' }}>
+              <Link className="btn btn--secondary btn--sm" to="/">
+                返回首页
+              </Link>
+            </div>
+          </div>
+        </div>
       ) : (
         <>
           {head ? (

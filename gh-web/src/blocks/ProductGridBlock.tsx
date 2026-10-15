@@ -10,6 +10,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { flushSync } from 'react-dom'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
+import { useSitePages } from '../hooks/useSitePages'
 import { fetchProductCategories, fetchProducts } from '../api/products'
 import { SCENES } from '../data/home'
 import { MEDIA } from '../data/media'
@@ -134,6 +136,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   // 轻提示（对比上限等本地校验，非演示占位）
   const [hint, setHint] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { isHrefLive } = useSitePages()
 
   const all = data?.items ?? []
   // 范围过滤：全部 / 精选（有角标，缺省回退全部）/ 按系列 / 按分类 / 手动挑选（按 ids 顺序）
@@ -425,10 +428,18 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                       <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
                     </div>
                     <div className="pcard__body">
-                      <Link to={`/products/${item.id}`} viewTransition style={{ color: 'inherit', textDecoration: 'none' }}>
-                        <div className="pcard__model">{item.model}</div>
-                        <h3 className="pcard__name">{item.name}</h3>
-                      </Link>
+                      {isHrefLive(`/products/${item.id}`) ? (
+                        <Link to={`/products/${item.id}`} viewTransition style={{ color: 'inherit', textDecoration: 'none' }}>
+                          <div className="pcard__model">{item.model}</div>
+                          <h3 className="pcard__name">{item.name}</h3>
+                        </Link>
+                      ) : (
+                        // 下线级联：详情页已停用时型号 / 名称退化为不可点内容
+                        <div>
+                          <div className="pcard__model">{item.model}</div>
+                          <h3 className="pcard__name">{item.name}</h3>
+                        </div>
+                      )}
                       {showSpecs && (
                         <div className="pcard__specs">
                           {item.specs.map((spec) => (
@@ -453,9 +464,9 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                             {isPicked ? '对比中' : '加入对比'}
                           </button>
                         ) : (
-                          <Link className="btn btn--sm btn--secondary" to={`/products/${item.id}`} viewTransition>
+                          <SafeLink className="btn btn--sm btn--secondary" to={`/products/${item.id}`} viewTransition>
                             查看详情
-                          </Link>
+                          </SafeLink>
                         )}
                       </div>
                     </div>

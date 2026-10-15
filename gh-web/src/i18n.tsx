@@ -237,7 +237,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'blocks.ct.reset': '重置',
     'blocks.ct.successPrefix': '咨询已提交，工单号',
     'blocks.ct.receivedAt': '接收时间：',
-    'blocks.ct.toAccount': '去客户中心查看',
+    'blocks.ct.toAccount': '去个人中心查看',
     'blocks.ct.again': '再提交一单',
     'blocks.ct.failedPrefix': '提交失败：',
     'blocks.ct.failedSuffix': '。已填内容仍保留，可稍后重试。',

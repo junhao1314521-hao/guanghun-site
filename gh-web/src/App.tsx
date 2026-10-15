@@ -15,6 +15,7 @@ import { usePageMeta } from './hooks/usePageMeta'
 import { useRipple } from './hooks/useRipple'
 import { useSiteConfig } from './hooks/useSiteConfig'
 import { applyThemeTokens } from './lib/siteTheme'
+import { setSiteDefaultTheme } from './lib/theme'
 import { trackView } from './lib/track'
 import { I18nProvider, useI18n } from './i18n'
 import { pageIdFromPath } from './data/nav'
@@ -184,6 +185,11 @@ function AppShell() {
   const site = useSiteConfig()
   useEffect(() => {
     applyThemeTokens(site?.theme)
+  }, [site])
+
+  // 站点默认主题：站点配置到达后纠正主题（用户本地选择优先，由 setSiteDefaultTheme 内部判定）
+  useEffect(() => {
+    setSiteDefaultTheme(site?.defaultTheme)
   }, [site])
 
   useRipple()

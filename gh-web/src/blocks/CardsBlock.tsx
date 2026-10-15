@@ -12,11 +12,15 @@
  * - 有 href 的卡片整体可点击（.card--link / 链接包裹），保留键盘可达。
  */
 import { Link } from 'react-router-dom'
-import type { CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { HScroll } from '../components/home/HScroll'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { MediaImg } from '../components/ui/MediaImg'
 import { resolveMedia } from '../data/media'
+import { fetchDownloads } from '../api/support-extra'
+import type { DownloadItem } from '../data/support-extra'
+import { useApi } from '../hooks/useApi'
+import { useSitePages } from '../hooks/useSitePages'
 import { asArray, asBool, asRecord, asString, gridClass } from './blockUtils'
 
 type MediaType = 'image' | 'video' | 'gif'
@@ -29,7 +33,14 @@ type CardItem = {
   title: string
   desc: string
   href: string
+  /** 下载类型（开启 autoVersions 后按此取下载中心最新一条的版本与日期） */
+  downloadType: string
+  /** 下载资料 ID（精确指定，优先于 downloadType；用于给卡片补真实下载按钮） */
+  downloadId: string
 }
+
+/** 下载按钮目标：external 为真实文件地址（<a download>），否则为站内下载页（<Link>） */
+type DownloadTarget = { href: string; external: boolean }
 
 function toItem(value: unknown): CardItem {
   const record = asRecord(value)
@@ -42,6 +53,8 @@ function toItem(value: unknown): CardItem {
     title: asString(record.title),
     desc: asString(record.desc),
     href: asString(record.href),
+    downloadType: asString(record.downloadType),
+    downloadId: asString(record.downloadId),
   }
 }
 
@@ -77,8 +90,18 @@ function OverlayCardBody({ item }: { item: CardItem }) {
   )
 }
 
-/** 常规卡：序号/标签（头行）→ 标题 → 说明 → 箭头（有跳转时） */
-function PlainCardBody({ item, ratio, index }: { item: CardItem; ratio: string; index: number }) {
+/** 常规卡：序号/标签（头行）→ 标题 → 说明 → 下载按钮（可选）→ 箭头（有跳转时） */
+function PlainCardBody({
+  item,
+  ratio,
+  index,
+  download,
+}: {
+  item: CardItem
+  ratio: string
+  index: number
+  download: DownloadTarget | null
+}) {
   const src = mediaSrc(item)
   return (
     <>
@@ -101,6 +124,20 @@ function PlainCardBody({ item, ratio, index }: { item: CardItem; ratio: string; 
       </div>
       {item.title && <h3 className="card__title">{item.title}</h3>}
       {item.desc && <p className="card__desc">{item.desc}</p>}
+      {/* 真实下载按钮：卡片本身无链接时，按 downloadId / downloadType 指向下载中心对应资料 */}
+      {download && !item.href && (
+        <div style={{ marginTop: 'var(--gh-space-3)' }}>
+          {download.external ? (
+            <a className="btn btn--sm btn--secondary" href={download.href} download rel="noreferrer">
+              下载
+            </a>
+          ) : (
+            <Link className="btn btn--sm btn--secondary" to={download.href}>
+              前往下载中心
+            </Link>
+          )}
+        </div>
+      )}
       {item.href && (
         <span className="blk-icard__go" aria-hidden="true">
           →
@@ -116,15 +153,17 @@ function CardItemView({
   ratio,
   overlay,
   index,
+  download = null,
 }: {
   item: CardItem
   ratio: string
   overlay: boolean
   index: number
+  download?: DownloadTarget | null
 }) {
   const className = overlay ? 'blk-card blk-card--overlay reveal' : 'card reveal'
   const style = overlay ? { aspectRatio: ratio } : undefined
-  const body = overlay ? <OverlayCardBody item={item} /> : <PlainCardBody item={item} ratio={ratio} index={index} />
+  const body = overlay ? <OverlayCardBody item={item} /> : <PlainCardBody item={item} ratio={ratio} index={index} download={download} />
   const key = `${item.title}-${index}`
   const delay = (index % 3) + 1
   return item.href ? (
@@ -190,11 +229,50 @@ function SpotlightRow({ item, index }: { item: CardItem; index: number }) {
 }
 
 export function CardsBlock({ props }: { props: Record<string, unknown> }) {
+  const { isHrefLive } = useSitePages()
   const layout = asString(props.layout, 'grid')
   const overlay = asBool(props.overlay)
   const ratio = asString(props.ratio) || '16 / 9'
   const columns = gridClass(props.columns, 3)
-  const items = asArray(props.items).map(toItem)
+  // 下线级联：卡片链接指向已停用页面时归一化为空 → 卡片退化为不可点内容（不渲染链接元素 / 箭头）
+  const items = asArray(props.items)
+    .map(toItem)
+    .map((item) => (item.href && !isHrefLive(item.href) ? { ...item, href: '' } : item))
+
+  // §1.5 固件驱动：开启「自动带最新版本」后，按 item.downloadType 取下载中心最新一条的版本与日期
+  const autoVersions = asBool(props.autoVersions)
+  // 卡片需要真实下载按钮时（downloadId / downloadType），同样取下载中心数据
+  const needsDownloads = autoVersions || items.some((item) => item.downloadId || item.downloadType)
+  const { data: downloads } = useApi(
+    (signal) => (needsDownloads ? fetchDownloads(signal) : Promise.resolve(null)),
+    [needsDownloads],
+  )
+  const latestByType = useMemo(() => {
+    const map = new Map<string, DownloadItem>()
+    for (const entry of downloads?.items ?? []) {
+      const prev = map.get(entry.type)
+      if (!prev || entry.date > prev.date) map.set(entry.type, entry)
+    }
+    return map
+  }, [downloads])
+  const downloadById = useMemo(() => {
+    const map = new Map<string, DownloadItem>()
+    for (const entry of downloads?.items ?? []) map.set(entry.id, entry)
+    return map
+  }, [downloads])
+  /** 卡片下载按钮目标：优先精确 id，其次按类型取最新；无 fileUrl 时回退到下载详情页 */
+  const resolveDownload = (item: CardItem): DownloadTarget | null => {
+    const entry = item.downloadId
+      ? downloadById.get(item.downloadId)
+      : item.downloadType
+        ? latestByType.get(item.downloadType)
+        : undefined
+    if (!entry) return null
+    if (entry.fileUrl) return { href: entry.fileUrl, external: true }
+    const detailHref = `/downloads/${entry.id}`
+    // 下载详情模板页已停用时不渲染下载按钮，避免死链
+    return isHrefLive(detailHref) ? { href: detailHref, external: false } : null
+  }
 
   const head = <SectionHeadFromProps props={props} />
 
@@ -205,7 +283,7 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
         {head}
         <HScroll auto>
           {items.map((item, index) => (
-            <CardItemView key={`${item.title}-${index}`} item={item} ratio={ratio} overlay={overlay} index={index} />
+            <CardItemView key={`${item.title}-${index}`} item={item} ratio={ratio} overlay={overlay} index={index} download={resolveDownload(item)} />
           ))}
         </HScroll>
       </div>
@@ -278,6 +356,9 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
         {head}
         <div className="blk-entries">
           {items.map((item, index) => {
+            // 固件驱动：把下载中心最新版本 / 日期随卡片自动带出（运营不再手写版本号）
+            const latest = autoVersions && item.downloadType ? latestByType.get(item.downloadType) : undefined
+            const metaText = latest ? `最新 ${latest.version} · ${latest.date}` : ''
             const inner = (
               <>
                 <span className="blk-entries__lead">
@@ -286,6 +367,7 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
                 <span className="blk-entries__text">
                   {item.title && <span className="blk-entries__title">{item.title}</span>}
                   {item.desc && <span className="blk-entries__desc">{item.desc}</span>}
+                  {metaText && <span className="blk-entries__meta mono">{metaText}</span>}
                 </span>
                 <span className="blk-entries__go" aria-hidden="true">
                   →
@@ -330,7 +412,7 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
       {head}
       <div className={columns}>
         {items.map((item, index) => (
-          <CardItemView key={`${item.title}-${index}`} item={item} ratio={ratio} overlay={overlay} index={index} />
+          <CardItemView key={`${item.title}-${index}`} item={item} ratio={ratio} overlay={overlay} index={index} download={resolveDownload(item)} />
         ))}
       </div>
     </div>

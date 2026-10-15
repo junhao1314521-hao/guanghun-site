@@ -1,44 +1,82 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FOOTER_LEGAL, SITE_EMAILS } from '../../data/site'
-import { useSiteFooterGroups } from '../../hooks/useSiteConfig'
+import { FOOTER_LEGAL, FALLBACK_SOCIAL, SITE_COMPANY, SITE_EMAILS, SITE_RECORD, normalizeSocial } from '../../data/site'
+import { useSiteConfig, useSiteFooterGroups } from '../../hooks/useSiteConfig'
 import { useI18n } from '../../i18n'
 import { useTheme } from '../../lib/useTheme'
 import { BrandMark } from './BrandMark'
 import { CodeBackdrop } from './CodeBackdrop'
-import { QrPlaceholder } from './QrPlaceholder'
 import { IconMail, IconPhone, IconPin } from '../ui/Icon'
+import type { SiteSocialItem } from '../../data/contentTypes'
 
-/** 社交关注入口（展示用；正式上线可在「站点配置」中维护） */
-const FOOTER_SOCIAL = [
-  { label: '微信公众号', short: '微', href: '#' },
-  { label: '微博', short: '博', href: '#' },
-  { label: '哔哩哔哩', short: 'B', href: '#' },
-  { label: '抖音', short: '抖', href: '#' },
-]
+/** 社交图标字符：取平台名首字作为圆形字符标（如「B 站」→「B」） */
+function socialShort(label: string): string {
+  return label.trim().slice(0, 1) || '·'
+}
+
+/** 单个社交入口：有二维码 / 账号 → 浮层；仅链接 → 直接跳转不弹层 */
+function SocialEntry({ item }: { item: SiteSocialItem }) {
+  const [open, setOpen] = useState(false)
+  // 仅链接：直接跳转，不弹层
+  if (!item.qr && !item.account) {
+    if (!item.href) {
+      return (
+        <span className="site-footer__social-item is-placeholder" aria-label={`${item.label}（待配置）`}>
+          {socialShort(item.label)}
+        </span>
+      )
+    }
+    return (
+      <a className="site-footer__social-item" href={item.href} aria-label={item.label} target="_blank" rel="noreferrer">
+        {socialShort(item.label)}
+      </a>
+    )
+  }
+  const hint = item.qr ? item.label : `${item.label}：${item.account} · 打开${item.label}搜索关注`
+  return (
+    <span className={`site-footer__social-wrap${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="site-footer__social-item"
+        aria-label={item.label}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        {socialShort(item.label)}
+      </button>
+      <span className="site-footer__popover" role="tooltip">
+        {item.qr ? (
+          <>
+            <img className="site-footer__popover-qr" src={item.qr} alt={`${item.label}二维码`} loading="lazy" />
+            <span className="site-footer__popover-name">{item.label}</span>
+          </>
+        ) : (
+          <span className="site-footer__popover-hint">{hint}</span>
+        )}
+      </span>
+    </span>
+  )
+}
 
 export function SiteFooter() {
   const { t } = useI18n()
   // 页脚动画随主题切换深浅（深色底 / 浅色底两套配色，与首屏海报一致）
   const theme = useTheme()
-  // 页脚分组来自内容库站点配置（回落本地硬编码），法务条目 / 联系方式仍为本地真源
+  // 页脚分组与社交来自内容库站点配置（回落本地硬编码）；法务条目 / 联系方式仍为本地真源
   const footerGroups = useSiteFooterGroups()
-  // 移动端：链接组折叠（手风琴）。桌面端由 CSS 强制展开，本状态不影响桌面。
-  const [openGroups, setOpenGroups] = useState<ReadonlySet<string>>(() => new Set())
-  const toggleGroup = (title: string) =>
-    setOpenGroups((prev) => {
-      const next = new Set(prev)
-      if (next.has(title)) next.delete(title)
-      else next.add(title)
-      return next
-    })
+  const site = useSiteConfig()
+  // 社交：新数据「每平台一条」；旧数据（图标+链接 / 二维码两条列表）由 normalizeSocial 兜底合并
+  const social = normalizeSocial(site?.social ?? FALLBACK_SOCIAL)
+  const legalLinks = FOOTER_LEGAL.filter((item) => item.to !== SITE_RECORD.to)
+
   return (
     <footer className="site-footer" style={{ position: 'relative' }}>
       {/* 页脚背景：与首屏海报同款「流动方块」代码动画（随主题切换深浅 + 遮罩保证文字可读） */}
       <CodeBackdrop className="site-footer__canvas" theme={theme} />
       <div className="site-footer__scrim" aria-hidden="true" />
       <div className="container site-footer__content">
-        <div className="site-footer__cols">
+        {/* 品牌大字 + 社交图标 */}
+        <div className="site-footer__top">
           <div className="site-footer__brand">
             <Link className="logo" to="/">
               <BrandMark className="logo__mark" />
@@ -61,70 +99,43 @@ export function SiteFooter() {
               </span>
             </div>
           </div>
-
-          {footerGroups.map((group, index) => {
-            const open = openGroups.has(group.title)
-            const panelId = `footer-group-${index}`
-            return (
-              <div className={`site-footer__group${open ? ' is-open' : ''}`} key={group.title}>
-                {/* 移动端：可点的折叠标题（手风琴）；桌面端由 CSS 隐藏本按钮、显示下方 h3 */}
-                <button
-                  type="button"
-                  className="site-footer__group-toggle"
-                  aria-expanded={open}
-                  aria-controls={panelId}
-                  onClick={() => toggleGroup(group.title)}
-                >
-                  <span>{group.title}</span>
-                  <span className="site-footer__chevron" aria-hidden="true">
-                    ⌄
-                  </span>
-                </button>
-                <h3 className="site-footer__group-title">{group.title}</h3>
-                <div className="site-footer__group-links" id={panelId}>
-                  {group.links.map((link) => (
-                    <Link key={link.label} to={link.href}>
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-
-          <div>
-            <h3>{t('footer.follow')}</h3>
-            <div className="site-footer__qrs">
-              <QrPlaceholder label={t('footer.wechat')} />
-              <QrPlaceholder label={t('footer.miniapp')} />
+          {social.length > 0 && (
+            <div className="site-footer__social" aria-label={t('footer.follow')}>
+              {social.map((item, index) => (
+                <SocialEntry item={item} key={`${item.label}-${index}`} />
+              ))}
             </div>
-            {/* 社交关注：圆形字符图标，hover 提亮。
-                未配置真实地址时**不渲染死链**（href 为 '#' 会点击跳回顶部），改为非交互展示。 */}
-            <div className="site-footer__social" aria-label="社交关注">
-              {FOOTER_SOCIAL.map((item) =>
-                item.href && item.href !== '#' ? (
-                  <a key={item.label} className="site-footer__social-item" href={item.href} aria-label={item.label}>
-                    {item.short}
-                  </a>
-                ) : (
-                  <span
-                    key={item.label}
-                    className="site-footer__social-item is-placeholder"
-                    aria-label={`${item.label}（待配置）`}
-                  >
-                    {item.short}
-                  </span>
-                ),
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
+        {/* 大行链接：行间细线分隔 */}
+        <nav className="site-footer__links" aria-label="页脚导航">
+          {footerGroups.map((group) => (
+            <div className="site-footer__linkrow" key={group.title}>
+              <h3 className="site-footer__linkrow-title">{group.title}</h3>
+              <div className="site-footer__linkrow-links">
+                {group.links.map((link) => (
+                  <Link key={link.label} to={link.href}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* 底部：公司信息 / 备案号 / 隐私·协议 */}
         <div className="site-footer__bottom">
-          <span>{t('footer.copyright')}</span>
-          <div className="row" style={{ gap: 'var(--gh-space-4)' }}>
-            {FOOTER_LEGAL.map((item) => (
-              <Link key={item.label} to={item.to} style={{ color: 'inherit' }}>
+          <div className="site-footer__meta">
+            <span className="site-footer__company">{SITE_COMPANY}</span>
+            <span className="site-footer__copyright">{t('footer.copyright')}</span>
+          </div>
+          <div className="site-footer__legal">
+            <Link className="site-footer__record" to={SITE_RECORD.to}>
+              {SITE_RECORD.label}
+            </Link>
+            {legalLinks.map((item) => (
+              <Link key={item.label} to={item.to}>
                 {item.label}
               </Link>
             ))}

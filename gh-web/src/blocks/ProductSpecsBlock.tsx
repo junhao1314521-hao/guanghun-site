@@ -8,7 +8,7 @@
  * props.showGuides：是否显示底部引导卡；props.guideDownloadLabel / guideContactLabel 可改按钮文案。
  */
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
 import { fetchTestRecords } from '../api/products'
 import { useProductDetail } from './ProductDetailContext'
 import { useApi } from '../hooks/useApi'
@@ -188,9 +188,9 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
           <div className="empty">
             <h2 className="empty__title">{t('blocks.pd.tabEmptyTitle', { tab: detail.tabs[tab] ?? '' })}</h2>
             <p className="empty__desc">{t('blocks.pd.tabEmptyDesc', { tab: detail.tabs[tab] ?? '' })}</p>
-            <Link className="btn btn--secondary btn--sm" to="/inquiry">
+            <SafeLink className="btn btn--secondary btn--sm" to="/inquiry">
               {t('blocks.pd.submitTicket')}
-            </Link>
+            </SafeLink>
           </div>
         )}
 
@@ -199,16 +199,16 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
             <div className="card" style={{ flex: 1, minWidth: 260 }}>
               <h3 className="card__title">{t('blocks.pd.guideDownloads')}</h3>
               <p className="card__desc">{t('blocks.pd.guideDownloadsDesc')}</p>
-              <Link className="btn btn--secondary btn--sm" to="/downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
+              <SafeLink className="btn btn--secondary btn--sm" to="/downloads" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {downloadLabel}
-              </Link>
+              </SafeLink>
             </div>
             <div className="card" style={{ flex: 1, minWidth: 260 }}>
               <h3 className="card__title">{t('blocks.pd.guideHelp')}</h3>
               <p className="card__desc">{t('blocks.pd.guideHelpDesc')}</p>
-              <Link className="btn btn--primary btn--sm" to="/inquiry" style={{ marginTop: 'var(--gh-space-4)' }}>
+              <SafeLink className="btn btn--primary btn--sm" to="/inquiry" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {contactLabel}
-              </Link>
+              </SafeLink>
             </div>
           </div>
         )}

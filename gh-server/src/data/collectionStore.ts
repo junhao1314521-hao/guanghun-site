@@ -43,6 +43,7 @@ import { TEST_METHODS, type TestMethod } from './methods'
 import { SERVICE_SPOTS, type ServiceSpot } from './serviceInfo'
 import { RESERVATIONS, type ReservationSummary } from './reservations'
 import { SUBSCRIBERS, type Subscriber } from './subscribers'
+import { BRAND_ASSET_ITEMS, type BrandAssetItem } from './brandAssets'
 
 /** 集合 key（与后台栏目 key 一致） */
 export type CollectionKey =
@@ -65,6 +66,7 @@ export type CollectionKey =
   | 'service-info'
   | 'reservations'
   | 'subscribers'
+  | 'brand-assets'
 
 /** 集合 → 记录类型（规范形状 = 前台现有形状） */
 export type CollectionMap = {
@@ -87,6 +89,7 @@ export type CollectionMap = {
   'service-info': ServiceSpot[]
   reservations: ReservationSummary[]
   subscribers: Subscriber[]
+  'brand-assets': BrandAssetItem[]
 }
 
 /** 某集合的记录类型 */
@@ -113,6 +116,7 @@ export const COLLECTION_KEYS: CollectionKey[] = [
   'service-info',
   'reservations',
   'subscribers',
+  'brand-assets',
 ]
 
 /** 已就绪的数据库路径（DB_PATH 变化时需重新检查 / 回填；显式 initCollections 可重复调用） */
@@ -151,6 +155,7 @@ export function buildCollectionSeed(): CollectionMap {
     'service-info': SERVICE_SPOTS,
     reservations: RESERVATIONS,
     subscribers: SUBSCRIBERS,
+    'brand-assets': BRAND_ASSET_ITEMS,
   }
   return clone(seed)
 }
@@ -178,7 +183,7 @@ export function initCollections(): void {
       if (count > 0) {
         // 已有记录：做**追加式字段回填**——seed 中新增的字段（如 articles.body / downloads.fileUrl）
         // 若记录缺失则用 seed 默认值补齐（**不覆盖**已有值），实现「结构演进不丢已有写入」。
-        if (key === 'articles' || key === 'downloads') fieldPatched += backfillMissingFields(tx, key, seed[key])
+        if (key === 'articles' || key === 'downloads' || key === 'products') fieldPatched += backfillMissingFields(tx, key, seed[key])
         continue
       }
       seed[key].forEach((record, index) => insert.run(key, record.id, JSON.stringify(record), index))

@@ -11,6 +11,8 @@
  */
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
+import { useSitePages } from '../hooks/useSitePages'
 import { fetchLadder } from '../api/ladder'
 import { fillWidth, type LadderMetric, type LadderRow } from '../data/ladder'
 import { MEDIA } from '../data/media'
@@ -61,6 +63,7 @@ function rankWithinScope(rows: LadderRow[]): { row: LadderRow; rank: string; tie
 
 /** 领奖台：取前三名（仅已测试），以「2 - 1 - 3」视觉顺序排列，冠军居中抬高 */
 function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
+  const { isHrefLive } = useSitePages()
   const top = rows.filter((row) => row.score !== null).slice(0, 3)
   if (top.length < 3) return null
   const fmt = (score: number) => score.toFixed(metric.unit === '分' || score < 10 ? 1 : 0)
@@ -77,7 +80,7 @@ function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
             <span className="podium__thumb" aria-hidden="true">
               <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
             </span>
-            {row.productId ? (
+            {row.productId && isHrefLive(`/products/${row.productId}`) ? (
               <Link className="podium__model" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
                 {row.model}
               </Link>
@@ -114,6 +117,7 @@ function LadderRows({
   highlight: string
 }) {
   const { t } = useI18n()
+  const { isHrefLive } = useSitePages()
   const ranked = scoped ? rankWithinScope(rows) : rows.map((row) => ({ row, rank: row.rank, tied: row.tied }))
   const topScore = ranked.reduce<number | null>(
     (acc, { row }) => (row.score !== null && (acc === null || row.score > acc) ? row.score : acc),
@@ -147,7 +151,7 @@ function LadderRows({
             <span className="ladder__thumb" aria-hidden="true">
               <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
             </span>
-            {row.productId ? (
+            {row.productId && isHrefLive(`/products/${row.productId}`) ? (
               <Link className="ladder__model ladder__model--link" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
                 {row.model}
               </Link>
@@ -244,9 +248,9 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
       <SectionHeadFromProps
         props={props}
         action={
-          <Link className="btn btn--ghost btn--sm" to="/ladder">
+          <SafeLink className="btn btn--ghost btn--sm" to="/ladder">
             {t('blocks.fullRankings')} →
-          </Link>
+          </SafeLink>
         }
       />
       {error ? (
@@ -363,9 +367,9 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                     aria-label="查找我的型号"
                     onChange={(event) => setQuery(event.target.value)}
                   />
-                  <Link className="ladder__method" to="/articles">
+                  <SafeLink className="ladder__method" to="/articles">
                     测试方法说明 →
-                  </Link>
+                  </SafeLink>
                 </div>
               )}
               {/* 领奖台（前三）：列表页展示，首页 teaser 省略 */}

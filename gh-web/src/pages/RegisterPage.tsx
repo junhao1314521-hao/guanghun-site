@@ -104,7 +104,7 @@ export function RegisterPage() {
       <div className="auth-page">
         <AuthShell
           variant="page"
-          badge="客户中心"
+          badge="个人中心"
           eyebrow="ACCOUNT / REGISTER"
           headline="注册光魂账号"
           subtitle="注册后可登记设备、跟踪工单并管理订阅通知。"

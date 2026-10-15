@@ -17,6 +17,7 @@ import { fetchBizVenues } from '../api/business-extra'
 import { fetchProducts } from '../api/products'
 import { fetchServiceSpots } from '../api/support'
 import { useApi } from '../hooks/useApi'
+import { useSitePages } from '../hooks/useSitePages'
 import { MediaImg } from '../components/ui/MediaImg'
 import { IconChevronDown, IconCopy, IconNavigate, IconPin } from '../components/ui/Icon'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
@@ -63,6 +64,7 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
   const groupBy = asString(props.groupBy, 'none')
   const showModels = asBool(props.showModels)
   const dialog = asBool(props.dialog)
+  const { isHrefLive } = useSitePages()
   const [reloadKey, setReloadKey] = useState(0)
   const [openId, setOpenId] = useState<string | null>(null)
   const closeDialog = useCallback(() => setOpenId(null), [])
@@ -133,6 +135,7 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
         showModels={showModels}
         dialog={dialog}
         productMap={productMap}
+        live={isHrefLive(item.href)}
         onOpen={setOpenId}
         key={item.id}
       />
@@ -220,6 +223,7 @@ function BizVenueCard({
   showModels,
   dialog,
   productMap,
+  live,
   onOpen,
 }: {
   item: VenueCard
@@ -227,6 +231,8 @@ function BizVenueCard({
   showModels: boolean
   dialog: boolean
   productMap: Map<string, string>
+  /** 详情页是否仍在线（下线级联：停用时卡片退化为不可点内容） */
+  live: boolean
   onOpen: (id: string) => void
 }) {
   const [copied, setCopied] = useState<null | 'ok' | 'fail'>(null)
@@ -239,7 +245,7 @@ function BizVenueCard({
   const type = venueTypeClass(item.type ?? '')
   const label = VENUE_TYPE_LABEL[type] ?? '体验点'
   const navHref = `https://uri.amap.com/search?keyword=${encodeURIComponent(item.address)}`
-  const clickable = dialog || Boolean(item.href)
+  const clickable = dialog || (Boolean(item.href) && live)
 
   const copyAddress = async () => {
     try {
@@ -259,7 +265,7 @@ function BizVenueCard({
           aria-label={`查看 ${item.name} 详情`}
           onClick={() => onOpen(item.id)}
         />
-      ) : item.href ? (
+      ) : item.href && live ? (
         <Link className="venue-card__trigger" to={item.href} aria-label={`查看 ${item.name} 详情`} />
       ) : null}
 

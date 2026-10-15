@@ -9,13 +9,17 @@
  * 双主题：内联覆盖对明/暗同时生效，故令牌均为与明暗无关的几何/排版项（或需用户自保证对比度的主色实底）。
  */
 import { useMemo, useState } from 'react'
-import { fetchAdminSite, saveTheme } from '../../api/adminPages'
+import { fetchAdminSite, saveDefaultTheme, saveTheme } from '../../api/adminPages'
 import type { SiteConfig } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ErrorState } from '../../components/admin/states'
+import { Select } from '../../components/admin/Select'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { THEME_TOKEN_META } from '../../lib/siteTheme'
+
+/** 站点默认主题取值 */
+type DefaultTheme = 'auto' | 'light' | 'dark'
 
 /** 默认主色回退（取色器需要合法 hex 初值） */
 const COLOR_FALLBACK = '#2040ED'
@@ -24,10 +28,28 @@ const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 function StylesEditor({ initial }: { initial: SiteConfig }) {
   const [theme, setTheme] = useState<Record<string, string>>(initial.theme ?? {})
   const [saving, setSaving] = useState(false)
+  const [defaultTheme, setDefaultTheme] = useState<DefaultTheme>(initial.defaultTheme ?? 'auto')
+  const [savingDefaultTheme, setSavingDefaultTheme] = useState(false)
   const toast = useToast()
   const confirm = useConfirm()
 
   const dirty = useMemo(() => JSON.stringify(theme) !== JSON.stringify(initial.theme ?? {}), [theme, initial.theme])
+
+  /** 切换默认主题即保存（复用同一套后台控件与反馈） */
+  const onDefaultThemeChange = async (value: string) => {
+    const next = value as DefaultTheme
+    if (next === defaultTheme) return
+    setSavingDefaultTheme(true)
+    try {
+      await saveDefaultTheme(next)
+      setDefaultTheme(next)
+      toast.success('已保存默认主题；新访客（无本地记录）将按此主题渲染。')
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '保存默认主题失败，请稍后重试')
+    } finally {
+      setSavingDefaultTheme(false)
+    }
+  }
 
   const setValue = (key: string, value: string) => {
     setTheme((prev) => {
@@ -101,6 +123,33 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
       />
 
       <div className="admin-form" style={{ maxWidth: 'none' }}>
+        <div className="admin-form__section">
+          <h2 className="admin-form__section-title">默认主题</h2>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            新访客（无本地记录）进入站点时按此主题渲染；顶栏手动切换始终优先，并记忆在访客本地。
+          </p>
+          <div className="admin-form__grid">
+            <div className="field">
+              <label className="field__label" htmlFor="th-default-theme">
+                默认主题
+              </label>
+              <Select
+                id="th-default-theme"
+                value={defaultTheme}
+                aria-label="默认主题"
+                disabled={savingDefaultTheme}
+                onChange={(value) => void onDefaultThemeChange(value)}
+                options={[
+                  { value: 'auto', label: '跟随系统' },
+                  { value: 'light', label: '浅色' },
+                  { value: 'dark', label: '暗色' },
+                ]}
+              />
+              <span className="field__hint">切换后立即保存；用户手动选择优先于站点默认主题。</span>
+            </div>
+          </div>
+        </div>
+
         <div className="admin-form__section">
           <h2 className="admin-form__section-title">设计令牌</h2>
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>

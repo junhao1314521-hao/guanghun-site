@@ -9,7 +9,8 @@
  * 类别 / 类型筛选、下载操作与空态，避免装修化后交互能力回退。
  */
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { SafeLink } from '../components/ui/SafeLink'
 import { fetchDownloads } from '../api/support-extra'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
@@ -81,9 +82,9 @@ function DownloadCards({ items, showFilter }: { items: DownloadItem[]; showFilte
             </span>
           </div>
           <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
-            <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
+            <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
               查看详情
-            </Link>
+            </SafeLink>
             {showFilter &&
               ((item as { fileUrl?: string }).fileUrl ? (
                 <a
@@ -122,6 +123,8 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // 呈现方式：表格（默认）/ 横向滑动卡片
   const railCards = asString(props.layout, 'table') === 'rail'
   const [reloadKey, setReloadKey] = useState(0)
+  // 搜索词：按资料名称 / 型号 / 版本命中（对应清单第 5 条能力：搜 54027X1QE 或 v1.6.3 能命中）
+  const [query, setQuery] = useState('')
   // —— 交互态：仅 showFilter 时使用；筛选「全量进 URL」（?category=&type=&model=），
   //    便于分享 / 深链直达（如型号支持页 → /downloads?model=xxx）——
   const [params, setParams] = useSearchParams()
@@ -145,12 +148,20 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   const base = pickByIds(all, scope, manualIds)
   // 型号候选：由全部资料的适用型号去重生成（升序，便于查找）
   const modelOptions = ['全部', ...Array.from(new Set(base.flatMap((item) => item.models))).sort()]
+  // 搜索命中：资料名称 / 版本 / 任一适用型号（大小写不敏感）
+  const keyword = query.trim().toLowerCase()
+  const matchesQuery = (item: DownloadItem) =>
+    !keyword ||
+    item.name.toLowerCase().includes(keyword) ||
+    item.version.toLowerCase().includes(keyword) ||
+    item.models.some((entry) => entry.toLowerCase().includes(keyword))
   const filtered = base.filter(
     (item) =>
       (!propCategory || item.category === propCategory) &&
       (model === '全部' || item.models.includes(model)) &&
       (!showFilter || category === '全部' || item.category === category) &&
-      (!showFilter || type === '全部' || DOWNLOAD_TYPE_LABELS[item.type] === type),
+      (!showFilter || type === '全部' || DOWNLOAD_TYPE_LABELS[item.type] === type) &&
+      (!showFilter || matchesQuery(item)),
   )
   const capped = limit > 0 ? filtered.slice(0, limit) : filtered
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
@@ -165,6 +176,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
     next.delete('type')
     next.delete('model')
     setParams(next, { replace: true })
+    setQuery('')
   }
 
   return (
@@ -172,9 +184,9 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
       <SectionHeadFromProps
         props={props}
         action={
-          <Link className="btn btn--ghost btn--sm" to="/downloads">
+          <SafeLink className="btn btn--ghost btn--sm" to="/downloads">
             {t('blocks.downloadCenter')} →
-          </Link>
+          </SafeLink>
         }
       />
       {error ? (
@@ -232,16 +244,30 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
         </div>
       ) : (
         <>
-          {/* 类别 / 类型筛选（仅列表页开启）：与原下载中心一致 */}
+          {/* 头部收成一行：搜索框 + 类别 chip + 行尾「更多筛选」（类型 / 型号两个下拉，默认收起） */}
           {showFilter && (
-            <div className="row" style={{ gap: 'var(--gh-space-5)', marginBottom: 'var(--gh-space-5)', flexWrap: 'wrap' }}>
+            <div className="row" style={{ gap: 'var(--gh-space-3)', marginBottom: 'var(--gh-space-5)', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                className="input"
+                type="search"
+                value={query}
+                placeholder="搜资料名称 / 型号 / 版本"
+                aria-label="搜索下载资料"
+                style={{ maxWidth: 300, flex: '1 1 220px' }}
+                onChange={(event) => setQuery(event.target.value)}
+              />
               <FilterChips label="类别" options={data?.categories ?? []} value={category} onChange={setCategory} />
-              <FilterChips label="类型" options={data?.types ?? []} value={type} onChange={setType} />
-              {/* 型号筛选：型号较多时该行自动换行（flexWrap） */}
-              <FilterChips label="型号" options={modelOptions} value={model} onChange={setModel} />
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
                 共 {filtered.length} 份
               </span>
+              <details className="blk-more" style={{ marginLeft: 'auto' }}>
+                <summary className="chip">更多筛选</summary>
+                <div className="blk-more__panel">
+                  <FilterChips label="类型" options={data?.types ?? []} value={type} onChange={setType} />
+                  {/* 型号筛选：型号较多时该行自动换行 */}
+                  <FilterChips label="型号" options={modelOptions} value={model} onChange={setModel} />
+                </div>
+              </details>
             </div>
           )}
 
@@ -289,9 +315,9 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                       <td>
                         {showFilter ? (
                           <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
-                            <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
+                            <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                               查看详情
-                            </Link>
+                            </SafeLink>
                             {(item as { fileUrl?: string }).fileUrl ? (
                               <a
                                 className="btn btn--sm btn--ghost"
@@ -314,9 +340,9 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                             )}
                           </div>
                         ) : (
-                          <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
+                          <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                             查看详情
-                          </Link>
+                          </SafeLink>
                         )}
                       </td>
                     </tr>

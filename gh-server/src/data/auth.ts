@@ -26,6 +26,8 @@ export type InquirySummary = {
   name?: string
   /** 咨询主题（表单「主题」独立落库，便于按主题统计） */
   topic?: string
+  /** 咨询类型（轻量分流：售前咨询 / 售后报修 / 商务合作，供后台按类型分派 / 筛选） */
+  inquiryType?: string
   /** 联系方式（邮箱 / 手机号等） */
   contact: string
   /** 关联产品型号 */

@@ -124,24 +124,7 @@ export function FaqDetailPage() {
         </div>
       )}
 
-      {detail.related.length > 0 && (
-        <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
-          <h2 className="section__title" style={{ marginBottom: 'var(--gh-space-4)' }}>
-            相关问答
-          </h2>
-          <div className="news-list reveal">
-            {detail.related.map((item) => (
-              <Link className="news-row" to={`/faq/${item.id}`} key={item.id}>
-                <span className="tag">{item.category}</span>
-                <span className="news-row__title">{item.q}</span>
-                <span className="news-row__go" aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 「相关问答」只保留后台区块那一份（template-faq），页面内不再写死（§4.21 统一规则） */}
 
       <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
         <div

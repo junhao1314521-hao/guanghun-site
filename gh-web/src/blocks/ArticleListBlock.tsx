@@ -20,6 +20,7 @@ import {
   type NewsItem,
 } from '../data/articles'
 import { useApi } from '../hooks/useApi'
+import { useSitePages } from '../hooks/useSitePages'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockPager, useBlockPager } from './BlockPager'
@@ -46,53 +47,86 @@ function codeFromLabel(label: string): string | undefined {
 
 /** 文章卡片网格 / 横滑（对齐文章列表页既有卡片形态；rail 时横向滚动） */
 function ArticleCards({ items, rail }: { items: ArticleSummary[]; rail?: boolean }) {
+  const { isHrefLive } = useSitePages()
   return (
     <div className={rail ? 'blk-scroll-x' : 'grid-3'}>
-      {items.map((item) => (
-        <Link className="card card--link card--article reveal" to={`/articles/${item.id}`} key={item.id}>
-          <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
-            <MediaImg src={articleCoverSrc(item.cover, item.coverImage)} alt={item.title} />
-          </div>
-          <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
-            {(item.tags?.length ? item.tags : [item.tag]).map((label, index) => (
-              <span className={`tag${item.accent && index === 0 ? ' tag--accent' : ''}`} key={label}>
-                {label}
+      {items.map((item) => {
+        const to = `/articles/${item.id}`
+        // 下线级联：详情页已停用时卡片退化为不可点内容（保留内容，去掉链接与箭头态）
+        const live = isHrefLive(to)
+        const body = (
+          <>
+            <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
+              <MediaImg src={articleCoverSrc(item.cover, item.coverImage)} alt={item.title} />
+            </div>
+            <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
+              {(item.tags?.length ? item.tags : [item.tag]).map((label, index) => (
+                <span className={`tag${item.accent && index === 0 ? ' tag--accent' : ''}`} key={label}>
+                  {label}
+                </span>
+              ))}
+            </div>
+            <h3 className="card__title">{item.title}</h3>
+            <p className="card__desc">{item.desc}</p>
+            <div className="card--link__foot">
+              <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+                {item.author}
               </span>
-            ))}
+              <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+                {item.date} · {item.readingMin} 分钟阅读
+              </span>
+            </div>
+          </>
+        )
+        return live ? (
+          <Link className="card card--link card--article reveal" to={to} key={item.id}>
+            {body}
+          </Link>
+        ) : (
+          <div className="card card--article reveal" key={item.id}>
+            {body}
           </div>
-          <h3 className="card__title">{item.title}</h3>
-          <p className="card__desc">{item.desc}</p>
-          <div className="card--link__foot">
-            <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-              {item.author}
-            </span>
-            <span className="muted mono" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-              {item.date} · {item.readingMin} 分钟阅读
-            </span>
-          </div>
-        </Link>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
 /** 新闻行列表（对齐新闻中心的既有 news-list 行形态，列表页使用） */
 function NewsRows({ items }: { items: NewsItem[] }) {
+  const { isHrefLive } = useSitePages()
   return (
     <div className="news-list reveal">
-      {items.map((item) => (
-        <Link className="news-row" to={item.href ?? '/articles'} key={`${item.date}-${item.title}`}>
-          <span className="news-row__thumb">
-            <MediaImg src={articleCoverSrc(item.cover ?? '', item.coverImage)} alt="" />
-          </span>
-          <span className="news-row__date">{item.date}</span>
-          <span className="tag">{item.tag}</span>
-          <span className="news-row__title">{item.title}</span>
-          <span className="news-row__go" aria-hidden="true">
-            →
-          </span>
-        </Link>
-      ))}
+      {items.map((item) => {
+        const to = item.href ?? '/articles'
+        const live = isHrefLive(to)
+        const key = `${item.date}-${item.title}`
+        const body = (
+          <>
+            <span className="news-row__thumb">
+              <MediaImg src={articleCoverSrc(item.cover ?? '', item.coverImage)} alt="" />
+            </span>
+            <span className="news-row__date">{item.date}</span>
+            <span className="tag">{item.tag}</span>
+            <span className="news-row__title">{item.title}</span>
+            {live && (
+              <span className="news-row__go" aria-hidden="true">
+                →
+              </span>
+            )}
+          </>
+        )
+        // 下线级联：目标页已停用时行退化为不可点内容（保留信息，去掉箭头）
+        return live ? (
+          <Link className="news-row" to={to} key={key}>
+            {body}
+          </Link>
+        ) : (
+          <div className="news-row" key={key}>
+            {body}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -105,28 +139,41 @@ function NewsRows({ items }: { items: NewsItem[] }) {
  * 第二段为装饰性重复，对读屏与键盘隐藏，避免同一链接被读两遍。
  */
 function NewsMarquee({ items }: { items: NewsItem[] }) {
+  const { isHrefLive } = useSitePages()
   const group = (duplicated: boolean) => (
     <div className="news-marquee__group" aria-hidden={duplicated || undefined}>
-      {items.map((item) => (
-        <Link
-          className="news-card"
-          to={item.href ?? '/articles'}
-          key={`${duplicated ? 'dup-' : ''}${item.date}-${item.title}`}
-          tabIndex={duplicated ? -1 : undefined}
-        >
-          <span className="news-card__thumb">
-            <MediaImg src={articleCoverSrc(item.cover ?? '', item.coverImage)} alt="" />
-          </span>
-          <span className="news-card__meta">
-            <span className="news-card__date">{item.date}</span>
-            <span className="tag">{item.tag}</span>
-          </span>
-          <span className="news-card__title">{item.title}</span>
-          <span className="news-card__go" aria-hidden="true">
-            →
-          </span>
-        </Link>
-      ))}
+      {items.map((item) => {
+        const to = item.href ?? '/articles'
+        const live = isHrefLive(to)
+        const key = `${duplicated ? 'dup-' : ''}${item.date}-${item.title}`
+        const body = (
+          <>
+            <span className="news-card__thumb">
+              <MediaImg src={articleCoverSrc(item.cover ?? '', item.coverImage)} alt="" />
+            </span>
+            <span className="news-card__meta">
+              <span className="news-card__date">{item.date}</span>
+              <span className="tag">{item.tag}</span>
+            </span>
+            <span className="news-card__title">{item.title}</span>
+            {live && (
+              <span className="news-card__go" aria-hidden="true">
+                →
+              </span>
+            )}
+          </>
+        )
+        // 下线级联：目标页已停用时卡片退化为不可点内容
+        return live ? (
+          <Link className="news-card" to={to} key={key} tabIndex={duplicated ? -1 : undefined}>
+            {body}
+          </Link>
+        ) : (
+          <div className="news-card" key={key}>
+            {body}
+          </div>
+        )
+      })}
     </div>
   )
 
@@ -159,18 +206,24 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
     (signal) => (isNews ? fetchNews(signal) : fetchArticles(signal)),
     [source, reloadKey],
   )
-  // 分类筛选 chip 由后台「分类与标签」维护（离线回退本地枚举）
+  // 分类筛选 chip 由后台「分类与标签」维护（离线回退本地枚举）；
+  // 文章库不再含「资讯」分类（资讯统一到 /news），故此处从候选中剔除「资讯」
   const { data: taxonomy } = useApi((signal) => fetchTaxonomy(signal), [])
   const categoryOptions = [
     '全部',
     ...(taxonomy
       ? taxonomy.items.filter((item) => item.type === '分类' && item.status === '启用').map((item) => item.name)
       : CATEGORY_FILTERS.filter((name) => name !== '全部')),
-  ]
+  ].filter((name) => name !== '资讯')
 
-  // 文章模式仅展示「已发布」的内容（新闻条目无 status，原样保留）
+  // 文章模式仅展示「已发布」的内容（新闻条目无 status，原样保留）；
+  // 文章库不再含「资讯」分类（资讯统一到 /news），故列表排除 category=news 的条目
   const rawItems = data?.items ?? []
-  const items = isNews ? rawItems : (rawItems as ArticleSummary[]).filter((item) => !item.status || item.status === '已发布')
+  const items = isNews
+    ? rawItems
+    : (rawItems as ArticleSummary[]).filter(
+        (item) => (!item.status || item.status === '已发布') && item.category !== 'news',
+      )
   const label = SOURCE_LABEL[source] ?? ''
   const bySource = !isNews && label ? (items as ArticleSummary[]).filter((item) => item.categoryLabel === label) : items
   // 手动挑选：仅在文章模式生效（新闻条目无 id），按 ids 顺序挑选
@@ -243,9 +296,10 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
         </div>
       ) : (
         <>
-          {/* 分类筛选（仅列表页开启）：与原文章列表页一致，筛选值写入 URL 便于分享 */}
+          {/* 筛选收成一行：分类做主 chip 行，行尾「更多筛选」把「主题」收进其下拉面板（默认收起）。
+              分类 / 主题叠加与 URL 深链（?category= / ?tag=）能力保留。 */}
           {canFilter && (
-            <div className="row" style={{ gap: 'var(--gh-space-2)', marginBottom: 'var(--gh-space-5)' }}>
+            <div className="row" style={{ gap: 'var(--gh-space-2)', marginBottom: 'var(--gh-space-5)', flexWrap: 'wrap', alignItems: 'center' }}>
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
                 分类
               </span>
@@ -263,29 +317,33 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
                 共 {filtered.length} 篇
               </span>
-            </div>
-          )}
-          {/* 主题标签（方案 C）：与分类正交、可叠加；同一 chip 再次点击即取消 */}
-          {canFilter && tagOptions.length > 0 && (
-            <div className="row" style={{ gap: 'var(--gh-space-2)', marginBottom: 'var(--gh-space-5)' }}>
-              <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                主题
-              </span>
-              {tagOptions.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`chip${tagParam === option ? ' is-active' : ''}`}
-                  aria-pressed={tagParam === option}
-                  onClick={() => selectTag(tagParam === option ? '' : option)}
-                >
-                  {option}
-                </button>
-              ))}
-              {tagParam && (
-                <button className="btn btn--ghost btn--sm" type="button" onClick={() => selectTag('')}>
-                  清除主题
-                </button>
+              {tagOptions.length > 0 && (
+                <details className="blk-more" style={{ marginLeft: 'auto' }}>
+                  <summary className={`chip${tagParam ? ' is-active' : ''}`}>更多筛选</summary>
+                  <div className="blk-more__panel">
+                    <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                      主题
+                    </span>
+                    <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap' }}>
+                      {tagOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`chip${tagParam === option ? ' is-active' : ''}`}
+                          aria-pressed={tagParam === option}
+                          onClick={() => selectTag(tagParam === option ? '' : option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                      {tagParam && (
+                        <button className="btn btn--ghost btn--sm" type="button" onClick={() => selectTag('')}>
+                          清除主题
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </details>
               )}
             </div>
           )}

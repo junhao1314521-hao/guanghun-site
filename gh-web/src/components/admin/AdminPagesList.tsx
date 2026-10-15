@@ -8,9 +8,18 @@
  * 其页面 id 与内容库 page key 不对应，无法直接进入装修器；故此处为「页面」栏目
  * 配置了自定义视图类型 `pages`，并在后台路由中以本组件承载。
  */
-import { useState, type FormEvent } from 'react'
+import { Fragment, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { createAdminPage, deleteAdminPage, fetchAdminPages, type AdminPageList } from '../../api/adminPages'
+import {
+  createAdminPage,
+  deleteAdminPage,
+  fetchAdminPageReferences,
+  fetchAdminPages,
+  saveAdminPage,
+  type AdminPageList,
+  type AdminPageListItem,
+  type PageReferenceList,
+} from '../../api/adminPages'
 import type { PageMeta } from '../../api/adminPages'
 import { fetchTemplates, type TemplateItem } from '../../api/adminTemplates'
 import { useApi } from '../../hooks/useApi'
@@ -137,8 +146,50 @@ export function AdminPagesList() {
   const toast = useToast()
   const [removed, setRemoved] = useState<ReadonlySet<string>>(() => new Set())
   const [creating, setCreating] = useState(false)
+  /** 启用状态的本地乐观覆盖（切换即保存后立即反映，避免等待列表重取） */
+  const [enabledOverride, setEnabledOverride] = useState<Record<string, boolean>>({})
+  const [toggling, setToggling] = useState<ReadonlySet<string>>(() => new Set())
+  /** 引用清单：当前展开的页面 key 与其引用明细缓存 */
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [refs, setRefs] = useState<Record<string, PageReferenceList>>()
 
   const rows = (state.data?.items ?? []).filter((item) => !removed.has(item.key))
+
+  /** 页面是否启用：本地覆盖优先，其次接口返回值（缺省视为 true） */
+  const isEnabled = (item: AdminPageListItem): boolean => enabledOverride[item.key] ?? item.enabled !== false
+
+  const onToggleEnabled = async (item: AdminPageListItem, next: boolean) => {
+    setToggling((prev) => new Set(prev).add(item.key))
+    try {
+      await saveAdminPage(item.key, { enabled: next })
+      setEnabledOverride((prev) => ({ ...prev, [item.key]: next }))
+      toast.success(next ? `已启用「${item.title}」` : `已下线「${item.title}」`)
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '切换失败，请稍后重试')
+    } finally {
+      setToggling((prev) => {
+        const set = new Set(prev)
+        set.delete(item.key)
+        return set
+      })
+    }
+  }
+
+  const onToggleRefs = async (item: AdminPageListItem) => {
+    if (expanded === item.key) {
+      setExpanded(null)
+      return
+    }
+    setExpanded(item.key)
+    if (!refs?.[item.key]) {
+      try {
+        const data = await fetchAdminPageReferences(item.key)
+        setRefs((prev) => ({ ...prev, [item.key]: data }))
+      } catch {
+        // 引用清单获取失败：保持空态，不影响其他操作
+      }
+    }
+  }
 
   const onDelete = async (item: PageMeta) => {
     const ok = await confirm({
@@ -178,7 +229,7 @@ export function AdminPagesList() {
 
       <div className="admin-table-wrap">
         {state.loading && rows.length === 0 ? (
-          <SkeletonTable columns={5} rows={5} />
+          <SkeletonTable columns={8} rows={5} />
         ) : state.error && rows.length === 0 ? (
           <div className="admin-table__empty">
             <ErrorState message={state.error.message} />
@@ -196,48 +247,104 @@ export function AdminPagesList() {
                   <th scope="col">页面 key</th>
                   <th scope="col">前台路径</th>
                   <th scope="col" style={{ textAlign: 'right' }}>区块数</th>
+                  <th scope="col">引用</th>
+                  <th scope="col">上线状态</th>
                   <th scope="col">更新时间</th>
                   <th scope="col" style={{ textAlign: 'right' }}>操作</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((item) => (
-                  <tr key={item.key}>
-                    <td className="admin-cell--title" data-label="页面标题">
-                      <strong>{item.title}</strong>
-                      {/* 明细模板：一套内容作用于该类型的所有明细页（如产品详情模板作用于全部产品） */}
-                      {item.key.startsWith('template-') && (
-                        <span
-                          className="tag"
-                          style={{ marginLeft: 'var(--gh-space-2)' }}
-                          title="明细模板：这里的区块作用于该类型的所有明细页，明细数据来自对应集合"
-                        >
-                          明细模板
-                        </span>
+                {rows.map((item) => {
+                  const enabled = isEnabled(item)
+                  const refCount = item.refCount ?? 0
+                  const isOpen = expanded === item.key
+                  const detail = refs?.[item.key]
+                  return (
+                    <Fragment key={item.key}>
+                      <tr>
+                        <td className="admin-cell--title" data-label="页面标题">
+                          <strong>{item.title}</strong>
+                          {/* 明细模板：一套内容作用于该类型的所有明细页（如产品详情模板作用于全部产品） */}
+                          {item.key.startsWith('template-') && (
+                            <span
+                              className="tag"
+                              style={{ marginLeft: 'var(--gh-space-2)' }}
+                              title="明细模板：这里的区块作用于该类型的所有明细页，明细数据来自对应集合"
+                            >
+                              明细模板
+                            </span>
+                          )}
+                        </td>
+                        <td data-label="页面 key">
+                          <span className="mono">{item.key}</span>
+                        </td>
+                        <td data-label="前台路径">
+                          <span className="mono">{item.path}</span>
+                        </td>
+                        <td style={{ textAlign: 'right' }} data-label="区块数">
+                          <span className="mono">{item.blockCount}</span>
+                        </td>
+                        <td data-label="引用">
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            aria-expanded={isOpen}
+                            title="查看指向本页的引用位置"
+                            onClick={() => void onToggleRefs(item)}
+                          >
+                            当前 {refCount} 处引用{isOpen ? ' ▲' : ' ▼'}
+                          </button>
+                        </td>
+                        <td data-label="上线状态">
+                          <label className="switch" title={enabled ? '点击下线该页面' : '点击重新上线该页面'}>
+                            <input
+                              type="checkbox"
+                              checked={enabled}
+                              disabled={toggling.has(item.key)}
+                              aria-label={`${enabled ? '下线' : '上线'}「${item.title}」`}
+                              onChange={(event) => void onToggleEnabled(item, event.target.checked)}
+                            />
+                            <span className="switch__track" />
+                            <span>{enabled ? '已上线' : '已下线'}</span>
+                          </label>
+                        </td>
+                        <td data-label="更新时间">{formatTime(item.updatedAt)}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          <div className="admin-table__actions" style={{ justifyContent: 'flex-end' }}>
+                            <Link className="btn btn--primary btn--sm" to={`/admin/pages/${encodeURIComponent(item.key)}/builder`}>
+                              装修
+                            </Link>
+                            <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => onDelete(item)}>
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {isOpen && (
+                        <tr className="admin-pages__refs-row">
+                          <td colSpan={8} data-label="引用清单">
+                            {!detail ? (
+                              <span className="admin-page__desc">引用清单加载中…</span>
+                            ) : detail.refs.length === 0 ? (
+                              <span className="admin-page__desc">当前没有指向该页面的引用。</span>
+                            ) : (
+                              <ul className="admin-pages__refs">
+                                {detail.refs.map((ref, index) => (
+                                  <li key={`${ref.location}-${index}`}>
+                                    <span>{ref.location}</span>
+                                    <span className="mono" style={{ color: 'var(--color-text-tertiary)', marginLeft: 'var(--gh-space-3)' }}>
+                                      {ref.href}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                    <td data-label="页面 key">
-                      <span className="mono">{item.key}</span>
-                    </td>
-                    <td data-label="前台路径">
-                      <span className="mono">{item.path}</span>
-                    </td>
-                    <td style={{ textAlign: 'right' }} data-label="区块数">
-                      <span className="mono">{item.blockCount}</span>
-                    </td>
-                    <td data-label="更新时间">{formatTime(item.updatedAt)}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="admin-table__actions" style={{ justifyContent: 'flex-end' }}>
-                        <Link className="btn btn--primary btn--sm" to={`/admin/pages/${encodeURIComponent(item.key)}/builder`}>
-                          装修
-                        </Link>
-                        <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => onDelete(item)}>
-                          删除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>

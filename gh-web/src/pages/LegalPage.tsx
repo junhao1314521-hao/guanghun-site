@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { fetchLegalDoc } from '../api/legal'
+import { fetchLegalDoc, fetchLegalDocs } from '../api/legal'
 import { ApiError } from '../api/client'
 import { useApi } from '../hooks/useApi'
 
@@ -9,6 +9,8 @@ export function LegalPage() {
   const { slug = '' } = useParams()
   const [reloadKey, setReloadKey] = useState(0)
   const { data: doc, loading, error } = useApi((signal) => fetchLegalDoc(slug, signal), [slug, reloadKey])
+  // 文档切换行数据：列出全部合规文档，当前页高亮（§4.12）
+  const { data: docs } = useApi((signal) => fetchLegalDocs(signal), [])
 
   // 未命中（404）沿用原有的友好「未找到」页，不降级为通用错误块
   if (error instanceof ApiError && error.status === 404) {
@@ -65,6 +67,8 @@ export function LegalPage() {
       <nav className="breadcrumb" aria-label="面包屑">
         <Link to="/">首页</Link>
         <span>/</span>
+        <span>合规与协议</span>
+        <span>/</span>
         <span>{doc.title}</span>
       </nav>
 
@@ -78,7 +82,23 @@ export function LegalPage() {
         </div>
       </div>
 
-      <p className="field__hint" style={{ marginBottom: 'var(--gh-space-4)' }}>
+      {/* 文档切换行（§4.12）：隐私政策 / 服务条款 / Cookie / 备案信息，当前页高亮 */}
+      {docs && docs.length > 0 && (
+        <div className="row" style={{ gap: 'var(--gh-space-2)', flexWrap: 'wrap', marginTop: 'var(--gh-space-4)' }}>
+          {docs.map((item) => (
+            <Link
+              key={item.slug}
+              className={`chip${item.slug === slug ? ' is-active' : ''}`}
+              to={`/legal/${item.slug}`}
+              aria-current={item.slug === slug ? 'page' : undefined}
+            >
+              {item.title}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <p className="field__hint" style={{ margin: 'var(--gh-space-4) 0' }}>
         最近更新：{doc.updated}
       </p>
 

@@ -3,7 +3,9 @@
  * （相同的 `key`、`to` 与结构，仅译可见文案）。语言为英文时由 SiteHeader / MobileDrawer 选用，
  * 保证二级栏目与一级导航同为英文；未覆盖到的项仍回退中文。
  *
- * 说明：`center` 面板已随一级项改为「单页展示、无下拉」而移除（见 nav.ts 的 NAV_ITEMS）。
+ * 2.0：下拉面板收敛为 3 个（products / support / about）；
+ * `ladder` / `articles` / `business` 面板已随一级项结构调整移除，
+ * 「关于光魂」对应面板 key 仍为 `about`（前台文案为「探索光魂 / Explore」）。
  */
 import type { MegaPanel } from './nav'
 
@@ -12,22 +14,6 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
     key: 'products',
     columns: [
       {
-        eyebrow: 'Overview',
-        links: [
-          { label: 'All products', to: '/products' },
-          { label: 'Compare products', to: '/compare' },
-        ],
-      },
-      {
-        eyebrow: 'Series',
-        links: [
-          { label: 'OLED flagship series', to: '/products/series/oled' },
-          { label: 'Dual-mode series', to: '/products/series/dual' },
-          { label: 'Gaming IPS series', to: '/products/series/ips' },
-          { label: 'Desktop accessories', to: '/products/series/accessory' },
-        ],
-      },
-      {
         eyebrow: 'Featured models',
         links: [
           { label: '54027X1QE-W54 540Hz OLED', to: '/products/gh-54027x1qe' },
@@ -35,47 +21,15 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
           { label: '28027X1QE-W28 280Hz OLED', to: '/products/gh-28027x1qe' },
         ],
       },
+      {
+        eyebrow: 'Quick links',
+        links: [
+          { label: 'All products', to: '/products' },
+          { label: 'Compare products', to: '/compare' },
+        ],
+      },
     ],
     feature: { eyebrow: 'FEATURED', title: '54027X1QE-W54', desc: '26.5" 2K@540Hz · 0.03 ms GTG' },
-  },
-  {
-    key: 'ladder',
-    columns: [
-      {
-        eyebrow: 'Rankings',
-        links: [
-          { label: 'Overall', to: '/ladder' },
-          { label: 'OLED flagship', to: '/ladder?type=oled' },
-          { label: 'Dual-mode', to: '/ladder?type=dual' },
-          { label: 'Gaming IPS', to: '/ladder?type=ips' },
-        ],
-      },
-      {
-        eyebrow: 'Popular',
-        links: [
-          { label: 'Response time rankings', to: '/ladder/latency' },
-          { label: 'Peak brightness rankings', to: '/ladder/battery' },
-          { label: 'Color accuracy rankings', to: '/ladder/sensor' },
-        ],
-      },
-    ],
-    feature: { eyebrow: 'RANKING', title: 'Rankings · Overall', desc: 'All specs public, methods reproducible' },
-  },
-  {
-    key: 'articles',
-    columns: [
-      {
-        eyebrow: 'Categories',
-        links: [
-          { label: 'All articles', to: '/articles' },
-          { label: 'Reviews', to: '/articles?category=review' },
-          { label: 'Guides', to: '/articles?category=guide' },
-          { label: 'Tech', to: '/articles?category=tech' },
-          { label: 'News', to: '/articles?category=news' },
-        ],
-      },
-    ],
-    feature: { eyebrow: 'LATEST', title: 'Latest reviews', desc: 'Latest reviews; images per official release' },
   },
   {
     key: 'support',
@@ -85,60 +39,39 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
         links: [
           { label: 'Support home', to: '/support' },
           { label: 'Downloads', to: '/downloads' },
+          { label: 'Model support', to: '/support/models' },
           { label: 'FAQ', to: '/faq' },
         ],
       },
       {
         eyebrow: 'Contact',
-        links: [
-          { label: 'Submit a ticket', to: '/inquiry' },
-          { label: 'Contact us', to: '/contact' },
-        ],
+        links: [{ label: 'Submit a ticket', to: '/inquiry' }],
       },
     ],
     feature: { eyebrow: 'SUPPORT', title: 'Warranty & after-sales', desc: 'Hotline · online tickets' },
   },
   {
-    key: 'business',
-    columns: [
-      {
-        eyebrow: 'Partnerships',
-        links: [
-          { label: 'Business home', to: '/business' },
-          { label: 'Scenarios', to: '/business/scenes' },
-          { label: 'Case studies', to: '/business/cases' },
-          { label: 'Experience spots', to: '/business/venues' },
-        ],
-      },
-    ],
-    feature: { eyebrow: 'B2B', title: 'Business partnerships', desc: 'Channel / esports / content' },
-  },
-  {
     key: 'about',
     columns: [
       {
-        eyebrow: 'About',
-        links: [
-          { label: 'About Guanghun', to: '/about' },
-          { label: 'Newsroom', to: '/news' },
-        ],
-      },
-      {
         eyebrow: 'Brand',
         links: [
-          { label: 'Brand profile · Guanghun', to: '/brand/guanghun' },
-          { label: 'Guanghun Lab', to: '/brand/lab' },
+          { label: 'About Guanghun', to: '/about' },
           { label: 'Esports partnerships', to: '/brand/esports' },
         ],
       },
       {
-        eyebrow: 'Compliance',
+        eyebrow: 'Partnerships',
         links: [
-          { label: 'Privacy policy', to: '/legal/privacy' },
-          { label: 'Terms of service', to: '/legal/terms' },
-          { label: 'Cookie policy', to: '/legal/cookies' },
-          { label: 'Registration info', to: '/legal/records' },
+          { label: 'Business partnerships', to: '/business' },
+          { label: 'Case studies', to: '/business/cases' },
+          // Brand assets entry points to the in-page anchor for now; will be a standalone entry later.
+          { label: 'Brand assets', to: '/business#brand-assets' },
         ],
+      },
+      {
+        eyebrow: 'Compliance',
+        links: [{ label: 'Compliance & policies', to: '/legal/privacy' }],
       },
     ],
     feature: { eyebrow: 'BRAND', title: 'Brand philosophy', desc: 'Performance defined by measured data' },

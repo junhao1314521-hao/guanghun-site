@@ -48,10 +48,20 @@ const EXT_CATEGORY: Record<string, MediaCategory> = {
   mp4: 'video',
   webm: 'video',
   mov: 'video',
+  // 文档：PDF / 文本 / Office（Word / Excel / PPT）/ 压缩包 统一归「文档」分类
   pdf: 'doc',
-  zip: 'doc',
   txt: 'doc',
   md: 'doc',
+  csv: 'doc',
+  doc: 'doc',
+  docx: 'doc',
+  xls: 'doc',
+  xlsx: 'doc',
+  ppt: 'doc',
+  pptx: 'doc',
+  zip: 'doc',
+  rar: 'doc',
+  '7z': 'doc',
 }
 
 /**

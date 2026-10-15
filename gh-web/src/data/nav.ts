@@ -15,52 +15,32 @@ export type NavItem = {
   /** 右上角角标：new / hot（缺省无）；badgeText 覆盖默认文案（如「免费」） */
   badge?: 'new' | 'hot'
   badgeText?: string
-  /** 角标是否摇动（隔几秒摇一下；缺省不摇） */
-  badgeShake?: boolean
 }
 
 /**
- * 一级导航。
- * 光魂 Center 为单页展示（无需下拉），`menu: ''` → 顶栏/抽屉都按普通链接直达 `/center`。
+ * 一级导航（2.0：7 → 5）。
+ * - 光魂 Center / 天梯榜 为单页展示（无下拉），`menu: ''` → 顶栏/抽屉都按普通链接直达；
+ * - 「关于光魂」改名「探索光魂」并吸收「商业合作」；「评测与资讯」整项移除（页面保留）。
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: '产品', to: '/products', menu: 'products', nav: 'products' },
-  { label: '光魂 Center', to: '/center', menu: '', nav: 'center', badge: 'new', badgeShake: true },
-  { label: '天梯榜', to: '/ladder', menu: 'ladder', nav: 'ladder', badge: 'hot', badgeShake: true },
-  { label: '评测与资讯', to: '/articles', menu: 'articles' },
+  { label: '光魂 Center', to: '/center', menu: '', nav: 'center', badge: 'new' },
+  { label: '天梯榜', to: '/ladder', menu: '', nav: 'ladder', badge: 'hot' },
   { label: '服务支持', to: '/support', menu: 'support', nav: 'support' },
-  { label: '商业合作', to: '/business', menu: 'business', nav: 'business' },
-  { label: '关于光魂', to: '/about', menu: 'about', nav: 'about' },
+  { label: '探索光魂', to: '/about', menu: 'about', nav: 'about' },
 ]
 
 /**
- * 下拉菜单面板（仅保留「点进去确有内容」的链接）。
+ * 下拉菜单面板（2.0：二级 45 → 16 条）。
  *
- * 维护口径：只收录**目标页真实存在**且语义成立的目的地。
- * 随本轮工程改造，以下形态已恢复可用：
- * - 锚点深链（`/center#download`、`/support#warranty`）——区块已支持 `style.anchor`，可页内定位；
- * - 产品列表 `?scene=`、评测列表 `?category=`、天梯 `?type=`——筛选状态已「全量进 URL」，深链生效。
+ * 仅保留三个有下拉的一级项（产品 / 服务支持 / 探索光魂）；「光魂 Center」「天梯榜」无下拉。
+ * 移除的条目（按场景选择 / 产品系列 / 品牌档案 / 光魂实验室 / 热门条目等）收进各自页面，不再占下拉。
+ * 推荐卡（feature）由站点配置 `navFeatureEnabled` 开关控制，默认不渲染（数据保留）。
  */
 export const MEGA_PANELS: MegaPanel[] = [
   {
     key: 'products',
     columns: [
-      {
-        eyebrow: '产品总览',
-        links: [
-          { label: '全部产品', to: '/products' },
-          { label: '产品对比', to: '/compare' },
-        ],
-      },
-      {
-        eyebrow: '产品系列',
-        links: [
-          { label: 'OLED 旗舰系列', to: '/products/series/oled' },
-          { label: '双模高刷系列', to: '/products/series/dual' },
-          { label: '电竞 IPS 系列', to: '/products/series/ips' },
-          { label: '桌面周边系列', to: '/products/series/accessory' },
-        ],
-      },
       {
         eyebrow: '精选型号',
         links: [
@@ -70,61 +50,14 @@ export const MEGA_PANELS: MegaPanel[] = [
         ],
       },
       {
-        eyebrow: '按场景选择',
+        eyebrow: '快速入口',
         links: [
-          { label: '高刷 · 决胜毫秒', to: '/products?scene=scene-01' },
-          { label: '色准 · 创作', to: '/products?scene=scene-02' },
-          { label: '护眼 · 高效', to: '/products?scene=scene-03' },
-          { label: '沉浸 · 影音', to: '/products?scene=scene-04' },
+          { label: '全部产品', to: '/products' },
+          { label: '产品对比', to: '/compare' },
         ],
       },
     ],
     feature: { eyebrow: 'FEATURED', title: '54027X1QE-W54', desc: '26.5 英寸 2K@540Hz · 0.03 ms GTG' },
-  },
-  {
-    key: 'ladder',
-    columns: [
-      {
-        eyebrow: '榜单',
-        links: [
-          { label: '综合榜', to: '/ladder' },
-          { label: 'OLED 旗舰榜', to: '/ladder?type=oled' },
-          { label: '双模高刷榜', to: '/ladder?type=dual' },
-          { label: '电竞 IPS 榜', to: '/ladder?type=ips' },
-        ],
-      },
-      {
-        eyebrow: '热门条目',
-        links: [
-          { label: '响应时间排行', to: '/ladder/latency' },
-          { label: '峰值亮度排行', to: '/ladder/battery' },
-          { label: '色准排行', to: '/ladder/sensor' },
-        ],
-      },
-    ],
-    feature: { eyebrow: 'RANKING', title: '天梯榜 · 综合榜', desc: '全部参数公开、方法可复现' },
-  },
-  {
-    key: 'articles',
-    columns: [
-      {
-        eyebrow: '分类',
-        links: [
-          { label: '全部内容', to: '/articles' },
-          { label: '评测', to: '/articles?category=review' },
-          { label: '教程', to: '/articles?category=guide' },
-          { label: '技术', to: '/articles?category=tech' },
-        ],
-      },
-      {
-        eyebrow: '动态',
-        links: [
-          { label: '新闻中心', to: '/news' },
-          { label: '资讯', to: '/articles?category=news' },
-        ],
-      },
-    ],
-    feature: { eyebrow: 'LATEST', title: '最新评测', desc: '最新评测文章，配图以官方发布为准' },
   },
   {
     key: 'support',
@@ -140,53 +73,33 @@ export const MEGA_PANELS: MegaPanel[] = [
       },
       {
         eyebrow: '联系',
-        links: [
-          { label: '提交咨询', to: '/inquiry' },
-          { label: '联系我们', to: '/contact' },
-          { label: '保修与售后', to: '/support#warranty' },
-        ],
+        links: [{ label: '提交咨询', to: '/inquiry' }],
       },
     ],
     feature: { eyebrow: 'SUPPORT', title: '保修与售后', desc: '400 电话 · 在线工单' },
   },
   {
-    key: 'business',
-    columns: [
-      {
-        eyebrow: '合作',
-        links: [
-          { label: '商业合作', to: '/business' },
-          { label: '合作场景', to: '/business/scenes' },
-          { label: '合作案例', to: '/business/cases' },
-          { label: '体验点', to: '/business/venues' },
-        ],
-      },
-    ],
-    feature: { eyebrow: 'B2B', title: '商务合作', desc: '渠道 / 赛事 / 内容合作' },
-  },
-  {
     key: 'about',
     columns: [
       {
-        eyebrow: '关于',
-        links: [{ label: '关于光魂', to: '/about' }],
-      },
-      {
         eyebrow: '品牌',
         links: [
-          { label: '品牌档案 · 光魂', to: '/brand/guanghun' },
-          { label: '光魂实验室', to: '/brand/lab' },
+          { label: '关于光魂', to: '/about' },
           { label: '电竞合作', to: '/brand/esports' },
         ],
       },
       {
-        eyebrow: '合规',
+        eyebrow: '合作',
         links: [
-          { label: '隐私政策', to: '/legal/privacy' },
-          { label: '服务条款', to: '/legal/terms' },
-          { label: 'Cookie 声明', to: '/legal/cookies' },
-          { label: '备案信息', to: '/legal/records' },
+          { label: '商业合作', to: '/business' },
+          { label: '合作案例', to: '/business/cases' },
+          // 品牌资料入口暂指向合作页内的品牌资料区块锚点；后续将替换为独立入口
+          { label: '品牌资料下载', to: '/business#brand-assets' },
         ],
+      },
+      {
+        eyebrow: '合规',
+        links: [{ label: '合规与协议', to: '/legal/privacy' }],
       },
     ],
     feature: { eyebrow: 'BRAND', title: '品牌理念', desc: '以实测数据定义性能' },
@@ -201,7 +114,7 @@ export const PAGE_NAV: Record<string, string | undefined> = {
   ladder: 'ladder',
   center: 'center',
   support: 'support',
-  business: 'business',
+  business: 'about',
   about: 'about',
   account: undefined,
   search: undefined,

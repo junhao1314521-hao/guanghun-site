@@ -9,6 +9,7 @@ import {
   getBizCaseDetail,
   getBizVenueDetail,
 } from '../data/business-extra'
+import { BRAND_ASSET_CATEGORIES, BRAND_ASSET_ITEMS, type BrandAssetItem } from '../data/brandAssets'
 import type {
   CaseDetail,
   CaseSummary,
@@ -54,4 +55,14 @@ export function fetchBizVenue(id: string, signal?: AbortSignal): Promise<VenueDe
     if (!detail) throw new ApiError('未找到该体验点', 404)
     return detail
   })
+}
+
+/** 品牌资料（B 端）：独立集合 brand-assets，与下载中心数据分开 */
+export function fetchBrandAssets(
+  signal?: AbortSignal,
+): Promise<{ items: BrandAssetItem[]; categories: string[] }> {
+  return transport({ path: '/api/business/brand-assets', signal }, () => ({
+    items: BRAND_ASSET_ITEMS,
+    categories: BRAND_ASSET_CATEGORIES,
+  }))
 }

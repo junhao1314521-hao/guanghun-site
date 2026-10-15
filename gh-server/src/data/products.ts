@@ -39,6 +39,12 @@ export type Product = {
   os?: string[]
   /** 整机重量（克） */
   weight?: number
+  /** 相册图片地址（按产品单独上传；可排序，不设硬上限，建议 ≤ 20 张）。空 / 缺省时前台回退内置 4 视角图 */
+  gallery?: string[]
+  /** 详情富文本 HTML（长图 / 图文混排；前台渲染前复用 sanitizeRichText 白名单净化）。空 / 缺省时不渲染 */
+  detailHtml?: string
+  /** 购买链接（详情页 / 对比页主按钮「立即购买」取此值；未填则回退） */
+  buyUrl?: string
 }
 
 export const PRODUCTS: Product[] = [
@@ -62,6 +68,7 @@ export const PRODUCTS: Product[] = [
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
     weight: 6500,
+    buyUrl: 'https://buy.guanghun.example/gh-54027x1qe',
   },
   { id: 'gh-28027x1qe', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED显示器', category: 'OLED旗舰', connection: 'DP 2.1', specs: ['26.5 英寸', '2K 280Hz', '1500 nit', 'W-OLED'], status: { level: 'success', text: '在售' }, price: '¥2,699', priceValue: 2699, releasedAt: '2026-08-15', variant: 'monitor', flag: '热销' },
   { id: 'gh-32x1ue', model: '32X1UE-W16', name: 'Meta 双模 4K 电竞显示器', category: '双模高刷', connection: 'DP 2.1', specs: ['31.5 英寸', '4K@165 / FHD@330', 'META OLED'], status: { level: 'success', text: '在售' }, price: '¥5,499', priceValue: 5499, releasedAt: '2026-09-05', variant: 'monitor', flag: '双模' },
@@ -116,6 +123,12 @@ export type ProductDetail = {
   warranty?: string
   os?: string[]
   weight?: number
+  /** 相册图片地址（按产品维护；缺省回退内置视角图） */
+  gallery?: string[]
+  /** 详情富文本 HTML（按产品维护；渲染前经白名单净化） */
+  detailHtml?: string
+  /** 购买链接（详情页主按钮「立即购买」取此值，见 §4.22 3-2） */
+  buyUrl?: string
 }
 
 /** 详情页占位数据（以旗舰 540Hz OLED 为完整示例，其余型号复用同一结构） */
@@ -214,6 +227,9 @@ function extendedFields(base: Product): Partial<ProductDetail> {
   if (base.warranty !== undefined) out.warranty = base.warranty
   if (base.os !== undefined) out.os = base.os
   if (base.weight !== undefined) out.weight = base.weight
+  if (base.gallery !== undefined) out.gallery = base.gallery
+  if (base.detailHtml !== undefined) out.detailHtml = base.detailHtml
+  if (base.buyUrl !== undefined) out.buyUrl = base.buyUrl
   return out
 }
 

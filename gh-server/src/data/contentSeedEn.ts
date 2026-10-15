@@ -16,17 +16,23 @@ import { EN_KEY_SUFFIX } from './locale'
 /** seed 生成的固定时间戳：与中文 seed 一致，保证重复构建结果一致 */
 const SEED_TIMESTAMP = '2026-10-12T00:00:00.000Z'
 
-type Draft = { type: BlockType; props: Record<string, unknown>; style?: BlockStyle }
+type Draft = { type: BlockType; props: Record<string, unknown>; style?: BlockStyle; enabled?: boolean }
 
-/** 组装英文变体页：key = baseKey + `__en`；区块 id 沿用 `${baseKey}-b<n>` 以保持平行 */
-function toPage(baseKey: string, path: string, title: string, description: string, drafts: Draft[]): Page {
+/** 组装英文变体页：key = baseKey + `__en`；区块 id 沿用 `${baseKey}-b<n>` 以保持平行（enabled 缺省 true）。
+ *  `pageEnabled` 缺省为 true；传 false 可令英文变体页默认下线（与中文页保持一致）。 */
+function toPage(baseKey: string, path: string, title: string, description: string, drafts: Draft[], pageEnabled = true): Page {
   const key = `${baseKey}${EN_KEY_SUFFIX}`
   const blocks: Block[] = drafts.map((draft, index) => {
-    const block: Block = { id: `${baseKey}-b${index + 1}`, type: draft.type, enabled: true, props: draft.props }
+    const block: Block = {
+      id: `${baseKey}-b${index + 1}`,
+      type: draft.type,
+      enabled: draft.enabled !== false,
+      props: draft.props,
+    }
     if (draft.style) block.style = draft.style
     return block
   })
-  return { key, path, title, description, blocks, updatedAt: SEED_TIMESTAMP }
+  return { key, path, title, description, blocks, updatedAt: SEED_TIMESTAMP, enabled: pageEnabled }
 }
 
 /* ============================================================
@@ -36,12 +42,10 @@ function toPage(baseKey: string, path: string, title: string, description: strin
 export const SITE_EN: NonNullable<SiteConfig['en']> = {
   nav: [
     { label: 'Products', href: '/products' },
-    { label: 'Center', href: '/center' },
-    { label: 'Rankings', href: '/ladder' },
-    { label: 'Articles', href: '/articles' },
+    { label: 'Center', href: '/center', badge: 'new' },
+    { label: 'Rankings', href: '/ladder', badge: 'hot' },
     { label: 'Support', href: '/support' },
-    { label: 'Business', href: '/business' },
-    { label: 'About', href: '/about' },
+    { label: 'Explore', href: '/about' },
   ],
   // 公告条与顶栏 CTA 的英文文案：不配则英文语境下不展示（不以中文冒充英文）
   announcement: {
@@ -58,9 +62,8 @@ export const SITE_EN: NonNullable<SiteConfig['en']> = {
       title: 'Products',
       links: [
         { label: 'All products', href: '/products' },
-        { label: 'Rankings', href: '/ladder' },
         { label: 'Compare', href: '/compare' },
-        { label: 'Articles', href: '/articles' },
+        { label: 'Rankings', href: '/ladder' },
       ],
     },
     {
@@ -68,17 +71,19 @@ export const SITE_EN: NonNullable<SiteConfig['en']> = {
       links: [
         { label: 'Support home', href: '/support' },
         { label: 'Downloads', href: '/downloads' },
+        { label: 'Model support', href: '/support/models' },
         { label: 'FAQ', href: '/faq' },
         { label: 'Submit a ticket', href: '/inquiry' },
       ],
     },
     {
-      title: 'About',
+      title: 'Explore',
       links: [
         { label: 'About Guanghun', href: '/about' },
-        { label: 'Business', href: '/business' },
-        { label: 'Contact us', href: '/contact' },
-        { label: 'Experience spots', href: '/business/venues' },
+        { label: 'Business partnerships', href: '/business' },
+        { label: 'Case studies', href: '/business/cases' },
+        { label: 'Esports partnerships', href: '/brand/esports' },
+        { label: 'Compliance & policies', href: '/legal/privacy' },
       ],
     },
   ],
@@ -100,7 +105,7 @@ const SHOWCASE_COPY_EN: Record<string, string> = {
 }
 
 function buildHomeEn(): Page {
-  return toPage('home', '/', 'Home', 'Homepage: hero, scenes, featured products, rankings, reviews, brand, services, partnerships and news.', [
+  return toPage('home', '/', 'Home', 'Homepage: hero, five posters, product matrix, firmware, message and trust bar.', [
     {
       type: 'carousel',
       props: {
@@ -113,7 +118,7 @@ function buildHomeEn(): Page {
             image: '/media/home/hero-01.svg',
             primary: { label: 'Explore products', href: '/products' },
             secondary: { label: 'See the rankings', href: '/ladder' },
-            stats: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }],
+            stats: [{ value: '540 Hz', label: 'Refresh rate' }, { value: '0.03 ms', label: 'Response' }],
           },
           {
             eyebrow: 'NEW RELEASE',
@@ -133,10 +138,163 @@ function buildHomeEn(): Page {
           },
         ],
         autoplay: true,
+        motion: true,
       },
       style: { theme: 'dark', container: 'full' },
     },
+    // —— Five full-screen posters: one poster = one block (hero); height one step shorter ——
     {
+      type: 'hero',
+      props: {
+        eyebrow: 'FLAGSHIP / 26.5" 2K@540Hz',
+        eyebrowEnabled: true,
+        title: ['54027X1QE Standard'],
+        subtitle: 'A masterclass in restraint',
+        media: '/media/home/showcase/gh-54027x1qe.jpg',
+        mediaType: 'image',
+        mediaTag: '54027X1QE key visual',
+        primary: { label: 'Learn more', href: '/products/gh-54027x1qe' },
+        secondary: { label: 'Buy now', href: '/inquiry' },
+        contentPosition: { x: 8, y: 50 },
+        height: 'short',
+        theme: 'dark',
+      },
+    },
+    {
+      type: 'hero',
+      props: {
+        eyebrow: 'DUAL-MODE / 4K@165 · FHD@330',
+        eyebrowEnabled: true,
+        title: ['32X1UE Dual-mode'],
+        subtitle: 'One monitor, two ways to play',
+        media: '/media/home/showcase/gh-32x1ue.jpg',
+        mediaType: 'image',
+        mediaTag: '32X1UE key visual',
+        primary: { label: 'Learn more', href: '/products/gh-32x1ue' },
+        secondary: { label: 'Buy now', href: '/inquiry' },
+        contentPosition: { x: 8, y: 50 },
+        height: 'short',
+        theme: 'dark',
+      },
+    },
+    {
+      type: 'hero',
+      props: {
+        eyebrow: 'BEST SELLER / 26.5" 2K@280Hz',
+        eyebrowEnabled: true,
+        title: ['28027X1QE Best seller'],
+        subtitle: '1500 nit peak brightness, value flagship',
+        media: '/media/home/showcase/gh-28027x1qe.jpg',
+        mediaType: 'image',
+        mediaTag: '28027X1QE key visual',
+        primary: { label: 'Learn more', href: '/products/gh-28027x1qe' },
+        secondary: { label: 'Buy now', href: '/inquiry' },
+        contentPosition: { x: 8, y: 50 },
+        height: 'short',
+        theme: 'dark',
+      },
+    },
+    {
+      type: 'hero',
+      props: {
+        eyebrow: 'ESPORTS / Competitive play',
+        eyebrowEnabled: true,
+        title: ['Built for the millisecond'],
+        subtitle: '540Hz refresh and 0.03 ms response compress every frame of latency',
+        media: '/media/home/scenes/scene-01.jpg',
+        mediaType: 'image',
+        mediaTag: 'Esports scene',
+        primary: { label: 'Learn more', href: '/products' },
+        secondary: { label: 'Buy now', href: '/inquiry' },
+        contentPosition: { x: 8, y: 50 },
+        height: 'short',
+        theme: 'dark',
+      },
+    },
+    {
+      type: 'hero',
+      props: {
+        eyebrow: 'CREATIVE / Content creation',
+        eyebrowEnabled: true,
+        title: ['Fidelity for creators'],
+        subtitle: '99% DCI-P3 and factory calibration for design and grading',
+        media: '/media/home/scenes/scene-02.jpg',
+        mediaType: 'image',
+        mediaTag: 'Creative scene',
+        primary: { label: 'Learn more', href: '/products' },
+        secondary: { label: 'Buy now', href: '/inquiry' },
+        contentPosition: { x: 8, y: 50 },
+        height: 'short',
+        theme: 'dark',
+      },
+    },
+    // —— 2×2 product matrix ——
+    {
+      type: 'productMatrix',
+      props: {
+        title: 'Product matrix',
+        source: 'product',
+        columns: 2,
+        ratio: '16:9',
+        cropFocus: 'center',
+        mobileLayout: 'rail',
+        items: [
+          { productId: 'gh-54027x1qe', desc: '26.5" 2K@540Hz 4th-gen W-OLED flagship', buttons: [{ label: 'Buy now', href: '/products/gh-54027x1qe' }] },
+          { productId: 'gh-32x1ue', desc: 'Dual-mode OLED: 4K@165 / FHD@330 in one', buttons: [{ label: 'Buy now', href: '/products/gh-32x1ue' }] },
+          { productId: 'gh-28027x1qe', desc: '2K@280Hz with 1500 nit peak brightness', buttons: [{ label: 'Buy now', href: '/products/gh-28027x1qe' }] },
+          { productId: 'gh-27q1f', desc: '27" 2K 200Hz Fast IPS, best value', buttons: [{ label: 'Buy now', href: '/products/gh-27q1f' }] },
+        ],
+      },
+    },
+    // —— Firmware & drivers: three cards auto-carry the latest version ——
+    {
+      type: 'cards',
+      props: {
+        title: 'Firmware & drivers',
+        icon: 'download',
+        subtitle: 'Stay on the latest version for better compatibility and tuning.',
+        ctaLabel: 'Go to download center',
+        ctaHref: '/downloads',
+        layout: 'entries',
+        columns: 3,
+        autoVersions: true,
+        items: [
+          { tag: 'Firmware', title: 'One-click firmware upgrade', desc: 'Check and upgrade inside Guanghun Center, with change notes.', href: '/downloads', downloadType: 'firmware' },
+          { tag: 'Driver', title: 'Drivers & color profiles', desc: 'ICC and calibration files, no registration required.', href: '/downloads', downloadType: 'driver' },
+          { tag: 'Software', title: 'Guanghun Center', desc: 'Params, macros, lighting and firmware in one place.', href: '/center', downloadType: 'software' },
+        ],
+      },
+    },
+    {
+      type: 'contact',
+      props: {
+        title: "Didn't find an answer? Leave a message",
+        desc: 'Questions or partnership? Submit the form and we will follow up during business hours.',
+        channel: 'inquiry',
+        showForm: true,
+      },
+    },
+    {
+      type: 'trustBar',
+      props: {
+        columns: 4,
+        items: [
+          { icon: 'flask', text: 'Snowman Review Lab' },
+          { icon: 'shield', text: '3-year warranty' },
+          { icon: 'check', text: 'Genuine products' },
+          { icon: 'box', text: 'Free SF Express shipping' },
+        ],
+      },
+    },
+    /* ——— Retained blocks, disabled by default (can be enabled in admin) ——— */
+    { enabled: false, type: 'cards', props: { layout: 'trust', columns: 4, items: [
+      { title: 'Snowman Review Lab', desc: 'One method, one sample size' },
+      { title: '3-year warranty', desc: 'With OLED burn-in cover' },
+      { title: 'Genuine products', desc: 'Nationwide service' },
+      { title: 'Free SF Express shipping', desc: '15-day no-reason returns' },
+    ] } },
+    {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Choose by scenario',
@@ -155,6 +313,7 @@ function buildHomeEn(): Page {
       },
     },
     {
+      enabled: false,
       type: 'showcase',
       props: {
         title: 'Featured products',
@@ -170,8 +329,9 @@ function buildHomeEn(): Page {
       },
       style: { container: 'full', background: 'soft' },
     },
-    { type: 'ranking', props: { title: 'Rankings', subtitle: 'Every number comes from the same reproducible test method.', metric: 'overall', limit: 6, teaser: true } },
+    { enabled: false, type: 'ranking', props: { title: 'Rankings', subtitle: 'Every number comes from the same reproducible test method.', metric: 'overall', limit: 6, teaser: true } },
     {
+      enabled: false,
       type: 'articleList',
       props: {
         title: 'Reviews',
@@ -183,6 +343,7 @@ function buildHomeEn(): Page {
       },
     },
     {
+      enabled: false,
       type: 'stats',
       props: {
         title: 'By the numbers',
@@ -196,6 +357,7 @@ function buildHomeEn(): Page {
       },
     },
     {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Service entries',
@@ -212,6 +374,7 @@ function buildHomeEn(): Page {
       },
     },
     {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Business · Experience spots',
@@ -227,6 +390,7 @@ function buildHomeEn(): Page {
       },
     },
     {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'News & updates',
@@ -249,7 +413,7 @@ function buildHomeEn(): Page {
    ============================================================ */
 
 function buildAboutEn(): Page {
-  return toPage('about', '/about', 'About', 'About Guanghun.', [
+  return toPage('about', '/about', 'Explore', 'Explore Guanghun.', [
     {
       type: 'imageText',
       props: {
@@ -328,7 +492,22 @@ function buildAboutEn(): Page {
         ],
       },
     },
+    // Esports partnerships: merged into Explore after the /brand/* pages are taken offline (§4.13)
     {
+      type: 'cards',
+      props: {
+        title: 'Esports partnerships',
+        columns: 3,
+        items: [
+          { title: 'Co-define display specs with pro teams and players' },
+          { title: 'Track-side feedback flows back into R&D and testing' },
+          { title: 'Supply monitors and tech support for events and campus esports venues' },
+        ],
+      },
+    },
+    // Compliance: already reachable from the footer / /legal/*; disabled by default (§4.8)
+    {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Compliance & terms',
@@ -400,8 +579,8 @@ function buildCenterEn(): Page {
         desc: 'One app to manage every Guanghun device: params, macros, lighting, firmware and config sync — all in one place.',
         mediaTag: 'Software UI',
         image: '/media/center/hero.svg',
-        primary: { label: 'Download', href: '/center' },
-        secondary: { label: 'Changelog', href: '/center' },
+        primary: { label: 'Download', href: '/center#download' },
+        secondary: { label: 'Changelog', href: '/center#changelog' },
       },
       style: { theme: 'dark', container: 'full' },
     },
@@ -455,9 +634,10 @@ function buildCenterEn(): Page {
       props: {
         title: 'Download & install',
         columns: 2,
+        autoVersions: true,
         items: [
-          { title: 'Windows', desc: 'v2.1.0 · 48 MB · 2026-09' },
-          { title: 'macOS', desc: 'v2.1.0 · 52 MB · 2026-09' },
+          { title: 'Windows', desc: 'v2.1.0 · 48 MB · 2026-09', downloadId: 'center-win' },
+          { title: 'macOS', desc: 'v2.1.0 · 52 MB · 2026-09', downloadId: 'center-mac' },
         ],
       },
     },
@@ -482,27 +662,32 @@ function buildCenterEn(): Page {
 
 function buildBusinessEn(): Page {
   return toPage('business', '/business', 'Business', 'Business partnerships.', [
+    // ① + ⑦ merged: directions & benefits (§4.9: 8 blocks → 6)
     {
       type: 'cards',
       props: {
-        title: 'Partnership directions',
+        title: 'Directions & benefits',
         columns: 3,
         items: [
-          { tag: 'channel', title: 'Channel distribution', desc: 'Regional and category partners.', href: '/business' },
-          { tag: 'review', title: 'Review & sampling', desc: 'Press and creator sampling program.', href: '/business' },
-          { tag: 'esports', title: 'Esports', desc: 'Team and tournament sponsorships.', href: '/business' },
+          { tag: 'channel', title: 'Channel distribution', desc: 'Regional and category partners.' },
+          { tag: 'review', title: 'Review & sampling', desc: 'Press and creator sampling program.' },
+          { tag: 'esports', title: 'Esports', desc: 'Team and tournament sponsorships.' },
+          { title: 'Channel reselling', desc: 'Authorized channels and pricing structure.' },
+          { title: 'Esports co-op', desc: 'Arena gear and event exposure.' },
+          { title: 'Content co-creation', desc: 'Joint reviews, streams and distribution.' },
+          { title: 'Co-branding', desc: 'Co-branded models and custom looks.' },
         ],
       },
     },
+    // ② + ⑧ merged: one partnership process line
     {
       type: 'timeline',
       props: {
-        title: 'Media & review sampling',
+        title: 'Partnership process',
         items: [
-          { time: '01', title: 'Apply with outlet and audience' },
-          { time: '02', title: 'Sign NDA and confirm scope' },
-          { time: '03', title: 'Receive sample and test method' },
-          { time: '04', title: 'Publish with cited sources' },
+          { time: '01', title: 'Submit an application', desc: 'Fill in the form with the partnership type and goals.' },
+          { time: '02', title: 'Sampling / business contact', desc: 'Press sampling follows the sampling guide; business deals are handled by a dedicated contact.' },
+          { time: '03', title: 'Execution', desc: 'Sign the agreement and move forward as planned.' },
         ],
       },
     },
@@ -519,15 +704,16 @@ function buildBusinessEn(): Page {
       },
     },
     {
-      type: 'cards',
+      type: 'brandAssetList',
       props: {
         title: 'Brand assets',
-        columns: 2,
-        items: [
-          { tag: 'Logo', title: 'Logo pack', desc: 'SVG + PNG' },
-          { tag: 'Guidelines', title: 'Brand guidelines', desc: 'PDF' },
-        ],
+        subtitle: 'Brand guidelines, logos, product imagery and press kits for partners, press and channels.',
+        category: 'all',
+        limit: 0,
+        ctaLabel: 'Request brand assets',
+        ctaHref: '/inquiry',
       },
+      style: { anchor: 'brand-assets' },
     },
     {
       type: 'contact',
@@ -644,6 +830,7 @@ function buildSupportEn(): Page {
     },
     { type: 'downloadList', props: { title: 'Downloads', category: 'all', limit: 20 } },
     {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Warranty & after-sales',
@@ -662,6 +849,7 @@ function buildSupportEn(): Page {
       props: { title: 'Service & experience spots', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
     },
     {
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Contact us',
@@ -673,7 +861,7 @@ function buildSupportEn(): Page {
         ],
       },
     },
-    { type: 'faqList', props: { title: 'FAQ', source: 'support', limit: 10 } },
+    { type: 'faqList', props: { title: 'FAQ', source: 'support', limit: 10, ctaLabel: 'View all', ctaHref: '/faq' } },
     {
       type: 'contact',
       props: {
@@ -717,6 +905,8 @@ function buildContactEn(): Page {
       },
     },
     {
+      // Offices block disabled by default (§4.14): full list lives on /business/venues
+      enabled: false,
       type: 'cards',
       props: {
         title: 'Offices & spots',
@@ -747,7 +937,7 @@ function buildNewsEn(): Page {
   return toPage('news', '/news', 'News', 'News + data-source block.', [
     { type: 'text', props: { title: 'News & updates', body: 'Product launches, events and brand updates.', align: 'left' } },
     { type: 'articleList', props: { title: 'Latest', source: 'news', limit: 0, pageSize: 9 } },
-  ])
+  ], false)
 }
 
 function buildProductsEn(): Page {
@@ -782,7 +972,7 @@ function buildArticlesEn(): Page {
     { type: 'articleList', props: { title: 'All articles', source: 'all', limit: 0, pageSize: 9 } },
     // Sample: hand-picked + rail presentation
     { type: 'articleList', props: { title: 'Editor picks', subtitle: 'Hand-picked articles; the order is adjustable.', scope: 'manual', ids: ['latency-end-to-end', 'driver-firmware-guide', 'test-methodology'], limit: 0, showFilter: false, layout: 'rail' } },
-  ])
+  ], false)
 }
 
 function buildDownloadsEn(): Page {
@@ -798,6 +988,28 @@ function buildFaqEn(): Page {
   return toPage('faq', '/faq', 'FAQ', 'FAQ + data-source block.', [
     { type: 'text', props: { title: 'FAQ', body: 'High-frequency questions on driver install, pairing, firmware and after-sales.', align: 'left' } },
     { type: 'faqList', props: { title: 'All questions', source: 'support', limit: 0, pageSize: 10 } },
+  ])
+}
+
+function buildModelSupportEn(): Page {
+  return toPage('model-support', '/support/models', 'Model support', 'Model support index.', [
+    {
+      type: 'cards',
+      props: {
+        title: 'All models',
+        subtitle: 'Pick a model to see its manuals, firmware, calibration files, guides and FAQs.',
+        ctaLabel: 'Downloads',
+        ctaHref: '/downloads',
+        layout: 'grid',
+        columns: 3,
+        items: [
+          { tag: 'OLED flagship', title: '54027X1QE-W54', desc: '26.5" 2K@540Hz flagship OLED with DP 2.1 full speed and Center tuning.', href: '/support/model/gh-54027x1qe' },
+          { tag: 'Dual-mode', title: '32X1UE-W16', desc: '31.5" 4K@165 / FHD@330 dual-mode OLED esports display.', href: '/support/model/gh-32x1ue' },
+          { tag: 'Esports IPS', title: '27Q1F', desc: '27" 2K 200Hz Fast IPS esports display with HDMI 2.1.', href: '/support/model/gh-27q1f' },
+          { tag: 'Accessory', title: 'GH-ARM01', desc: 'Monitor arm with VESA 75/100 and 9 kg load capacity.', href: '/support/model/gh-arm01' },
+        ],
+      },
+    },
   ])
 }
 
@@ -832,10 +1044,12 @@ function buildTemplatesEn(): Page[] {
         {
           type: 'productHero',
           props: {
-            primaryLabel: 'Add to compare',
-            primaryHref: '/compare',
-            secondaryLabel: 'Talk to a specialist',
-            secondaryHref: '/inquiry',
+            // §4.22 3-2: primary CTA "Buy now" takes the product buyUrl; secondary "Book a demo" → venues
+            primaryLabel: 'Buy now',
+            primaryHref: '',
+            secondaryLabel: 'Book a demo',
+            secondaryHref: '/business/venues',
+            primaryFromProduct: true,
             showBadges: true,
             showPrice: true,
             showSummary: true,
@@ -851,6 +1065,8 @@ function buildTemplatesEn(): Page[] {
             guideContactLabel: 'Submit a ticket',
           },
         },
+        // Product detail rich text: renders the current product's detailHtml (no render when empty)
+        { type: 'productDetailRich', props: {} },
         {
           type: 'productBuy',
           props: {
@@ -894,7 +1110,7 @@ function buildTemplatesEn(): Page[] {
     ),
     toPage('template-series', '/products/series/:slug', 'Product series template', 'Product series area.', [
       { type: 'text', props: { title: 'Product series', body: 'Browse products by series.', align: 'left' } },
-      { type: 'productGrid', props: { title: 'Series products', source: 'series', seriesId: '', limit: 12, columns: 3 } },
+      // §4.20 / T5.17: the series page has its own grid; no duplicated productGrid here
     ]),
     toPage('template-compare', '/compare', 'Compare template', 'Compare area.', [
       {
@@ -967,6 +1183,7 @@ export function buildSeedEn(): Page[] {
     buildArticlesEn(),
     buildDownloadsEn(),
     buildFaqEn(),
+    buildModelSupportEn(),
     buildInquiryEn(),
     ...buildTemplatesEn(),
   ]

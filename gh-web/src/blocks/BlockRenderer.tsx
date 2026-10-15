@@ -38,6 +38,11 @@ import { CaseListBlock } from './CaseListBlock'
 import { VenueListBlock } from './VenueListBlock'
 import { MethodListBlock } from './MethodListBlock'
 import { B2bValueBlock } from './B2bValueBlock'
+import { ProductMatrixBlock } from './ProductMatrixBlock'
+import { ProductDetailRichBlock } from './ProductDetailRichBlock'
+import { BrandAssetListBlock } from './BrandAssetListBlock'
+import { TrustBarBlock } from './TrustBarBlock'
+import { useProductDetail } from './ProductDetailContext'
 
 /** 按区块类型分派到对应组件；未知类型返回 null（向前兼容后台新增类型） */
 function renderBlock(block: Block): ReactNode {
@@ -102,6 +107,18 @@ function renderBlock(block: Block): ReactNode {
     // B2B 采购价值 + 商务联系
     case 'b2bValue':
       return <B2bValueBlock props={props} />
+    // 产品矩阵（§1.4 新建）
+    case 'productMatrix':
+      return <ProductMatrixBlock props={props} />
+    // 产品详情 · 详情图文（渲染当前产品的 detailHtml；无内容时不渲染）
+    case 'productDetailRich':
+      return <ProductDetailRichBlock />
+    // 品牌资料（B 端，独立集合 brand-assets）
+    case 'brandAssetList':
+      return <BrandAssetListBlock props={props} />
+    // 信任条（§1.7 新建）
+    case 'trustBar':
+      return <TrustBarBlock props={props} />
     default:
       return null
   }
@@ -109,10 +126,14 @@ function renderBlock(block: Block): ReactNode {
 
 /** 渲染有序区块列表：每个启用区块一个外壳 section */
 export function BlockRenderer({ blocks }: { blocks: Block[] }) {
+  // 产品详情图文（productDetailRich）无内容时整块跳过（外壳也不出现），避免留下空位
+  const productDetail = useProductDetail()
+  const hasDetailHtml = Boolean(productDetail?.detailHtml && productDetail.detailHtml.trim())
   return (
     <>
       {blocks
         .filter((block) => block.enabled)
+        .filter((block) => block.type !== 'productDetailRich' || hasDetailHtml)
         .map((block) => (
           // style.anchor → 区块外壳 id，支持 /path#anchor 页内深链定位
           <section

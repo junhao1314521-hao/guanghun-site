@@ -16,6 +16,7 @@ import {
   createFolder,
   deleteFolder,
   deleteUpload,
+  fetchUploadReferences,
   listFolders,
   MEDIA_CATEGORIES,
   moveUploads,
@@ -38,9 +39,20 @@ import { OverflowMenu } from './OverflowMenu'
 import { IconClose, IconPlus, IconSearch } from '../ui/Icon'
 import { useConfirm, useToast } from './feedback'
 
-/** 允许上传的类型（与后端白名单一致） */
-const UPLOAD_ACCEPT =
-  'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime,application/pdf,application/zip,text/plain,text/markdown'
+/** 允许上传的类型（与后端白名单一致：图片 / 视频 / PDF / 文本 / Office / 压缩包） */
+const UPLOAD_ACCEPT = [
+  'image/png,image/jpeg,image/webp,image/gif,image/svg+xml',
+  'video/mp4,video/webm,video/quicktime',
+  'application/pdf',
+  'text/plain,text/markdown,text/csv',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/zip,application/vnd.rar,application/x-7z-compressed',
+].join(',')
 
 /** 「全部」文件夹的哨兵值（区别于真实文件 id 与「未分类」） */
 const ALL = 'all'
@@ -220,9 +232,22 @@ export function AdminUploadsList() {
 
   /* ---------- 素材操作 ---------- */
   const onDelete = async (item: UploadItem) => {
+    // 删除前查询引用数（被 N 处引用提示）；查询失败则回退到通用文案，不阻断删除
+    let refCount: number | null = null
+    try {
+      refCount = (await fetchUploadReferences(item.id)).count
+    } catch {
+      refCount = null
+    }
+    const refNote =
+      refCount === null
+        ? '删除后引用该素材的页面将无法显示。'
+        : refCount > 0
+          ? `该素材当前被 ${refCount} 处引用，删除后这些位置将无法显示。`
+          : '该素材当前未被页面引用。'
     const ok = await confirm({
       title: '删除素材',
-      message: `确认删除「${item.name}」？删除后引用该素材的页面将无法显示。此操作不可撤销。`,
+      message: `确认删除「${item.name}」？${refNote}此操作不可撤销。`,
       confirmText: '删除',
       danger: true,
     })

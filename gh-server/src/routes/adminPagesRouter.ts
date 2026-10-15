@@ -7,9 +7,11 @@ import {
   resetPage,
   savePage,
   saveSiteConfig,
+  setDefaultTheme,
   setEnabledBlocks,
   setTheme,
 } from '../data/contentStore'
+import { pageReferenceCounts, referencesForPath } from '../data/pageRefs'
 import type {
   Block,
   BlockStyle,
@@ -22,6 +24,7 @@ import type {
   SiteSocialConfig,
   SiteWarrantyConfig,
 } from '../data/contentTypes'
+import { normalizeSocialConfig } from '../data/contentTypes'
 import { readParam, requireSession } from '../middleware/adminAuth'
 import { requireScope } from '../middleware/rbac'
 import { auditWrite } from '../middleware/audit'
@@ -78,7 +81,7 @@ function parseCta(raw: unknown): SiteCta | undefined {
 
 /**
  * 解析站点链接（导航 / 页脚组内链接 / 页脚社交复用）。
- * 保留角标扩展字段：`badge` ∈ {new, hot} 时同时携带 badgeText / badgeShake。
+ * 保留角标扩展字段：`badge` ∈ {new, hot} 时同时携带 badgeText。
  * 与既有实现一致，label / href 允许为空串（由后台编辑器逐字段校验，不在此强制）。
  */
 function parseSiteLink(raw: unknown): SiteLink {
@@ -89,7 +92,6 @@ function parseSiteLink(raw: unknown): SiteLink {
     out.badge = badge
     const text = readString(link.badgeText)
     if (text) out.badgeText = text
-    out.badgeShake = link.badgeShake === true
   }
   return out
 }
@@ -139,6 +141,9 @@ function parseSite(raw: unknown): Partial<{
   auth: SiteAuthConfig
   warranty: SiteWarrantyConfig
   social: SiteSocialConfig
+  defaultTheme: 'auto' | 'light' | 'dark'
+  navFeatureEnabled: boolean
+  inquiryRouting: boolean
 }> | null {
   if (!raw || typeof raw !== 'object') return null
   const data = raw as Record<string, unknown>
@@ -161,6 +166,9 @@ function parseSite(raw: unknown): Partial<{
     auth: SiteAuthConfig
     warranty: SiteWarrantyConfig
     social: SiteSocialConfig
+    defaultTheme: 'auto' | 'light' | 'dark'
+    navFeatureEnabled: boolean
+    inquiryRouting: boolean
   }> = { nav, footer }
   if (data.enabledBlocks !== undefined) {
     if (!Array.isArray(data.enabledBlocks)) return null
@@ -210,16 +218,24 @@ function parseSite(raw: unknown): Partial<{
       snParse: data.warranty.snParse === true,
     }
   }
-  // —— 页脚社交 + 二维码：links / qr 数组 ——
+  // —— 页脚社交（§1.9）：新形态 items / 旧形态 links+qr 两条列表均接受，统一归一化为「每平台一条」——
   if (data.social !== undefined) {
-    if (!isPlainObject(data.social) || !Array.isArray(data.social.links) || !Array.isArray(data.social.qr)) return null
-    result.social = {
-      links: data.social.links.map(parseSiteLink),
-      qr: data.social.qr.map((entry): { label: string; image: string } => {
-        const q = (entry ?? {}) as Record<string, unknown>
-        return { label: readString(q.label), image: readString(q.image) }
-      }),
-    }
+    if (!isPlainObject(data.social)) return null
+    result.social = normalizeSocialConfig(data.social)
+  }
+  // —— 留言轻量分流开关（§1.6）：布尔，缺省 true（开启）——
+  if (data.inquiryRouting !== undefined) {
+    result.inquiryRouting = data.inquiryRouting !== false
+  }
+  // —— 下拉面板推荐卡开关：布尔，缺省 false（不渲染）——
+  if (data.navFeatureEnabled !== undefined) {
+    result.navFeatureEnabled = data.navFeatureEnabled === true
+  }
+  // —— 默认主题：'auto' | 'light' | 'dark'；非法值整体 400 ——
+  if (data.defaultTheme !== undefined) {
+    const value = readString(data.defaultTheme)
+    if (value !== 'auto' && value !== 'light' && value !== 'dark') return null
+    result.defaultTheme = value
   }
   return result
 }
@@ -227,8 +243,20 @@ function parseSite(raw: unknown): Partial<{
 /* ---------------- 页面 ---------------- */
 
 adminPagesRouter.get('/pages', requireSession, requireScope('content'), (_req, res) => {
-  const items = listPages()
+  const counts = pageReferenceCounts()
+  const items = listPages().map((meta) => ({ ...meta, refCount: counts[meta.key] ?? 0 }))
   res.json({ items, total: items.length })
+})
+
+/** 页面引用清单：指向该页面 path 的导航 / 页脚 / 区块链接（供「当前 N 处引用」展开） */
+adminPagesRouter.get('/pages/:key/references', requireSession, requireScope('content'), (req, res) => {
+  const page = getPage(readParam(req, 'key'))
+  if (!page) {
+    res.status(404).json({ error: '未找到该页面' })
+    return
+  }
+  const report = referencesForPath(page.path)
+  res.json({ count: report.count, refs: report.refs })
 })
 
 adminPagesRouter.get('/pages/:key', requireSession, requireScope('content'), (req, res) => {
@@ -261,6 +289,7 @@ adminPagesRouter.put('/pages/:key', requireSession, requireScope('content'), aud
     title: body.title !== undefined ? readString(body.title) : undefined,
     description: body.description !== undefined ? readString(body.description) : undefined,
     blocks,
+    enabled: typeof body.enabled === 'boolean' ? body.enabled : undefined,
   })
   res.json({ page })
 })
@@ -288,7 +317,14 @@ adminPagesRouter.post(
     }
     blocks = parsed
   }
-  const page = createPage({ key, path, title, description: readString(body.description) || undefined, blocks })
+  const page = createPage({
+    key,
+    path,
+    title,
+    description: readString(body.description) || undefined,
+    blocks,
+    enabled: typeof body.enabled === 'boolean' ? body.enabled : undefined,
+  })
   if (!page) {
     res.status(409).json({ error: '页面 key 已存在' })
     return
@@ -361,4 +397,17 @@ adminPagesRouter.put('/theme', requireSession, requireScope('content'), auditWri
   // 按白名单过滤：仅保留允许覆盖的令牌键（未知键静默丢弃）
   const site = setTheme(filterThemeTokens(raw))
   res.json({ theme: site.theme ?? {} })
+})
+
+/* ---------------- 样式：站点默认主题 ---------------- */
+
+adminPagesRouter.put('/default-theme', requireSession, requireScope('content'), auditWrite('save-default-theme', () => 'site'), (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const value = readString(body.defaultTheme)
+  if (value !== 'auto' && value !== 'light' && value !== 'dark') {
+    res.status(400).json({ error: "defaultTheme 必须为 'auto' | 'light' | 'dark'" })
+    return
+  }
+  const site = setDefaultTheme(value)
+  res.json({ defaultTheme: site.defaultTheme ?? 'auto' })
 })

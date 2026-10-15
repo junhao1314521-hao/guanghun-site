@@ -22,6 +22,7 @@ import { useApi } from '../../hooks/useApi'
 import { AdminNotFound } from '../../components/admin/AdminNotFound'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ImageField } from '../../components/admin/ImageField'
+import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
 import { RichTextField } from '../../components/admin/RichTextField'
 import { Select } from '../../components/admin/Select'
@@ -211,6 +212,21 @@ function FormField({
           placeholder={field.placeholder}
           onChange={(html) => onChange(field.key, html)}
         />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
+  if (field.type === 'images') {
+    // 多图相册：逐张上传 / 从素材库选择 + 排序（复用 ImageField 与 admin-records 排序控件）
+    const list = Array.isArray(value) ? value.map((item) => String(item)) : []
+    return (
+      <>
+        <span className="field__label">
+          {field.label}
+          {req}
+        </span>
+        <MultiImageField value={list} label={field.label} onChange={(next) => onChange(field.key, next)} />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -461,6 +477,10 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
       for (const field of section.fields) {
         if (field.type === 'list') {
           payload[field.key] = toList(payload[field.key])
+        } else if (field.type === 'images') {
+          // 多图相册：地址数组，trim + 去空（保留顺序）
+          const raw = Array.isArray(payload[field.key]) ? (payload[field.key] as unknown[]) : []
+          payload[field.key] = raw.map((item) => String(item).trim()).filter(Boolean)
         } else if (field.type === 'records') {
           const fields = field.recordFields ?? []
           const raw = Array.isArray(payload[field.key]) ? (payload[field.key] as Array<unknown>) : []

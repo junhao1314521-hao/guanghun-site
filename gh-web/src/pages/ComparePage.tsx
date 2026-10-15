@@ -190,23 +190,41 @@ export function ComparePage() {
                       <thead>
                         <tr>
                           <th style={{ width: '22%' }}>参数</th>
-                          {items.map((item) => (
-                            <th key={item.id}>
-                              <div className="row" style={{ justifyContent: 'space-between', gap: 'var(--gh-space-2)' }}>
-                                <Link to={`/products/${item.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                                  {item.model}
-                                </Link>
+                          {items.map((item) => {
+                            // §4.19：主按钮「立即购买」取产品购买链接（buyUrl），未填回退到 /inquiry；次链接「预约体验」
+                            const buyHref = item.buyUrl || '/inquiry'
+                            return (
+                              <th key={item.id} className="cmp-th">
+                                <div className="cmp-head">
+                                  <Link className="cmp-head__model" to={`/products/${item.id}`}>
+                                    {item.model}
+                                  </Link>
+                                  <div className="cmp-head__actions">
+                                    {buyHref.startsWith('/') ? (
+                                      <Link className="btn btn--primary btn--sm" to={buyHref}>
+                                        立即购买
+                                      </Link>
+                                    ) : (
+                                      <a className="btn btn--primary btn--sm" href={buyHref} rel="noreferrer">
+                                        立即购买
+                                      </a>
+                                    )}
+                                    <Link className="btn btn--ghost btn--sm" to="/business/venues">
+                                      预约体验
+                                    </Link>
+                                  </div>
+                                </div>
                                 <button
-                                  className="btn btn--ghost btn--sm"
+                                  className="cmp-remove"
                                   type="button"
                                   aria-label={`移除 ${item.model}`}
                                   onClick={() => removeColumn(item.id)}
                                 >
-                                  移除
+                                  ✕
                                 </button>
-                              </div>
-                            </th>
-                          ))}
+                              </th>
+                            )
+                          })}
                         </tr>
                       </thead>
                       <tbody>

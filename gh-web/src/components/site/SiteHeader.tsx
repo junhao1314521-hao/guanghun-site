@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { MEGA_PANELS, PAGE_NAV, pageIdFromPath } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
-import { useSiteAnnouncement, useSiteNav, useTopCta } from '../../hooks/useSiteConfig'
+import { useSiteAnnouncement, useSiteConfig, useSiteNav, useTopCta } from '../../hooks/useSiteConfig'
 import { useSession } from '../../hooks/useSession'
+import { useSitePages } from '../../hooks/useSitePages'
 import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
 import { toggleTheme } from '../../lib/theme'
@@ -77,8 +78,12 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   // 一级导航来自内容库站点配置（回落本地真源），下拉展开面按语言选用本地 MEGA_PANELS（中文）/ EN 覆盖
   const navItems = useSiteNav()
   const panels = lang === 'en' ? MEGA_PANELS_EN : MEGA_PANELS
+  // 下拉面板右侧推荐卡：由站点配置开关控制，默认关闭（见 navFeatureEnabled）
+  const navFeatureEnabled = useSiteConfig()?.navFeatureEnabled === true
   // 登录态：已登录 → 个人中心；未登录 → 登录页（入口按会话切换）
   const { user } = useSession()
+  // 下线级联：下拉面板链接统一走 isPathLive 过滤，已下线页面的入口不出现在下拉里
+  const { isPathLive } = useSitePages()
 
   // 公告条（后台可配、可定时、可关闭）+ 顶栏 CTA（购买 / 预约体验）
   const announcement = useSiteAnnouncement()
@@ -282,10 +287,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                   {item.label}
                 </Link>
                 {item.badge && (
-                  <span
-                    className={`nav-badge nav-badge--${item.badge}${item.badgeShake ? ' nav-badge--shake' : ''}`}
-                    aria-hidden="true"
-                  >
+                  <span className={`nav-badge nav-badge--${item.badge}`} aria-hidden="true">
                     {item.badgeText ?? item.badge.toUpperCase()}
                   </span>
                 )}
@@ -386,9 +388,17 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
           <Link className="icon-btn" to="/support" aria-label={t('a11y.support')}>
             <IconSupport />
           </Link>
-          <Link className="icon-btn" to={user ? '/me' : '/login'} aria-label={t('a11y.account')}>
-            <IconAccount />
-          </Link>
+          {user ? (
+            <Link className="icon-btn" to="/me" aria-label="个人中心">
+              <IconAccount />
+            </Link>
+          ) : (
+            // 未登录：顶栏入口明确写「登录 / 注册」（此前仅图标，指向不清晰）
+            <Link className="icon-btn site-account" to="/login">
+              <IconAccount size={16} />
+              <span>登录 / 注册</span>
+            </Link>
+          )}
           <button
             className="icon-btn nav-toggle"
             type="button"
@@ -413,38 +423,49 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
       >
         <div className="mega__inner" ref={megaInnerRef} style={{ height: 0 }}>
           <div className="container" ref={megaContainerRef}>
-            {panels.map((panel) => (
-              <div
-                key={panel.key}
-                className={`mega__panel${openMenu === panel.key ? ' is-active' : ''}`}
-                data-mega-panel={panel.key}
-              >
-                {/* 二级栏目按自身列数自适应列宽（此前写死 3 列，产品面板有 4 列会被挤到第二行）。
-                    列数经 CSS 变量下发，feature 卡固定落在最后一列。 */}
-                <div className="mega__cols" style={{ '--mega-cols': panel.columns.length } as CSSProperties}>
-                  {panel.columns.map((column) => (
-                    <div className="mega__col" key={column.eyebrow}>
-                      <p className="mega__eyebrow">{column.eyebrow}</p>
-                      {column.links.map((link) => (
-                        <Link className="mega__link" key={link.label} to={link.to}>
-                          {link.label}
-                        </Link>
-                      ))}
-                    </div>
-                  ))}
-                  <Link className="mega__feature" to={panel.columns[0].links[0].to}>
-                    <span className="mega__feature-media" aria-hidden="true">
-                      {MEGA_FEATURE_IMAGE[panel.key] && (
-                        <img src={MEGA_FEATURE_IMAGE[panel.key]} alt="" loading="lazy" />
-                      )}
-                    </span>
-                    <span className="mega__feature-eyebrow">{panel.feature.eyebrow}</span>
-                    <b className="mega__feature-title">{panel.feature.title}</b>
-                    <span className="mega__feature-desc">{panel.feature.desc}</span>
-                  </Link>
+            {panels.map((panel) => {
+              // 级联过滤：剔除指向已下线页面的链接（空列不渲染），保证下拉里不出现死链
+              const columns = panel.columns
+                .map((column) => ({ ...column, links: column.links.filter((link) => isPathLive(link.to)) }))
+                .filter((column) => column.links.length > 0)
+              const featureTo = columns[0]?.links[0]?.to
+              return (
+                <div
+                  key={panel.key}
+                  className={`mega__panel${openMenu === panel.key ? ' is-active' : ''}`}
+                  data-mega-panel={panel.key}
+                >
+                  {/* 二级栏目按自身列数自适应列宽；推荐卡关闭时不占列（--mega-cols 仍由 CSS 变量下发）。 */}
+                  <div
+                    className={`mega__cols${navFeatureEnabled ? '' : ' mega__cols--plain'}`}
+                    style={{ '--mega-cols': columns.length } as CSSProperties}
+                  >
+                    {columns.map((column) => (
+                      <div className="mega__col" key={column.eyebrow}>
+                        <p className="mega__eyebrow">{column.eyebrow}</p>
+                        {column.links.map((link) => (
+                          <Link className="mega__link" key={link.label} to={link.to}>
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ))}
+                    {navFeatureEnabled && featureTo && (
+                      <Link className="mega__feature" to={featureTo}>
+                        <span className="mega__feature-media" aria-hidden="true">
+                          {MEGA_FEATURE_IMAGE[panel.key] && (
+                            <img src={MEGA_FEATURE_IMAGE[panel.key]} alt="" loading="lazy" />
+                          )}
+                        </span>
+                        <span className="mega__feature-eyebrow">{panel.feature.eyebrow}</span>
+                        <b className="mega__feature-title">{panel.feature.title}</b>
+                        <span className="mega__feature-desc">{panel.feature.desc}</span>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
