@@ -867,6 +867,11 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .builder-lines { display: flex; flex-direction: column; gap: var(--gh-space-2); }
 .builder-lines__row { display: flex; align-items: center; gap: var(--gh-space-2); }
 
+/* 条目排序按钮组（上移 / 下移）：与「删除」并排，紧凑不抢视线 */
+.builder-ops { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.builder-ops .btn { min-width: 28px; padding: 0 var(--gh-space-2); }
+.builder-ops .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
 /* 集合挑选器（kind: 'ref'）：从产品等集合勾选条目，值以 ID 列表保存，顺序可调 */
 .ref-picker { display: flex; flex-direction: column; gap: var(--gh-space-3); }
 .ref-picker__list {

@@ -147,6 +147,51 @@ function RefPicker({
 }
 
 /** 字符串行列表（hero.title「每行一句」等）：每行一个输入框 */
+/** 通用：把数组第 from 项移到 to（越界原样返回），返回新数组（不可变） */
+function moveItem<T>(list: T[], from: number, to: number): T[] {
+  if (to < 0 || to >= list.length) return list
+  const next = list.slice()
+  const [item] = next.splice(from, 1)
+  next.splice(to, 0, item)
+  return next
+}
+
+/** 条目排序按钮组（上移 / 下移）：行列表与对象条目列表共用 */
+function MoveButtons({
+  index,
+  total,
+  onMove,
+}: {
+  index: number
+  total: number
+  onMove: (from: number, to: number) => void
+}) {
+  return (
+    <span className="builder-ops">
+      <button
+        type="button"
+        className="btn btn--ghost btn--sm"
+        aria-label="上移"
+        title="上移"
+        disabled={index === 0}
+        onClick={() => onMove(index, index - 1)}
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        className="btn btn--ghost btn--sm"
+        aria-label="下移"
+        title="下移"
+        disabled={index === total - 1}
+        onClick={() => onMove(index, index + 1)}
+      >
+        ↓
+      </button>
+    </span>
+  )
+}
+
 function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines: string[]) => void }) {
   return (
     <div className="builder-lines">
@@ -162,6 +207,7 @@ function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines
               onChange(next)
             }}
           />
+          <MoveButtons index={index} total={lines.length} onMove={(from, to) => onChange(moveItem(lines, from, to))} />
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => onChange(lines.filter((_, i) => i !== index))}>
             删除
           </button>
@@ -340,6 +386,23 @@ function ItemListEditor({
 }) {
   const [open, setOpen] = useState<number | null>(items.length > 0 ? 0 : null)
 
+  /**
+   * 移动条目：数组换位的同时，把「展开态」索引跟着平移，
+   * 否则换位后原本展开的那一条会串到别的条目上。
+   */
+  const move = (from: number, to: number) => {
+    const next = moveItem(items, from, to)
+    if (next === items) return
+    onChange(next)
+    setOpen((current) => {
+      if (current === null) return current
+      if (current === from) return to
+      if (from < to && current > from && current <= to) return current - 1
+      if (from > to && current >= to && current < from) return current + 1
+      return current
+    })
+  }
+
   return (
     <div className="builder-list">
       {items.map((item, index) => (
@@ -351,6 +414,7 @@ function ItemListEditor({
             <span className="builder-list__title">
               {field.label} {index + 1}
             </span>
+            <MoveButtons index={index} total={items.length} onMove={move} />
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => onChange(items.filter((_, i) => i !== index))}>
               删除
             </button>
