@@ -38,6 +38,16 @@ export function asStringArray(value: unknown): string[] {
 }
 
 /**
+ * 收窄为「多行文本」：字符串视为单行，数组过滤出字符串项。
+ * 用于标题类字段——英文 seed 历史上写作单个字符串，中文写作字符串数组，
+ * 统一在这里兼容，避免某一个语种静默丢标题。
+ */
+export function asTextLines(value: unknown): string[] {
+  if (typeof value === 'string') return value.trim() ? [value] : []
+  return asStringArray(value)
+}
+
+/**
  * 数据源区块「手动挑选」：scope === 'manual' 且给了 ids 时，按 ids 顺序挑选并排序；
  * 否则原样返回。用于文章 / 下载 / 问答等集合型区块的「挑具体几条」能力。
  */
@@ -61,8 +71,9 @@ export function asLink(value: unknown): BlockLink | null {
 export function asStatItems(value: unknown): StatItem[] {
   return asArray<Record<string, unknown>>(value)
     .map((item) => ({
-      value: asString(item.value),
-      label: asString(item.label),
+      // 兼容英文 seed 里 `{ k, v }` 的历史写法（组件统一消费 { value, label }）
+      value: asString(item.value) || asString(item.v),
+      label: asString(item.label) || asString(item.k),
       unit: asString(item.unit),
       note: asString(item.note),
     }))

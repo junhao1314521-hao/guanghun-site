@@ -27,6 +27,20 @@ type Props = {
   onOpenDrawer: () => void
 }
 
+/**
+ * 下拉面板右侧推荐卡的配图（按面板 key 固定）。
+ * 此前这里是一块渐变色占位，观感像「没加载出来」；改为各自栏目对应的真实素材，
+ * 中英文面板共用同一份映射（面板 key 与语言无关）。
+ */
+const MEGA_FEATURE_IMAGE: Record<string, string> = {
+  products: '/media/products/gh-54027x1qe.jpg',
+  ladder: '/media/products/views/monitor-1.jpg',
+  articles: '/media/home/scenes/scene-02.jpg',
+  support: '/media/home/scenes/scene-03.jpg',
+  business: '/media/home/scenes/scene-04.jpg',
+  about: '/media/home/scenes/scene-01.jpg',
+}
+
 /** 公告条（顶栏上方细条）：文案可点跳转，可按配置关闭（关闭状态记忆在 localStorage） */
 function AnnouncementBar({ announcement, onDismiss }: { announcement: SiteAnnouncement; onDismiss: () => void }) {
   return (
@@ -207,13 +221,19 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
     <>
       {/* 公告条：置于顶栏之上；可关闭时按配置隐藏 */}
       {announcement && !announceDismissed && <AnnouncementBar announcement={announcement} onDismiss={dismissAnnounce} />}
-      <header ref={headerRef} className={`site-header${overHero ? ' site-header--over-hero' : ''}${isHome ? ' site-header--home' : ''}`}>
+      {/* 悬停热区 = 一级导航 + 下拉面板：指针从一级菜单移到面板不会收起，
+          离开这个区域（含移到左侧 LOGO / 右侧操作区）才延时收起。 */}
+      <header
+        ref={headerRef}
+        className={`site-header${overHero ? ' site-header--over-hero' : ''}${isHome ? ' site-header--home' : ''}`}
+      >
       <div className="container site-header__inner" style={{ position: 'relative' }}>
         <Link className="logo" to="/">
           <BrandMark className="logo__mark" />
           <span className="logo__word" role="img" aria-label={t('brand.wordmark')} />
         </Link>
 
+        <div className="site-navzone" onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
         <nav className="site-nav" aria-label={t('a11y.mainNav')} style={{ position: 'relative' }}>
           {navItems.map((item) => {
             const isActive = !!wantNav && item.nav === wantNav
@@ -250,6 +270,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             )
           })}
         </nav>
+        </div>
 
         <div className="site-actions">
           <div className={`search site-search${searchOpen ? ' is-open' : ''}`}>
@@ -327,19 +348,15 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             </div>
           </div>
 
-          {/* 顶栏 CTA：购买 / 预约体验（后台站点配置可配；窄屏由 CSS 隐藏） */}
+          {/* 顶栏 CTA：预约体验 / 购买（后台站点配置可配；窄屏由 CSS 隐藏）。
+              按反馈去掉「产品总览」次级入口——它与一级导航「产品」重复，顶栏更干净。 */}
           {topCta.primary && (
             <Link
-              className="btn btn--primary btn--sm site-cta site-cta--primary"
+              className="btn btn--primary btn--sm site-cta"
               to={topCta.primary.href}
               onClick={() => trackEvent('cta', topCta.primary?.href ?? '')}
             >
               {topCta.primary.label}
-            </Link>
-          )}
-          {topCta.secondary && (
-            <Link className="btn btn--ghost btn--sm site-cta site-cta--secondary" to={topCta.secondary.href}>
-              {topCta.secondary.label}
             </Link>
           )}
 
@@ -364,7 +381,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
 
       <span className="scroll-progress" aria-hidden="true" />
 
-      {/* 宽屏下拉菜单：一级菜单悬停/聚焦展开，展示二级栏目 */}
+      {/* 宽屏下拉菜单：一级菜单悬停/聚焦展开，展示二级栏目（开合由「导航 + 面板」热区统一控制） */}
       <div
         className={`mega${openMenu ? ' is-open' : ''}`}
         aria-hidden={!openMenu}
@@ -391,7 +408,11 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                     </div>
                   ))}
                   <Link className="mega__feature" to={panel.columns[0].links[0].to}>
-                    <span className="mega__feature-media" aria-hidden="true" />
+                    <span className="mega__feature-media" aria-hidden="true">
+                      {MEGA_FEATURE_IMAGE[panel.key] && (
+                        <img src={MEGA_FEATURE_IMAGE[panel.key]} alt="" loading="lazy" />
+                      )}
+                    </span>
                     <span className="mega__feature-eyebrow">{panel.feature.eyebrow}</span>
                     <b className="mega__feature-title">{panel.feature.title}</b>
                     <span className="mega__feature-desc">{panel.feature.desc}</span>

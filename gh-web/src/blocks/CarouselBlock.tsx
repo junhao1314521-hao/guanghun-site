@@ -10,10 +10,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconChevronLeft, IconChevronRight } from '../components/ui/Icon'
 import { prefersReducedMotion } from '../lib/motion'
+import { useTheme } from '../lib/useTheme'
 import { CodeBackdrop } from '../components/site/CodeBackdrop'
 import { isPlaceholderMedia } from '../components/ui/CodeMedia'
 import { MediaImg } from '../components/ui/MediaImg'
-import { asArray, asBool, asLink, asRecord, asStatItems, asString, asStringArray } from './blockUtils'
+import { asArray, asBool, asLink, asRecord, asStatItems, asString, asTextLines } from './blockUtils'
 
 const DURATION = 6000
 
@@ -34,7 +35,7 @@ function toSlide(value: unknown): Slide {
   const record = asRecord(value)
   return {
     eyebrow: asString(record.eyebrow),
-    title: asStringArray(record.title),
+    title: asTextLines(record.title),
     desc: asString(record.desc),
     mediaTag: asString(record.mediaTag),
     image: asString(record.image),
@@ -48,6 +49,8 @@ function toSlide(value: unknown): Slide {
 export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
   const slides = asArray(props.slides).map(toSlide)
   const autoplay = asBool(props.autoplay, true)
+  // 海报皮肤跟随站点主题：浅色主题用浅色代码动画与深色文案，深色主题保持原有科技暗场
+  const theme = useTheme()
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
 
@@ -64,7 +67,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
 
   return (
     <div
-      className={`blk-hero${paused ? ' is-paused' : ''}`}
+      className={`blk-hero${theme === 'light' ? ' blk-hero--light' : ''}${paused ? ' is-paused' : ''}`}
       tabIndex={0}
       role="group"
       aria-label="首屏轮播，可用左右方向键切换"
@@ -77,7 +80,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
     >
       {/* 首屏共享的「流动方块」代码动效：单一画布，避免每张幻灯片各起一个动画循环。
           第一张海报固定用它（不受媒体槽规则限制）；其余幻灯片无真实素材时同样透出它。 */}
-      <CodeBackdrop className="blk-hero__anim" />
+      <CodeBackdrop className="blk-hero__anim" theme={theme} />
       <div className="blk-hero__slides">
         {slides.map((slide, i) => {
           const active = i === index

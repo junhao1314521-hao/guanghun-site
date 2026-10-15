@@ -49,7 +49,7 @@ function ArticleCards({ items, rail }: { items: ArticleSummary[]; rail?: boolean
   return (
     <div className={rail ? 'blk-scroll-x' : 'grid-3'}>
       {items.map((item) => (
-        <Link className="card card--link reveal" to={`/articles/${item.id}`} key={item.id}>
+        <Link className="card card--link card--article reveal" to={`/articles/${item.id}`} key={item.id}>
           <div className="ph-box ph-box--media" style={{ aspectRatio: '16 / 9' }}>
             <MediaImg src={articleCoverSrc(item.cover, item.coverImage)} alt={item.title} />
           </div>
@@ -76,7 +76,7 @@ function ArticleCards({ items, rail }: { items: ArticleSummary[]; rail?: boolean
   )
 }
 
-/** 新闻行列表（对齐新闻中心的既有 news-list 行形态） */
+/** 新闻行列表（对齐新闻中心的既有 news-list 行形态，列表页使用） */
 function NewsRows({ items }: { items: NewsItem[] }) {
   return (
     <div className="news-list reveal">
@@ -93,6 +93,50 @@ function NewsRows({ items }: { items: NewsItem[] }) {
           </span>
         </Link>
       ))}
+    </div>
+  )
+}
+
+/**
+ * 新闻横向无缝滚动卡片（首页等策展区块使用）。
+ *
+ * 两段等长内容首尾相接，轨道整体平移 -50% 即无缝循环；鼠标悬停暂停，
+ * 尊重「减少动态效果」（该偏好下退化为可横滑的静态卡片行）。
+ * 第二段为装饰性重复，对读屏与键盘隐藏，避免同一链接被读两遍。
+ */
+function NewsMarquee({ items }: { items: NewsItem[] }) {
+  const group = (duplicated: boolean) => (
+    <div className="news-marquee__group" aria-hidden={duplicated || undefined}>
+      {items.map((item) => (
+        <Link
+          className="news-card"
+          to={item.href ?? '/articles'}
+          key={`${duplicated ? 'dup-' : ''}${item.date}-${item.title}`}
+          tabIndex={duplicated ? -1 : undefined}
+        >
+          <span className="news-card__thumb">
+            <MediaImg src={articleCoverSrc(item.cover ?? '', item.coverImage)} alt="" />
+          </span>
+          <span className="news-card__meta">
+            <span className="news-card__date">{item.date}</span>
+            <span className="tag">{item.tag}</span>
+          </span>
+          <span className="news-card__title">{item.title}</span>
+          <span className="news-card__go" aria-hidden="true">
+            →
+          </span>
+        </Link>
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="news-marquee reveal">
+      {/* 滚动速度与条目数成正比：每张卡约 11 秒穿过可视区，多条目也不会越滚越快 */}
+      <div className="news-marquee__track" style={{ animationDuration: `${Math.max(30, items.length * 11)}s` }}>
+        {group(false)}
+        {group(true)}
+      </div>
     </div>
   )
 }
@@ -261,7 +305,13 @@ export function ArticleListBlock({ props }: { props: Record<string, unknown> }) 
               </p>
             )
           ) : isNews ? (
-            <NewsRows items={paged as NewsItem[]} />
+            // 新闻：列表页（分页形态）保留可浏览的行列表；首页等策展区块改为横向自动滚动卡片。
+            // 条目过少时滚动没有意义，同样回退为行列表。
+            pageSize > 0 || paged.length < 3 ? (
+              <NewsRows items={paged as NewsItem[]} />
+            ) : (
+              <NewsMarquee items={paged as NewsItem[]} />
+            )
           ) : (
             <ArticleCards items={paged as ArticleSummary[]} rail={rail} />
           )}

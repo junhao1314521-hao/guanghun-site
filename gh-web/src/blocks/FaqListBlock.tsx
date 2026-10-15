@@ -155,7 +155,10 @@ export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
               {paged.map((item, index) => (
                 <details key={item.id ?? `${item.q}-${index}`}>
                   <summary>
-                    {item.q}
+                    <span className="qa-list__index" aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="qa-list__q">{item.q}</span>
                     <IconChevronDown size={16} />
                   </summary>
                   <div className="qa-list__answer">

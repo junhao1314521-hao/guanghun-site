@@ -266,12 +266,12 @@ export const SERVICE_ENTRIES = [
 ] as const
 
 /* ---------- 商业合作 · 体验点 ---------- */
-export type Spot = { name: string; area: string; status: string; ok: boolean }
+export type Spot = { name: string; area: string; status: string; ok: boolean; /** 到店体验说明（首页卡片第二行用） */ note: string }
 
 export const SPOTS: Spot[] = [
-  { name: '光魂上海旗舰体验店', area: '上海 · 静安', status: '营业中', ok: true },
-  { name: '光魂深圳体验点', area: '广东 · 深圳', status: '营业中', ok: true },
-  { name: '光魂成都体验点', area: '四川 · 成都', status: '筹备中', ok: false },
+  { name: '光魂上海旗舰体验店', area: '上海 · 静安', status: '营业中', ok: true, note: '全系 OLED 可试玩，支持现场调参与参数讲解' },
+  { name: '光魂深圳体验点', area: '广东 · 深圳', status: '营业中', ok: true, note: '主打高刷电竞机型，支持预约到店' },
+  { name: '光魂成都体验点', area: '四川 · 成都', status: '筹备中', ok: false, note: '筹备中，开放后支持预约到店' },
 ]
 
 export const COOP_TAGS = ['赛事合作', '内容共创', '渠道分销', '品牌联名']

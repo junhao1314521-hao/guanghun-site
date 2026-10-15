@@ -7,11 +7,12 @@
  */
 import { Link } from 'react-router-dom'
 import { MediaImg } from '../components/ui/MediaImg'
-import { asLink, asStatItems, asString, asStringArray } from './blockUtils'
+import { asLink, asStatItems, asString, asTextLines } from './blockUtils'
 
 export function HeroBlock({ props }: { props: Record<string, unknown> }) {
   const eyebrow = asString(props.eyebrow)
-  const title = asStringArray(props.title)
+  // 标题兼容「字符串 / 字符串数组」两种历史写法（同 carousel 区块）
+  const title = asTextLines(props.title)
   const desc = asString(props.desc)
   const mediaTag = asString(props.mediaTag)
   const image = asString(props.image)

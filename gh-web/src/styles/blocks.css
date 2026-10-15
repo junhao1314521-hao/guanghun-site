@@ -109,11 +109,13 @@
 
 /* 共享「流动方块」代码动效画布：铺满整张海报，位于文案之下 */
 .blk-hero__anim { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; }
-/* 文案可读性：左侧（桌面）/ 底部（移动）渐变压暗，替代旧版「无条件重投影」；
-   右侧保留动效可见，形成「暗场 + 动效」的层次。 */
+/* 文案可读性：左侧（桌面）/ 底部（移动）/ 顶部（顶栏浮于其上）三向渐变压暗。
+   顶部这一层是给「磨砂顶栏」兜底的：无论海报是明是暗，顶栏所在的那一条始终有
+   足够反差，顶栏文字不会糊在背景里。 */
 .blk-hero::after {
   content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background:
+    linear-gradient(180deg, rgba(7, 10, 22, .58) 0%, rgba(7, 10, 22, 0) 26%),
     linear-gradient(90deg, rgba(7, 10, 22, .9) 0%, rgba(7, 10, 22, .68) 36%, rgba(7, 10, 22, .16) 66%, rgba(7, 10, 22, 0) 100%),
     linear-gradient(0deg, rgba(7, 10, 22, .78) 0%, rgba(7, 10, 22, 0) 52%);
 }
@@ -404,23 +406,26 @@
    ============================================================ */
 /* rail：套用 .h-scroll 横向轨道；关闭 snap 以配合「指针接近自动滑动」，连续移动顺滑 */
 .blk-rail .h-scroll__rail { scroll-snap-type: none; }
-/* 可视区约 2.5 张：卡片宽 ≈ 2.5 张铺满视口并露出第 3 张，明确提示可继续横滑
-   （鼠标靠左右边缘自动滑动 / 拖拽 / 箭头均可），并由 .h-scroll 隐藏滚动条外观。 */
+/* 可视区「三个半」：整屏排满 3 张、第 4 张只露一半 —— 横向可滑动的暗示最明确，
+   单卡仍保持舒展（鼠标靠左右边缘自动滑动 / 拖拽 / 箭头均可），滚动条外观由 .h-scroll 隐藏。 */
 .blk-rail .card,
 .blk-rail .blk-card {
-  flex: 0 0 calc(40% - var(--gh-space-4));
+  flex: 0 0 calc(28.6% - var(--gh-space-5));
   width: auto;
   min-width: 0;
 }
 @media (min-width: 768px) and (max-width: 1023px) {
   .blk-rail .card,
-  .blk-rail .blk-card { flex-basis: calc(46% - var(--gh-space-4)); }
+  .blk-rail .blk-card { flex-basis: calc(42% - var(--gh-space-5)); }
 }
 @media (max-width: 767px) {
   /* 窄屏约 1 张可视（留少量露出，提示可继续横滑） */
   .blk-rail .card,
   .blk-rail .blk-card { flex-basis: 85%; }
 }
+/* 卡片变窄后文案同步收一档，避免标题在窄卡里「顶格」显得局促 */
+.blk-rail .blk-card__title { font-size: clamp(18px, 1.5vw, 21px); }
+.blk-rail .blk-card__desc { -webkit-line-clamp: 2; }
 
 /* 产品网格的横滑呈现（productGrid layout:'rail'）：原生横向滚动 + 隐藏滚动条 */
 .p-grid-rail { display: flex; gap: var(--gh-space-5); overflow-x: auto; scrollbar-width: none; padding-bottom: var(--gh-space-2); }
@@ -632,16 +637,77 @@
   font-weight: var(--gh-weight-medium); letter-spacing: .04em;
 }
 
-/* —— cards · trust 布局：信任条（实测徽标 / 合作标识 紧凑横排）—— */
-.blk-trust__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-4) var(--gh-space-7); }
-.blk-trust__item { display: inline-flex; align-items: center; gap: var(--gh-space-2); }
+/* —— cards · trust 布局：信任条（实测徽标 / 服务承诺）
+   等分四栏 + 发丝分隔，收成一条「承诺条」，而不是四句散落的短句 —— */
+.blk-trust__row {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-xl);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+}
+.blk-trust__item { display: flex; align-items: flex-start; gap: var(--gh-space-3); padding: var(--gh-space-5); }
+.blk-trust__item + .blk-trust__item { border-left: 1px solid var(--color-border-subtle); }
 .blk-trust__mark {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
-  width: 22px; height: 22px; border-radius: var(--gh-radius-full);
+  width: 22px; height: 22px; margin-top: 1px; border-radius: var(--gh-radius-full);
   background: var(--color-accent-subtle); color: var(--color-accent-text);
 }
-.blk-trust__title { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
-.blk-trust__desc { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.blk-trust__text { display: block; min-width: 0; }
+.blk-trust__title { display: block; font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
+.blk-trust__desc { display: block; margin-top: 2px; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+@media (max-width: 900px) {
+  .blk-trust__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .blk-trust__item:nth-child(2n + 1) { border-left: 0; }
+  .blk-trust__item:nth-child(n + 3) { border-top: 1px solid var(--color-border-subtle); }
+}
+@media (max-width: 560px) {
+  .blk-trust__row { grid-template-columns: minmax(0, 1fr); }
+  .blk-trust__item,
+  .blk-trust__item + .blk-trust__item { border-left: 0; }
+  .blk-trust__item + .blk-trust__item { border-top: 1px solid var(--color-border-subtle); }
+}
+
+/* —— 文章卡：与「序号 + 标签 → 标题 → 说明」的卡片语言对齐 ——
+   内边距与标题字号向 .blk-grid 卡片看齐；文章卡没有序号（不是流程步骤），
+   但保留底部作者/日期的署名行。
+   用双类名提高权重，避免与 components.css / site.css 里的 .card 基础样式打架。 */
+.card--link.card--article { padding: var(--gh-space-6); }
+.card--link.card--article .card__title {
+  font-size: var(--gh-font-size-h4);
+  line-height: var(--gh-line-height-h4);
+  margin-top: var(--gh-space-2);
+}
+
+/* —— cards · grid 布局：说明型卡片的层级化 ——
+   头行「序号（等宽微字）+ 状态标签」→ 标题（唯一视觉重心）→ 说明 → 箭头（仅可跳转卡）；
+   序号提供目录感，箭头给出去向暗示，避免此前「标题 + 一行灰字」的平铺观感。 */
+.blk-grid > .card,
+.blk-grid > .card--link { padding: var(--gh-space-6); }
+.blk-grid > .card .card__title,
+.blk-grid > .card--link .card__title {
+  font-size: var(--gh-font-size-h4);
+  line-height: var(--gh-line-height-h4);
+  margin-top: var(--gh-space-2);
+}
+.blk-icard__head { display: flex; align-items: center; gap: var(--gh-space-3); min-height: 20px; }
+.blk-icard__index {
+  font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption);
+  letter-spacing: .12em; color: var(--color-accent-text);
+  padding-right: var(--gh-space-3); border-right: 1px solid var(--color-border-default);
+}
+/* 无状态标签时不留下悬空的分隔竖线 */
+.blk-icard__index:only-child { padding-right: 0; border-right: 0; }
+.blk-icard__go {
+  margin-top: auto; align-self: flex-end;
+  color: var(--color-text-tertiary);
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard),
+              transform var(--gh-duration-base) var(--gh-ease-accent);
+}
+.card--link:hover .blk-icard__go { color: var(--color-accent-text); transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+  .blk-icard__go, .card--link:hover .blk-icard__go { transition: none; transform: none; }
+}
 
 /* ============================================================
    showcase 通栏产品展示（首页「重点产品」分段式）

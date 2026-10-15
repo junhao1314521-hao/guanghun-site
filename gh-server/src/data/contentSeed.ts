@@ -247,17 +247,18 @@ function buildHome(): Page {
         })),
       },
     },
-    // 服务承诺条（三年质保 · 顺丰 · 专属服务）
+    // 服务承诺条（质保 / 物流 / 服务 三条；卡片头行统一为「序号 + 分类标签」）
     {
       type: 'cards',
       props: {
         title: '服务承诺',
         icon: 'shield',
+        subtitle: '买前买后，都由同一套标准兜底。',
         columns: 3,
         items: [
-          { title: '三年质保', desc: '全系含 OLED 烧屏保护，全国联保。' },
-          { title: '顺丰包邮', desc: '现货速发，支持 15 天无理由退换。' },
-          { title: '专属服务', desc: '面板服务与技术支持，工单全程可跟进。' },
+          { tag: '质保', title: '三年质保，含烧屏保障', desc: '全系 OLED 面板覆盖烧屏保护，全国联保；序列号即可查保修状态。' },
+          { tag: '物流', title: '顺丰包邮，现货速发', desc: '到货即验机，15 天无理由退换。' },
+          { tag: '服务', title: '专属服务，全程可跟进', desc: '面板服务与技术支持由同一套工单承接，进度随时可查。' },
         ],
       },
     },
@@ -272,9 +273,9 @@ function buildHome(): Page {
         ctaHref: '/products',
         columns: 3,
         items: [
-          { tag: '按用途', title: '电竞 / 创作 / 办公怎么选', desc: '按刷新率、色准与接口需求快速收敛范围。', href: '/products' },
-          { tag: '看实测', title: '天梯榜怎么看', desc: '综合、色准、亮度、响应四项指标的口径说明。', href: '/ladder' },
-          { tag: '读评测', title: '评测与解析合集', desc: '参数公开、方法公开，结论可复现。', href: '/articles' },
+          { tag: '按用途', title: '先定用途，再定型号', desc: '电竞看刷新率与响应，创作看色准与色域，办公看护眼与接口。', href: '/products' },
+          { tag: '看实测', title: '用同一把尺子做比较', desc: '综合、色准、亮度、响应四项出自同一套测试方法，可逐条核对。', href: '/ladder' },
+          { tag: '读评测', title: '结论要能自己复现', desc: '参数、仪器与样本数全部公开，谁都能照着做一遍。', href: '/articles' },
         ],
       },
     },
@@ -289,9 +290,9 @@ function buildHome(): Page {
         ctaHref: '/downloads',
         columns: 3,
         items: [
-          { tag: '固件', title: '显示器固件更新', desc: '通过 Center 一键升级，附带变更说明。', href: '/downloads' },
-          { tag: '驱动', title: '驱动与调色配置', desc: 'ICC / 调色配置，公开资料无需注册即可下载。', href: '/downloads' },
-          { tag: '软件', title: '光魂 Center', desc: '统一管理设备：按键、参数、灯效与固件。', href: '/center' },
+          { tag: '固件', title: '固件一键升级', desc: '在光魂 Center 里检查更新并升级，每次附带变更说明。', href: '/downloads' },
+          { tag: '驱动', title: '驱动与调色配置', desc: 'ICC 与调色文件公开下载，无需注册。', href: '/downloads' },
+          { tag: '软件', title: '光魂 Center', desc: '按键、参数、灯效与固件统一在一处管理。', href: '/center' },
         ],
       },
     },
@@ -302,11 +303,17 @@ function buildHome(): Page {
       props: {
         title: '体验与合作',
         icon: 'chat',
-        subtitle: '线下体验、渠道与赛事合作。',
+        subtitle: '到店试玩，或与我们共同做一场活动。',
         ctaLabel: '查看全部体验点',
         ctaHref: '/business/venues',
         columns: 3,
-        items: home.SPOTS.map((spot) => ({ tag: spot.status, title: spot.name, desc: spot.area, href: '/business/venues' })),
+        // 卡片第二行用「城市 · 到店说明」，避免此前只显示一个城市名、信息量偏空
+        items: home.SPOTS.map((spot) => ({
+          tag: spot.status,
+          title: spot.name,
+          desc: `${spot.area} · ${spot.note}`,
+          href: '/business/venues',
+        })),
       },
     },
     // 订阅（默认开启）：留下邮箱获取新品与固件更新

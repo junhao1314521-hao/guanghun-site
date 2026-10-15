@@ -84,11 +84,24 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
   -webkit-mask: url(/brand/svdc.svg) center / contain no-repeat;
   mask: url(/brand/svdc.svg) center / contain no-repeat;
 }
-.site-nav { display: flex; gap: var(--gh-space-5); flex: 1; margin-left: var(--gh-space-6); }
-.site-nav a { color: var(--color-text-secondary); text-decoration: none; font-size: var(--gh-font-size-body); padding: var(--gh-space-2) 0; }
+/* 一级导航与下拉面板共用一个悬停热区（.site-navzone），热区纵向撑满顶栏，
+   指针在「导航 ↔ 面板」之间移动不会误收起。 */
+.site-navzone { display: flex; align-items: stretch; align-self: stretch; flex: 1; min-width: 0; margin-left: var(--gh-space-5); }
+/* 一级导航：字号取 body-sm（比正文收一档但保持可读），字距微开、不换行，
+   让 7 个栏目在 1024–1440 全区间单行排布（此前会在 1024–1100 折行）。 */
+.site-nav { display: flex; align-items: center; gap: var(--gh-space-4); min-width: 0; }
+.site-nav a { color: var(--color-text-secondary); text-decoration: none; font-size: var(--gh-font-size-body-sm); letter-spacing: .005em; white-space: nowrap; padding: var(--gh-space-2) 0; }
 .site-nav a:hover { color: var(--color-text-primary); }
 .site-nav a.is-active { color: var(--color-text-primary); font-weight: var(--gh-weight-medium); }
 .site-actions { display: flex; align-items: center; gap: var(--gh-space-2); }
+/* 顶栏工具图标：去掉常驻描边，改为「悬停才浮出浅底」的纯净样式，视觉更精致 */
+.site-header .icon-btn {
+  width: 34px; height: 34px;
+  border-color: transparent;
+  border-radius: var(--gh-radius-lg);
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
+              color var(--gh-duration-fast) var(--gh-ease-standard);
+}
 /* 顶栏操作图标 */
 .site-search { position: relative; display: flex; align-items: center; }
 .search__panel {
@@ -127,9 +140,9 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .lang__opt.is-active { color: var(--color-accent-text); font-weight: var(--gh-weight-medium); }
 .lang__code { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 @media (max-width: 1023px) {
-  .site-nav, .site-search, .site-lang { display: none; }
+  .site-navzone, .site-nav, .site-search, .site-lang { display: none; }
   .site-header__inner { gap: var(--gh-space-4); }
-  /* 桌面端靠 .site-nav(flex:1) 撑开把操作区推到右侧；窄屏导航隐藏后需显式补上 */
+  /* 桌面端靠 .site-navzone(flex:1) 撑开把操作区推到右侧；窄屏导航隐藏后需显式补上 */
   .site-actions { margin-left: auto; }
 }
 
@@ -699,6 +712,14 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
   .ladder__head, .ladder__row { padding: var(--gh-space-3); gap: var(--gh-space-2); }
   .ladder__model { width: 92px; }
 }
+/* 390 级窄屏：.ladder 是 overflow:hidden 的不可滚容器，缩略图 + 过宽的分数列会把
+   「分数 / 涨跌 / 箭头」顶出可视区裁掉；这里收掉缩略图并收窄两列，保证四项都可见。 */
+@media (max-width: 560px) {
+  .ladder__thumb-head, .ladder__thumb { display: none; }
+  .ladder__model { width: 84px; }
+  .ladder__value { width: 86px; }
+  .ladder__arrow { margin-left: 0; }
+}
 
 /* 产品详情 */
 .detail-top { display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--gh-space-8); align-items: start; }
@@ -726,7 +747,11 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .row { display: flex; align-items: center; gap: var(--gh-space-3); flex-wrap: wrap; }
 .muted { color: var(--color-text-secondary); }
 .mono { font-family: var(--gh-font-mono); }
-.grid-3 { display: grid; gap: var(--gh-space-5); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+/* 三列网格：此前用 repeat(auto-fit, minmax(240px, 1fr))，在 1440 容器里会挤出 5 条轨道，
+   导致 6 张卡排成「5 + 1」；类名是 grid-3 就固定三列，并按断点降到 2 列 / 1 列。 */
+.grid-3 { display: grid; gap: var(--gh-space-5); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1023px) { .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .grid-3 { grid-template-columns: minmax(0, 1fr); } }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 [hidden] { display: none !important; }
 
@@ -846,6 +871,60 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .news-row__title { font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium); transition: color var(--gh-duration-fast) var(--gh-ease-standard); }
 .news-row__go { margin-left: auto; color: var(--color-text-tertiary); flex-shrink: 0; transition: transform var(--gh-duration-base) var(--gh-ease-accent); }
 .news-row:hover .news-row__go { transform: translateX(4px); color: var(--color-accent-text); }
+/* 窄屏新闻行：日期列收掉、标题收缩省略。
+   否则「缩略图 + 日期 + 标签 + 标题 + 箭头」总宽超出，而 .news-list 是 overflow:hidden，
+   标题与箭头会被直接裁掉看不到。 */
+@media (max-width: 767px) {
+  .news-row__date { display: none; }
+  .news-row__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 560px) {
+  .news-row__thumb { display: none; }
+}
+
+/* —— 首页「新闻与动态」：横向无缝滚动卡片 ——
+   两段等长内容首尾相接，轨道整体位移 -50% 即无缝循环（因此不依赖 scroll 容器）；
+   两侧用渐隐遮罩收边，悬停暂停；「减少动态效果」下退化为可横滑的静态行。 */
+.news-marquee {
+  position: relative; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+}
+.news-marquee__track { display: flex; width: max-content; animation: newsMarquee linear infinite; }
+.news-marquee__group { display: flex; align-items: stretch; gap: var(--gh-space-5); padding-right: var(--gh-space-5); }
+@keyframes newsMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.news-marquee:hover .news-marquee__track { animation-play-state: paused; }
+.news-card {
+  flex: none; width: 300px; display: flex; flex-direction: column; gap: var(--gh-space-3);
+  padding: var(--gh-space-4);
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-lg);
+  background: var(--color-bg-surface); text-decoration: none; color: inherit;
+  transition: border-color var(--gh-duration-base) var(--gh-ease-standard),
+              transform var(--gh-duration-base) var(--gh-ease-accent);
+}
+.news-card:hover { border-color: var(--color-accent); transform: translateY(-4px); }
+.news-card:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+.news-card__thumb { display: block; aspect-ratio: 16 / 9; border-radius: var(--gh-radius-md); overflow: hidden; background: var(--color-bg-muted); }
+.news-card__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .45s var(--gh-ease-accent); }
+.news-card:hover .news-card__thumb img { transform: scale(1.05); }
+.news-card__meta { display: flex; align-items: center; gap: var(--gh-space-2); }
+.news-card__date { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.news-card__title {
+  font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.news-card__go {
+  margin-top: auto; align-self: flex-end; color: var(--color-text-tertiary);
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard),
+              transform var(--gh-duration-base) var(--gh-ease-accent);
+}
+.news-card:hover .news-card__go { color: var(--color-accent-text); transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+  /* 关闭自动滚动后，退化为可横向滚动浏览的静态卡片行 */
+  .news-marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .news-marquee__track { animation: none; }
+}
+@media (max-width: 767px) { .news-card { width: 260px; } }
 
 /* —— 体验点条目：整行可点，悬停有反馈 —— */
 .spot-row {
@@ -869,19 +948,23 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 .site-nav a:hover::after,
 .site-nav a.is-active::after { width: 100%; }
 
-/* —— 品牌 mark：静息轻辉光 → hover 增强 → 首页一次「点亮」入场 + 极缓呼吸（reduced-motion 关闭）—— */
+/* —— 品牌 mark：全站极缓「呼吸灯」（幅度克制，不对视力造成干扰）→ hover 增强 →
+   首页额外叠一次「点亮」入场（reduced-motion 全部关闭）—— */
 .logo__mark {
   transition: transform var(--gh-duration-base) var(--gh-ease-accent),
               filter var(--gh-duration-base) var(--gh-ease-standard);
   filter: drop-shadow(0 0 5px rgba(59, 130, 246, .30));
+  animation: ghLogoBreath 5.6s var(--gh-ease-standard) infinite;
 }
+/* hover 时停止呼吸动画，否则动画优先级会盖掉 hover 的辉光 */
 .logo:hover .logo__mark {
+  animation: none;
   transform: rotate(-8deg) scale(1.08);
   filter: drop-shadow(0 0 9px rgba(59, 130, 246, .55)) drop-shadow(0 0 18px rgba(34, 211, 238, .35));
 }
 .site-header--home .logo__mark {
   animation: ghLogoIgnite .9s var(--gh-ease-standard) both,
-             ghLogoBreath 4.8s var(--gh-ease-standard) 1s infinite;
+             ghLogoBreath 5.6s var(--gh-ease-standard) 1s infinite;
 }
 @keyframes ghLogoIgnite {
   0% { opacity: .4; filter: drop-shadow(0 0 0 rgba(59, 130, 246, 0)) brightness(1.2); }
@@ -889,11 +972,11 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
   100% { opacity: 1; filter: drop-shadow(0 0 5px rgba(59, 130, 246, .30)); }
 }
 @keyframes ghLogoBreath {
-  0%, 100% { filter: drop-shadow(0 0 5px rgba(59, 130, 246, .28)); }
-  50% { filter: drop-shadow(0 0 11px rgba(59, 130, 246, .52)); }
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(59, 130, 246, .24)); }
+  50% { filter: drop-shadow(0 0 10px rgba(59, 130, 246, .46)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .site-header--home .logo__mark { animation: none; }
+  .logo__mark { animation: none; }
   .logo:hover .logo__mark { transform: none; }
 }
 
@@ -902,9 +985,10 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
    顶栏在首页透明浮于其上，与全宽海报融为一体
    ============================================================ */
 
-/* —— 顶栏浮于海报之上：磨砂玻璃（轻微透出海报） —— */
+/* —— 顶栏浮于海报之上：磨砂玻璃（轻微透出海报）。
+   底色调深一档（.34 → .5），保证海报换成浅色素材时白色文字仍有足够反差。 —— */
 .site-header--over-hero {
-  background: rgba(9, 10, 16, .34);
+  background: rgba(9, 10, 16, .5);
   border-bottom-color: rgba(255, 255, 255, .10);
   box-shadow: none;
 }
@@ -1164,9 +1248,14 @@ main:focus, main:focus-visible { outline: none; box-shadow: none; }
 }
 .mega__feature:hover { transform: translateY(-4px); border-color: var(--color-border-strong); }
 .mega__feature-media {
-  height: 116px; border-radius: var(--gh-radius-md);
-  background: linear-gradient(135deg, var(--gh-neutral-800), var(--gh-blue-600));
+  height: 116px; border-radius: var(--gh-radius-md); overflow: hidden;
+  background: var(--color-bg-muted);
 }
+.mega__feature-media img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .45s var(--gh-ease-accent);
+}
+.mega__feature:hover .mega__feature-media img { transform: scale(1.05); }
 .mega__feature-eyebrow { font-size: var(--gh-font-size-caption); letter-spacing: .08em; color: var(--color-accent-text); }
 .mega__feature-title { font-size: var(--gh-font-size-body-lg); color: var(--color-text-primary); }
 .mega__feature-desc { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
@@ -1372,21 +1461,33 @@ body.drawer-open { overflow: hidden; }
 .dl-meta__k { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 .dl-meta__v { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body); color: var(--color-text-primary); overflow-wrap: anywhere; }
 
-/* 常见问题（原生 details，键盘可达） */
-.qa-list { border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-lg); background: var(--color-bg-surface); overflow: hidden; }
+/* —— 常见问题：编号 + 问题 + 展开箭头；展开态整行高亮，答案轻量淡入 —— */
+.qa-list { border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-xl); background: var(--color-bg-surface); overflow: hidden; }
 .qa-list details + details { border-top: 1px solid var(--color-border-subtle); }
 .qa-list summary {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-4);
-  padding: var(--gh-space-4) var(--gh-space-5); cursor: pointer;
-  font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium); list-style: none;
-  transition: background var(--gh-duration-fast) var(--gh-ease-standard);
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--gh-space-4);
+  padding: var(--gh-space-5) var(--gh-space-6); cursor: pointer; list-style: none;
+  font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-medium);
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
+              color var(--gh-duration-fast) var(--gh-ease-standard);
 }
 .qa-list summary::-webkit-details-marker { display: none; }
 .qa-list summary:hover { background: var(--color-bg-subtle); }
 .qa-list summary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.qa-list summary svg { flex-shrink: 0; color: var(--color-text-tertiary); transition: transform .3s var(--gh-ease-accent); }
-.qa-list details[open] summary svg { transform: rotate(180deg); }
-.qa-list__answer { padding: 0 var(--gh-space-5) var(--gh-space-4); font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+.qa-list__index {
+  font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption);
+  letter-spacing: .12em; color: var(--color-text-tertiary);
+}
+.qa-list__q { min-width: 0; }
+.qa-list summary svg { flex-shrink: 0; color: var(--color-text-tertiary); transition: transform .3s var(--gh-ease-accent), color .3s var(--gh-ease-standard); }
+.qa-list details[open] > summary { color: var(--color-accent-text); background: var(--color-bg-subtle); }
+.qa-list details[open] summary svg { transform: rotate(180deg); color: var(--color-accent-text); }
+.qa-list__answer { padding: 0 var(--gh-space-6) var(--gh-space-5); font-size: var(--gh-font-size-body-sm); line-height: 1.8; color: var(--color-text-secondary); }
+.qa-list details[open] .qa-list__answer { animation: qaReveal .28s var(--gh-ease-accent) both; }
+@keyframes qaReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .qa-list details[open] .qa-list__answer { animation: none; }
+}
 
 /* ============================================================
    服务支持页（一级页面 · 骨架层）
@@ -1599,6 +1700,71 @@ body.drawer-open { overflow: hidden; }
 }
 
 /* ============================================================
+   首屏海报 · 浅色主题皮肤
+   站点为浅色主题时，代码动画换成浅底 + 品牌蓝方块，文案同步转深色；
+   深色主题保持原有「暗场 + 流动方块」不变。
+   ============================================================ */
+/* 海报外壳在内容库里的 style.theme 仍为 dark，非深色主题下需放开深色文字约束 */
+:root:not([data-theme="dark"]) .blk--theme-dark[data-block="carousel"] { color: var(--color-text-primary); }
+
+/* 注意：.blk-hero 的基础底色与遮罩定义在 blocks.css（同权重、加载顺序在后），
+   这里用双类名提高权重，确保浅色皮肤一定能覆盖深色底。 */
+.blk-hero.blk-hero--light {
+  background: linear-gradient(165deg, var(--gh-neutral-0) 0%, var(--gh-blue-50) 56%, #E7EBFA 100%);
+  border-color: var(--color-border-default);
+  color: var(--color-text-primary);
+}
+/* 文案区可读性：左侧留白遮罩向右渐隐，右侧完整露出动效；
+   顶部再叠一层留白，给浮在其上的磨砂顶栏兜底（文字转深色后同样有反差）。 */
+.blk-hero.blk-hero--light::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .72) 0%, rgba(255, 255, 255, 0) 26%),
+    linear-gradient(90deg, rgba(255, 255, 255, .95) 0%, rgba(255, 255, 255, .80) 34%, rgba(255, 255, 255, .22) 66%, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(0deg, rgba(255, 255, 255, .88) 0%, rgba(255, 255, 255, 0) 52%);
+}
+.blk-hero--light .hero__eyebrow { color: var(--gh-blue-500); }
+.blk-hero--light .hero__title { color: var(--color-text-primary); }
+.blk-hero--light .hero__desc { color: var(--color-text-secondary); }
+.blk-hero--light .hero__stat { border-left-color: var(--color-border-default); }
+.blk-hero--light .hero__stat b { color: var(--color-text-primary); }
+.blk-hero--light .hero__stat span { color: var(--color-text-tertiary); }
+.blk-hero--light .hero__cta .btn--secondary { color: var(--color-text-secondary); background: transparent; border-color: transparent; }
+.blk-hero--light .hero__cta .btn--secondary:hover { color: var(--color-accent-text); background: transparent; border-color: transparent; }
+/* 控件：序号 / 指示器 / 箭头在浅底转深色 */
+.blk-hero--light .blk-hero__count { color: var(--color-text-tertiary); }
+.blk-hero--light .blk-hero__count b { color: var(--color-text-primary); }
+.blk-hero--light .blk-hero__dot { background: rgba(23, 23, 26, .14); }
+.blk-hero--light .blk-hero__dot.is-active { background: rgba(23, 23, 26, .24); }
+.blk-hero--light .blk-hero__arrow {
+  border-color: var(--color-border-default);
+  background: rgba(255, 255, 255, .74);
+  color: var(--color-text-primary);
+}
+.blk-hero--light .blk-hero__arrow:hover { background: var(--gh-neutral-0); }
+
+/* 非深色主题（浅色 / 未写入主题属性）下顶栏浮于浅色海报之上：
+   浅色磨砂 + 深色文字，与海报的浅底形成反差。
+   用 :not([data-theme="dark"]) 而非 [data-theme="light"]，覆盖首帧尚未写入主题属性的场景。 */
+:root:not([data-theme="dark"]) .site-header--over-hero {
+  background: rgba(255, 255, 255, .68);
+  border-bottom-color: rgba(23, 23, 26, .08);
+}
+:root:not([data-theme="dark"]) .site-header--over-hero .logo { color: var(--color-text-primary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .logo__mark { filter: drop-shadow(0 0 6px rgba(32, 64, 237, .26)); }
+:root:not([data-theme="dark"]) .site-header--over-hero .site-nav a { color: var(--color-text-secondary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .site-nav a:hover,
+:root:not([data-theme="dark"]) .site-header--over-hero .site-nav a.is-active { color: var(--color-text-primary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .site-nav a::after { background: var(--color-accent); }
+:root:not([data-theme="dark"]) .site-header--over-hero .icon-btn { color: var(--color-text-secondary); border-color: transparent; }
+:root:not([data-theme="dark"]) .site-header--over-hero .icon-btn:hover { background: rgba(23, 23, 26, .05); }
+:root:not([data-theme="dark"]) .site-header--over-hero .site-search .input {
+  background: rgba(255, 255, 255, .82);
+  border-color: var(--color-border-default);
+  color: var(--color-text-primary);
+}
+:root:not([data-theme="dark"]) .site-header--over-hero .site-search .input::placeholder { color: var(--color-text-tertiary); }
+
+/* ============================================================
    内容页页头：面包屑 → 装饰条 → 大标题 → 说明
    ============================================================ */
 .page-head { padding-top: var(--gh-space-7); padding-bottom: var(--gh-space-6); }
@@ -1677,12 +1843,9 @@ body.drawer-open { overflow: hidden; }
 .announce__close:hover { opacity: 1; }
 
 /* ============================================================
-   顶栏 CTA（购买 / 预约体验；窄屏隐藏，避免挤压导航）
+   顶栏 CTA（预约体验 / 购买；窄屏隐藏，避免挤压导航）
    ============================================================ */
 .site-cta { margin-left: var(--gh-space-2); white-space: nowrap; }
-@media (max-width: 1023px) {
-  .site-cta--secondary { display: none; }
-}
 @media (max-width: 767px) {
   .site-cta { display: none; }
 }

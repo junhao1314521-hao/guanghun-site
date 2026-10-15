@@ -76,8 +76,8 @@ function OverlayCardBody({ item }: { item: CardItem }) {
   )
 }
 
-/** 常规卡：媒体在上、文案在下（沿用既有 .card 视觉，不引入第二套语言） */
-function PlainCardBody({ item, ratio }: { item: CardItem; ratio: string }) {
+/** 常规卡：序号/标签（头行）→ 标题 → 说明 → 箭头（有跳转时） */
+function PlainCardBody({ item, ratio, index }: { item: CardItem; ratio: string; index: number }) {
   const src = mediaSrc(item)
   return (
     <>
@@ -91,13 +91,20 @@ function PlainCardBody({ item, ratio }: { item: CardItem; ratio: string }) {
             <MediaImg src={src} alt={item.title} />
           </div>
         ))}
-      {item.tag && <span className="tag tag--pill">{item.tag}</span>}
-      {item.title && (
-        <h3 className="card__title" style={item.tag ? { marginTop: 'var(--gh-space-3)' } : undefined}>
-          {item.title}
-        </h3>
-      )}
+      {/* 头行：序号（等宽微字）+ 状态标签，给卡片一个明确的阅读起点 */}
+      <div className="blk-icard__head">
+        <span className="blk-icard__index" aria-hidden="true">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        {item.tag && <span className="tag tag--pill">{item.tag}</span>}
+      </div>
+      {item.title && <h3 className="card__title">{item.title}</h3>}
       {item.desc && <p className="card__desc">{item.desc}</p>}
+      {item.href && (
+        <span className="blk-icard__go" aria-hidden="true">
+          →
+        </span>
+      )}
     </>
   )
 }
@@ -116,7 +123,7 @@ function CardItemView({
 }) {
   const className = overlay ? 'blk-card blk-card--overlay reveal' : 'card reveal'
   const style = overlay ? { aspectRatio: ratio } : undefined
-  const body = overlay ? <OverlayCardBody item={item} /> : <PlainCardBody item={item} ratio={ratio} />
+  const body = overlay ? <OverlayCardBody item={item} /> : <PlainCardBody item={item} ratio={ratio} index={index} />
   const key = `${item.title}-${index}`
   const delay = (index % 3) + 1
   return item.href ? (
@@ -204,7 +211,7 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
     )
   }
 
-  // trust：信任条（实测徽标 / 合作标识 的紧凑横排，首屏下方使用）
+  // trust：信任条（实测徽标 / 服务承诺 的等分横排，首屏下方使用）
   if (layout === 'trust') {
     return (
       <div className="blk-trust">
@@ -217,8 +224,10 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
                   <path d="M3 8.4 6.4 11.8 13 4.6" />
                 </svg>
               </span>
-              <span className="blk-trust__title">{item.title}</span>
-              {item.desc && <span className="blk-trust__desc">{item.desc}</span>}
+              <span className="blk-trust__text">
+                <span className="blk-trust__title">{item.title}</span>
+                {item.desc && <span className="blk-trust__desc">{item.desc}</span>}
+              </span>
             </div>
           ))}
         </div>

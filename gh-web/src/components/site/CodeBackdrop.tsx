@@ -3,9 +3,9 @@
  *
  * 需求（改版需求汇总 §13）：
  * - 首屏海报第一张固定为**代码动画**（不受媒体槽规则限制），呈现「流动方块」的科技感；
- * - 深色底 + 品牌蓝，鼠标靠近高亮、点击汇聚；
- * - 遵循「减少动态效果」：只绘制一帧静态画面，不做动画；
- * - 复用：登录 / 注册页左侧主视觉同一份动效（`AuthShell`）。
+ * - 底色 + 品牌蓝，鼠标靠近高亮、点击汇聚，并每隔几秒自动来一次聚拢脉冲；
+ * - **双主题**：深色底（默认，登录 / 注册页左侧主视觉）与浅色底（浅色站点主题下的首屏海报）；
+ * - 遵循「减少动态效果」：只绘制一帧静态画面，不做动画。
  *
  * 实现要点（性能友好）：
  * - 网格化方块，能量值做缓动 → 形成「流动/拖尾」观感，不依赖像素累积；
@@ -15,16 +15,50 @@
 import { useEffect, useRef } from 'react'
 import { prefersReducedMotion } from '../../lib/motion'
 
-/** 单格边长（px，含间距）：越小越密、开销越大。取 14 形成更细颗粒的「数据方块」观感 */
-const CELL = 14
-/** 方块与格子的间隙（px）：颗粒越细，间隙同步收窄 */
-const GAP = 4
-/** 方块圆角（px） */
-const RADIUS = 2
+/**
+ * 单格边长（px，含间距）：越小越密、开销越大。
+ * - 桌面取 12：比 14 更细一档，颗粒更精致（列数提升约 35%，30fps 仍有余量）；
+ * - 窄屏（≤767px）取 10：手机可视宽度小，沿用 12 会让方块显得大而糙，
+ *   缩到 10 才能排出三十几列、看得出流动层。
+ */
+const CELL_DESKTOP = 12
+const CELL_NARROW = 10
+/** 移动端断点（与全站 CSS 断点一致） */
+const NARROW_MAX = 767
 /** 目标帧间隔（ms）：≈30fps，兼顾流畅与开销 */
 const FRAME_MS = 33
+/** 自动脉冲间隔（ms）：指针静止时也让画面保有「活性」 */
+const AUTO_PULSE_MS = 6500
 
-export function CodeBackdrop({ className = '' }: { className?: string }) {
+/** 配色方案：深色底用亮色方块，浅色底用品牌蓝实色方块 */
+type Palette = {
+  /** 画布底色 */
+  bg: string
+  /** 常规格（低能量） */
+  cell: (alpha: number) => string
+  /** 高能量格 */
+  cellHot: (alpha: number) => string
+}
+
+const PALETTES: Record<'light' | 'dark', Palette> = {
+  dark: {
+    bg: '#070A16',
+    cell: (alpha) => `rgba(74, 99, 242, ${alpha})`,
+    cellHot: (alpha) => `rgba(150, 182, 255, ${Math.min(0.95, alpha)})`,
+  },
+  light: {
+    bg: '#F2F5FD',
+    cell: (alpha) => `rgba(32, 64, 237, ${alpha * 0.4})`,
+    cellHot: (alpha) => `rgba(26, 51, 196, ${Math.min(0.8, alpha * 0.8)})`,
+  },
+}
+
+/**
+ * 首屏「流动方块」代码动画背景（Canvas）。
+ *
+ * @param theme 配色主题：'dark'（默认，登录 / 注册页主视觉）/ 'light'（浅色站点主题下的首屏海报）
+ */
+export function CodeBackdrop({ className = '', theme = 'dark' }: { className?: string; theme?: 'light' | 'dark' }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -33,14 +67,22 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    const palette = PALETTES[theme]
+
     const reduced = prefersReducedMotion()
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     let width = 0
     let height = 0
     let cols = 0
     let rows = 0
+    /** 当前颗粒尺寸（随容器宽度切换，桌面 / 窄屏两档） */
+    let cell = CELL_DESKTOP
+    let gap = CELL_DESKTOP * 0.28
+    let radius = CELL_DESKTOP * 0.14
     /** 每格当前亮度（0..1）：缓动形成流动拖尾 */
     let energy = new Float32Array(0)
+    /** 海报是否在视口内（不在则跳过绘制与自动脉冲） */
+    let inView = true
     let raf = 0
     let last = 0
     const pointer = { x: -1, y: -1 }
@@ -52,8 +94,12 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      cols = Math.max(1, Math.ceil(width / CELL))
-      rows = Math.max(1, Math.ceil(height / CELL))
+      // 颗粒尺寸跟随容器宽度：窄屏用更小的格子，避免大颗粒显得粗糙
+      cell = width <= NARROW_MAX ? CELL_NARROW : CELL_DESKTOP
+      gap = cell * 0.28
+      radius = cell * 0.14
+      cols = Math.max(1, Math.ceil(width / cell))
+      rows = Math.max(1, Math.ceil(height / cell))
       energy = new Float32Array(cols * rows)
     }
 
@@ -74,15 +120,32 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
       ctx.closePath()
     }
 
+    /** 以 (cxg, cyg) 格为中心，5×5 范围内瞬间点亮（聚拢脉冲，随后按能量缓动回落） */
+    const pulse = (cxg: number, cyg: number) => {
+      for (let gy = cyg - 2; gy <= cyg + 2; gy += 1) {
+        for (let gx = cxg - 2; gx <= cxg + 2; gx += 1) {
+          if (gx < 0 || gy < 0 || gx >= cols || gy >= rows) continue
+          if (Math.hypot(gx - cxg, gy - cyg) > 2.5) continue
+          energy[gy * cols + gx] = 1
+        }
+      }
+    }
+
+    /** 自动脉冲：在安全区内随机取格，避免总是同一处闪 */
+    const autoPulse = () => {
+      if (cols < 6 || rows < 6) return
+      pulse(2 + Math.floor(Math.random() * (cols - 4)), 2 + Math.floor(Math.random() * (rows - 4)))
+    }
+
     const paint = (timeMs: number, advance: boolean) => {
-      // 底色铺满（深色科技底；hero 与登录页同为深色语境）
-      ctx.fillStyle = '#070A16'
+      // 底色铺满（深色科技底 / 浅色净底，由主题决定）
+      ctx.fillStyle = palette.bg
       ctx.fillRect(0, 0, width, height)
 
       const t = timeMs / 1000
       const cx = cols / 2
       const cy = rows / 2
-      const size = CELL - GAP
+      const size = cell - gap
 
       for (let gy = 0; gy < rows; gy += 1) {
         for (let gx = 0; gx < cols; gx += 1) {
@@ -105,8 +168,8 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
 
           // 指针靠近：局部提亮（鼠标交互）
           if (pointer.x >= 0) {
-            const px = gx * CELL + size / 2
-            const py = gy * CELL + size / 2
+            const px = gx * cell + size / 2
+            const py = gy * cell + size / 2
             const d = Math.hypot(px - pointer.x, py - pointer.y)
             if (d < 100) target = Math.min(1, target + (1 - d / 100) * 0.75)
           }
@@ -119,13 +182,11 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
           // 低能量格保留极淡的「网格底」，保证结构感
           const alpha = 0.05 + e * 0.6
           const bright = e > 0.62
-          ctx.fillStyle = bright
-            ? `rgba(150, 182, 255, ${Math.min(0.95, alpha)})`
-            : `rgba(74, 99, 242, ${alpha})`
+          ctx.fillStyle = bright ? palette.cellHot(alpha) : palette.cell(alpha)
 
-          const x = gx * CELL
-          const y = gy * CELL
-          roundRect(x, y, size, size, RADIUS)
+          const x = gx * cell
+          const y = gy * cell
+          roundRect(x, y, size, size, radius)
           ctx.fill()
         }
       }
@@ -146,6 +207,8 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
 
     const loop = (now: number) => {
       raf = window.requestAnimationFrame(loop)
+      // 海报滚出视口后跳过绘制：首页往下读时不必再为空画面耗电
+      if (!inView) return
       if (now - last < FRAME_MS) return
       last = now
       paint(now, true)
@@ -161,18 +224,10 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
       pointer.x = -1
       pointer.y = -1
     }
-    /** 点击：以点击格为中心，一圈方格瞬间点亮（聚拢脉冲） */
+    /** 点击 / 触摸：以落点格为中心来一次聚拢脉冲 */
     const onClick = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect()
-      const cxg = Math.floor((event.clientX - rect.left) / CELL)
-      const cyg = Math.floor((event.clientY - rect.top) / CELL)
-      for (let gy = cyg - 2; gy <= cyg + 2; gy += 1) {
-        for (let gx = cxg - 2; gx <= cxg + 2; gx += 1) {
-          if (gx < 0 || gy < 0 || gx >= cols || gy >= rows) continue
-          if (Math.hypot(gx - cxg, gy - cyg) > 2.5) continue
-          energy[gy * cols + gx] = 1
-        }
-      }
+      pulse(Math.floor((event.clientX - rect.left) / cell), Math.floor((event.clientY - rect.top) / cell))
     }
     const onVisibility = () => {
       window.cancelAnimationFrame(raf)
@@ -189,15 +244,47 @@ export function CodeBackdrop({ className = '' }: { className?: string }) {
     window.addEventListener('resize', resize)
     document.addEventListener('visibilitychange', onVisibility)
 
+    // 自动脉冲与绘制都只在海报进入视口时进行（滚出视口即停，避免无谓开销），
+    // 重新进入视口时先来一次「入场脉冲」。
+    let pulseTimer = 0
+    const startAutoPulse = () => {
+      if (pulseTimer) return
+      autoPulse()
+      pulseTimer = window.setInterval(autoPulse, AUTO_PULSE_MS)
+    }
+    const stopAutoPulse = () => {
+      if (!pulseTimer) return
+      window.clearInterval(pulseTimer)
+      pulseTimer = 0
+    }
+    const observer =
+      typeof IntersectionObserver === 'function'
+        ? new IntersectionObserver(
+            ([entry]) => {
+              inView = entry.isIntersecting
+              if (inView) {
+                last = 0
+                startAutoPulse()
+              } else {
+                stopAutoPulse()
+              }
+            },
+            { threshold: 0.35 },
+          )
+        : null
+    observer?.observe(canvas)
+
     return () => {
       window.cancelAnimationFrame(raf)
+      stopAutoPulse()
+      observer?.disconnect()
       parent.removeEventListener('pointermove', onMove)
       parent.removeEventListener('pointerleave', onLeave)
       parent.removeEventListener('pointerdown', onClick)
       window.removeEventListener('resize', resize)
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [])
+  }, [theme])
 
   return <canvas ref={canvasRef} className={`code-backdrop ${className}`} aria-hidden="true" />
 }
