@@ -157,6 +157,8 @@ function buildHome(): Page {
           stats: slide.stats,
         })),
         autoplay: true,
+        // 代码动画作为第 1 张（可关闭；关闭后仅展示下面配置的海报）
+        motion: true,
       },
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },

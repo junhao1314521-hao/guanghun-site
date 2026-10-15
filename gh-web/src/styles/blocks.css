@@ -91,6 +91,17 @@
   width: 100%; height: 100%; object-fit: cover; display: block;
   animation: blkKenburns 28s var(--gh-ease-standard) infinite alternate;
 }
+/* 视频海报（自动循环、静音、内联播放） */
+.blk-hero__bg video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 图片 / 视频海报：与代码动画一致地压暗，保证文案与顶栏反差。
+   只作用于「真正铺了媒体」的幻灯片（.has-media），避免把动画那张压两遍。 */
+.blk-hero__bg.has-media::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(7, 10, 22, .58) 0%, rgba(7, 10, 22, 0) 26%),
+    linear-gradient(90deg, rgba(7, 10, 22, .9) 0%, rgba(7, 10, 22, .68) 36%, rgba(7, 10, 22, .16) 66%, rgba(7, 10, 22, 0) 100%),
+    linear-gradient(0deg, rgba(7, 10, 22, .78) 0%, rgba(7, 10, 22, 0) 52%);
+}
 @keyframes blkKenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
 @media (prefers-reduced-motion: reduce) { .blk-hero__bg img { animation: none; } }
 
