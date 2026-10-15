@@ -28,6 +28,39 @@
 }
 
 * { box-sizing: border-box; }
+
+/* ============================================================
+   触屏（真机）适配 —— 以下规则只在无 hover 的设备生效，桌面观感完全不变
+   ============================================================ */
+/* 1. 去掉移动端点击时的系统高亮蒙版（灰黑色块闪一下），改由 :active 自己给反馈 */
+html { -webkit-tap-highlight-color: transparent; }
+
+@media (hover: none) {
+  /* 2. iOS Safari 会对 font-size < 16px 的输入控件自动放大整页（放大后不回缩），
+     触屏下把表单控件统一提到 16px 以规避；桌面保持原有 15px 版式。 */
+  .input,
+  .select,
+  input,
+  textarea,
+  select { font-size: 16px; }
+
+  /* 3. 文本类控件的命中区补足：桌面 28px 的 chip、19px 的文字按钮在手指上太难点 */
+  .chip,
+  .btn--sm,
+  .pagination button { min-height: 40px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .ladder__model--link,
+  .breadcrumb a,
+  .u-link { display: inline-flex; align-items: center; min-height: 40px; }
+  .lang__opt { padding-top: var(--gh-space-3); padding-bottom: var(--gh-space-3); }
+
+  /* 4. 触屏没有 hover：给此前只靠 hover 反馈的控件补按压态（.btn 已有全局 :active） */
+  .icon-btn:active,
+  .chip:active { transform: scale(.97); }
+  .card--link:active,
+  .news-card:active,
+  .blk-card:active { opacity: .92; }
+}
 body { margin: 0; }
 
 /* 跳转到主内容：默认视觉隐藏，键盘聚焦时显形（WCAG 2.4.1 绕过重复内容） */
