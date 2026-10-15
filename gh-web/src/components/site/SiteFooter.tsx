@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { FOOTER_LEGAL, SITE_EMAILS } from '../../data/site'
 import { useSiteFooterGroups } from '../../hooks/useSiteConfig'
 import { useI18n } from '../../i18n'
+import { useTheme } from '../../lib/useTheme'
 import { BrandMark } from './BrandMark'
+import { CodeBackdrop } from './CodeBackdrop'
 import { QrPlaceholder } from './QrPlaceholder'
 import { IconMail, IconPhone, IconPin } from '../ui/Icon'
 
@@ -17,6 +19,8 @@ const FOOTER_SOCIAL = [
 
 export function SiteFooter() {
   const { t } = useI18n()
+  // 页脚动画随主题切换深浅（深色底 / 浅色底两套配色，与首屏海报一致）
+  const theme = useTheme()
   // 页脚分组来自内容库站点配置（回落本地硬编码），法务条目 / 联系方式仍为本地真源
   const footerGroups = useSiteFooterGroups()
   // 移动端：链接组折叠（手风琴）。桌面端由 CSS 强制展开，本状态不影响桌面。
@@ -30,7 +34,10 @@ export function SiteFooter() {
     })
   return (
     <footer className="site-footer" style={{ position: 'relative' }}>
-      <div className="container">
+      {/* 页脚背景：与首屏海报同款「流动方块」代码动画（随主题切换深浅 + 遮罩保证文字可读） */}
+      <CodeBackdrop className="site-footer__canvas" theme={theme} />
+      <div className="site-footer__scrim" aria-hidden="true" />
+      <div className="container site-footer__content">
         <div className="site-footer__cols">
           <div className="site-footer__brand">
             <Link className="logo" to="/">
@@ -91,13 +98,24 @@ export function SiteFooter() {
               <QrPlaceholder label={t('footer.wechat')} />
               <QrPlaceholder label={t('footer.miniapp')} />
             </div>
-            {/* 社交关注：圆形字符图标，hover 提亮 */}
+            {/* 社交关注：圆形字符图标，hover 提亮。
+                未配置真实地址时**不渲染死链**（href 为 '#' 会点击跳回顶部），改为非交互展示。 */}
             <div className="site-footer__social" aria-label="社交关注">
-              {FOOTER_SOCIAL.map((item) => (
-                <a key={item.label} className="site-footer__social-item" href={item.href} aria-label={item.label}>
-                  {item.short}
-                </a>
-              ))}
+              {FOOTER_SOCIAL.map((item) =>
+                item.href && item.href !== '#' ? (
+                  <a key={item.label} className="site-footer__social-item" href={item.href} aria-label={item.label}>
+                    {item.short}
+                  </a>
+                ) : (
+                  <span
+                    key={item.label}
+                    className="site-footer__social-item is-placeholder"
+                    aria-label={`${item.label}（待配置）`}
+                  >
+                    {item.short}
+                  </span>
+                ),
+              )}
             </div>
           </div>
         </div>

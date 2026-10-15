@@ -88,6 +88,8 @@
   --gh-radius-md:   6px;
   --gh-radius-lg:   8px;
   --gh-radius-xl:   10px;
+  /* 按钮 / 图标按钮 / 箭头：只给「一点点」圆角（按反馈 6px 仍偏圆 → 3px） */
+  --gh-radius-btn:  3px;
   --gh-radius-2xl:  14px;
   --gh-radius-full: 9999px;
 
@@ -154,6 +156,12 @@
   --color-bg-muted:    #EAEAEE;              /* 仅小部件：chip / 进度轨道 / 缩略图底 */
   --color-bg-disabled: #EDEDF0;
   --color-bg-inverse:  var(--gh-neutral-900);
+
+  /* 半透明表面：让环境背景层（网格 / 光晕）微微透出，形成「玻璃」层次。
+     数值即「实底占比」——调大更实、调小更透；88% 为克制的默认值。 */
+  --veil-surface:  color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+  --veil-elevated: color-mix(in srgb, var(--color-bg-elevated) 88%, transparent);
+  --veil-subtle:   color-mix(in srgb, var(--color-bg-subtle) 88%, transparent);
 
   --color-text-primary:   var(--gh-neutral-900);
   --color-text-secondary: var(--gh-neutral-600);  /* 对 #F4F4F6 达 7.0:1 */

@@ -122,7 +122,6 @@ export function PageView({ pageKey, head = true, blockDefaults, headAction }: Pr
                 <span>/</span>
                 <span>{page.title}</span>
               </nav>
-              <span className="page-head__mark" aria-hidden="true" />
               <div className="page-head__row">
                 <h1 className="page-head__title">{page.title}</h1>
                 {headAction}

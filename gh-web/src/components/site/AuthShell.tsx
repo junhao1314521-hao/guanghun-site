@@ -11,7 +11,8 @@ import { CodeBackdrop } from './CodeBackdrop'
 
 type Props = {
   children: ReactNode
-  variant?: 'full' | 'card'
+  /** 'full' 后台整屏；'card' 卡片式；'page' 站内整屏铺满（无描边圆角） */
+  variant?: 'full' | 'card' | 'page'
   /** 品牌旁的小标签，如「管理端」「客户中心」 */
   badge?: string
   eyebrow?: string

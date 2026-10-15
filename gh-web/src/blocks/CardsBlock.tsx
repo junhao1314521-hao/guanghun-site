@@ -12,6 +12,7 @@
  * - 有 href 的卡片整体可点击（.card--link / 链接包裹），保留键盘可达。
  */
 import { Link } from 'react-router-dom'
+import type { CSSProperties } from 'react'
 import { HScroll } from '../components/home/HScroll'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { MediaImg } from '../components/ui/MediaImg'
@@ -216,7 +217,7 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
     return (
       <div className="blk-trust">
         {head}
-        <div className="blk-trust__row">
+        <div className="blk-trust__row" style={{ '--trust-cols': items.length } as CSSProperties}>
           {items.map((item, index) => (
             <div className="blk-trust__item reveal" key={`${item.title}-${index}`} data-delay={(index % 4) + 1}>
               <span className="blk-trust__mark" aria-hidden="true">
@@ -225,11 +226,82 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
                 </svg>
               </span>
               <span className="blk-trust__text">
+                {item.tag && <span className="blk-trust__tag">{item.tag}</span>}
                 <span className="blk-trust__title">{item.title}</span>
                 {item.desc && <span className="blk-trust__desc">{item.desc}</span>}
               </span>
             </div>
           ))}
+        </div>
+      </div>
+    )
+  }
+
+  // steps：编号步骤（选购指南）—— 顶部横线 + 大编号 + 文案，无卡片框，与网格卡明确区分
+  if (layout === 'steps') {
+    return (
+      <div>
+        {head}
+        <ol className="blk-steps">
+          {items.map((item, index) => {
+            const inner = (
+              <>
+                <span className="blk-steps__num" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                {item.tag && <span className="blk-steps__eyebrow">{item.tag}</span>}
+                {item.title && <h3 className="blk-steps__title">{item.title}</h3>}
+                {item.desc && <p className="blk-steps__desc">{item.desc}</p>}
+              </>
+            )
+            return (
+              <li className="blk-steps__item reveal" key={`${item.title}-${index}`} data-delay={index + 1}>
+                {item.href ? (
+                  <Link className="blk-steps__link" to={item.href}>
+                    {inner}
+                  </Link>
+                ) : (
+                  inner
+                )}
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    )
+  }
+
+  // entries：条目列表（固件与驱动）—— 单容器 + 发丝分隔的横向条目行（标签 / 标题+说明 / 箭头）
+  if (layout === 'entries') {
+    return (
+      <div>
+        {head}
+        <div className="blk-entries">
+          {items.map((item, index) => {
+            const inner = (
+              <>
+                <span className="blk-entries__lead">
+                  {item.tag && <span className="tag tag--pill">{item.tag}</span>}
+                </span>
+                <span className="blk-entries__text">
+                  {item.title && <span className="blk-entries__title">{item.title}</span>}
+                  {item.desc && <span className="blk-entries__desc">{item.desc}</span>}
+                </span>
+                <span className="blk-entries__go" aria-hidden="true">
+                  →
+                </span>
+              </>
+            )
+            return item.href ? (
+              <Link className="blk-entries__row reveal" to={item.href} key={`${item.title}-${index}`} data-delay={index + 1}>
+                {inner}
+              </Link>
+            ) : (
+              <div className="blk-entries__row reveal" key={`${item.title}-${index}`} data-delay={index + 1}>
+                {inner}
+              </div>
+            )
+          })}
         </div>
       </div>
     )

@@ -8,6 +8,7 @@ import { FloatingActions } from './components/site/FloatingActions'
 import { JsonLd } from './components/site/JsonLd'
 import { MobileDrawer } from './components/site/MobileDrawer'
 import { PageTransition } from './components/site/PageTransition'
+import { AmbientBackdrop } from './components/site/AmbientBackdrop'
 import { SiteFooter } from './components/site/SiteFooter'
 import { SiteHeader } from './components/site/SiteHeader'
 import { usePageMeta } from './hooks/usePageMeta'
@@ -231,6 +232,8 @@ function AppShell() {
 
   return (
     <div className="mk-page" data-page={page} ref={pageRef}>
+      {/* 环境背景层：网格底纹 + 品牌光晕 + 噪点 + 光标柔光（位于内容之下） */}
+      <AmbientBackdrop />
       {/* 跳过导航直达主内容（键盘 / 读屏用户，WCAG 2.4.1） */}
       <a className="skip-link" href="#main">
         {t('a11y.skipToMain')}
@@ -257,7 +260,12 @@ function AppShell() {
         </div>
       )}
 
-      <main id="main" tabIndex={-1}>
+      {/* 登录 / 注册为整屏铺满页：去掉页脚上方的全局间距，使其与页面底部无缝衔接 */}
+      <main
+        id="main"
+        tabIndex={-1}
+        className={pathname === '/login' || pathname === '/register' ? 'main--flush' : undefined}
+      >
         <PageTransition pathname={pathname}>
         {/* key=pathname：路由切换时重置错误边界，避免上一页异常「粘住」下一页 */}
         <ErrorBoundary key={pathname} renderFallback={(reset) => <PageError reset={reset} />}>

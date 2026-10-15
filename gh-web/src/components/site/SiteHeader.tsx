@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { MEGA_PANELS, PAGE_NAV, pageIdFromPath } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
@@ -112,6 +112,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const [query, setQuery] = useState('')
 
   const headerRef = useRef<HTMLElement>(null)
+  const navRef = useRef<HTMLElement>(null)
+  const megaContainerRef = useRef<HTMLDivElement>(null)
   const megaInnerRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<number | null>(null)
 
@@ -163,6 +165,27 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
     const panel = inner.querySelector<HTMLElement>(`[data-mega-panel="${openMenu}"]`)
     inner.style.height = panel ? `${panel.offsetHeight}px` : '0px'
   }, [openMenu])
+
+  /**
+   * 下拉面板的内容从一级导航左边缘开始（而不是从页面容器左边缘），
+   * 让「产品 / 天梯榜 …」与展开面在视觉上同一列起步。
+   *
+   * 面板与顶栏共用同一个 `.container`，两者左边框一致，所以差值就是需要补的左内边距。
+   * 每次按当前计算值重算（幂等）：字体/语言切换、窗口尺寸变化都不会累积偏移。
+   */
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    const box = megaContainerRef.current
+    if (!nav || !box) return
+    const apply = () => {
+      const base = parseFloat(getComputedStyle(box).paddingLeft) || 0
+      const delta = nav.getBoundingClientRect().left - box.getBoundingClientRect().left - base
+      box.style.paddingLeft = `${base + Math.max(0, delta)}px`
+    }
+    apply()
+    window.addEventListener('resize', apply)
+    return () => window.removeEventListener('resize', apply)
+  }, [openMenu, lang])
 
   // 语言 / 搜索浮层：Esc、点击外部收起
   useEffect(() => {
@@ -234,7 +257,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
         </Link>
 
         <div className="site-navzone" onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
-        <nav className="site-nav" aria-label={t('a11y.mainNav')} style={{ position: 'relative' }}>
+        <nav className="site-nav" ref={navRef} aria-label={t('a11y.mainNav')} style={{ position: 'relative' }}>
           {navItems.map((item) => {
             const isActive = !!wantNav && item.nav === wantNav
             const isMenuActive = !!item.menu && openMenu === item.menu
@@ -389,14 +412,16 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
         onMouseLeave={scheduleHide}
       >
         <div className="mega__inner" ref={megaInnerRef} style={{ height: 0 }}>
-          <div className="container">
+          <div className="container" ref={megaContainerRef}>
             {panels.map((panel) => (
               <div
                 key={panel.key}
                 className={`mega__panel${openMenu === panel.key ? ' is-active' : ''}`}
                 data-mega-panel={panel.key}
               >
-                <div className="mega__cols">
+                {/* 二级栏目按自身列数自适应列宽（此前写死 3 列，产品面板有 4 列会被挤到第二行）。
+                    列数经 CSS 变量下发，feature 卡固定落在最后一列。 */}
+                <div className="mega__cols" style={{ '--mega-cols': panel.columns.length } as CSSProperties}>
                   {panel.columns.map((column) => (
                     <div className="mega__col" key={column.eyebrow}>
                       <p className="mega__eyebrow">{column.eyebrow}</p>

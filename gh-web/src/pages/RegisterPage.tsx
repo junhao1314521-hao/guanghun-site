@@ -101,16 +101,9 @@ export function RegisterPage() {
 
   return (
     <div ref={rootRef}>
-      <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <span>注册</span>
-        </nav>
-
-        <div style={{ marginTop: 'var(--gh-space-5)' }}>
+      <div className="auth-page">
         <AuthShell
-          variant="card"
+          variant="page"
           badge="客户中心"
           eyebrow="ACCOUNT / REGISTER"
           headline="注册光魂账号"
@@ -253,7 +246,6 @@ export function RegisterPage() {
             </p>
           </div>
         </AuthShell>
-        </div>
       </div>
     </div>
   )

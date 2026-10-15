@@ -153,7 +153,7 @@
 .blk-hero__arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
   width: 42px; height: 42px; display: grid; place-items: center;
-  border-radius: var(--gh-radius-full); border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: var(--gh-radius-btn); border: 1px solid rgba(255, 255, 255, .2);
   background: rgba(9, 10, 16, .35); color: var(--gh-neutral-50); cursor: pointer;
   transition: background var(--gh-duration-fast) var(--gh-ease-standard);
 }
@@ -187,7 +187,7 @@
   position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--gh-space-3);
   min-height: 280px; padding: var(--gh-space-6); overflow: hidden;
   border-radius: var(--gh-radius-xl);
-  background: linear-gradient(150deg, var(--color-bg-subtle) 0%, var(--color-bg-elevated) 60%);
+  background: linear-gradient(150deg, var(--veil-subtle) 0%, var(--veil-elevated) 60%);
   border: 1px solid var(--color-border-default);
   color: inherit; text-decoration: none;
   transition: transform .35s var(--gh-ease-accent), border-color .35s var(--gh-ease-accent);
@@ -200,7 +200,7 @@
 .blk-spotlight__row {
   display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: var(--gh-space-4);
   padding: var(--gh-space-5); border-radius: var(--gh-radius-lg);
-  background: var(--color-bg-elevated); border: 1px solid var(--color-border-default);
+  background: var(--veil-elevated); border: 1px solid var(--color-border-default);
   color: inherit; text-decoration: none;
   transition: transform .3s var(--gh-ease-accent), border-color .3s var(--gh-ease-accent);
 }
@@ -211,36 +211,43 @@
 .blk-spotlight__go { color: var(--color-text-tertiary); }
 @media (max-width: 900px) { .blk-spotlight { grid-template-columns: minmax(0, 1fr); } }
 
-/* —— stats · 精致数据卡：序号 + 大数字(含单位) + 说明 + 补充说明 + 装饰指标条 —— */
-.blk-stats__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--gh-space-4); margin-top: var(--gh-space-7); }
+/* —— stats · 数据带：横向「数字带」——
+   与卡片网格明确区分：去掉卡片框与圆角，改为上下发丝线 + 竖向分隔线，数字放大做视觉重心。 */
+.blk-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0;
+  margin-top: var(--gh-space-7);
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+}
 .blk-stats__item {
   position: relative; display: flex; flex-direction: column;
-  padding: var(--gh-space-6) var(--gh-space-5) var(--gh-space-5);
-  border-radius: var(--gh-radius-xl); overflow: hidden;
-  background: linear-gradient(180deg, var(--color-bg-elevated) 0%, var(--color-bg-subtle) 100%);
-  border: 1px solid var(--color-border-default);
-  transition: transform .35s var(--gh-ease-accent), border-color .35s var(--gh-ease-accent);
+  padding: var(--gh-space-7) var(--gh-space-6);
+  transition: background var(--gh-duration-base) var(--gh-ease-standard);
 }
-.blk-stats__item::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, var(--color-accent-solid), transparent 62%); opacity: .9; }
-.blk-stats__item:hover { transform: translateY(-4px); border-color: var(--color-accent-solid); }
+.blk-stats__item + .blk-stats__item { border-left: 1px solid var(--color-border-subtle); }
+.blk-stats__item:hover { background: var(--color-bg-subtle); }
 /* 序号：右上角微字，制造目录感 */
 .blk-stats__index {
-  position: absolute; top: var(--gh-space-5); right: var(--gh-space-5);
+  position: absolute; top: var(--gh-space-5); right: var(--gh-space-6);
   font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption);
   letter-spacing: .12em; color: var(--color-text-tertiary);
 }
 .blk-stats__value {
-  font-size: clamp(34px, 4.6vw, 56px); font-weight: var(--gh-weight-semibold);
-  letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;
+  font-size: clamp(42px, 5vw, 66px); font-weight: var(--gh-weight-semibold);
+  letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums;
   color: var(--color-text-primary);
 }
-.blk-stats__unit { font-style: normal; margin-left: 2px; font-size: .5em; vertical-align: .62em; color: var(--color-accent-solid); }
+.blk-stats__unit { font-style: normal; margin-left: 2px; font-size: .44em; vertical-align: .7em; color: var(--color-accent-solid); }
 .blk-stats__label { margin-top: var(--gh-space-4); font-size: var(--gh-font-size-caption); letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-secondary); }
-.blk-stats__note { margin: var(--gh-space-3) 0 0; font-size: var(--gh-font-size-body-sm); line-height: 1.6; color: var(--color-text-tertiary); max-width: 34ch; }
-/* 底部指标条：装饰性渐隐细线，强化卡片的"数据感" */
-.blk-stats__bar { display: block; margin-top: auto; padding-top: var(--gh-space-5); }
-.blk-stats__bar::after { content: ''; display: block; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--color-accent-solid), transparent); opacity: .5; }
+.blk-stats__note { margin: var(--gh-space-3) 0 0; font-size: var(--gh-font-size-body-sm); line-height: 1.65; color: var(--color-text-tertiary); max-width: 34ch; }
+/* 原底部装饰条在「数据带」形态下不再需要 */
+.blk-stats__bar { display: none; }
 .blk-stats__footnote { margin: var(--gh-space-5) 0 0; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+@media (max-width: 640px) {
+  .blk-stats__item + .blk-stats__item { border-left: 0; border-top: 1px solid var(--color-border-subtle); }
+}
 @media (prefers-reduced-motion: reduce) { .blk-stats__item, .blk-spotlight__main, .blk-spotlight__row { transition: none; } }
 
 /* —— productBuy · 购买 / 咨询保障要点 —— */
@@ -640,10 +647,10 @@
 /* —— cards · trust 布局：信任条（实测徽标 / 服务承诺）
    等分四栏 + 发丝分隔，收成一条「承诺条」，而不是四句散落的短句 —— */
 .blk-trust__row {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(var(--trust-cols, 4), minmax(0, 1fr));
   border: 1px solid var(--color-border-default);
   border-radius: var(--gh-radius-xl);
-  background: var(--color-bg-surface);
+  background: var(--veil-surface);
   overflow: hidden;
 }
 .blk-trust__item { display: flex; align-items: flex-start; gap: var(--gh-space-3); padding: var(--gh-space-5); }
@@ -654,6 +661,7 @@
   background: var(--color-accent-subtle); color: var(--color-accent-text);
 }
 .blk-trust__text { display: block; min-width: 0; }
+.blk-trust__tag { display: block; margin-bottom: 3px; font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); letter-spacing: .1em; text-transform: uppercase; color: var(--color-accent-text); }
 .blk-trust__title { display: block; font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
 .blk-trust__desc { display: block; margin-top: 2px; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 @media (max-width: 900px) {
@@ -666,6 +674,74 @@
   .blk-trust__item,
   .blk-trust__item + .blk-trust__item { border-left: 0; }
   .blk-trust__item + .blk-trust__item { border-top: 1px solid var(--color-border-subtle); }
+}
+
+/* —— cards · steps 布局：编号步骤（选购指南）
+   顶部横线 + 大编号 + 文案；无卡片框，与网格卡的「盒子」形态明确区分。 —— */
+.blk-steps {
+  list-style: none; margin: var(--gh-space-7) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gh-space-7);
+}
+.blk-steps__item {
+  position: relative;
+  padding-top: var(--gh-space-6);
+  border-top: 1px solid var(--color-border-default);
+}
+/* 顶部圆点：落在横线上，形成「步骤节点」的暗示 */
+.blk-steps__item::before {
+  content: ''; position: absolute; left: 0; top: -5px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--color-accent-solid);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent-solid) 16%, transparent);
+}
+.blk-steps__link { display: block; text-decoration: none; color: inherit; }
+.blk-steps__num {
+  display: block;
+  font-family: var(--gh-font-mono); font-size: clamp(28px, 3vw, 40px); font-weight: var(--gh-weight-semibold);
+  line-height: 1; letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  transition: color var(--gh-duration-base) var(--gh-ease-standard);
+}
+.blk-steps__item:hover .blk-steps__num { color: var(--color-accent-solid); }
+.blk-steps__eyebrow { display: block; margin-top: var(--gh-space-4); font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); letter-spacing: .12em; text-transform: uppercase; color: var(--color-accent-text); }
+.blk-steps__title { margin: var(--gh-space-2) 0 0; font-size: var(--gh-font-size-h4); font-weight: var(--gh-weight-semibold); color: var(--color-text-primary); }
+.blk-steps__desc { margin: var(--gh-space-3) 0 0; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.65; max-width: 40ch; }
+@media (max-width: 767px) {
+  .blk-steps { grid-template-columns: minmax(0, 1fr); gap: var(--gh-space-6); }
+}
+
+/* —— cards · entries 布局：条目列表（固件与驱动）
+   单容器 + 发丝分隔的横向条目行：左侧标签、中间标题 + 说明、右侧箭头。 —— */
+.blk-entries {
+  margin-top: var(--gh-space-7);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-xl);
+  background: var(--veil-surface);
+  overflow: hidden;
+}
+.blk-entries__row {
+  display: grid; grid-template-columns: 88px minmax(0, 1fr) auto;
+  align-items: center; gap: var(--gh-space-5);
+  padding: var(--gh-space-5) var(--gh-space-6);
+  color: inherit; text-decoration: none;
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.blk-entries__row + .blk-entries__row { border-top: 1px solid var(--color-border-subtle); }
+.blk-entries__row:hover { background: var(--color-bg-subtle); }
+.blk-entries__lead { display: flex; align-items: center; }
+.blk-entries__text { display: block; min-width: 0; }
+.blk-entries__title { display: block; font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); color: var(--color-text-primary); }
+.blk-entries__desc { display: block; margin-top: 2px; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.6; }
+.blk-entries__go { color: var(--color-text-tertiary); transition: color var(--gh-duration-fast) var(--gh-ease-standard), transform var(--gh-duration-base) var(--gh-ease-accent); }
+.blk-entries__row:hover .blk-entries__go { color: var(--color-accent-text); transform: translateX(4px); }
+@media (max-width: 640px) {
+  .blk-entries__row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--gh-space-4); }
+  .blk-entries__lead { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blk-entries__row, .blk-entries__go, .blk-steps__num { transition: none; }
+  .blk-entries__row:hover .blk-entries__go { transform: none; }
 }
 
 /* —— 文章卡：与「序号 + 标签 → 标题 → 说明」的卡片语言对齐 ——
@@ -835,7 +911,7 @@
 .showcase__dots i { width: 6px; height: 6px; border-radius: 99px; background: var(--color-border-default); }
 .showcase__dots i.is-on { width: 18px; background: var(--color-accent-solid); }
 .showcase__arrow {
-  width: 28px; height: 28px; border-radius: 99px; cursor: pointer;
+  width: 28px; height: 28px; border-radius: var(--gh-radius-btn); cursor: pointer;
   border: 1px solid var(--color-border-default); background: var(--color-bg-surface);
   color: var(--color-text-secondary); display: inline-flex; align-items: center; justify-content: center;
 }
