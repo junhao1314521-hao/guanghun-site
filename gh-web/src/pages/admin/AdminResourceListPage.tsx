@@ -629,13 +629,19 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
                               />
                             </td>
                           )}
-                          {resource.columns.map((column) => {
+                          {resource.columns.map((column, columnIndex) => {
                             const clipped = isClippedColumn(column)
                             const text = cellText(row[column.key])
                             return (
                               <td
                                 key={column.key}
-                                className={clipped ? 'admin-cell--clip' : undefined}
+                                className={
+                                  [clipped ? 'admin-cell--clip' : '', columnIndex === 0 ? 'admin-cell--title' : '']
+                                    .filter(Boolean)
+                                    .join(' ') || undefined
+                                }
+                                // 窄屏卡片模式（≤767px）用 data-label 回填列名；首列作卡片标题
+                                data-label={column.label}
                                 style={column.align === 'right' ? { textAlign: 'right' } : undefined}
                                 title={clipped && text ? text : undefined}
                               >

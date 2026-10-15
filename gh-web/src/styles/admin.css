@@ -279,7 +279,8 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   gap: var(--gh-space-5);
   margin-top: var(--gh-space-5);
 }
-@media (max-width: 1023px) { .admin-cols { grid-template-columns: 1fr; } }
+/* 单列同样用 minmax(0, 1fr)：面板里可能放表格，1fr 会被其 min-width 撑开 */
+@media (max-width: 1023px) { .admin-cols { grid-template-columns: minmax(0, 1fr); } }
 
 .admin-panel {
   background: var(--color-bg-surface);
@@ -341,6 +342,22 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 /* 内层滚动：让表头 / 首列可吸顶（sticky 需要滚动容器） */
 .admin-table-scroll { overflow: auto; max-height: calc(100vh - var(--gh-topbar-height) - 220px); }
+/* 例外：表格滚动容器保留一条细滚动条。
+   后台全局隐藏滚动条（见文件头），但窄屏下表格会横向溢出被裁，
+   没有滚动条会「看不出右边还有内容」；这里单独放开，仅在有溢出时出现。 */
+.admin-root .admin-table-scroll,
+html[data-admin] .admin-table-scroll { scrollbar-width: thin; }
+.admin-root .admin-table-scroll::-webkit-scrollbar,
+html[data-admin] .admin-table-scroll::-webkit-scrollbar { display: block; width: 10px; height: 10px; }
+.admin-root .admin-table-scroll::-webkit-scrollbar-track,
+html[data-admin] .admin-table-scroll::-webkit-scrollbar-track { background: transparent; }
+.admin-root .admin-table-scroll::-webkit-scrollbar-thumb,
+html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border: 3px solid transparent; /* 内缩，得到更轻的 4px 视觉宽度 */
+  background-clip: content-box;
+  border-radius: var(--gh-radius-full);
+}
 .admin-table { min-width: 720px; }
 .admin-table th { white-space: nowrap; }
 .admin-table td { white-space: nowrap; }
@@ -378,6 +395,53 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .admin-table__pagesize { display: inline-flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 .admin-table__pagesize .select { width: auto; height: var(--gh-control-height-sm); font-size: var(--gh-font-size-caption); }
 .admin-cell--muted { color: var(--color-text-tertiary); }
+
+/* ---------- 窄屏（≤767px）：表格转「卡片列表」 ----------
+   手机上横向滚动一张 min-width:720px 的表格体验很差；这里把每行摊成一张卡片：
+   - 列名由 td 的 data-label 回填（通用列表页已注入），首列作卡片标题；
+   - 勾选框、操作列不显示列名；
+   - 表头隐藏、取消首列吸顶。 */
+@media (max-width: 767px) {
+  .admin-table-scroll { max-height: none; overflow: visible; }
+  .admin-table { min-width: 0; }
+  .admin-table thead { display: none; }
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td { display: block; width: auto; }
+  .admin-table tr {
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--gh-radius-lg);
+    padding: var(--gh-space-3) var(--gh-space-4);
+    margin-bottom: var(--gh-space-3);
+    background: var(--color-bg-surface);
+  }
+  .admin-table tr:last-child { margin-bottom: 0; }
+  .admin-table td {
+    position: static;
+    border: 0; padding: 3px 0; white-space: normal;
+    display: flex; align-items: baseline; justify-content: space-between; gap: var(--gh-space-4);
+  }
+  .admin-table td::before {
+    content: attr(data-label);
+    flex: none;
+    color: var(--color-text-tertiary);
+    font-size: var(--gh-font-size-caption);
+  }
+  .admin-table td:not([data-label])::before { content: none; }
+  /* 首列（名称 / 主键）作为卡片标题 */
+  .admin-table td.admin-cell--title {
+    display: block;
+    font-weight: var(--gh-weight-medium);
+    padding-bottom: var(--gh-space-2);
+    margin-bottom: var(--gh-space-1);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .admin-table td.admin-cell--title::before { content: none; }
+  .admin-table td.admin-cell--clip { max-width: none; overflow: visible; }
+  .admin-table__check { margin-bottom: var(--gh-space-2); }
+  .admin-table__actions { justify-content: flex-start; }
+}
 
 /* 工具栏：选中态批量操作条 */
 .admin-toolbar__selected { display: inline-flex; align-items: center; gap: var(--gh-space-3); }
@@ -551,7 +615,10 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   display: none;
 }
 @media (max-width: 1023px) {
-  .admin-shell { grid-template-columns: 1fr; }
+  /* 单列用 minmax(0, 1fr) 而非 1fr：1fr 的最小宽度等于内容最小宽度，
+     会被表格的 min-width(720px) 撑开导致整页横向溢出；
+     约束列宽后表格改在 .admin-table-scroll 内部横向滚动。 */
+  .admin-shell { grid-template-columns: minmax(0, 1fr); }
   .admin-side {
     position: fixed;
     top: 0; left: 0; bottom: 0;

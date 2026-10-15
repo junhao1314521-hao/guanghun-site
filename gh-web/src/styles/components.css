@@ -231,7 +231,13 @@
 }
 .segmented button.is-active { background: var(--color-bg-surface); color: var(--color-text-primary); font-weight: var(--gh-weight-medium); box-shadow: var(--shadow-sm); }
 
-.breadcrumb { display: flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-body-sm); color: var(--color-text-tertiary); }
+/* 面包屑：层级项不折行、不被压缩。
+   此前没有约束，窄屏（如后台顶栏放不下时）flex 会把各项压到 min-content，
+   中文便会逐字断行成竖排；改为「前面的层级保持完整，末项（当前页/标题）
+   可收缩并用省略号收尾」，空间不足时也不会挤爆容器。 */
+.breadcrumb { display: flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-body-sm); color: var(--color-text-tertiary); min-width: 0; }
+.breadcrumb > * { flex: none; white-space: nowrap; }
+.breadcrumb > :last-child { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .breadcrumb a { color: var(--color-text-secondary); text-decoration: none; }
 .breadcrumb a:hover { color: var(--color-accent-text); }
 
