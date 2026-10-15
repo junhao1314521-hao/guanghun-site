@@ -25,6 +25,7 @@ import {
 } from '../../api/adminBackups'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
+import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { useConfirm, useToast } from './feedback'
 
 /** 字节数 → 可读大小 */
@@ -261,31 +262,14 @@ export function AdminBackupsList() {
 
       <div className="admin-table-wrap">
         {loading ? (
-          <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">正在加载…</div>
-            </div>
-          </div>
+          <SkeletonTable columns={5} rows={5} />
         ) : state.error && items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                style={{ marginLeft: 'var(--gh-space-3)' }}
-                onClick={() => setReloadKey((key) => key + 1)}
-              >
-                重试
-              </button>
-            </div>
+            <ErrorState message={state.error.message} onRetry={() => setReloadKey((key) => key + 1)} />
           </div>
         ) : items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">暂无备份</div>
-              <p className="empty__desc">点击右上角「立即备份」创建第一份站点备份。</p>
-            </div>
+            <EmptyState icon="cloud" title="暂无备份" desc="点击右上角「立即备份」创建第一份站点备份。" />
           </div>
         ) : (
           <div className="admin-table-scroll">

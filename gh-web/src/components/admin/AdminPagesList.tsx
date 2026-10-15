@@ -16,6 +16,7 @@ import { fetchTemplates, type TemplateItem } from '../../api/adminTemplates'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
 import { Select } from './Select'
+import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { useConfirm, useToast } from './feedback'
 
 /** ISO 时间 → 紧凑展示 */
@@ -177,27 +178,14 @@ export function AdminPagesList() {
 
       <div className="admin-table-wrap">
         {state.loading && rows.length === 0 ? (
-          <div className="admin-skeleton-table" role="status" aria-label="正在加载">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div className="admin-skeleton-row" key={i} style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
-                {Array.from({ length: 5 }).map((__, c) => (
-                  <span className="skeleton admin-skeleton-bar" key={c} />
-                ))}
-              </div>
-            ))}
-          </div>
+          <SkeletonTable columns={5} rows={5} />
         ) : state.error && rows.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-            </div>
+            <ErrorState message={state.error.message} />
           </div>
         ) : rows.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">暂无页面</div>
-              <p className="empty__desc">点击右上角「新建页面」创建第一个页面。</p>
-            </div>
+            <EmptyState icon="globe" title="暂无页面" desc="点击右上角「新建页面」创建第一个页面。" />
           </div>
         ) : (
           <div className="admin-table-scroll">

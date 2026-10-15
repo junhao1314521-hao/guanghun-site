@@ -7,6 +7,7 @@ import { useApi } from '../../hooks/useApi'
 import { adminResource } from '../../data/adminResources'
 import { AdminIcon } from '../../components/admin/AdminIcon'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { ErrorState } from '../../components/admin/states'
 
 export function AdminWorkbenchPage() {
   const state = useApi((signal) => fetchAdminOverview(signal), [])
@@ -17,11 +18,7 @@ export function AdminWorkbenchPage() {
       <AdminPageHead title="工作台" desc="站点运营概览：关键指标、待办事项与最近操作动态。" />
 
       {state.loading && !overview && <p className="admin-page__desc" role="status">正在加载概览…</p>}
-      {state.error && (
-        <div className="alert alert--danger" role="alert">
-          {state.error.message}
-        </div>
-      )}
+      {state.error && <ErrorState message={state.error.message} />}
 
       {overview && (
         <>

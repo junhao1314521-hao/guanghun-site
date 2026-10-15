@@ -26,6 +26,7 @@ import { AdminRequirementsView } from '../../components/admin/AdminRequirementsV
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
 import { OverflowMenu, type OverflowMenuItem } from '../../components/admin/OverflowMenu'
 import { Select } from '../../components/admin/Select'
+import { EmptyState, ErrorState, SkeletonGallery, SkeletonTable } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { IconClose, IconSearch } from '../../components/ui/Icon'
 
@@ -164,22 +165,6 @@ function AdminPager({ page, totalPages, onChange }: { page: number; totalPages: 
       <button type="button" disabled={page === totalPages} onClick={() => onChange(page + 1)}>
         下一页
       </button>
-    </div>
-  )
-}
-
-/** 表格 / 宫格加载骨架 */
-function TableSkeleton({ columns }: { columns: number }) {
-  const width = Math.max(columns, 3)
-  return (
-    <div className="admin-skeleton-table" role="status" aria-label="正在加载">
-      {Array.from({ length: 6 }).map((_, row) => (
-        <div className="admin-skeleton-row" key={row} style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 1fr))` }}>
-          {Array.from({ length: width }).map((__, col) => (
-            <span className={`skeleton admin-skeleton-bar${col === 0 ? ' admin-skeleton-bar--wide' : ''}`} key={col} />
-          ))}
-        </div>
-      ))}
     </div>
   )
 }
@@ -509,17 +494,7 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
 
       {resource.view === 'gallery' ? (
         state.loading && rows.length === 0 ? (
-          <div className="admin-gallery">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div className="admin-tile admin-tile--skeleton" key={i}>
-                <div className="admin-tile__media skeleton" />
-                <div className="admin-tile__body">
-                  <span className="skeleton admin-skeleton-bar" />
-                  <span className="skeleton admin-skeleton-bar" style={{ width: '60%' }} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <SkeletonGallery />
         ) : (
           <div className="admin-gallery">
             {pageRows.map((row) => (
@@ -536,29 +511,21 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
               </Link>
             ))}
             {pageRows.length === 0 && !state.loading && (
-              <div className="empty">
-                <div className="empty__title">暂无素材</div>
-                <p className="empty__desc">调整筛选条件，或新建素材。</p>
-              </div>
+              <EmptyState title="暂无素材" desc="调整筛选条件，或新建素材。" />
             )}
           </div>
         )
       ) : (
         <div className="admin-table-wrap">
           {state.loading && rows.length === 0 ? (
-            <TableSkeleton columns={colCount} />
+            <SkeletonTable columns={colCount} />
           ) : state.error && rows.length === 0 ? (
             <div className="admin-table__empty">
-              <div className="alert alert--danger" role="alert">
-                {state.error.message}
-              </div>
+              <ErrorState message={state.error.message} />
             </div>
           ) : pageRows.length === 0 ? (
             <div className="admin-table__empty">
-              <div className="empty">
-                <div className="empty__title">暂无数据</div>
-                <p className="empty__desc">调整搜索或筛选条件后再试。</p>
-              </div>
+              <EmptyState title="暂无数据" desc="调整搜索或筛选条件后再试。" />
             </div>
           ) : (
             <>

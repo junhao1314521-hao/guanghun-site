@@ -12,6 +12,7 @@ import { fetchAdminResource } from '../../api/admin'
 import { adminResource, type AdminColumn } from '../../data/adminResources'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
+import { EmptyState, ErrorState } from './states'
 
 type ViewKey = 'list' | 'board' | 'quadrant'
 
@@ -302,17 +303,10 @@ export function AdminRequirementsView() {
           正在加载需求…
         </p>
       )}
-      {state.error && (
-        <div className="alert alert--danger" role="alert">
-          {state.error.message}
-        </div>
-      )}
+      {state.error && <ErrorState message={state.error.message} />}
 
       {!state.error && !state.loading && rows.length === 0 && (
-        <div className="empty">
-          <div className="empty__title">暂无需求</div>
-          <p className="empty__desc">点击右上角「新建」登记第一条迭代需求。</p>
-        </div>
+        <EmptyState icon="venn" title="暂无需求" desc="点击右上角「新建」登记第一条迭代需求。" />
       )}
 
       {rows.length > 0 && view === 'list' && <RequirementTable rows={rows} columns={columns} />}

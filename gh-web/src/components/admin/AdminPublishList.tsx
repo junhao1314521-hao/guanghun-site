@@ -28,6 +28,7 @@ import {
 } from '../../api/adminPublish'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
+import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { useConfirm, useToast } from './feedback'
 
 /** ISO 时间 → 紧凑展示 */
@@ -151,40 +152,22 @@ export function AdminPublishList() {
 
       <div className="admin-table-wrap">
         {loading ? (
-          <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">正在加载…</div>
-            </div>
-          </div>
+          <SkeletonTable columns={6} rows={5} />
         ) : forbidden ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">无权限（需管理员）</div>
-              <p className="empty__desc">
-                发布与回滚需要「发布」权限，仅超级管理员可用。当前账号为内容运营，可联系管理员发布或升级权限。
-              </p>
-            </div>
+            <EmptyState
+              icon="shield"
+              title="无权限（需管理员）"
+              desc="发布与回滚需要「发布」权限，仅超级管理员可用。当前账号为内容运营，可联系管理员发布或升级权限。"
+            />
           </div>
         ) : state.error && items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                style={{ marginLeft: 'var(--gh-space-3)' }}
-                onClick={() => setReloadKey((key) => key + 1)}
-              >
-                重试
-              </button>
-            </div>
+            <ErrorState message={state.error.message} onRetry={() => setReloadKey((key) => key + 1)} />
           </div>
         ) : items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">暂无发布记录</div>
-              <p className="empty__desc">点击右上角「立即发布」生成第一条发布记录。</p>
-            </div>
+            <EmptyState title="暂无发布记录" desc="点击右上角「立即发布」生成第一条发布记录。" />
           </div>
         ) : (
           <div className="admin-table-scroll">
@@ -444,38 +427,18 @@ function ScheduleSection() {
 
       <div className="admin-table-wrap" style={{ marginTop: 'var(--gh-space-4)' }}>
         {loading ? (
-          <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">正在加载…</div>
-            </div>
-          </div>
+          <SkeletonTable columns={6} rows={4} />
         ) : forbidden ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">无权限（需管理员）</div>
-              <p className="empty__desc">定时发布需要「发布」权限，仅超级管理员可用。</p>
-            </div>
+            <EmptyState icon="shield" title="无权限（需管理员）" desc="定时发布需要「发布」权限，仅超级管理员可用。" />
           </div>
         ) : state.error && items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                style={{ marginLeft: 'var(--gh-space-3)' }}
-                onClick={() => setReloadKey((key) => key + 1)}
-              >
-                重试
-              </button>
-            </div>
+            <ErrorState message={state.error.message} onRetry={() => setReloadKey((key) => key + 1)} />
           </div>
         ) : items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">暂无定时发布</div>
-              <p className="empty__desc">点击右上角「排程发布」登记一条到点自动应用的排程。</p>
-            </div>
+            <EmptyState title="暂无定时发布" desc="点击右上角「排程发布」登记一条到点自动应用的排程。" />
           </div>
         ) : (
           <div className="admin-table-scroll">

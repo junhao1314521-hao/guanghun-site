@@ -13,6 +13,7 @@ import { fetchAdminSite, saveTheme } from '../../api/adminPages'
 import type { SiteConfig } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { ErrorState } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { THEME_TOKEN_META } from '../../lib/siteTheme'
 
@@ -169,10 +170,7 @@ export function AdminStylesPage() {
     return (
       <div className="admin-page">
         <AdminPageHead title="样式" desc="站点级设计令牌编辑" />
-        <div className="empty">
-          <div className="empty__title">样式加载失败</div>
-          <p className="empty__desc">{state.error.message}</p>
-        </div>
+        <ErrorState message={state.error.message} />
       </div>
     )
   }

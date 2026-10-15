@@ -27,6 +27,7 @@ import type {
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { Select } from '../../components/admin/Select'
+import { ErrorState } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 
@@ -623,10 +624,7 @@ export function AdminSiteConfigPage() {
     return (
       <div className="admin-page">
         <AdminPageHead title="站点配置" desc="维护全局导航与页脚" />
-        <div className="empty">
-          <div className="empty__title">站点配置加载失败</div>
-          <p className="empty__desc">{state.error.message}</p>
-        </div>
+        <ErrorState message={state.error.message} />
       </div>
     )
   }

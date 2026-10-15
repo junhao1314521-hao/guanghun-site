@@ -42,6 +42,7 @@ import { BlockEditor } from '../../components/admin/BlockEditor'
 import { BuilderPreview } from '../../components/admin/BuilderPreview'
 import { OverflowMenu } from '../../components/admin/OverflowMenu'
 import { Select } from '../../components/admin/Select'
+import { EmptyState, ErrorState } from '../../components/admin/states'
 import { IconArrowDown, IconArrowUp, IconChevronLeft, IconChevronRight, IconClose, IconGrip, IconPlus, IconSearch } from '../../components/ui/Icon'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
@@ -1336,10 +1337,11 @@ export function AdminPageBuilderPage() {
             </Link>
           }
         />
-        <div className="empty">
-          <div className="empty__title">{notFound ? '未找到该页面' : '页面加载失败'}</div>
-          <p className="empty__desc">{notFound ? '该页面 key 不存在，请从页面列表进入装修器。' : state.error.message}</p>
-        </div>
+        {notFound ? (
+          <EmptyState icon="globe" title="未找到该页面" desc="该页面 key 不存在，请从页面列表进入装修器。" />
+        ) : (
+          <ErrorState message={state.error.message} />
+        )}
       </div>
     )
   }

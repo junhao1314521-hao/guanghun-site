@@ -7,6 +7,7 @@ import { ANALYTICS_SCOPES } from '../../data/adminResources'
 import { useApi } from '../../hooks/useApi'
 import { AdminNotFound } from '../../components/admin/AdminNotFound'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { ErrorState } from '../../components/admin/states'
 
 function AnalyticsBody({ scope }: { scope: string }) {
   const state = useApi((signal) => fetchAdminAnalytics(scope, signal), [scope])
@@ -17,11 +18,7 @@ function AnalyticsBody({ scope }: { scope: string }) {
       <AdminPageHead title={data?.title ?? '数据分析'} desc={data?.desc ?? '加载中…'} />
 
       {state.loading && !data && <p className="admin-page__desc" role="status">正在加载数据…</p>}
-      {state.error && (
-        <div className="alert alert--danger" role="alert">
-          {state.error.message}
-        </div>
-      )}
+      {state.error && <ErrorState message={state.error.message} />}
 
       {data && (
         <>

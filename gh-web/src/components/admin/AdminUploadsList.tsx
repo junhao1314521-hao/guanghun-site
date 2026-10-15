@@ -31,6 +31,7 @@ import { useApi } from '../../hooks/useApi'
 import { AdminIcon } from './AdminIcon'
 import { AdminPageHead } from './AdminPageHead'
 import { Select } from './Select'
+import { EmptyState, ErrorState, SkeletonGallery } from './states'
 import { MediaImg } from '../ui/MediaImg'
 import { registerSrcSet } from '../ui/mediaSrcSet'
 import { OverflowMenu } from './OverflowMenu'
@@ -601,44 +602,25 @@ export function AdminUploadsList() {
           </div>
 
           {loading ? (
-            <div className="admin-gallery">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div className="admin-tile admin-tile--skeleton" key={i}>
-                  <div className="admin-tile__media skeleton" />
-                  <div className="admin-tile__body">
-                    <span className="skeleton admin-skeleton-bar" />
-                    <span className="skeleton admin-skeleton-bar" style={{ width: '60%' }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <SkeletonGallery />
           ) : mediaState.error ? (
             <div className="admin-table-wrap">
               <div className="admin-table__empty">
-                <div className="alert alert--danger" role="alert">
-                  {mediaState.error.message}
-                  <button
-                    type="button"
-                    className="btn btn--ghost btn--sm"
-                    style={{ marginLeft: 'var(--gh-space-3)' }}
-                    onClick={refresh}
-                  >
-                    重试
-                  </button>
-                </div>
+                <ErrorState message={mediaState.error.message} onRetry={refresh} />
               </div>
             </div>
           ) : isEmpty ? (
             <div className="admin-table-wrap">
               <div className="admin-table__empty">
-                <div className="empty">
-                  <div className="empty__title">暂无素材</div>
-                  <p className="empty__desc">
-                    {folderId === ALL && !category && !typeFilter && !q
+                <EmptyState
+                  icon="cloud"
+                  title="暂无素材"
+                  desc={
+                    folderId === ALL && !category && !typeFilter && !q
                       ? '点击右上角「上传素材」添加第一个文件。'
-                      : '当前筛选条件下没有素材，试试切换文件夹或清空筛选。'}
-                  </p>
-                </div>
+                      : '当前筛选条件下没有素材，试试切换文件夹或清空筛选。'
+                  }
+                />
               </div>
             </div>
           ) : (

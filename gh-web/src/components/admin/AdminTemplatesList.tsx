@@ -13,6 +13,7 @@ import { fetchAdminPages, fetchBlockTypeCatalog, type Block, type BlockTypeMeta,
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
 import { Select } from './Select'
+import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { typeName } from './blockBuilderUtils'
 import { useConfirm, useToast } from './feedback'
 
@@ -159,27 +160,18 @@ export function AdminTemplatesList() {
 
       <div className="admin-table-wrap">
         {state.loading && rows.length === 0 ? (
-          <div className="admin-skeleton-table" role="status" aria-label="正在加载">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div className="admin-skeleton-row" key={i} style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
-                {Array.from({ length: 5 }).map((__, c) => (
-                  <span className="skeleton admin-skeleton-bar" key={c} />
-                ))}
-              </div>
-            ))}
-          </div>
+          <SkeletonTable columns={5} rows={4} />
         ) : state.error && rows.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-            </div>
+            <ErrorState message={state.error.message} />
           </div>
         ) : rows.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">暂无模板</div>
-              <p className="empty__desc">点击右上角「从页面新建模板」，把某个页面的区块存为可复用模板。</p>
-            </div>
+            <EmptyState
+              icon="book"
+              title="暂无模板"
+              desc="点击右上角「从页面新建模板」，把某个页面的区块存为可复用模板。"
+            />
           </div>
         ) : (
           <div className="admin-table-scroll">

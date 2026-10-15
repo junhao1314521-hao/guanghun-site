@@ -19,6 +19,7 @@ import {
 } from '../../api/admin'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
+import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { useConfirm, useToast } from './feedback'
 
 /** 条目类型 → 中文标签 */
@@ -93,31 +94,18 @@ export function AdminTrashList() {
 
       <div className="admin-table-wrap">
         {loading ? (
-          <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">正在加载…</div>
-            </div>
-          </div>
+          <SkeletonTable columns={6} rows={5} />
         ) : state.error && items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                style={{ marginLeft: 'var(--gh-space-3)' }}
-                onClick={() => setReloadKey((key) => key + 1)}
-              >
-                重试
-              </button>
-            </div>
+            <ErrorState message={state.error.message} onRetry={() => setReloadKey((key) => key + 1)} />
           </div>
         ) : items.length === 0 ? (
           <div className="admin-table__empty">
-            <div className="empty">
-              <div className="empty__title">回收站为空</div>
-              <p className="empty__desc">删除集合记录、后台资源、页面或素材后，会先进入这里。</p>
-            </div>
+            <EmptyState
+              icon="refresh"
+              title="回收站为空"
+              desc="删除集合记录、后台资源、页面或素材后，会先进入这里。"
+            />
           </div>
         ) : (
           <div className="admin-table-scroll">

@@ -13,6 +13,7 @@ import { fetchBlockTypeCatalog, saveBlockEnabled, type BlockTypeMeta } from '../
 import { useApi } from '../../hooks/useApi'
 import { AdminIcon } from './AdminIcon'
 import { AdminPageHead } from './AdminPageHead'
+import { ErrorState, SkeletonTable } from './states'
 import { blockIcon } from './blockBuilderUtils'
 import { useToast } from './feedback'
 
@@ -78,20 +79,10 @@ export function AdminComponentsList() {
       </div>
 
       {state.loading && types.length === 0 ? (
-        <div className="admin-skeleton-table" role="status" aria-label="正在加载">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div className="admin-skeleton-row" key={i} style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
-              {Array.from({ length: 5 }).map((__, c) => (
-                <span className="skeleton admin-skeleton-bar" key={c} />
-              ))}
-            </div>
-          ))}
-        </div>
+        <SkeletonTable columns={5} rows={6} />
       ) : state.error && types.length === 0 ? (
         <div className="admin-table__empty">
-          <div className="alert alert--danger" role="alert">
-            {state.error.message}
-          </div>
+          <ErrorState message={state.error.message} />
         </div>
       ) : (
         <div className="admin-table-wrap">

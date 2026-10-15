@@ -1654,3 +1654,27 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-select__option:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 .admin-select__option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-select__check { flex-shrink: 0; color: var(--color-accent-text); }
+
+/* ---------- ⑦ 状态视图：骨架 / 空态 / 错误态 统一 ----------
+   收敛到 states.tsx（SkeletonTable / SkeletonGallery / EmptyState / ErrorState），
+   各栏目共享同一套留白、徽标与动作排布。 */
+/* 空态：底色下沉一档，与表格/卡片面区分；徽标图标居中于浅色圆底 */
+.admin-root .empty {
+  background: color-mix(in srgb, var(--color-bg-muted) 45%, transparent);
+  gap: var(--gh-space-2);
+}
+.admin-root .empty__icon--badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--gh-space-1);
+  border-radius: var(--gh-radius-full);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+}
+.admin-root .empty__icon--danger { background: var(--color-danger-bg); color: var(--color-danger); }
+.admin-root .empty__action { margin-top: var(--gh-space-2); }
+/* 骨架：撑起最小高度，避免加载瞬间高度塌陷造成跳动 */
+.admin-skeleton-table { min-height: 180px; justify-content: center; }
