@@ -30,6 +30,7 @@ import { uploadImage } from '../../lib/uploadImage'
 import { useApi } from '../../hooks/useApi'
 import { AdminIcon } from './AdminIcon'
 import { AdminPageHead } from './AdminPageHead'
+import { Select } from './Select'
 import { MediaImg } from '../ui/MediaImg'
 import { registerSrcSet } from '../ui/mediaSrcSet'
 import { OverflowMenu } from './OverflowMenu'
@@ -538,18 +539,13 @@ export function AdminUploadsList() {
                 ))}
               </div>
             </div>
-            <select
-              className="select admin-media__type"
+            <Select
+              className="admin-media__type"
               value={typeFilter}
               aria-label="按类型筛选"
-              onChange={(event) => setTypeFilter(event.target.value)}
-            >
-              {TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={setTypeFilter}
+              options={TYPE_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+            />
             <div className="admin-toolbar__search search">
               <span className="search__icon" aria-hidden="true">
                 <IconSearch size={16} />
@@ -571,19 +567,12 @@ export function AdminUploadsList() {
             <span className="admin-toolbar__spacer" />
             <label className="admin-media__uploadtarget">
               <span className="admin-filters__label">上传到</span>
-              <select
-                className="select"
+              <Select
                 value={uploadTargetId}
                 aria-label="上传目标文件夹"
-                onChange={(event) => setUploadTargetId(event.target.value)}
-              >
-                <option value="">未分类</option>
-                {folders.map((folder) => (
-                  <option key={folder.id} value={folder.id}>
-                    {folder.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setUploadTargetId}
+                options={[{ value: '', label: '未分类' }, ...folders.map((folder) => ({ value: folder.id, label: folder.name }))]}
+              />
             </label>
           </div>
 
@@ -595,19 +584,12 @@ export function AdminUploadsList() {
             {selected.size > 0 && (
               <div className="admin-toolbar__selected" role="status">
                 <span className="admin-table__count">已选 {selected.size} 项</span>
-                <select
-                  className="select"
+                <Select
                   value={moveTarget}
                   aria-label="移动到文件夹"
-                  onChange={(event) => setMoveTarget(event.target.value)}
-                >
-                  <option value="">未分类</option>
-                  {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setMoveTarget}
+                  options={[{ value: '', label: '未分类' }, ...folders.map((folder) => ({ value: folder.id, label: folder.name }))]}
+                />
                 <button type="button" className="btn btn--secondary btn--sm" onClick={() => void onBulkMove()}>
                   批量移动
                 </button>
@@ -695,19 +677,14 @@ export function AdminUploadsList() {
                       </span>
                     </button>
                     <div className="admin-upload-tile__actions">
-                      <select
-                        className="select admin-upload-tile__cat"
+                      <Select
+                        className="admin-upload-tile__cat"
                         value={item.category}
                         aria-label={`「${item.name}」分类`}
                         title="手工覆盖分类"
-                        onChange={(event) => void onCategory(item, event.target.value as MediaCategory)}
-                      >
-                        {MEDIA_CATEGORIES.map((key) => (
-                          <option key={key} value={key}>
-                            {CATEGORY_LABELS[key]}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(next) => void onCategory(item, next as MediaCategory)}
+                        options={MEDIA_CATEGORIES.map((key) => ({ value: key, label: CATEGORY_LABELS[key] }))}
+                      />
                       <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => void onDelete(item)}>
                         删除
                       </button>

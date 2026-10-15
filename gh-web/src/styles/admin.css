@@ -422,7 +422,12 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-table__count { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 .admin-table__foot-right { display: flex; align-items: center; gap: var(--gh-space-4); flex-wrap: wrap; }
 .admin-table__pagesize { display: inline-flex; align-items: center; gap: var(--gh-space-2); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
-.admin-table__pagesize .select { width: auto; height: var(--gh-control-height-sm); font-size: var(--gh-font-size-caption); }
+.admin-table__pagesize .admin-select { width: auto; }
+.admin-table__pagesize .admin-select__trigger {
+  height: var(--adm-control-h-sm);
+  padding: 0 var(--gh-space-2);
+  font-size: var(--gh-font-size-caption);
+}
 .admin-cell--muted { color: var(--color-text-tertiary); }
 
 /* ---------- 窄屏（≤767px）：表格转「卡片列表」 ----------
@@ -933,8 +938,9 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .builder-rich__btn:hover { background: var(--color-bg-muted); color: var(--color-text-primary); }
 .builder-rich__btn:focus-visible { outline: 2px solid var(--color-accent-solid); outline-offset: 1px; }
 .builder-rich__btn.is-active { background: var(--color-accent-subtle); color: var(--color-accent-text); border-color: color-mix(in srgb, var(--color-accent) 34%, transparent); }
-.builder-rich__select {
-  width: auto; height: 30px; min-width: 84px; padding: 0 var(--gh-space-2);
+.builder-rich__select { width: auto; min-width: 84px; }
+.builder-rich__select .admin-select__trigger {
+  height: 30px; padding: 0 var(--gh-space-2);
   border-radius: var(--gh-radius-sm); font-size: var(--gh-font-size-body-sm);
 }
 /* 插入弹窗（链接 / 图片地址）：浮于工具栏下方，避免遮挡编辑区 */
@@ -1189,7 +1195,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .site-link--badge { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto auto; }
 .site-link__actions { display: flex; align-items: center; gap: var(--gh-space-1); }
 .site-link__badge { display: inline-flex; align-items: center; gap: var(--gh-space-3); }
-.site-link__badge .select { width: auto; min-width: 96px; }
+.site-link__badge .admin-select { width: auto; min-width: 96px; }
 .site-link__shake { display: inline-flex; align-items: center; gap: 6px; font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); white-space: nowrap; }
 .site-links > .btn,
 .site-groups > .btn { align-self: flex-start; }
@@ -1344,8 +1350,9 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-media__main { min-width: 0; }
 .admin-media__type { width: auto; }
 .admin-media__uploadtarget { display: inline-flex; align-items: center; gap: var(--gh-space-2); }
-.admin-media__uploadtarget .select { width: auto; }
-.admin-upload-tile__cat { width: auto; height: var(--gh-control-height-sm); font-size: var(--gh-font-size-caption); }
+.admin-media__uploadtarget .admin-select { width: auto; }
+.admin-upload-tile__cat { width: auto; }
+.admin-upload-tile__cat .admin-select__trigger { height: var(--adm-control-h-sm); font-size: var(--gh-font-size-caption); }
 @media (max-width: 1023px) {
   .admin-media__layout { grid-template-columns: 1fr; }
   .admin-media__side { position: static; }
@@ -1590,3 +1597,60 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   .admin-root .btn--sm { height: 36px; }
   .admin-root .icon-btn { width: 40px; height: 40px; }
 }
+
+/* ---------- ⑥ 下拉选择（自研 Select，替代原生 select） ----------
+   触发器直接复用 .input 规格（§⑤ 的高度 / 圆角 / 字号 / 禁用态），
+   只补布局；弹层为就地绝对定位面板，与 OverflowMenu 同策略。 */
+.admin-select { position: relative; }
+.admin-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gh-space-2);
+  text-align: left;
+  cursor: pointer;
+}
+.admin-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-select__value.is-placeholder { color: var(--color-text-tertiary); }
+.admin-select__caret {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform var(--gh-duration-base) var(--gh-ease-standard);
+}
+.admin-select.is-open .admin-select__caret { transform: rotate(180deg); }
+
+.admin-select__list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: var(--gh-z-drawer);
+  max-height: 264px;
+  overflow: auto;
+  padding: var(--gh-space-1);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--adm-radius-surface);
+  box-shadow: var(--shadow-lg);
+}
+.admin-select__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gh-space-2);
+  width: 100%;
+  padding: var(--gh-space-2) var(--gh-space-3);
+  border: 0;
+  border-radius: var(--adm-radius-control);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--gh-font-size-body-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.admin-select__option.is-active { background: var(--color-bg-subtle); }
+.admin-select__option[aria-selected='true'] { color: var(--color-accent-text); font-weight: var(--gh-weight-medium); }
+.admin-select__option:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+.admin-select__option-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-select__check { flex-shrink: 0; color: var(--color-accent-text); }

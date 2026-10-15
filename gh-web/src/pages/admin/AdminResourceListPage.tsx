@@ -25,6 +25,7 @@ import { AdminRolesView } from '../../components/admin/AdminRolesView'
 import { AdminRequirementsView } from '../../components/admin/AdminRequirementsView'
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
 import { OverflowMenu, type OverflowMenuItem } from '../../components/admin/OverflowMenu'
+import { Select } from '../../components/admin/Select'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { IconClose, IconSearch } from '../../components/ui/Icon'
 
@@ -660,24 +661,18 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
               </div>
               <div className="admin-table__foot">
                 <div className="admin-table__foot-right">
-                  <label className="admin-table__pagesize">
+                  <span className="admin-table__pagesize">
                     每页
-                    <select
-                      className="select"
-                      value={pageSize}
+                    <Select
                       aria-label="每页条数"
-                      onChange={(event) => {
-                        setPageSize(Number(event.target.value))
+                      value={String(pageSize)}
+                      onChange={(next) => {
+                        setPageSize(Number(next))
                         setPage(1)
                       }}
-                    >
-                      {PAGE_SIZES.map((size) => (
-                        <option key={size} value={size}>
-                          {size} 条
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      options={PAGE_SIZES.map((size) => ({ value: String(size), label: `${size} 条` }))}
+                    />
+                  </span>
                   <AdminPager page={safePage} totalPages={totalPages} onChange={setPage} />
                 </div>
               </div>

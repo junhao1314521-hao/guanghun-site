@@ -96,6 +96,15 @@ export function IconChevronDown({ size = 14, className }: IconProps) {
   )
 }
 
+/** 勾选（下拉选中态 / 复选项） */
+export function IconCheck({ size = 14, className }: IconProps) {
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <path d={`M${size * 0.22} ${size * 0.52}L${size * 0.42} ${size * 0.72}L${size * 0.78} ${size * 0.31}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export function IconChevronLeft({ size = 16, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>

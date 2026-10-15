@@ -12,6 +12,7 @@ import { createTemplate, deleteTemplate, fetchTemplates, type TemplateList } fro
 import { fetchAdminPages, fetchBlockTypeCatalog, type Block, type BlockTypeMeta, type PageMeta } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
+import { Select } from './Select'
 import { typeName } from './blockBuilderUtils'
 import { useConfirm, useToast } from './feedback'
 
@@ -67,21 +68,16 @@ function NewTemplateForm({ pages, onCreated }: { pages: PageMeta[]; onCreated: (
           </div>
           <div className="field">
             <label className="field__label" htmlFor="nt-scope">适用范围</label>
-            <select id="nt-scope" className="select" value={scope} onChange={(event) => setScope(event.target.value)}>
-              {SCOPES.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
+            <Select id="nt-scope" value={scope} onChange={setScope} options={SCOPES.map((item) => ({ value: item, label: item }))} />
           </div>
           <div className="field">
             <label className="field__label" htmlFor="nt-page">来源页面</label>
-            <select id="nt-page" className="select" value={pageKey} onChange={(event) => setPageKey(event.target.value)}>
-              {pages.map((page) => (
-                <option key={page.key} value={page.key}>
-                  {page.title}（{page.key}）
-                </option>
-              ))}
-            </select>
+            <Select
+              id="nt-page"
+              value={pageKey}
+              onChange={setPageKey}
+              options={pages.map((page) => ({ value: page.key, label: `${page.title}（${page.key}）` }))}
+            />
           </div>
         </div>
         {error && (

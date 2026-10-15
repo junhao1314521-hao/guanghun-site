@@ -26,6 +26,7 @@ import type {
 } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { Select } from '../../components/admin/Select'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 
@@ -82,19 +83,19 @@ function LinkListEditor({
           />
           {showBadge && (
             <span className="site-link__badge">
-              <select
-                className="select"
+              <Select
                 aria-label="入口角标"
                 value={link.badge ?? ''}
-                onChange={(event) => {
-                  const value = event.target.value as '' | 'new' | 'hot'
-                  update(index, { badge: value === '' ? undefined : value, ...(value === '' ? { badgeShake: undefined, badgeText: undefined } : {}) })
+                onChange={(value) => {
+                  const next = value as '' | 'new' | 'hot'
+                  update(index, { badge: next === '' ? undefined : next, ...(next === '' ? { badgeShake: undefined, badgeText: undefined } : {}) })
                 }}
-              >
-                <option value="">无角标</option>
-                <option value="new">NEW</option>
-                <option value="hot">HOT</option>
-              </select>
+                options={[
+                  { value: '', label: '无角标' },
+                  { value: 'new', label: 'NEW' },
+                  { value: 'hot', label: 'HOT' },
+                ]}
+              />
               <input
                 className="input"
                 type="text"

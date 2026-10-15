@@ -24,6 +24,7 @@ import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ImageField } from '../../components/admin/ImageField'
 import { FileField } from '../../components/admin/FileField'
 import { RichTextField } from '../../components/admin/RichTextField'
+import { Select } from '../../components/admin/Select'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 
 /** 无 form 配置时，按列定义兜底生成字段 */
@@ -75,7 +76,6 @@ function FormField({
   const fieldId = `${idPrefix}f-${field.key}`
   const req = required ? <span className="req" aria-hidden="true">*</span> : null
   const inputClass = `input${invalid ? ' input--error' : ''}`
-  const selectClass = `select${invalid ? ' input--error' : ''}`
   const textareaClass = `textarea${invalid ? ' input--error' : ''}`
 
   if (field.type === 'switch') {
@@ -126,19 +126,16 @@ function FormField({
             value={text}
             onChange={(event) => setStatus({ text: event.target.value })}
           />
-          <select
-            className={selectClass}
+          <Select
+            invalid={invalid}
             aria-label={`${field.label} · 级别`}
             value={level}
-            onChange={(event) => setStatus({ level: event.target.value })}
-          >
-            <option value="">请选择级别</option>
-            {(field.options ?? STATUS_LEVEL_OPTIONS).map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => setStatus({ level: next })}
+            options={[
+              { value: '', label: '请选择级别' },
+              ...(field.options ?? STATUS_LEVEL_OPTIONS).map((option) => ({ value: option, label: option })),
+            ]}
+          />
         </div>
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
@@ -257,20 +254,16 @@ function FormField({
           onChange={(event) => onChange(field.key, event.target.value)}
         />
       ) : field.type === 'select' ? (
-        <select
+        <Select
           id={fieldId}
-          className={selectClass}
-          aria-invalid={invalid || undefined}
+          invalid={invalid}
           value={String(value ?? '')}
-          onChange={(event) => onChange(field.key, event.target.value)}
-        >
-          <option value="">请选择</option>
-          {field.options?.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          onChange={(next) => onChange(field.key, next)}
+          options={[
+            { value: '', label: '请选择' },
+            ...(field.options ?? []).map((option) => ({ value: option, label: option })),
+          ]}
+        />
       ) : (
         <input
           id={fieldId}

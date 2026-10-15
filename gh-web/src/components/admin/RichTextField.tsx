@@ -34,6 +34,7 @@ import {
   IconUnderline,
   IconUndo,
 } from '../ui/Icon'
+import { Select } from './Select'
 
 export type RichTextFieldProps = {
   /** 编辑容器 id（用于与 <label> 关联） */
@@ -340,19 +341,14 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
 
         {/* 段落 */}
         <div className="builder-rich__group">
-          <select
-            className="select builder-rich__select"
+          <Select
+            className="builder-rich__select"
             aria-label="段落格式"
             title="段落格式"
             value={block}
-            onChange={(event) => setParagraph(event.target.value)}
-          >
-            {PARAGRAPH_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={setParagraph}
+            options={PARAGRAPH_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+          />
         </div>
         <span className="builder-rich__sep" aria-hidden="true" />
 

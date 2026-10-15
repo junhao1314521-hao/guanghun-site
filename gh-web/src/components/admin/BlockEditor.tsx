@@ -19,6 +19,7 @@ import { useApi } from '../../hooks/useApi'
 import { emptyItem, isStringList, resolveItemFields } from './blockBuilderUtils'
 import { ImageField, MediaField } from './ImageField'
 import { RichTextField } from './RichTextField'
+import { Select } from './Select'
 
 /** 挑选器条目：统一呈现（主文案 / 次文案 / 分类） */
 type RefItem = { id: string; primary: string; secondary?: string; meta?: string }
@@ -295,14 +296,12 @@ function FieldControl({
 
   if (field.kind === 'select') {
     return (
-      <select id={fieldId} className="select" value={typeof value === 'string' ? value : ''} onChange={(event) => onChange(event.target.value)}>
-        <option value="">请选择</option>
-        {field.options?.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <Select
+        id={fieldId}
+        value={typeof value === 'string' ? value : ''}
+        onChange={onChange}
+        options={[{ value: '', label: '请选择' }, ...(field.options ?? []).map((option) => ({ value: option.value, label: option.label }))]}
+      />
     )
   }
 

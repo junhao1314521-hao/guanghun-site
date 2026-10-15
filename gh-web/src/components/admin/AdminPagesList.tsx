@@ -15,6 +15,7 @@ import type { PageMeta } from '../../api/adminPages'
 import { fetchTemplates, type TemplateItem } from '../../api/adminTemplates'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
+import { Select } from './Select'
 import { useConfirm, useToast } from './feedback'
 
 /** ISO 时间 → 紧凑展示 */
@@ -98,14 +99,18 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
             <label className="field__label" htmlFor="np-template">
               从模板起步（选填）
             </label>
-            <select id="np-template" className="select" value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-              <option value="">空白页面</option>
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}（{template.blockCount} 区块 · {template.scope}）
-                </option>
-              ))}
-            </select>
+            <Select
+              id="np-template"
+              value={templateId}
+              onChange={setTemplateId}
+              options={[
+                { value: '', label: '空白页面' },
+                ...templates.map((template) => ({
+                  value: template.id,
+                  label: `${template.name}（${template.blockCount} 区块 · ${template.scope}）`,
+                })),
+              ]}
+            />
           </div>
         </div>
         {error && (

@@ -41,6 +41,7 @@ import { AdminNotFound } from '../../components/admin/AdminNotFound'
 import { BlockEditor } from '../../components/admin/BlockEditor'
 import { BuilderPreview } from '../../components/admin/BuilderPreview'
 import { OverflowMenu } from '../../components/admin/OverflowMenu'
+import { Select } from '../../components/admin/Select'
 import { IconArrowDown, IconArrowUp, IconChevronLeft, IconChevronRight, IconClose, IconGrip, IconPlus, IconSearch } from '../../components/ui/Icon'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
@@ -334,17 +335,11 @@ function StylePanel({ style, onChange }: { style: BlockStyle | undefined; onChan
       {STYLE_FIELDS.map((field) => (
         <div className="field" key={field.key}>
           <span className="field__label">{field.label}</span>
-          <select
-            className="select"
+          <Select
             value={typeof current[field.key] === 'string' ? (current[field.key] as string) : ''}
-            onChange={(event) => set(field.key, event.target.value)}
-          >
-            {field.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set(field.key, next)}
+            options={field.options.map((option) => ({ value: option.value, label: option.label }))}
+          />
         </div>
       ))}
       {/* 页内锚点（扩展字段）：填入后区块外壳生成同名 id，支持 /path#anchor 深链定位 */}
