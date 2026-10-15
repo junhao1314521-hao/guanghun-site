@@ -115,10 +115,15 @@ function RequirementTable({
           <tbody>
             {rows.map((row) => (
               <tr key={str(row.id)}>
-                {columns.map((column) => {
+                {columns.map((column, columnIndex) => {
                   const value = row[column.key]
                   return (
-                    <td key={column.key} style={column.align === 'right' ? { textAlign: 'right' } : undefined}>
+                    <td
+                      key={column.key}
+                      className={columnIndex === 0 ? 'admin-cell--title' : undefined}
+                      data-label={column.label}
+                      style={column.align === 'right' ? { textAlign: 'right' } : undefined}
+                    >
                       {column.type === 'status' ? (
                         <span className={`status status--${STATUS_TONE[str(value)] ?? 'muted'}`}>{str(value)}</span>
                       ) : column.type === 'tag' ? (

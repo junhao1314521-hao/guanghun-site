@@ -73,7 +73,11 @@ function AnalyticsBody({ scope }: { scope: string }) {
                   {data.rows.map((row, rowIndex) => (
                     <tr key={rowIndex}>
                       {row.map((cell, cellIndex) => (
-                        <td key={cellIndex} className={cellIndex === 0 ? undefined : 'mono'}>
+                        <td
+                          key={cellIndex}
+                          className={cellIndex === 0 ? 'admin-cell--title' : 'mono'}
+                          data-label={data.columns[cellIndex]}
+                        >
                           {typeof cell === 'number' ? cell.toLocaleString('zh-CN') : cell}
                         </td>
                       ))}

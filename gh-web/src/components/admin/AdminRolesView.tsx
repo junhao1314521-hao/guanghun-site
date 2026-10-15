@@ -214,7 +214,7 @@ export function AdminRolesView() {
                 ) : (
                   roles.map((role) => (
                     <tr key={role.key}>
-                      <td>
+                      <td className="admin-cell--title" data-label="角色">
                         <strong>{role.name}</strong>
                         <span className="admin-cell--muted mono">（{role.key}）</span>
                         {role.builtin && (
@@ -228,7 +228,7 @@ export function AdminRolesView() {
                           </span>
                         )}
                       </td>
-                      <td>
+                      <td data-label="权限集（scopes）">
                         <span className="admin-role-chips">
                           {role.scopes.map((scope) => (
                             <span className="tag" key={scope}>
@@ -237,7 +237,7 @@ export function AdminRolesView() {
                           ))}
                         </span>
                       </td>
-                      <td className="admin-cell--muted">{role.desc}</td>
+                      <td className="admin-cell--muted" data-label="说明">{role.desc}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div className="admin-table__actions" style={{ justifyContent: 'flex-end' }}>
                           <button className="btn btn--ghost btn--sm" type="button" onClick={() => openEdit(role)}>
@@ -372,12 +372,12 @@ export function AdminRolesView() {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.key}>
-                  <td className="admin-cell--muted">{row.group}</td>
-                  <td>
+                  <td className="admin-cell--muted admin-cell--title" data-label="栏目组">{row.group}</td>
+                  <td data-label="栏目">
                     <strong>{row.label}</strong>
                   </td>
-                  <td className="mono">{row.key}</td>
-                  <td>
+                  <td className="mono" data-label="key">{row.key}</td>
+                  <td data-label="所需权限">
                     <span className="tag tag--accent">{scopeText(row.scope)}</span>
                   </td>
                   {roles.map((role) => (
@@ -385,6 +385,7 @@ export function AdminRolesView() {
                       key={role.key}
                       style={{ textAlign: 'center' }}
                       className={hasScope(role.scopes, row.scope) ? 'admin-role-mark--yes' : 'admin-role-mark--no'}
+                      data-label={role.name}
                     >
                       {hasScope(role.scopes, row.scope) ? '✓' : '—'}
                     </td>
@@ -413,15 +414,15 @@ export function AdminRolesView() {
             <tbody>
               {ENDPOINT_ROWS.map((row) => (
                 <tr key={row.path}>
-                  <td className="mono">{row.path}</td>
-                  <td>
+                  <td className="mono admin-cell--title" data-label="端点">{row.path}</td>
+                  <td data-label="所需权限">
                     {row.scope ? (
                       <span className="tag tag--accent">{scopeText(row.scope)}</span>
                     ) : (
                       <span className="tag">仅需登录</span>
                     )}
                   </td>
-                  <td className="admin-cell--muted">{row.note}</td>
+                  <td className="admin-cell--muted" data-label="说明">{row.note}</td>
                 </tr>
               ))}
             </tbody>

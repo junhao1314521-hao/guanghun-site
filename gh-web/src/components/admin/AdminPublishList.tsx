@@ -212,21 +212,21 @@ export function AdminPublishList() {
               <tbody>
                 {items.map((item) => (
                   <tr key={item.id}>
-                    <td className="mono">{formatTime(item.at)}</td>
-                    <td>{item.actor}</td>
-                    <td>
+                    <td className="mono admin-cell--title" data-label="时间">{formatTime(item.at)}</td>
+                    <td data-label="操作者">{item.actor}</td>
+                    <td data-label="内容版本">
                       <span className="mono">{item.contentVersion}</span>
                     </td>
-                    <td className="mono" style={{ textAlign: 'right' }}>
+                    <td className="mono" style={{ textAlign: 'right' }} data-label="页面数">
                       {item.pageCount}
                     </td>
-                    <td className="mono" style={{ textAlign: 'right' }}>
+                    <td className="mono" style={{ textAlign: 'right' }} data-label="区块数">
                       {item.blockCount}
                     </td>
-                    <td className="mono" style={{ textAlign: 'right' }}>
+                    <td className="mono" style={{ textAlign: 'right' }} data-label="集合数">
                       {item.collectionCount}
                     </td>
-                    <td className="admin-cell--clip" title={item.note ?? ''}>
+                    <td className="admin-cell--clip" data-label="备注" title={item.note ?? ''}>
                       {item.note ? item.note : <span className="admin-cell--muted">—</span>}
                     </td>
                     <td style={{ textAlign: 'right' }}>
@@ -497,17 +497,17 @@ function ScheduleSection() {
                   const status = SCHEDULE_STATUS[item.status]
                   return (
                     <tr key={item.id}>
-                      <td className="mono">{formatTime(item.at)}</td>
-                      <td>
+                      <td className="mono admin-cell--title" data-label="计划时间">{formatTime(item.at)}</td>
+                      <td data-label="状态">
                         <span className={statusClass(status.level)}>
                           {item.status === 'failed' && item.error ? `失败：${item.error}` : status.label}
                         </span>
                       </td>
-                      <td>{item.createdBy ?? <span className="admin-cell--muted">—</span>}</td>
-                      <td className="admin-cell--clip" title={item.note ?? ''}>
+                      <td data-label="操作者">{item.createdBy ?? <span className="admin-cell--muted">—</span>}</td>
+                      <td className="admin-cell--clip" data-label="备注" title={item.note ?? ''}>
                         {item.note ? item.note : <span className="admin-cell--muted">—</span>}
                       </td>
-                      <td className="mono">{formatTime(item.createdAt)}</td>
+                      <td className="mono" data-label="登记时间">{formatTime(item.createdAt)}</td>
                       <td style={{ textAlign: 'right' }}>
                         {item.status === 'pending' ? (
                           <button

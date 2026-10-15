@@ -138,20 +138,20 @@ export function AdminTrashList() {
               <tbody>
                 {items.map((item) => (
                   <tr key={item.id}>
-                    <td className="admin-cell--clip" title={item.name}>
+                    <td className="admin-cell--clip admin-cell--title" data-label="名称" title={item.name}>
                       <strong>{item.name}</strong>
                     </td>
-                    <td>
+                    <td data-label="类型">
                       <span className="tag">{TYPE_LABELS[item.type]}</span>
                     </td>
-                    <td>
+                    <td data-label="原栏目">
                       <span className="tag">{item.key}</span>
                     </td>
-                    <td className="mono admin-cell--clip" title={item.recordId}>
+                    <td className="mono admin-cell--clip" data-label="记录标识" title={item.recordId}>
                       {item.recordId}
                     </td>
-                    <td>{item.deletedBy || '—'}</td>
-                    <td>{formatTime(item.deletedAt)}</td>
+                    <td data-label="删除人">{item.deletedBy || '—'}</td>
+                    <td data-label="删除时间">{formatTime(item.deletedAt)}</td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="admin-table__actions">
                         <button type="button" className="btn btn--ghost btn--sm" onClick={() => void onRestore(item)}>

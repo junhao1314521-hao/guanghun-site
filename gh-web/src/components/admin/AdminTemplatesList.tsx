@@ -201,19 +201,19 @@ export function AdminTemplatesList() {
               <tbody>
                 {rows.map((item) => (
                   <tr key={item.id}>
-                    <td>
+                    <td className="admin-cell--title" data-label="模板名称">
                       <strong>{item.name}</strong>
                     </td>
-                    <td>
+                    <td data-label="适用范围">
                       <span className="tag">{item.scope}</span>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td style={{ textAlign: 'right' }} data-label="区块数">
                       <span className="mono">{item.blockCount}</span>
                     </td>
-                    <td className="admin-cell--clip" title={sequenceOf(item.blocks)}>
+                    <td className="admin-cell--clip" data-label="区块序列" title={sequenceOf(item.blocks)}>
                       {sequenceOf(item.blocks)}
                     </td>
-                    <td>{formatTime(item.createdAt)}</td>
+                    <td data-label="创建时间">{formatTime(item.createdAt)}</td>
                     <td style={{ textAlign: 'right' }}>
                       <button
                         type="button"

@@ -305,13 +305,13 @@ export function AdminBackupsList() {
               <tbody>
                 {items.map((item) => (
                   <tr key={item.id}>
-                    <td className="admin-cell--clip" title={item.name}>
+                    <td className="admin-cell--clip admin-cell--title" data-label="文件名" title={item.name}>
                       <strong className="mono">{item.name}</strong>
                     </td>
-                    <td className="mono" style={{ textAlign: 'right' }}>
+                    <td className="mono" style={{ textAlign: 'right' }} data-label="大小">
                       {formatSize(item.size)}
                     </td>
-                    <td>{formatTime(item.at)}</td>
+                    <td data-label="时间">{formatTime(item.at)}</td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="admin-table__actions">
                         <button type="button" className="btn btn--ghost btn--sm" onClick={() => void onDownload(item)}>

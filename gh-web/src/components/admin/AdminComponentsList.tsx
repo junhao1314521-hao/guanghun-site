@@ -112,7 +112,7 @@ export function AdminComponentsList() {
                     const enabled = isEnabled(meta)
                     return (
                       <tr key={meta.type}>
-                        <td>
+                        <td className="admin-cell--title" data-label="组件名称">
                           <span className="admin-table__actions" style={{ justifyContent: 'flex-start' }}>
                             <span className="admin-tile__media" style={{ width: 32, height: 32 }}>
                               <AdminIcon name={blockIcon(meta.type)} size={16} />
@@ -123,16 +123,16 @@ export function AdminComponentsList() {
                             {meta.type}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="分组">
                           <span className="tag">{meta.group}</span>
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td style={{ textAlign: 'right' }} data-label="字段数">
                           <span className="mono">{meta.fields.length}</span>
                         </td>
-                        <td className="admin-cell--clip" title={describeType(meta)}>
+                        <td className="admin-cell--clip" data-label="说明" title={describeType(meta)}>
                           {describeType(meta)}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td style={{ textAlign: 'right' }} data-label="启用状态">
                           <label className="switch" style={{ justifyContent: 'flex-end' }}>
                             <input
                               type="checkbox"

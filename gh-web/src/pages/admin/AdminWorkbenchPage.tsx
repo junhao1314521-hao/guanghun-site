@@ -58,10 +58,10 @@ export function AdminWorkbenchPage() {
                   <tbody>
                     {overview.recent.map((row) => (
                       <tr key={row.id}>
-                        <td className="mono">{row.at}</td>
-                        <td>{row.who}</td>
-                        <td>{row.action}</td>
-                        <td>{row.target}</td>
+                        <td className="mono admin-cell--title" data-label="时间">{row.at}</td>
+                        <td data-label="操作人">{row.who}</td>
+                        <td data-label="操作">{row.action}</td>
+                        <td data-label="对象">{row.target}</td>
                       </tr>
                     ))}
                   </tbody>

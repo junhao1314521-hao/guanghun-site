@@ -210,7 +210,7 @@ export function AdminPagesList() {
               <tbody>
                 {rows.map((item) => (
                   <tr key={item.key}>
-                    <td>
+                    <td className="admin-cell--title" data-label="页面标题">
                       <strong>{item.title}</strong>
                       {/* 明细模板：一套内容作用于该类型的所有明细页（如产品详情模板作用于全部产品） */}
                       {item.key.startsWith('template-') && (
@@ -223,16 +223,16 @@ export function AdminPagesList() {
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="页面 key">
                       <span className="mono">{item.key}</span>
                     </td>
-                    <td>
+                    <td data-label="前台路径">
                       <span className="mono">{item.path}</span>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td style={{ textAlign: 'right' }} data-label="区块数">
                       <span className="mono">{item.blockCount}</span>
                     </td>
-                    <td>{formatTime(item.updatedAt)}</td>
+                    <td data-label="更新时间">{formatTime(item.updatedAt)}</td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="admin-table__actions" style={{ justifyContent: 'flex-end' }}>
                         <Link className="btn btn--primary btn--sm" to={`/admin/pages/${encodeURIComponent(item.key)}/builder`}>
