@@ -31,4 +31,12 @@ export UPLOAD_DIR="${UPLOAD_DIR:-$ROOT/gh-server/data/uploads}"
 # export CORS_ORIGINS="https://www.<域名>"   # 仅前后端分离部署时需要
 
 cd "$ROOT/gh-server"
+
+# 直接调用 tsx 的真实入口，不依赖 node_modules/.bin 里的符号链接——
+# 这样无论用 zip 还是 tar 解压、甚至在不还原符号链接的环境下，都能直接跑起来。
+if [ -f "$ROOT/gh-server/node_modules/tsx/dist/cli.mjs" ]; then
+  exec node "$ROOT/gh-server/node_modules/tsx/dist/cli.mjs" src/index.ts
+fi
+
+# 兜底：按常规方式装好依赖（.bin 符号链接正常）时
 exec npx tsx src/index.ts
