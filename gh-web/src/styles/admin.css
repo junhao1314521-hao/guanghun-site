@@ -148,10 +148,23 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   border-radius: var(--gh-radius-sm);
 }
 .admin-nav__group-title:hover { color: var(--color-text-secondary); }
-.admin-nav__group-title[aria-expanded='true'] { margin-bottom: var(--gh-space-2); }
 .admin-nav__chevron { display: inline-flex; transition: transform var(--gh-duration-fast) var(--gh-ease-standard); }
 .admin-nav__group-title[aria-expanded='false'] .admin-nav__chevron { transform: rotate(-90deg); }
-.admin-nav__list { display: flex; flex-direction: column; gap: 2px; }
+/* 二级列表：常驻 DOM + 行高 0fr→1fr 的「下拉展开」，替代此前的直接挂载/卸载（闪现）。
+   收起时 visibility:hidden（延迟到动画结束），保证内部链接不参与 Tab 顺序。 */
+.admin-nav__sub {
+  display: grid; grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows var(--gh-duration-base) var(--gh-ease-accent),
+              visibility 0s linear var(--gh-duration-base);
+}
+.admin-nav__sub.is-open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows var(--gh-duration-base) var(--gh-ease-accent);
+}
+.admin-nav__sub-inner { min-height: 0; overflow: hidden; }
+.admin-nav__list { display: flex; flex-direction: column; gap: 2px; padding-top: var(--gh-space-2); }
 .admin-nav__link {
   position: relative;
   display: flex;
@@ -1420,3 +1433,86 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-role-chips { display: inline-flex; flex-wrap: wrap; gap: var(--gh-space-2); }
 .admin-role-mark--yes { color: var(--color-success); font-weight: var(--gh-weight-semibold); }
 .admin-role-mark--no { color: var(--color-text-tertiary); }
+
+/* ============================================================
+   规范化精修（本轮）
+   —— ① 侧栏章节节奏 ② 二级页面页头 / 表格 / 卡片 ③ 表单与下拉 ④ 装修器悬浮操作条
+   仅样式层，不改业务逻辑；全部走语义令牌。
+   ============================================================ */
+
+/* ---------- ① 侧边栏：把「一长串列表」整理成有节奏的章节 ---------- */
+.admin-nav__group + .admin-nav__group {
+  margin-top: var(--gh-space-5);
+  padding-top: var(--gh-space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+/* 分组标题：大写微字 + 字距（更像「标签」，弱化正文感） */
+.admin-nav__group-title {
+  font-size: var(--gh-font-size-caption);
+  font-weight: var(--gh-weight-medium);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: var(--gh-space-2) var(--gh-space-3);
+}
+/* 导航项：统一高度；当前项底色更克制（靠左侧竖条区分） */
+.admin-nav__link { height: 36px; }
+.admin-nav__link.is-active { background: color-mix(in srgb, var(--color-accent-subtle) 70%, transparent); }
+
+/* ---------- ② 二级页面：页头 / 表格 / 卡片规范 ---------- */
+/* 页头：标题-描述-操作三段式，底部发丝线收口（装修器页头单独处理） */
+.admin-page:not(.builder-page) .admin-page__head {
+  padding-bottom: var(--gh-space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+/* 表头：大写微字 + 字距 + 次级色；数字列统一等宽，便于纵向比对 */
+.admin-table thead th {
+  font-size: var(--gh-font-size-caption);
+  font-weight: var(--gh-weight-medium);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.admin-table th, .admin-table td { font-variant-numeric: tabular-nums; }
+/* KPI / 面板：统一圆角与内边距层级 */
+.admin-kpi, .admin-panel { border-radius: var(--gh-radius-lg); }
+.admin-panel__head { padding-bottom: var(--gh-space-3); border-bottom: 1px solid var(--color-border-subtle); }
+
+/* ---------- ③ 表单 / 字段 / 输入框 / 下拉 统一 ---------- */
+/* 字段标签统一为「小号 + 中等字重」；提示与错误行同字号 */
+.admin-root .field__label { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+.admin-root .field__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+/* 下拉：去掉各端不一致的原生箭头，统一为描边内的细箭头 */
+.admin-root .select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: var(--gh-space-7);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8a92' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--gh-space-3) center;
+}
+
+/* ---------- ④ 装修器：右上角操作区 → 吸顶浮动操作条 ---------- */
+/* 整条操作区吸顶悬浮（毛玻璃 + 发丝描边），滚动时主操作始终可见 */
+.builder-page .admin-page__head {
+  position: sticky;
+  top: var(--gh-topbar-height);
+  z-index: 5;
+  margin: 0 0 var(--gh-space-5);
+  padding: var(--gh-space-3) var(--gh-space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-lg);
+  background: color-mix(in srgb, var(--color-bg-page) 86%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
+  align-items: center;
+}
+/* 三组：信息 / 工具 / 主操作；组间用发丝竖线分隔 */
+.builder-actions__status,
+.builder-actions__tools,
+.builder-actions__primary { display: inline-flex; align-items: center; gap: var(--gh-space-2); flex-wrap: wrap; }
+.builder-actions__tools,
+.builder-actions__primary { padding-left: var(--gh-space-3); border-left: 1px solid var(--color-border-subtle); }
+@media (max-width: 1023px) {
+  .builder-actions__tools,
+  .builder-actions__primary { padding-left: 0; border-left: 0; }
+}

@@ -895,106 +895,115 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
         desc={`页面 key：${page.key} · 前台路径：${page.path}${dirty ? ' · 有未保存修改' : ''}`}
         actions={
           <>
-            <span className={`builder-status builder-status--${publishState.tone}`} role="status">
-              {publishState.label}
+            {/* 信息组：发布状态 / 自动保存（只读状态，不做主操作） */}
+            <span className="builder-actions__status">
+              <span className={`builder-status builder-status--${publishState.tone}`} role="status">
+                {publishState.label}
+              </span>
+              {autoSave && (autoSaving || autoSavedAt) && (
+                <span className="builder-autosave" role="status">
+                  {autoSaving
+                    ? '自动保存中…'
+                    : `已自动保存 ${new Date(autoSavedAt as number).toLocaleTimeString('zh-CN', { hour12: false })}`}
+                </span>
+              )}
             </span>
-            {autoSave && (autoSaving || autoSavedAt) && (
-              <span className="builder-autosave" role="status">
-                {autoSaving
-                  ? '自动保存中…'
-                  : `已自动保存 ${new Date(autoSavedAt as number).toLocaleTimeString('zh-CN', { hour12: false })}`}
-              </span>
-            )}
-            <button
-              type="button"
-              className="btn btn--secondary btn--sm"
-              onClick={hist.undo}
-              disabled={!hist.canUndo}
-              title="撤销（Ctrl/Cmd+Z）"
-            >
-              ↶ 撤销
-            </button>
-            <button
-              type="button"
-              className="btn btn--secondary btn--sm"
-              onClick={hist.redo}
-              disabled={!hist.canRedo}
-              title="重做（Ctrl/Cmd+Shift+Z 或 Ctrl+Y）"
-            >
-              ↷ 重做
-            </button>
-            {hist.canUndo && (
-              <span className="builder-history-hint" role="status">
-                可撤销 {hist.undoCount} 步
-              </span>
-            )}
-            {hist.snapshots.length > 0 && (
-              <OverflowMenu
-                label="历史版本"
-                items={[...hist.snapshots]
-                  .reverse()
-                  .slice(0, 10)
-                  .map((snapshot, index) => ({
-                    key: `snap-${snapshot.at}-${index}`,
-                    label: `${new Date(snapshot.at).toLocaleTimeString('zh-CN', { hour12: false })} · ${
-                      snapshot.blocks.length
-                    } 区块`,
-                    onClick: () => hist.restore(snapshot.blocks),
-                  }))}
-              />
-            )}
-            <Link className="btn btn--secondary btn--sm" to="/admin/pages">
-              返回列表
-            </Link>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={onReset} disabled={saving}>
-              重置为初始
-            </button>
-            <a className="btn btn--secondary btn--sm" href={previewHref} target="_blank" rel="noreferrer">
-              打开前台
-            </a>
-            <button
-              className={`btn btn--secondary btn--sm${saving ? ' btn--loading' : ''}`}
-              type="button"
-              onClick={onSave}
-              disabled={saving || publishing}
-            >
-              {saving ? (
-                <>
-                  <span className="spinner" aria-hidden="true" />
-                  保存中…
-                </>
-              ) : (
-                '保存草稿'
+            {/* 工具组：编辑历史 / 导航 / 预览 / 定时 */}
+            <span className="builder-actions__tools">
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={hist.undo}
+                disabled={!hist.canUndo}
+                title="撤销（Ctrl/Cmd+Z）"
+              >
+                ↶ 撤销
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={hist.redo}
+                disabled={!hist.canRedo}
+                title="重做（Ctrl/Cmd+Shift+Z 或 Ctrl+Y）"
+              >
+                ↷ 重做
+              </button>
+              {hist.canUndo && (
+                <span className="builder-history-hint" role="status">
+                  可撤销 {hist.undoCount} 步
+                </span>
               )}
-            </button>
-            <button
-              className={`btn btn--primary btn--sm${publishing ? ' btn--loading' : ''}`}
-              type="button"
-              onClick={onPublish}
-              disabled={publishing || saving}
-              title="保存草稿并发布：快照当前内容，前台立即生效"
-            >
-              {publishing ? (
-                <>
-                  <span className="spinner" aria-hidden="true" />
-                  发布中…
-                </>
-              ) : (
-                '发布'
+              {hist.snapshots.length > 0 && (
+                <OverflowMenu
+                  label="历史版本"
+                  items={[...hist.snapshots]
+                    .reverse()
+                    .slice(0, 10)
+                    .map((snapshot, index) => ({
+                      key: `snap-${snapshot.at}-${index}`,
+                      label: `${new Date(snapshot.at).toLocaleTimeString('zh-CN', { hour12: false })} · ${
+                        snapshot.blocks.length
+                      } 区块`,
+                      onClick: () => hist.restore(snapshot.blocks),
+                    }))}
+                />
               )}
-            </button>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              aria-pressed={autoSave}
-              title="开启后：停止编辑 2.5 秒自动保存草稿（不清空撤销历史）"
-              onClick={() => setAutoSave((value) => !value)}
-            >
-              自动保存：{autoSave ? '开' : '关'}
-            </button>
-            <Link className="btn btn--secondary btn--sm" to="/admin/publish">
-              定时发布 / 版本
-            </Link>
+              <Link className="btn btn--secondary btn--sm" to="/admin/pages">
+                返回列表
+              </Link>
+              <button type="button" className="btn btn--secondary btn--sm" onClick={onReset} disabled={saving}>
+                重置为初始
+              </button>
+              <a className="btn btn--secondary btn--sm" href={previewHref} target="_blank" rel="noreferrer">
+                打开前台
+              </a>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                aria-pressed={autoSave}
+                title="开启后：停止编辑 2.5 秒自动保存草稿（不清空撤销历史）"
+                onClick={() => setAutoSave((value) => !value)}
+              >
+                自动保存：{autoSave ? '开' : '关'}
+              </button>
+              <Link className="btn btn--secondary btn--sm" to="/admin/publish">
+                定时发布 / 版本
+              </Link>
+            </span>
+            {/* 主操作组：保存草稿 / 发布 */}
+            <span className="builder-actions__primary">
+              <button
+                className={`btn btn--secondary btn--sm${saving ? ' btn--loading' : ''}`}
+                type="button"
+                onClick={onSave}
+                disabled={saving || publishing}
+              >
+                {saving ? (
+                  <>
+                    <span className="spinner" aria-hidden="true" />
+                    保存中…
+                  </>
+                ) : (
+                  '保存草稿'
+                )}
+              </button>
+              <button
+                className={`btn btn--primary btn--sm${publishing ? ' btn--loading' : ''}`}
+                type="button"
+                onClick={onPublish}
+                disabled={publishing || saving}
+                title="保存草稿并发布：快照当前内容，前台立即生效"
+              >
+                {publishing ? (
+                  <>
+                    <span className="spinner" aria-hidden="true" />
+                    发布中…
+                  </>
+                ) : (
+                  '发布'
+                )}
+              </button>
+            </span>
           </>
         }
       />

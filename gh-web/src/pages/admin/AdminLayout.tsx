@@ -341,17 +341,21 @@ export function AdminLayout() {
                       <IconChevronDown size={14} />
                     </span>
                   </button>
-                  {!isCollapsed && (
-                    <div className="admin-nav__list">
-                      {group.items.map((item) => (
-                        <NavEntry
-                          key={item.kind === 'link' ? item.to : item.key}
-                          item={item}
-                          onNavigate={() => setNavOpen(false)}
-                        />
-                      ))}
+                  {/* 二级列表常驻 DOM，用 grid-template-rows 0fr→1fr 做下拉展开动画；
+                      收起时 visibility:hidden，避免里面的链接仍能被 Tab 聚焦到 */}
+                  <div className={`admin-nav__sub${isCollapsed ? '' : ' is-open'}`} aria-hidden={isCollapsed}>
+                    <div className="admin-nav__sub-inner">
+                      <div className="admin-nav__list">
+                        {group.items.map((item) => (
+                          <NavEntry
+                            key={item.kind === 'link' ? item.to : item.key}
+                            item={item}
+                            onNavigate={() => setNavOpen(false)}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               )
             })}
