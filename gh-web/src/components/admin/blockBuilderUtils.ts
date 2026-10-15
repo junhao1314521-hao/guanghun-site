@@ -268,6 +268,8 @@ const BLOCK_ICON: Record<BlockType, string> = {
   venueList: 'grid',
   // 测评方法数据源区块
   methodList: 'doc',
+  // B2B 采购价值 + 商务联系
+  b2bValue: 'cube',
   // 邮件订阅
   subscribe: 'chat',
 }
@@ -330,6 +332,8 @@ export function blockSummary(block: Block): string {
       return str(p.videoUrl) ? '视频嵌入' : `代码嵌入 · ${str(p.height) || 360}px`
     case 'showcase':
       return `${len(p.items)} 个产品展示`
+    case 'b2bValue':
+      return str(p.title) || `${len(p.items)} 项采购价值`
     default:
       return block.type
   }

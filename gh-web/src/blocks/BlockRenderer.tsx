@@ -37,6 +37,7 @@ import { ProductBuyBlock } from './ProductBuyBlock'
 import { CaseListBlock } from './CaseListBlock'
 import { VenueListBlock } from './VenueListBlock'
 import { MethodListBlock } from './MethodListBlock'
+import { B2bValueBlock } from './B2bValueBlock'
 
 /** 按区块类型分派到对应组件；未知类型返回 null（向前兼容后台新增类型） */
 function renderBlock(block: Block): ReactNode {
@@ -98,6 +99,9 @@ function renderBlock(block: Block): ReactNode {
       return <VenueListBlock props={props} />
     case 'methodList':
       return <MethodListBlock props={props} />
+    // B2B 采购价值 + 商务联系
+    case 'b2bValue':
+      return <B2bValueBlock props={props} />
     default:
       return null
   }

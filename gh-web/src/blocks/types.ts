@@ -257,12 +257,32 @@ export type VenueListProps = DataBlockInteraction & {
   limit?: number
   /** 是否显示营业状态标签 */
   showStatus?: boolean
+  /** 分组方式：none 平铺（默认）｜province 按省份分组（仅 biz） */
+  groupBy?: 'none' | 'province'
+  /** 是否在卡片上渲染「可体验型号」芯片行（仅 biz） */
+  showModels?: boolean
+  /** 点击卡片打开统一详情弹窗（仅 biz；默认 false 时跳转详情页） */
+  dialog?: boolean
 }
 
 /** 26. methodList 测评方法（数据源，集合 methods） */
 export type MethodListProps = DataBlockInteraction & {
   title: string
   limit?: number
+}
+
+/** 27. b2bValue B2B 采购价值 + 商务联系（可后台编辑 / 可关闭） */
+export type B2bValueProps = {
+  title?: string
+  subtitle?: string
+  /** 价值卡片（图标 + 标题 + 两行说明） */
+  items?: { icon?: string; title?: string; desc?: string }[]
+  /** 商务微信 / 邮箱 / 热线（点击复制；热线可拨号） */
+  wechat?: string
+  email?: string
+  hotline?: string
+  /** 是否显示商务联系区（缺省显示） */
+  showContact?: boolean
 }
 
 /** 类型名 → props 类型映射（区块组件用） */
@@ -293,4 +313,5 @@ export type BlockPropsMap = {
   caseList: CaseListProps
   venueList: VenueListProps
   methodList: MethodListProps
+  b2bValue: B2bValueProps
 }

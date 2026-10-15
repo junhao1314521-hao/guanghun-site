@@ -5,6 +5,7 @@ import {
   BIZ_SCENES,
   BIZ_VENUES,
   BIZ_VENUE_CITIES,
+  BIZ_VENUE_PROVINCES,
   getBizCaseDetail,
   getBizVenueDetail,
 } from '../data/business-extra'
@@ -35,13 +36,14 @@ export function fetchBizCase(id: string, signal?: AbortSignal): Promise<CaseDeta
   })
 }
 
-/** 线下体验点：一次返回网点列表与城市选项，筛选在前端完成 */
+/** 线下体验点：一次返回网点列表与城市 / 省份选项，筛选在前端完成 */
 export function fetchBizVenues(
   signal?: AbortSignal,
-): Promise<{ items: VenueSummary[]; cities: string[] }> {
+): Promise<{ items: VenueSummary[]; cities: string[]; provinces: string[] }> {
   return transport({ path: '/api/business/venues', signal }, () => ({
     items: BIZ_VENUES,
     cities: BIZ_VENUE_CITIES,
+    provinces: BIZ_VENUE_PROVINCES,
   }))
 }
 

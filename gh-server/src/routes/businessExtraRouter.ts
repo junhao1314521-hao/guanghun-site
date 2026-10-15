@@ -33,7 +33,11 @@ businessExtraRouter.get('/business/cases/:id', (req, res) => {
 businessExtraRouter.get('/business/venues', (req, res) => {
   const items = listCollection('biz-venues', readLocale(req))
   const cities = Array.from(new Set(items.map((venue) => venue.city)))
-  res.json({ items, cities })
+  // 兼容历史数据缺 province：过滤空值后去重保序
+  const provinces = Array.from(
+    new Set(items.map((venue) => venue.province).filter((province): province is string => typeof province === 'string' && province.length > 0)),
+  )
+  res.json({ items, cities, provinces })
 })
 
 businessExtraRouter.get('/business/venues/:id', (req, res) => {

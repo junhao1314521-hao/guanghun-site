@@ -241,6 +241,25 @@ export function IconPin({ size = 15, className }: IconProps) {
   )
 }
 
+/** 复制（两张叠放圆角矩形） */
+export function IconCopy({ size = 15, className }: IconProps) {
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <rect x={size * 0.3} y={size * 0.12} width={size * 0.5} height={size * 0.5} rx={size * 0.09} stroke="currentColor" strokeWidth="1.3" />
+      <path d={`M${size * 0.2} ${size * 0.42}v${size * 0.36}a${size * 0.09} ${size * 0.09} 0 0 0 ${size * 0.09} ${size * 0.09}h${size * 0.36}`} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** 导航（指向箭头） */
+export function IconNavigate({ size = 15, className }: IconProps) {
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <path d={`M${size * 0.5} ${size * 0.14}L${size * 0.82} ${size * 0.84}L${size * 0.5} ${size * 0.68}L${size * 0.18} ${size * 0.84}Z`} stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 /* —— 服务入口卡图标（20px 线性）—— */
 export function IconModel({ size = 20, className }: IconProps) {
   return <IconSearch size={size} className={className} />

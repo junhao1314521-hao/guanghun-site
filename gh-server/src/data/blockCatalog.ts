@@ -51,10 +51,10 @@ const SLIDE_FIELDS: BlockFieldMeta[] = [
 ]
 
 /**
- * 区块类型目录（共 26 类）：
+ * 区块类型目录（共 27 类）：
  * - 16 类基础区块（契约 §4）+ 3 类自定义模块（richText / html / embed）+ showcase（通栏产品展示）= 20；
  * - 扩展：产品详情主体 3 类（productHero / productSpecs / productBuy）+ 商业合作 2 类（caseList / venueList）
- *   + 测评方法 1 类（methodList）。
+ *   + 测评方法 1 类（methodList）+ B2B 采购价值 1 类（b2bValue）。
  * 字段严格对齐契约 §4。
  */
 export const BLOCK_TYPES: BlockTypeMeta[] = [
@@ -679,6 +679,17 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'limit', label: '数量', kind: 'number' },
       { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
       { name: 'showStatus', label: '显示营业状态', kind: 'switch' },
+      {
+        name: 'groupBy',
+        label: '分组方式',
+        kind: 'select',
+        options: [
+          { label: '不分组', value: 'none' },
+          { label: '按省份分组', value: 'province' },
+        ],
+      },
+      { name: 'showModels', label: '显示可体验型号', kind: 'switch' },
+      { name: 'dialog', label: '点击打开详情弹窗', kind: 'switch' },
     ],
   },
   // —— 测评方法数据源区块：从集合 methods 取数（后台「测评方法」维护）——
@@ -689,6 +700,26 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     fields: [
       { name: 'title', label: '标题', kind: 'text' },
       { name: 'limit', label: '数量', kind: 'number' },
+    ],
+  },
+  // —— B2B 采购价值 + 商务联系区块：4 张价值卡 + 可复制联系胶囊（可后台编辑 / 可关闭）——
+  {
+    type: 'b2bValue',
+    name: 'B2B 采购价值',
+    group: '数据',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text' },
+      { name: 'subtitle', label: '子标题', kind: 'text' },
+      { name: 'items', label: '价值卡片', kind: 'list' },
+      { name: 'wechat', label: '商务微信', kind: 'text', placeholder: '如：xxrsm001' },
+      { name: 'email', label: '商务邮箱', kind: 'text', placeholder: '如：1009742523@qq.com' },
+      { name: 'hotline', label: '商务热线', kind: 'text', placeholder: '如：15913908438' },
+      { name: 'showContact', label: '显示商务联系', kind: 'switch' },
+    ],
+    listFields: [
+      { name: 'icon', label: '图标', kind: 'text', placeholder: '如：cube / shield / cloud' },
+      { name: 'title', label: '标题', kind: 'text' },
+      { name: 'desc', label: '说明', kind: 'textarea', placeholder: '建议不超过两行' },
     ],
   },
 ]
@@ -731,7 +762,7 @@ export function getBlockTypeMeta(type: BlockType): BlockTypeMeta | undefined {
   return BLOCK_TYPES.find((meta) => meta.type === type)
 }
 
-/** 全部区块类型（26 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
+/** 全部区块类型（27 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
 export const BLOCK_TYPE_VALUES: BlockType[] = BLOCK_TYPES.map((meta) => meta.type)
 
 /** 新建区块：生成随机稳定 id 的区块对象（后台新增用） */

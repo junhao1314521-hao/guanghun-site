@@ -1146,6 +1146,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     searchKeys: ['name', 'city'],
     columns: [
       { key: 'name', label: '体验点名称', type: 'strong' },
+      { key: 'province', label: '省份', type: 'tag' },
       { key: 'city', label: '城市', type: 'tag' },
       { key: 'area', label: '区域' },
       { key: 'type', label: '类型', type: 'tag' },
@@ -1154,6 +1155,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'address', label: '地址' },
     ],
     filters: [
+      { key: 'province', label: '省份', options: ['广东', '上海', '北京', '四川'] },
       { key: 'city', label: '城市', options: ['深圳', '上海', '北京', '成都', '广州'] },
       { key: 'type', label: '类型', options: ['flagship', 'experience', 'service'] },
       { key: 'status', label: '状态', options: ['营业中', '调整中', '筹备中'] },
@@ -1164,6 +1166,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '体验点名称', type: 'text', span: 2, required: true },
+          { key: 'province', label: '省份', type: 'text', hint: '如：广东 / 上海' },
           { key: 'city', label: '城市', type: 'text' },
           { key: 'area', label: '区域', type: 'text' },
           { key: 'type', label: '类型', type: 'select', options: ['flagship', 'experience', 'service'] },

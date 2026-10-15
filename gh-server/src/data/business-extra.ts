@@ -191,6 +191,8 @@ export type VenueType = 'flagship' | 'experience' | 'service'
 export type VenueSummary = {
   id: string
   name: string
+  /** 省份（用于分组 / 筛选；列表接口按此聚合 provinces） */
+  province: string
   city: string
   area: string
   type: VenueType
@@ -220,6 +222,7 @@ export const BIZ_VENUES: VenueSummary[] = [
   {
     id: 'sz-flagship',
     name: '光魂 · 深圳旗舰体验中心',
+    province: '广东',
     city: '深圳',
     area: '南山区',
     type: 'flagship',
@@ -227,10 +230,12 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: true,
     address: '深圳市南山区科苑大道 · 光魂旗舰体验中心',
     cover: '/media/business/venues/sz-flagship.svg',
+    products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器', '27 英寸 2K 电竞显示器', '显示器悬臂支架'],
   },
   {
     id: 'sh-experience',
     name: '光魂 · 上海南京路体验点',
+    province: '上海',
     city: '上海',
     area: '黄浦区',
     type: 'experience',
@@ -238,10 +243,12 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: true,
     address: '上海市黄浦区南京东路 · 数码体验街区内',
     cover: '/media/business/venues/sh-experience.svg',
+    products: ['27 英寸 2K 电竞显示器', '24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
   },
   {
     id: 'bj-service',
     name: '光魂 · 北京授权服务点',
+    province: '北京',
     city: '北京',
     area: '海淀区',
     type: 'service',
@@ -249,10 +256,12 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: false,
     address: '北京市海淀区中关村大街 · 授权服务点',
     cover: '/media/business/venues/bj-service.svg',
+    products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器'],
   },
   {
     id: 'cd-experience',
     name: '光魂 · 成都春熙路体验点',
+    province: '四川',
     city: '成都',
     area: '锦江区',
     type: 'experience',
@@ -260,10 +269,12 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: true,
     address: '成都市锦江区春熙路商圈 · 电竞主题店内',
     cover: '/media/business/venues/cd-experience.svg',
+    products: ['闪电 540Hz 电竞OLED显示器', '27 英寸 2K 电竞显示器', 'Meta 双模 4K 电竞显示器'],
   },
   {
     id: 'gz-service',
     name: '光魂 · 广州授权服务点',
+    province: '广东',
     city: '广州',
     area: '天河区',
     type: 'service',
@@ -271,8 +282,12 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: false,
     address: '广州市天河区天河路商圈 · 授权服务点',
     cover: '/media/business/venues/gz-service.svg',
+    products: ['24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
   },
 ]
+
+/** 省份列表：用于体验点页的筛选 / 分组（去重，保持数据出现顺序） */
+export const BIZ_VENUE_PROVINCES: string[] = Array.from(new Set(BIZ_VENUES.map((venue) => venue.province)))
 
 export const BIZ_VENUE_DETAILS: Record<string, VenueDetail> = {
   'sz-flagship': {
