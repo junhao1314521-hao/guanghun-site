@@ -37,6 +37,8 @@
 | `SITE_ORIGIN` | 否 | 请求 Host | **SEO 用站点源**（如 `https://www.<domain>`）：动态 `sitemap.xml` / `robots.txt` 的绝对地址前缀；未设置时回退请求 Host |
 | `COOKIE_SECURE` | 否 | — | 置 `1`：后台会话 Cookie 追加 `Secure`（**生产经 HTTPS 提供时必设**）；本地 HTTP 联调不设 |
 | `SESSION_TTL_MS` | 否 | `28800000`（8 小时） | 后台会话存活时长（毫秒）；过期后需重新登录 |
+| `ADMIN_PASSWORD` | 否 | `admin123` | **后台 admin 种子口令**；生产必设强口令（**仅首次建库生效**） |
+| `ADMIN_OPERATOR_PASSWORD` | 否 | `oper123` | **后台 operator 种子口令**（同上） |
 | `CONTENT_STORE_PATH` | 否 | `gh-server/data/content-store.json` | **仅作旧库迁移来源**（首次启动导入后不再写入） |
 | `COLLECTION_STORE_PATH` | 否 | `gh-server/data/collection-store.json` | **仅作旧库迁移来源**（同上） |
 | `ADMIN_RESOURCE_STORE_PATH` | 否 | `gh-server/data/admin-resources.json` | **仅作旧库迁移来源**（同上） |
@@ -50,6 +52,8 @@
 | 变量 | 必填 | 说明 |
 |---|---|---|
 | `VITE_API_BASE` | **是** | **未设置（undefined）→ 加载期报错**（防静默空白页）；显式置空 `""` → **同源**（相对路径 `/api/...`）；填完整地址 → **分离部署** |
+| `VITE_ADMIN_AUTO_LOGIN` | 否 | `on`（默认开） | 后台登录页「免登录」：**生产必须置 `off`**。仓库 Dockerfile 已默认以 `off` 构建 |
+| `VITE_ADMIN_DEMO_USER` / `VITE_ADMIN_DEMO_PASS` | 否 | `admin` / `admin123` | 免登录演示时自动填充的凭据（仅在 `VITE_ADMIN_AUTO_LOGIN` 非 `off` 时生效） |
 
 > ⚠️ 区分「未设置 → 报错」与「置空 → 同源」。本地开发地址由 `gh-web/.env.development` 提供（生产**不**读取该文件）。
 
@@ -237,6 +241,8 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Authorization: Bearer <operator-tok
 ## 十、上线检查清单（勾完即发布）
 
 - [ ] `VITE_API_BASE` 按拓扑正确注入并**重新构建**
+- [ ] **后台免登录已关闭**（`VITE_ADMIN_AUTO_LOGIN=off`；仓库 Dockerfile 已默认关闭）
+- [ ] **后台种子口令已改为强口令**（`ADMIN_PASSWORD` / `ADMIN_OPERATOR_PASSWORD`，仅首次建库生效）
 - [ ] `CORS_ORIGINS` 收敛为正式域名（分离部署必填）
 - [ ] HTTPS 证书已配置，前后端均 https
 - [ ] `SITE_ORIGIN` 已设为正式域名；`SITE_URL` 占位域名已替换（`sitemap.xml` / `robots.txt` 由后端动态生成）
@@ -247,3 +253,74 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Authorization: Bearer <operator-tok
 - [ ] 第七节冒烟全部通过
 - [ ] 结构化日志已接入并设 5xx / 429 告警
 - [ ] 完成《V1.0 发布检查单》全部条目
+
+---
+
+## 十一、两种上线路径（照着做即可）
+
+> 目标区分：**路径 A** 用于「给客户看的公网预览」（几分钟拿到网址）；**路径 B** 用于「正式部署到服务器（云端 / 本地）」。两条路都用仓库自带的 `Dockerfile`（前端构建产物由 Express 同源托管，只暴露一个端口）。
+
+### 11.1 安全底线（任何路径都必做）
+
+1. **关闭后台免登录**：`VITE_ADMIN_AUTO_LOGIN=off`。仓库 `Dockerfile` 已默认以 `off` 构建，勿改回 `on`（否则任何人拿到网址即可进后台）。
+2. **改掉种子口令**：设 `ADMIN_PASSWORD` / `ADMIN_OPERATOR_PASSWORD` 为强口令（**仅首次建库生效**；已有库需先清空 `data/gh.sqlite` 或手动改库）。
+3. **HTTPS + `COOKIE_SECURE=1`**：正式对外必须走 HTTPS，并置 `COOKIE_SECURE=1`（Cookie 追加 `Secure`）。
+
+### 11.2 路径 A · 公网预览（Render 蓝图，客户演示）
+
+1. 把仓库推到 GitHub（本仓库地址：`https://github.com/junhao1314521-hao/guanghun-site`）。
+2. 登录 [Render](https://render.com) → **New → Blueprint** → 选择该仓库 → **Apply**。
+3. Render 读取根目录 [`render.yaml`](./render.yaml) 与 [`Dockerfile`](./Dockerfile) 自动构建，健康检查用 `/healthz`，完成后得到 **`https://<name>.onrender.com`**。
+4. 打开该网址即为前台；后台在 `/admin`，用 `admin` / `admin123` 登录（若已在 Render 环境变量里设了 `ADMIN_PASSWORD`，则用你设的口令）。
+
+> ⚠️ Render **免费层没有持久磁盘**：容器重启后 `data/gh.sqlite`、`uploads/`、`backups/` 会回到种子状态。仅适合预览 / 演示；要留存数据请用路径 B，或在 Render 挂 **Persistent Disk** 并把 `DB_PATH` / `UPLOAD_DIR` / `BACKUP_DIR` 指过去。
+
+### 11.3 路径 B · 正式部署到服务器（云端 / 本地，Docker）
+
+**前置**：服务器已装 Docker；已解析域名并签发 HTTPS 证书（推荐用 Nginx 或 Caddy 终止 TLS 并反代到 `127.0.0.1:3000`）。
+
+```bash
+# 1) 取代码
+git clone https://github.com/junhao1314521-hao/guanghun-site.git && cd guanghun-site
+
+# 2) 构建镜像（默认已关闭后台免登录）
+docker build -t guanghun-site .
+
+# 3) 建持久化目录（库 / 素材 / 备份三件套，务必落在宿主机）
+mkdir -p /srv/guanghun/{data,uploads,backups}
+
+# 4) 启动（口令务必改成你的强口令；首次建库生效）
+docker run -d --name guanghun \
+  -p 127.0.0.1:3000:3000 \
+  -e TRUST_PROXY=1 -e COOKIE_SECURE=1 \
+  -e SITE_ORIGIN=https://www.<你的域名> \
+  -e ADMIN_PASSWORD='<改成强口令>' \
+  -e ADMIN_OPERATOR_PASSWORD='<改成强口令>' \
+  -e DB_PATH=/data/gh.sqlite \
+  -e UPLOAD_DIR=/data/uploads \
+  -e BACKUP_DIR=/data/backups \
+  -v /srv/guanghun/data:/data \
+  -v /srv/guanghun/uploads:/data/uploads \
+  -v /srv/guanghun/backups:/data/backups \
+  --restart unless-stopped \
+  guanghun-site
+```
+
+Nginx（同源反代 + HTTPS）：
+
+```nginx
+server {
+  listen 443 ssl http2;
+  server_name www.<你的域名>;
+  ssl_certificate     /etc/letsencrypt/live/www.<你的域名>/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/www.<你的域名>/privkey.pem;
+  client_max_body_size 12m;   # 与后端 10MB JSON 上限匹配（Word 导入 / 上传）
+  location / { proxy_pass http://127.0.0.1:3000; proxy_set_header Host $host; proxy_set_header X-Forwarded-Proto $scheme; }
+}
+```
+
+冒烟：按本 Runbook **第七节** 逐条执行（探针 / 基础 12 端点 / 后台 401 / 深链 / 安全头）。
+
+**必改清单（正式上线前）**：`SITE_ORIGIN` 正式域名、`data/meta.ts` 的 `SITE_URL` 占位；HTTPS 证书；ICP / 公安备案 / 主办单位 / 核验联系方式；法务正文与占位素材（见 §九）。
+
+> ⚠️ 单实例：会话为进程内内存、限流为进程内、SQLite 为单进程库 —— **可水平扩展前请勿多副本**；需要多副本时改为外部数据库 + 网关级限流（见 §九 #3）。
