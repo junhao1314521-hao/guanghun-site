@@ -206,7 +206,22 @@ function defaultProps(type: BlockType): Record<string, unknown> {
       return { eyebrow: '', title: [''], desc: '', mediaTag: '', image: '', primary: { label: '了解更多', href: '/' }, stats: [] }
     case 'carousel':
       return {
-        slides: [{ eyebrow: '', title: [''], desc: '', mediaTag: '', image: '', primary: { label: '了解更多', href: '/' }, stats: [] }],
+        // 「代码动画」作为第 1 张（默认开）；关闭后仅展示下面配置的海报
+        motion: true,
+        slides: [
+          {
+            eyebrow: '',
+            title: [''],
+            desc: '',
+            mediaTag: '',
+            media: '',
+            mediaType: 'image',
+            image: '',
+            imageMobile: '',
+            primary: { label: '了解更多', href: '/' },
+            stats: [],
+          },
+        ],
         autoplay: true,
       }
     case 'video':

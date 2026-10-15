@@ -31,8 +31,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's0',
     media: { kind: 'image' },
     mediaTag: '品牌主视觉',
-    poster: '/media/home/s0.jpg',
-    posterMobile: '/media/home/s0-m.jpg',
+    // 首页海报暂不采用图片素材（图片由后台按需补充）；保留文案即可
     eyebrow: 'SUPER DISPLAY / 2026',
     title: ['为极致而生'],
     desc: 'OLED 电竞显示器，以实测数据定义性能。',
@@ -50,8 +49,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's1',
     media: { kind: 'motion' },
     mediaTag: '主视觉动效',
-    poster: '/media/home/s1.jpg',
-    posterMobile: '/media/home/s1-m.jpg',
+    // 图片素材暂不采用（保留文案，后台可随时补图 / 视频 / GIF）
     eyebrow: 'FLAGSHIP / 54027X1QE-W54',
     title: ['2K@540Hz 闪电旗舰'],
     desc: '第四代 W-OLED，0.03 ms 响应，DP 2.1 一线跑满 540Hz。',
@@ -69,8 +67,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's2',
     media: { kind: 'canvas' },
     mediaTag: 'Canvas 实时动效',
-    poster: '/media/home/s2.jpg',
-    posterMobile: '/media/home/s2-m.jpg',
+    // 图片素材暂不采用（保留文案，后台可随时补图 / 视频 / GIF）
     eyebrow: 'INTERACTIVE / CANVAS',
     title: ['数据驱动每一帧'],
     desc: '代码实时渲染的动效层，配合可复现的实测方法。',
