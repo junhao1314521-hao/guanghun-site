@@ -11,7 +11,23 @@
   min-height: 100vh;
   background: var(--color-bg-page);
   color: var(--color-text-primary);
+
+  /* ============================================================
+     ⓪ 后台设计令牌（后台专用命名空间，仅作用于 .admin-root）
+     —— 样式统一的第一层：把「高度 / 圆角 / 节奏 / 层级」收敛到一处，
+        页面与组件只引用令牌，不再各写各的裸值。前台不受影响。
+     规格：控件高度 sm/md/lg = 26 / 32 / 36；控件圆角一律 3px；面圆角 8px。
+     ============================================================ */
+  --adm-control-h-sm: 26px;
+  --adm-control-h-md: 32px;
+  --adm-control-h-lg: 36px;
+  --adm-radius-control: var(--gh-radius-btn);  /* 3px：按钮 / 输入 / 下拉 / 标签 / 图标按钮 */
+  --adm-radius-surface: var(--gh-radius-lg);   /* 8px：面板 / 卡片 / 浮层 */
+  --adm-row-height: 44px;                      /* 表格行高 */
+  --adm-toolbar-height: 48px;                  /* 列表页工具栏 */
 }
+
+/* 备注：间距与层级沿用全局令牌（--gh-space-* / --gh-z-*），不另起一套，避免双真源。 */
 /* 启动 / 会话校验加载态：整屏居中 */
 .admin-boot {
   display: grid;
@@ -1520,4 +1536,57 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 @media (max-width: 1023px) {
   .builder-actions__tools,
   .builder-actions__primary { padding-left: 0; border-left: 0; }
+}
+
+/* ---------- ⑤ 控件规格：高度 / 圆角 / 字号 统一（后台） ----------
+   目标：工具栏里「按钮 · 输入 · 下拉 · 图标按钮」同高（32）同圆角（3），
+   不再出现「40px 输入框配 32px 按钮」的错位感；标签 / 开关随之下调一档。 */
+.admin-root .input,
+.admin-root .select,
+.admin-root .textarea {
+  height: var(--adm-control-h-md);
+  border-radius: var(--adm-radius-control);
+  font-size: var(--gh-font-size-body-sm);
+}
+.admin-root .textarea { height: auto; min-height: 76px; }
+/* 下拉箭头右侧内距随高度收紧（原 48px 在 32px 高下留白过大） */
+.admin-root .select { padding-right: var(--gh-space-6); }
+
+.admin-root .btn {
+  height: var(--adm-control-h-md);
+  padding: 0 var(--gh-space-3);
+  border-radius: var(--adm-radius-control);
+  font-size: var(--gh-font-size-body-sm);
+}
+.admin-root .btn--sm { height: var(--adm-control-h-sm); padding: 0 var(--gh-space-2); font-size: var(--gh-font-size-caption); }
+.admin-root .btn--lg { height: var(--adm-control-h-lg); padding: 0 var(--gh-space-4); font-size: var(--gh-font-size-body); }
+.admin-root .icon-btn {
+  width: var(--adm-control-h-md);
+  height: var(--adm-control-h-md);
+  border-radius: var(--adm-radius-control);
+}
+
+.admin-root .switch { font-size: var(--gh-font-size-body-sm); }
+.admin-root .switch__track { width: 34px; height: 18px; }
+.admin-root .switch__track::after { width: 14px; height: 14px; margin: 2px; }
+.admin-root .switch input:checked + .switch__track::after { transform: translateX(16px); }
+
+.admin-root .tag { height: 20px; border-radius: var(--adm-radius-control); }
+.admin-root .tag--pill { border-radius: var(--gh-radius-full); }  /* 胶囊标签保持胶囊 */
+.admin-root .check { font-size: var(--gh-font-size-body-sm); }
+.admin-root .check input { width: 15px; height: 15px; }
+
+/* 面：面板 / KPI / 卡片统一取「面级」圆角 */
+.admin-root .admin-panel,
+.admin-root .admin-kpi { border-radius: var(--adm-radius-surface); }
+
+/* 触屏（平板 / 手机）：沿用前台既有规则 —— 表单文字 ≥16px 防 iOS 自动放大、命中区 ≥40px。
+   后台控件更紧凑，必须在此显式兜底，否则会被上面的 13px / 32px 覆盖。 */
+@media (hover: none) {
+  .admin-root .input,
+  .admin-root .select,
+  .admin-root .textarea { height: 40px; font-size: 16px; }
+  .admin-root .btn { height: 40px; }
+  .admin-root .btn--sm { height: 36px; }
+  .admin-root .icon-btn { width: 40px; height: 40px; }
 }
