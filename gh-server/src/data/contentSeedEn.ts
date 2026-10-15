@@ -12,6 +12,7 @@
  */
 import type { Block, BlockStyle, BlockType, Page, SiteConfig } from './contentTypes'
 import { EN_KEY_SUFFIX } from './locale'
+import { upgradeVenueListProps } from './contentSeed'
 
 /** seed 生成的固定时间戳：与中文 seed 一致，保证重复构建结果一致 */
 const SEED_TIMESTAMP = '2026-10-12T00:00:00.000Z'
@@ -587,6 +588,22 @@ function buildBusinessCasesEn(): Page {
   ])
 }
 
+/** 体验点页 · b2bValue 区块示例数据（英文）；seed 与历史库一次性升级共用 */
+export const BIZ_VENUES_B2B_PROPS_EN: Record<string, unknown> = {
+  title: 'Bulk purchasing for business',
+  subtitle: 'Volume orders for teams and stores ｜ from model selection to deployment',
+  items: [
+    { icon: 'cube', title: 'Volume pricing', desc: 'Tiered pricing by quantity with a transparent quote, and mixed-model orders in one go.' },
+    { icon: 'shield', title: 'Corporate + VAT invoice', desc: 'Bank transfer and VAT invoices supported; contracts and terms follow your process.' },
+    { icon: 'cloud', title: 'Nationwide delivery & setup', desc: 'Nationwide shipping with on-site setup and cable management on request.' },
+    { icon: 'sliders', title: 'Dedicated tech contact', desc: 'A named contact for firmware, display profiles and after-sales across fleets.' },
+  ],
+  wechat: 'xxrsm001',
+  email: '1009742523@qq.com',
+  hotline: '15913908438',
+  showContact: true,
+}
+
 function buildBusinessVenuesEn(): Page {
   return toPage('business-venues', '/business/venues', 'Experience spots', 'Venues + data-source block.', [
     {
@@ -594,33 +611,10 @@ function buildBusinessVenuesEn(): Page {
       props: {
         title: 'Experience spots',
         subtitle: 'Try the gear and tuning in person.',
-        scope: 'all',
-        groupBy: 'province',
-        showModels: true,
-        dialog: true,
-        limit: 0,
-        pageSize: 0,
-        columns: 3,
-        showStatus: true,
+        ...upgradeVenueListProps({}),
       },
     },
-    {
-      type: 'b2bValue',
-      props: {
-        title: 'Bulk purchasing for business',
-        subtitle: 'Volume orders for teams and stores ｜ from model selection to deployment',
-        items: [
-          { icon: 'cube', title: 'Volume pricing', desc: 'Tiered pricing by quantity with a transparent quote, and mixed-model orders in one go.' },
-          { icon: 'shield', title: 'Corporate + VAT invoice', desc: 'Bank transfer and VAT invoices supported; contracts and terms follow your process.' },
-          { icon: 'cloud', title: 'Nationwide delivery & setup', desc: 'Nationwide shipping with on-site setup and cable management on request.' },
-          { icon: 'sliders', title: 'Dedicated tech contact', desc: 'A named contact for firmware, display profiles and after-sales across fleets.' },
-        ],
-        wechat: 'xxrsm001',
-        email: '1009742523@qq.com',
-        hotline: '15913908438',
-        showContact: true,
-      },
-    },
+    { type: 'b2bValue', props: BIZ_VENUES_B2B_PROPS_EN },
   ])
 }
 

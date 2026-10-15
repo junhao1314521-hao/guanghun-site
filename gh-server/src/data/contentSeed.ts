@@ -616,6 +616,37 @@ function buildBusinessCases(): Page {
   ])
 }
 
+/** 体验点页 · venueList 的新配置（省份分组 / 可体验型号 / 统一弹窗）；seed 与历史库一次性升级共用 */
+export function upgradeVenueListProps(base: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...base,
+    scope: 'all',
+    groupBy: 'province',
+    showModels: true,
+    dialog: true,
+    limit: 0,
+    pageSize: 0,
+    columns: 3,
+    showStatus: true,
+  }
+}
+
+/** 体验点页 · b2bValue 区块示例数据（中文）；seed 与历史库一次性升级共用 */
+export const BIZ_VENUES_B2B_PROPS: Record<string, unknown> = {
+  title: '企业批量采购',
+  subtitle: '面向团队与门店的整单采购支持 ｜ 从选型到部署一站对接',
+  items: [
+    { icon: 'cube', title: '批量采购价', desc: '按数量分档给出阶梯价，整单报价更透明，支持跨型号组合下单。' },
+    { icon: 'shield', title: '对公 + 增票', desc: '支持对公转账与增值税专用发票，合同、账期按企业流程对接。' },
+    { icon: 'cloud', title: '全国配送安装', desc: '全国范围配送，可预约上门安装与线材整理，统一交付标准。' },
+    { icon: 'sliders', title: '专属技术对接', desc: '配备对接人跟进固件、显示配置与售后，批量设备集中管理。' },
+  ],
+  wechat: 'xxrsm001',
+  email: '1009742523@qq.com',
+  hotline: '15913908438',
+  showContact: true,
+}
+
 /** 体验点列表 */
 function buildBusinessVenues(): Page {
   return toPage('business-venues', '/business/venues', '体验点列表', '体验点装修 + 数据源区块。', [
@@ -624,33 +655,10 @@ function buildBusinessVenues(): Page {
       props: {
         title: '线下体验点',
         subtitle: '就近体验实机与调参。',
-        scope: 'all',
-        groupBy: 'province',
-        showModels: true,
-        dialog: true,
-        limit: 0,
-        pageSize: 0,
-        columns: 3,
-        showStatus: true,
+        ...upgradeVenueListProps({}),
       },
     },
-    {
-      type: 'b2bValue',
-      props: {
-        title: '企业批量采购',
-        subtitle: '面向团队与门店的整单采购支持 ｜ 从选型到部署一站对接',
-        items: [
-          { icon: 'cube', title: '批量采购价', desc: '按数量分档给出阶梯价，整单报价更透明，支持跨型号组合下单。' },
-          { icon: 'shield', title: '对公 + 增票', desc: '支持对公转账与增值税专用发票，合同、账期按企业流程对接。' },
-          { icon: 'cloud', title: '全国配送安装', desc: '全国范围配送，可预约上门安装与线材整理，统一交付标准。' },
-          { icon: 'sliders', title: '专属技术对接', desc: '配备对接人跟进固件、显示配置与售后，批量设备集中管理。' },
-        ],
-        wechat: 'xxrsm001',
-        email: '1009742523@qq.com',
-        hotline: '15913908438',
-        showContact: true,
-      },
-    },
+    { type: 'b2bValue', props: BIZ_VENUES_B2B_PROPS },
   ])
 }
 

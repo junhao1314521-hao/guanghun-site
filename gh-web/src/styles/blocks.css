@@ -1021,6 +1021,8 @@
 .venue-card--service { --venue-type-color: var(--color-success); }
 .venue-card--clickable:hover { border-color: var(--color-accent); box-shadow: var(--shadow-md); transform: translateY(-4px); }
 .venue-card--clickable:hover .card__title { color: var(--color-accent-text); }
+/* 顶部封面（占位/图片模式，16:9）：缺图由 .ph-box--media + MediaImg 优雅降级，不出现破图 */
+.venue-card__cover { flex: none; border-radius: var(--gh-radius-lg); }
 
 /* 整卡点击触发层（stretched link / button）：透明铺满，交互子元素在其之上 */
 .venue-card__trigger {

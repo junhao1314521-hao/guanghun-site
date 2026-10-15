@@ -256,6 +256,24 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
     [state.data, removed],
   )
 
+  // 动态筛选项：从当前已加载的行数据提取该字段的去重非空值（保持出现顺序）；提取为空则回退到配置的 options
+  const dynamicOptions = useMemo(() => {
+    const map: Record<string, string[]> = {}
+    for (const filter of resource.filters ?? []) {
+      if (!filter.dynamic) continue
+      const seen = new Set<string>()
+      const values: string[] = []
+      for (const row of rows) {
+        const value = String(row[filter.key] ?? '').trim()
+        if (!value || seen.has(value)) continue
+        seen.add(value)
+        values.push(value)
+      }
+      map[filter.key] = values
+    }
+    return map
+  }, [resource, rows])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return rows.filter((row) => {
@@ -427,36 +445,40 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
         </div>
       )}
 
-      {resource.filters?.map((filter) => (
-        <div className="admin-filters" key={filter.key}>
-          <span className="admin-filters__label">{filter.label}</span>
-          <div className="admin-chipbar">
-            <button
-              type="button"
-              className={`admin-chip${!filters[filter.key] ? ' is-active' : ''}`}
-              onClick={() => {
-                setFilters((prev) => ({ ...prev, [filter.key]: '' }))
-                setPage(1)
-              }}
-            >
-              全部
-            </button>
-            {filter.options.map((option) => (
+      {resource.filters?.map((filter) => {
+        const dynamic = dynamicOptions[filter.key]
+        const options = filter.dynamic && dynamic && dynamic.length > 0 ? dynamic : filter.options
+        return (
+          <div className="admin-filters" key={filter.key}>
+            <span className="admin-filters__label">{filter.label}</span>
+            <div className="admin-chipbar">
               <button
                 type="button"
-                key={option}
-                className={`admin-chip${filters[filter.key] === option ? ' is-active' : ''}`}
+                className={`admin-chip${!filters[filter.key] ? ' is-active' : ''}`}
                 onClick={() => {
-                  setFilters((prev) => ({ ...prev, [filter.key]: option }))
+                  setFilters((prev) => ({ ...prev, [filter.key]: '' }))
                   setPage(1)
                 }}
               >
-                {option}
+                全部
               </button>
-            ))}
+              {options.map((option) => (
+                <button
+                  type="button"
+                  key={option}
+                  className={`admin-chip${filters[filter.key] === option ? ' is-active' : ''}`}
+                  onClick={() => {
+                    setFilters((prev) => ({ ...prev, [filter.key]: option }))
+                    setPage(1)
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
 
       <span className="admin-toolbar__spacer" />
 

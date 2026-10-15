@@ -43,7 +43,13 @@ export type AdminColumn = {
   options?: string[]
 }
 
-export type AdminFilter = { key: string; label: string; options: string[] }
+/**
+ * 列表筛选项。
+ * - `options`：静态候选项，也是 `dynamic` 筛选项在提取为空时的兜底；
+ * - `dynamic`：为 true 时，前台从「当前已加载的行数据」中提取该字段的去重非空值作为选项
+ *   （如体验点省份，随数据自动增长），提取为空则回退到 `options`。
+ */
+export type AdminFilter = { key: string; label: string; options: string[]; dynamic?: boolean }
 
 export type AdminFieldType =
   | 'text'
@@ -1155,7 +1161,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'address', label: '地址' },
     ],
     filters: [
-      { key: 'province', label: '省份', options: ['广东', '上海', '北京', '四川'] },
+      { key: 'province', label: '省份', options: ['广东', '上海', '北京', '四川'], dynamic: true },
       { key: 'city', label: '城市', options: ['深圳', '上海', '北京', '成都', '广州'] },
       { key: 'type', label: '类型', options: ['flagship', 'experience', 'service'] },
       { key: 'status', label: '状态', options: ['营业中', '调整中', '筹备中'] },

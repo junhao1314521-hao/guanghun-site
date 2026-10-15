@@ -8,9 +8,9 @@
  * - 容错：DB 打开 / 建表失败 → 结构化日志 + 明确错误（不静默降级）；旧 JSON 损坏由 db 迁移层跳过。
  */
 import { logger } from '../lib/logger'
-import { getDb, runInTransaction } from './db'
-import { buildSeed } from './contentSeed'
-import { buildSeedEn, SITE_EN } from './contentSeedEn'
+import { getDb, getMeta, runInTransaction, setMeta } from './db'
+import { buildSeed, BIZ_VENUES_B2B_PROPS, upgradeVenueListProps } from './contentSeed'
+import { buildSeedEn, BIZ_VENUES_B2B_PROPS_EN, SITE_EN } from './contentSeedEn'
 import { baseKeyOfKey, enKeyOf, isEnKey, type Locale } from './locale'
 import type { Block, Page, PageMeta, SiteConfig } from './contentTypes'
 
@@ -51,6 +51,87 @@ export function initStore(): void {
   }
 
   ensureEnVariants()
+  upgradeBusinessVenuesPages()
+}
+
+/**
+ * meta 标记：体验点页一次性升级（省份分组 / 可体验型号 / 统一弹窗 + 追加 B2B 区块）。
+ * 与 db.ts 的 `migrated_json` 同属「一次性迁移标记」，保证仅执行一次、可重复运行无副作用。
+ */
+const META_VENUES_UPGRADE = 'migrated_business_venues_grouping'
+
+/** 体验点页 · venueList 区块的旧种子签名（用于判定「该区块未被运营改动过」） */
+function isLegacyVenueListProps(props: Record<string, unknown>): boolean {
+  return (
+    props.scope === 'all' &&
+    props.limit === 0 &&
+    props.pageSize === 9 &&
+    props.columns === 3 &&
+    props.showStatus === true &&
+    props.groupBy === undefined &&
+    props.showModels === undefined &&
+    props.dialog === undefined
+  )
+}
+
+/**
+ * 体验点页一次性升级（幂等、严格受限）：
+ * - 仅当页面存在、且其 `venueList` 区块 props **恰好等于旧种子签名**时，才升级为
+ *   `groupBy:'province'` / `showModels:true` / `dialog:true` / `pageSize:0` / `limit:0`，
+ *   并在该页尚无 `b2bValue` 区块时追加一个（与 `contentSeed` 示例数据一致，中/英各一份）；
+ * - 运营已自行改动（props 不等于旧签名）时**整页不动**，避免覆盖内容；
+ * - 用 meta 标记保证只执行一次（中/英页共用同一标记，一次事务内完成）。
+ */
+function upgradeBusinessVenuesPages(): void {
+  const db = getDb()
+  if (getMeta(db, META_VENUES_UPGRADE) === '1') return
+
+  const targets: Array<{ key: string; b2bProps: Record<string, unknown> }> = [
+    { key: 'business-venues', b2bProps: BIZ_VENUES_B2B_PROPS },
+    { key: enKeyOf('business-venues'), b2bProps: BIZ_VENUES_B2B_PROPS_EN },
+  ]
+
+  let upgraded = 0
+  runInTransaction((tx) => {
+    const select = tx.prepare('SELECT data FROM content_pages WHERE key = ?')
+    const update = tx.prepare('UPDATE content_pages SET data = ?, updated_at = ? WHERE key = ?')
+    for (const target of targets) {
+      const row = select.get(target.key) as { data: string } | undefined
+      if (!row) continue
+      let page: Page
+      try {
+        page = JSON.parse(row.data) as Page
+      } catch {
+        continue
+      }
+
+      // 严格受限：仅当该页存在「旧种子签名」的 venueList 区块时才升级；否则一律不动（避免覆盖运营内容）
+      const isLegacyPage = page.blocks.some((block) => block.type === 'venueList' && isLegacyVenueListProps(block.props))
+      if (!isLegacyPage) continue
+
+      let changed = false
+      const blocks = page.blocks.map((block) => {
+        if (block.type !== 'venueList' || !isLegacyVenueListProps(block.props)) return block
+        changed = true
+        return { ...block, props: upgradeVenueListProps(block.props) }
+      })
+
+      if (!blocks.some((block) => block.type === 'b2bValue')) {
+        blocks.push({ id: `${target.key}-b2b-value`, type: 'b2bValue', enabled: true, props: target.b2bProps })
+        changed = true
+      }
+
+      if (!changed) continue
+      const next: Page = { ...page, blocks, updatedAt: new Date().toISOString() }
+      update.run(JSON.stringify(next), next.updatedAt, target.key)
+      upgraded += 1
+    }
+    setMeta(tx, META_VENUES_UPGRADE, '1')
+  })
+
+  if (upgraded > 0) {
+    logger.info('体验点页已一次性升级（省份分组 / 可体验型号 / 弹窗 + B2B 区块）', { pages: upgraded })
+  }
 }
 
 /** 追加式回填英文变体：缺失的 `__en` 页写入；`site_config` 缺 `.en` 补英文 nav/footer。 */

@@ -263,6 +263,10 @@ function BizVenueCard({
         <Link className="venue-card__trigger" to={item.href} aria-label={`查看 ${item.name} 详情`} />
       ) : null}
 
+      <div className="ph-box ph-box--media venue-card__cover" style={{ aspectRatio: '16 / 9' }}>
+        <MediaImg src={item.cover} alt={item.name} />
+      </div>
+
       <span className={`tag venue-type venue-type--${type}`}>{label}</span>
 
       <div className="venue-card__title-row">

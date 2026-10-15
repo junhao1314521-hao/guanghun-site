@@ -209,13 +209,13 @@ let conn: DatabaseSync | null = null
 let connPath = ''
 
 /** 读取 meta 值；不存在返回 undefined */
-function getMeta(db: DatabaseSync, key: string): string | undefined {
+export function getMeta(db: DatabaseSync, key: string): string | undefined {
   const row = db.prepare('SELECT value FROM meta WHERE key = ?').get(key) as { value?: string } | undefined
   return row?.value
 }
 
 /** 写入（或覆盖）meta 值 */
-function setMeta(db: DatabaseSync, key: string, value: string): void {
+export function setMeta(db: DatabaseSync, key: string, value: string): void {
   db.prepare('INSERT INTO meta(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value)
 }
 
