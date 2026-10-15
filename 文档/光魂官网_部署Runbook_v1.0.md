@@ -1,8 +1,8 @@
-# 光魂官网 · 部署 Runbook v1
+# 光魂官网 · 部署 Runbook v1.0
 
 > 用途：把「光魂官网」（前端 `gh-web` + 后端 `gh-server`）**构建、部署、验证、回滚**的可照做步骤。
-> 前置：内容 / 法务 / 备案真实素材已替换（见 `光魂官网_PRD_v1.0.md` §13、`光魂官网_接口对接与素材替换清单_v1.md` §四），否则不得对外发布。
-> 版本：v1 ｜ 日期：2026-10-13 ｜ 关联：`光魂官网_后端接口契约_v2.md`、`光魂官网_V1.0发布检查单_v1.md`
+> 前置：内容 / 法务 / 备案真实素材已替换（见 `光魂官网_PRD_v1.0.md` §13、`光魂官网_接口对接与素材替换清单_v1.0.md` §四），否则不得对外发布。
+> 版本：v1.0 ｜ 日期：2026-10-13 ｜ 关联：`光魂官网_后端接口契约_v1.0.md`、`光魂官网_发布检查单_v1.0.md`
 
 ---
 
@@ -270,7 +270,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Authorization: Bearer <operator-tok
 
 1. 把仓库推到 GitHub（本仓库地址：`https://github.com/junhao1314521-hao/guanghun-site`）。
 2. 登录 [Render](https://render.com) → **New → Blueprint** → 选择该仓库 → **Apply**。
-3. Render 读取根目录 [`render.yaml`](./render.yaml) 与 [`Dockerfile`](./Dockerfile) 自动构建，健康检查用 `/healthz`，完成后得到 **`https://<name>.onrender.com`**。
+3. Render 读取根目录 [`render.yaml`](../render.yaml) 与 [`Dockerfile`](../Dockerfile) 自动构建，健康检查用 `/healthz`，完成后得到 **`https://<name>.onrender.com`**。
 4. 打开该网址即为前台；后台在 `/admin`，用 `admin` / `admin123` 登录（若已在 Render 环境变量里设了 `ADMIN_PASSWORD`，则用你设的口令）。
 
 > ⚠️ Render **免费层没有持久磁盘**：容器重启后 `data/gh.sqlite`、`uploads/`、`backups/` 会回到种子状态。仅适合预览 / 演示；要留存数据请用路径 B，或在 Render 挂 **Persistent Disk** 并把 `DB_PATH` / `UPLOAD_DIR` / `BACKUP_DIR` 指过去。
