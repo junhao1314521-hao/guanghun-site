@@ -173,6 +173,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '横向滑动', value: 'rail' },
           { label: '主次聚焦（1 主 + 若干次）', value: 'spotlight' },
           { label: '信任条（紧凑横排）', value: 'trust' },
+          { label: '编号步骤', value: 'steps' },
+          { label: '条目列表', value: 'entries' },
         ],
       },
       { name: 'overlay', label: '文字浮于媒体', kind: 'switch' },

@@ -228,7 +228,7 @@ function buildHome(): Page {
     // teaser：首页只展示局部榜单（底部渐变虚化），数据与 /ladder 页同源
     { type: 'ranking', props: { title: '实测天梯榜', icon: 'trophy', subtitle: '所有数值来自同一套可复现的测试方法。', metric: 'overall', limit: 6, teaser: true } },
     { type: 'articleList', props: { title: '评测与解析', icon: 'book', subtitle: '参数公开、方法公开，结论可复现。', ctaLabel: '查看全部内容', ctaHref: '/articles', source: 'review', limit: 3 } },
-    { type: 'stats', props: { title: '数据一览', icon: 'chip', subtitle: '用可核对的数字，说明我们做了什么。', footnote: '数据截至 2026 年，均按同一套公开口径统计，可在「关于光魂」逐条核对。', items: home.BRAND_STATS } },
+    { type: 'stats', props: { title: '品牌数字', icon: 'chip', subtitle: '用可核对的数字，说明我们是谁、做了些什么。', footnote: '数据截至 2026 年，均按同一套公开口径统计，可在「关于光魂」逐条核对。', items: home.BRAND_STATS } },
     {
       type: 'cards',
       props: {
@@ -254,6 +254,7 @@ function buildHome(): Page {
         title: '服务承诺',
         icon: 'shield',
         subtitle: '买前买后，都由同一套标准兜底。',
+        layout: 'trust',
         columns: 3,
         items: [
           { tag: '质保', title: '三年质保，含烧屏保障', desc: '全系 OLED 面板覆盖烧屏保护，全国联保；序列号即可查保修状态。' },
@@ -271,6 +272,7 @@ function buildHome(): Page {
         subtitle: '不知道从哪看起？按这三条主线快速定位。',
         ctaLabel: '浏览全部产品',
         ctaHref: '/products',
+        layout: 'steps',
         columns: 3,
         items: [
           { tag: '按用途', title: '先定用途，再定型号', desc: '电竞看刷新率与响应，创作看色准与色域，办公看护眼与接口。', href: '/products' },
@@ -288,6 +290,7 @@ function buildHome(): Page {
         subtitle: '保持最新版本，获得更好的兼容与调校。',
         ctaLabel: '前往下载中心',
         ctaHref: '/downloads',
+        layout: 'entries',
         columns: 3,
         items: [
           { tag: '固件', title: '固件一键升级', desc: '在光魂 Center 里检查更新并升级，每次附带变更说明。', href: '/downloads' },
@@ -740,8 +743,7 @@ function buildContact(): Page {
 /** 新闻列表 */
 function buildNews(): Page {
   return toPage('news', '/news', '新闻列表', '新闻列表装修 + 数据源区块。', [
-    { type: 'text', props: { body: '产品发布、活动与资讯动态。', align: 'left' } },
-    { type: 'articleList', props: { title: '全部动态', source: 'news', limit: 0, pageSize: 9 } },
+    { type: 'articleList', props: { title: '全部动态', subtitle: '产品发布、活动与资讯动态。', source: 'news', limit: 0, pageSize: 9 } },
   ])
 }
 
@@ -784,9 +786,8 @@ function buildBrandPage(profile: brand.BrandProfile): Page {
 /** 产品列表 */
 function buildProducts(): Page {
   return toPage('products', '/products', '产品列表', '产品列表装修 + 数据源区块。', [
-    { type: 'text', props: { body: '按类别、连接方式与价格筛选在售产品。', align: 'left' } },
     // 全部产品（带筛选/排序）——productGrid 的范围/呈现/字段全部可配（见后台装修器）
-    { type: 'productGrid', props: { title: '全部产品', scope: 'all', limit: 24, columns: 3 } },
+    { type: 'productGrid', props: { title: '全部产品', subtitle: '按类别、连接方式与价格筛选在售产品。', scope: 'all', limit: 24, columns: 3 } },
     // 样板：按分类——只挑一个品类
     { type: 'productGrid', props: { title: 'OLED 旗舰', subtitle: '只展示「OLED旗舰」分类的全部型号。', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false } },
   ])
@@ -795,11 +796,7 @@ function buildProducts(): Page {
 /** 天梯榜 */
 function buildLadder(): Page {
   return toPage('ladder', '/ladder', '天梯榜', '天梯榜装修 + 数据源区块。', [
-    {
-      type: 'text',
-      props: { body: '所有数值来自同一套可复现的测试方法。榜单不代表行业结论，仅供选购参考。', align: 'left' },
-    },
-    { type: 'ranking', props: { title: '综合榜', metric: 'overall', limit: 10 } },
+    { type: 'ranking', props: { title: '综合榜', subtitle: '所有数值来自同一套可复现的测试方法；榜单仅供选购参考。', metric: 'overall', limit: 10 } },
     // 数据源区块：测评方法取自集合 methods（后台「测评方法」维护，改后前台即时生效）
     {
       type: 'methodList',
@@ -811,24 +808,21 @@ function buildLadder(): Page {
 /** 文章列表 */
 function buildArticles(): Page {
   return toPage('articles', '/articles', '文章列表', '文章列表装修 + 数据源区块。', [
-    { type: 'text', props: { body: '评测、教程与技术解析；参数与方法公开，来源可查。', align: 'left' } },
-    { type: 'articleList', props: { title: '全部文章', source: 'all', limit: 0, pageSize: 9 } },
+    { type: 'articleList', props: { title: '全部文章', subtitle: '评测、教程与技术解析；参数与方法公开，来源可查。', source: 'all', limit: 0, pageSize: 9 } },
   ])
 }
 
 /** 下载中心 */
 function buildDownloads(): Page {
   return toPage('downloads', '/downloads', '下载中心', '下载中心装修 + 数据源区块。', [
-    { type: 'text', props: { body: '驱动、固件与说明书；同一份资料可关联到多个型号。', align: 'left' } },
-    { type: 'downloadList', props: { title: '全部资料', category: 'all', limit: 0, pageSize: 10 } },
+    { type: 'downloadList', props: { title: '全部资料', subtitle: '驱动、固件与说明书；同一份资料可关联到多个型号。', category: 'all', limit: 0, pageSize: 10 } },
   ])
 }
 
 /** 常见问题 */
 function buildFaq(): Page {
   return toPage('faq', '/faq', '常见问题', '常见问题装修 + 数据源区块。', [
-    { type: 'text', props: { body: '驱动安装、连接配对、固件更新与售后相关的高频问答。', align: 'left' } },
-    { type: 'faqList', props: { title: '全部问答', source: 'support', limit: 0, pageSize: 10 } },
+    { type: 'faqList', props: { title: '全部问答', subtitle: '驱动安装、连接配对、固件更新与售后相关的高频问答。', source: 'support', limit: 0, pageSize: 10 } },
   ])
 }
 

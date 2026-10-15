@@ -58,6 +58,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     primary: '查看产品详情',
     secondary: '加入对比',
     primaryTo: '/products/gh-54027x1qe',
+    secondaryTo: '/compare',
     stats: [
       { value: '2K 540Hz', label: '分辨率 / 刷新率' },
       { value: '0.03 ms', label: 'GTG 响应' },
