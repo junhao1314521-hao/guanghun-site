@@ -254,19 +254,26 @@ main.main--flush + .site-footer { margin-top: 0; }
 }
 
 /* ---------- 顶栏「商城」入口（已按客户要求并入中间导航区：一级导航最后一项之后） ----------
-   形态与一级导航项同一套文字风格：购物袋图标（18px）+「商城」文字，无品牌色实底块；
-   hover 仅文字提亮（与 .site-nav a 一致）。浮层为纯文字行（与语言下拉同套简风格）。 */
+   形态：圆角矩形 + 品牌色实底 + 白色购物袋图标 + 白色「商城」文字（不是圆、也不是纯文字）；
+   hover 品牌色加深一档、active 再深一档并轻微下沉；不加投影。
+   高度 33px（客户给的 32–34px 取中值）、圆角 7px（6–8px 档，与站内按钮圆角规范一致）、
+   左右内边距 13px（12–14px 档）、图标 18px、文字 14px。 */
 .shop-wrap { position: relative; display: inline-flex; align-items: center; }
 .shop-trigger {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: var(--gh-space-2) 0; /* 与 .site-nav a 同高（上下各 8px），保证与导航项基线一致 */
-  border: 0; background: transparent;
-  color: var(--color-text-secondary);
-  font-family: inherit; font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-regular);
+  height: 33px; padding: 0 13px;
+  border: 0; border-radius: 7px;
+  background: var(--color-accent-solid);
+  color: var(--color-text-on-accent);
+  font-family: inherit; font-size: 14px; font-weight: var(--gh-weight-medium);
   letter-spacing: .005em; white-space: nowrap; cursor: pointer;
-  transition: color var(--gh-duration-fast) var(--gh-ease-standard);
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
+              transform var(--gh-duration-fast) var(--gh-ease-standard);
 }
-.shop-trigger:hover { color: var(--color-text-primary); }
+/* hover 加深一档：复用既有令牌 --color-accent-solid-hover（= blue-600 #1A33C4） */
+.shop-trigger:hover { background: var(--color-accent-solid-hover); }
+/* active 再深一档（= blue-700 #14289B）+ 轻微下沉 */
+.shop-trigger:active { background: var(--color-accent-solid-active); transform: translateY(1px); }
 .shop-trigger svg { flex: none; }
 /* 抽屉内为纯展示图标位（非交互），沿用品牌色实底小方块，尺寸略小 */
 .shop-btn {
@@ -277,11 +284,13 @@ main.main--flush + .site-footer { margin-top: 0; }
 }
 .shop-btn--sm { width: 26px; height: 26px; cursor: default; }
 /* 浮层：渠道列表（纯文字行，与语言下拉保持同一套简风格）。
+   宽度收窄到「内容宽度即可」：min 112px、max 160px（原 168/260 偏宽，客户要求收窄）；
+   行文案（天猫店铺 / 京东店铺 / 淘宝店铺）保持纯文字、行高 ≥40px（见 .shop-pop__item）。
    默认 `right:0` 以入口右缘为锚；展开态由 JS 下发 left（并对贴右越界做左移修正），见 SiteHeader.tsx。
    不加投影，仅靠描边 + 实底与页面区分。 */
 .shop-pop {
   position: absolute; top: calc(100% + var(--gh-space-2)); right: 0;
-  min-width: 172px; padding: var(--gh-space-2);
+  min-width: 112px; max-width: 160px; padding: var(--gh-space-2);
   display: flex; flex-direction: column; gap: 2px;
   background: var(--color-bg-raised);
   border: 1px solid var(--color-border-default);
@@ -405,7 +414,7 @@ main.main--flush + .site-footer { margin-top: 0; }
 [data-theme="dark"] .site-footer__scrim {
   background: linear-gradient(180deg, rgba(7, 10, 22, .48) 0%, rgba(7, 10, 22, .78) 58%, rgba(7, 10, 22, .92) 100%);
 }
-[data-theme="dark"] .site-footer h3 { color: rgba(255, 255, 255, .5); }
+[data-theme="dark"] .site-footer h3 { color: rgba(255, 255, 255, .92); }
 [data-theme="dark"] .site-footer a { color: rgba(255, 255, 255, .72); }
 [data-theme="dark"] .site-footer a:hover { color: #fff; }
 [data-theme="dark"] .site-footer__brand .logo { color: var(--gh-neutral-50); }
@@ -1211,9 +1220,9 @@ main.main--flush + .site-footer { margin-top: 0; }
 /* 语言文本入口在深色海报浮层下同步提亮（不再是图标按钮，故单独给色） */
 .site-header--over-hero .lang__toggle { color: rgba(255, 255, 255, .72); }
 .site-header--over-hero .lang__toggle:hover { color: var(--gh-neutral-50); }
-/* 商城入口（在中间导航区）浮层下与导航项同步提亮 */
-.site-header--over-hero .shop-trigger { color: rgba(255, 255, 255, .72); }
-.site-header--over-hero .shop-trigger:hover { color: var(--gh-neutral-50); }
+/* 商城入口现在是品牌色实底按钮：浮于海报（over-hero）时仍保持白字，不再随导航项调色 */
+.site-header--over-hero .shop-trigger { color: var(--color-text-on-accent); }
+.site-header--over-hero .shop-trigger:hover { color: var(--color-text-on-accent); }
 .site-header--over-hero .site-search .input { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .20); color: var(--gh-neutral-50); }
 .site-header--over-hero .site-search .input::placeholder { color: rgba(255, 255, 255, .55); }
 .site-header--over-hero .site-search .search__icon { color: rgba(255, 255, 255, .60); }
@@ -1471,9 +1480,11 @@ main.main--flush + .site-footer { margin-top: 0; }
 .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), minmax(0, 1fr)); }
 .mega__col { display: flex; flex-direction: column; }
 .mega__eyebrow {
-  /* 列头：18px / 600 / 近黑；与 14px 浅灰子项形成更强的「大 / 小」对比。列头 → 首条链接间距 16px。 */
-  margin: 0 0 var(--gh-space-4);
-  font-size: 18px; /* 令牌无 18px 档位（17/20 之间），客户要求拉大与 14px 子项的对比，直接写 px */
+  /* 列头：27px(=18×1.5) / 600 / 近黑（客户要求再大二分之一倍）；与 14px 浅灰子项形成更强的「大 / 小」对比。
+     列头放大后，列头 → 首条链接的间距同步由 16px 放宽到 24px（--gh-space-5），避免显得拥挤。 */
+  margin: 0 0 var(--gh-space-5);
+  font-size: 27px; /* 令牌无 27px 档位；客户明确要求 18px × 1.5 = 27px，直接写 px */
+  line-height: 1.25;
   font-weight: var(--gh-weight-semibold);
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--color-text-primary);
@@ -1495,9 +1506,10 @@ main.main--flush + .site-footer { margin-top: 0; }
 .mega__link:hover { color: var(--color-text-primary); transform: translateX(2px); }
 /* 宽屏下拉面板专用（≥1024px）。<1024px 时整个下拉菜单 display:none，抽屉里复用的
    .mega__eyebrow / .mega__link 不受本块影响，移动/紧凑形态走基础规则。
-   ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（保留上一轮锚定关系），
-      不贴左、不贴右；列间距 88 → 150px（3 列面板收紧到 120px），更透气；
-   ② 列头 / 二级链接的字号与行距统一走基础规则（列头 16px、链接 14px/行距≈35px），此处不再覆写。 */
+   ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（锚定关系不变），
+      不贴左、不贴右；列间距随列头放大（18 → 27px，字更宽）由 150 → 180px（3 列面板 120 → 144px），
+      避免相邻两列因列头变宽而挤到一起；
+   ② 列头 / 二级链接的字号与行距统一走基础规则（列头 27px、链接 14px/行距≈35px），此处不再覆写。 */
 @media (min-width: 1024px) {
   /* 列宽改为「内容自适应」，整组才能先居中再右移（原来的 1fr 会等分铺满整行、无法偏移） */
   .mega__cols {
@@ -1505,12 +1517,12 @@ main.main--flush + .site-footer { margin-top: 0; }
     justify-content: center;
     /* 「居中偏右」：先居中，再整体右移面板宽度的 16% */
     margin-left: 16%;
-    /* 列间距 88 → 150px（8pt 网格无该档位，直接写 px） */
-    column-gap: 150px;
+    /* 列间距 150 → 180px（8pt 网格无该档位，直接写 px），随列头放大同步放宽 */
+    column-gap: 180px;
   }
   .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), auto); }
-  /* 3 列面板（如「探索光魂」）适当收紧列间距到 120px，避免整组过宽 */
-  .mega__cols--wide { column-gap: 120px; }
+  /* 3 列面板（如「探索光魂」）适当收紧列间距到 144px，避免整组过宽 */
+  .mega__cols--wide { column-gap: 144px; }
 }
 .mega__feature {
   display: flex; flex-direction: column; gap: var(--gh-space-2);
@@ -2056,8 +2068,8 @@ body.drawer-open { overflow: hidden; }
 :root:not([data-theme="dark"]) .site-header--over-hero .icon-btn:hover { background: rgba(23, 23, 26, .05); }
 :root:not([data-theme="dark"]) .site-header--over-hero .lang__toggle { color: var(--color-text-secondary); }
 :root:not([data-theme="dark"]) .site-header--over-hero .lang__toggle:hover { color: var(--color-text-primary); }
-:root:not([data-theme="dark"]) .site-header--over-hero .shop-trigger { color: var(--color-text-secondary); }
-:root:not([data-theme="dark"]) .site-header--over-hero .shop-trigger:hover { color: var(--color-text-primary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .shop-trigger { color: var(--color-text-on-accent); }
+:root:not([data-theme="dark"]) .site-header--over-hero .shop-trigger:hover { color: var(--color-text-on-accent); }
 :root:not([data-theme="dark"]) .site-header--over-hero .site-search .input {
   background: rgba(255, 255, 255, .82);
   border-color: var(--color-border-default);
@@ -2244,12 +2256,18 @@ body.drawer-open { overflow: hidden; }
 }
 .site-footer__col { min-width: 88px; }
 .site-footer__col-title {
-  margin: 0 0 var(--gh-space-3);
-  font-size: var(--gh-font-size-caption); font-weight: var(--gh-weight-semibold);
-  letter-spacing: .04em; text-transform: none; color: var(--color-text-tertiary);
+  /* 组名：客户要求「黑、大很多」——12 → 16px、颜色由浅灰 --color-text-tertiary 改为近黑 --color-text-primary；
+     与链接的间距 16px（--gh-space-4）。字重 600 保持。 */
+  margin: 0 0 var(--gh-space-4);
+  font-size: 16px; /* 令牌无 16px 档位（15/17 之间），客户明确要求 16px */
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: .04em; text-transform: none; color: var(--color-text-primary);
 }
-.site-footer__col-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--gh-space-2); }
-.site-footer__col-links a { display: inline-block; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.5; transition: color .2s var(--gh-ease-standard); }
+.site-footer__col-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--gh-space-3); }
+/* 二级链接：客户要求「大一点、细一些、稍微浅一点点」——13 → 15px（--gh-font-size-body）、
+   字重 400 → 300（MiSans VF 可变字体支持 300，回退字体自动按 400 渲染）、
+   颜色保持次级灰 --color-text-secondary（比近黑浅一档）、行高 1.5 → 1.6。 */
+.site-footer__col-links a { display: inline-block; color: var(--color-text-secondary); font-size: var(--gh-font-size-body); font-weight: 300; line-height: 1.6; transition: color .2s var(--gh-ease-standard); }
 .site-footer__col-links a:hover { color: var(--color-text-primary); }
 
 /* 底部一行：左 = 公司信息 / 协议（| 分隔）；右 = 备案号 */
@@ -2296,7 +2314,8 @@ body.drawer-open { overflow: hidden; }
 .site-footer__popover-name { font-weight: var(--gh-weight-medium); }
 .site-footer__popover-hint { color: var(--color-text-secondary); }
 
-[data-theme="dark"] .site-footer__col-title { color: rgba(255, 255, 255, .5); }
+/* 深色主题：组名比链接更亮（.92 > .72），保证「组名最重最亮 → 链接更浅更细」的层次依然成立 */
+[data-theme="dark"] .site-footer__col-title { color: rgba(255, 255, 255, .92); }
 [data-theme="dark"] .site-footer__col-links a { color: rgba(255, 255, 255, .72); }
 [data-theme="dark"] .site-footer__col-links a:hover { color: #fff; }
 [data-theme="dark"] .site-footer__company { color: rgba(255, 255, 255, .72); }

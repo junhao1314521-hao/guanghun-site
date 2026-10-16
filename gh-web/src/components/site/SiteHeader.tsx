@@ -484,7 +484,9 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                 setLangOpen((open) => !open)
               }}
             >
-              {activeLang.label}
+              {/* 触发项文案：客户要求由「中文」收成单个「中」字；English 无简写仍显示原文。
+                  下拉列表仍用完整 label（中文 / English），见下方 LANG_OPTIONS.map。 */}
+              {activeLang.short ?? activeLang.label}
               <IconChevronDown size={14} />
             </button>
             <div className="lang__panel" role="menu" aria-label={t('a11y.langMenu')}>

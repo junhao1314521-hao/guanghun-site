@@ -565,60 +565,77 @@ export function IconHeart({ size = 18, className }: IconProps) {
   )
 }
 
-/* —— 页脚社交平台线性图标（16px 线性、1.5px 描边、圆头圆角、中性色）—— */
+/* —— 页脚社交平台线性图标（16px 线性、1.8px 描边、圆头圆角、中性色）——
+   本轮按客户要求整体重绘并加粗描边（1.5 → 1.8），提升小尺寸下的辨识度；
+   viewBox 由 box(size) 保持与渲染尺寸 1:1，避免半像素发虚。 */
 
-/** 微信（两个对话气泡 + 圆点） */
+/** 微信（两个对话气泡：大气泡在左上、小气泡在右下）
+ *  两气泡按对角分开排布、外轮廓互不相交（不出现线条穿插的乱线感）；
+ *  每个气泡各带一个朝下的尖尾（大气泡在左下、小气泡在右下）与两个眼睛圆点。
+ *  图元：2 个圆（气泡）+ 2 条折线（尖尾）+ 4 个实心圆点（眼睛）。 */
 export function IconWeChat({ size = 16, className }: IconProps) {
   const s = size
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      {/* 后气泡（右下） */}
-      <ellipse cx={s * 0.66} cy={s * 0.63} rx={s * 0.28} ry={s * 0.22} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${s * 0.52} ${s * 0.83}l0 ${s * 0.11}l${s * 0.11} -${s * 0.055}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={s * 0.58} cy={s * 0.61} r={s * 0.03} fill="currentColor" />
-      <circle cx={s * 0.74} cy={s * 0.61} r={s * 0.03} fill="currentColor" />
-      {/* 前气泡（左上） */}
-      <ellipse cx={s * 0.4} cy={s * 0.42} rx={s * 0.3} ry={s * 0.25} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${s * 0.26} ${s * 0.63}l0 ${s * 0.12}l${s * 0.12} -${s * 0.06}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={s * 0.31} cy={s * 0.4} r={s * 0.032} fill="currentColor" />
-      <circle cx={s * 0.49} cy={s * 0.4} r={s * 0.032} fill="currentColor" />
+      {/* 大气泡（左上） */}
+      <circle cx={s * 0.33} cy={s * 0.35} r={s * 0.235} stroke="currentColor" strokeWidth="1.8" />
+      {/* 大气泡尖尾（左下）：两端落在圆上，向外折成小三角 */}
+      <path d={`M${s * 0.231} ${s * 0.563}L${s * 0.133} ${s * 0.608}L${s * 0.15} ${s * 0.501}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={s * 0.26} cy={s * 0.34} r={s * 0.032} fill="currentColor" />
+      <circle cx={s * 0.4} cy={s * 0.34} r={s * 0.032} fill="currentColor" />
+      {/* 小气泡（右下） */}
+      <circle cx={s * 0.76} cy={s * 0.73} r={s * 0.18} stroke="currentColor" strokeWidth="1.8" />
+      {/* 小气泡尖尾（右下） */}
+      <path d={`M${s * 0.898} ${s * 0.846}L${s * 0.916} ${s * 0.933}L${s * 0.836} ${s * 0.893}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={s * 0.69} cy={s * 0.72} r={s * 0.028} fill="currentColor" />
+      <circle cx={s * 0.83} cy={s * 0.72} r={s * 0.028} fill="currentColor" />
     </svg>
   )
 }
 
-/** 微博（眼睛外廓 + 瞳孔 + 右上信号弧） */
+/** 微博（眼睛外廓 + 瞳孔 + 右上两道信号弧）
+ *  图元：1 个椭圆（眼）+ 1 个圆（瞳孔）+ 2 条弧（信号）。 */
 export function IconWeibo({ size = 16, className }: IconProps) {
   const s = size
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <path d={`M${s * 0.12} ${s * 0.56}c0 -${s * 0.17} ${s * 0.17} -${s * 0.3} ${s * 0.37} -${s * 0.3}s${s * 0.37} ${s * 0.13} ${s * 0.37} ${s * 0.3}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d={`M${s * 0.12} ${s * 0.56}c0 ${s * 0.17} ${s * 0.17} ${s * 0.3} ${s * 0.37} ${s * 0.3}s${s * 0.37} -${s * 0.13} ${s * 0.37} -${s * 0.3}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx={s * 0.49} cy={s * 0.56} r={s * 0.1} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${s * 0.88} ${s * 0.22}a${s * 0.22} ${s * 0.22} 0 0 0 -${s * 0.22} -${s * 0.12}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <ellipse cx={s * 0.45} cy={s * 0.57} rx={s * 0.32} ry={s * 0.23} stroke="currentColor" strokeWidth="1.8" />
+      <circle cx={s * 0.45} cy={s * 0.57} r={s * 0.1} stroke="currentColor" strokeWidth="1.8" />
+      <path d={`M${s * 0.88} ${s * 0.22}a${s * 0.22} ${s * 0.22} 0 0 0 -${s * 0.22} -${s * 0.12}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d={`M${s * 0.95} ${s * 0.31}a${s * 0.32} ${s * 0.32} 0 0 0 -${s * 0.32} -${s * 0.18}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   )
 }
 
-/** B 站（圆角电视 + 天线 + 两个圆点） */
+/** B 站（圆角电视 + 两天线 + 两个圆点）
+ *  图元：1 个圆角矩形（机身）+ 2 条线（天线）+ 2 个实心圆点（眼睛）。 */
 export function IconBilibili({ size = 16, className }: IconProps) {
   const s = size
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <rect x={s * 0.12} y={s * 0.31} width={s * 0.76} height={s * 0.52} rx={s * 0.14} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${s * 0.3} ${s * 0.17}l${s * 0.09} ${s * 0.14}M${s * 0.7} ${s * 0.17}l-${s * 0.09} ${s * 0.14}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx={s * 0.36} cy={s * 0.57} r={s * 0.045} fill="currentColor" />
-      <circle cx={s * 0.64} cy={s * 0.57} r={s * 0.045} fill="currentColor" />
+      <rect x={s * 0.11} y={s * 0.3} width={s * 0.78} height={s * 0.52} rx={s * 0.15} stroke="currentColor" strokeWidth="1.8" />
+      <path d={`M${s * 0.31} ${s * 0.15}l${s * 0.1} ${s * 0.15}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d={`M${s * 0.69} ${s * 0.15}l-${s * 0.1} ${s * 0.15}`} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx={s * 0.36} cy={s * 0.56} r={s * 0.045} fill="currentColor" />
+      <circle cx={s * 0.64} cy={s * 0.56} r={s * 0.045} fill="currentColor" />
     </svg>
   )
 }
 
-/** 抖音（音符：符头 + 符干 + 顶部符尾） */
+/** 抖音（音符：符头 + 符干 + 顶部符尾）
+ *  图元：1 个圆（符头）+ 1 条带钩的线（符干 + 符尾）。 */
 export function IconDouyin({ size = 16, className }: IconProps) {
   const s = size
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <circle cx={s * 0.38} cy={s * 0.66} r={s * 0.17} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${s * 0.55} ${s * 0.66}V${s * 0.2}c${s * 0.05} ${s * 0.13} ${s * 0.16} ${s * 0.18} ${s * 0.28} ${s * 0.16}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={s * 0.38} cy={s * 0.66} r={s * 0.17} stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d={`M${s * 0.55} ${s * 0.66}V${s * 0.2}c${s * 0.02} ${s * 0.09} ${s * 0.1} ${s * 0.15} ${s * 0.19} ${s * 0.15}s${s * 0.15} -${s * 0.06} ${s * 0.15} -${s * 0.14}`}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
