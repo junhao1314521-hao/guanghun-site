@@ -43,10 +43,10 @@ export function MeFavoritesPage() {
     <div ref={rootRef}>
       <div className="section__head">
         <div>
-          <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+          <h2 className="section__title">
             收藏
           </h2>
-          <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+          <p className="section__desc">
             取消收藏后移出列表；如需重新收藏，可在产品页点击收藏。
           </p>
         </div>

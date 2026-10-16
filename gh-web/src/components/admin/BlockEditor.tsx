@@ -10,7 +10,7 @@
  * 契约对齐：《光魂官网 · 内容库与装修契约 v1》§4 / §6.3。
  */
 import { useRef, useState } from 'react'
-import type { Block, BlockFieldMeta, BlockTypeMeta } from '../../data/contentTypes'
+import type { Block, BlockFieldMeta, BlockType, BlockTypeMeta } from '../../data/contentTypes'
 import { fetchProducts } from '../../api/products'
 import { fetchArticles } from '../../api/articles'
 import { fetchDownloads, fetchFaqs } from '../../api/support-extra'
@@ -20,6 +20,8 @@ import { isStringList, newItem, resolveItemFields } from './blockBuilderUtils'
 import { ImageField, MediaField } from './ImageField'
 import { RichTextField } from './RichTextField'
 import { Select } from './Select'
+import { mediaHintText, resolveMediaHint, isSafetyAreaField } from './mediaHints'
+import { MediaSafetyPreview } from './MediaSafetyPreview'
 
 /** 挑选器条目：统一呈现（主文案 / 次文案 / 分类） */
 type RefItem = { id: string; primary: string; secondary?: string; meta?: string }
@@ -311,6 +313,32 @@ function PositionField({ value, onChange }: { value: unknown; onChange: (value: 
   )
 }
 
+/**
+ * 图片 / 媒体字段的附加块：建议上传尺寸提示（跟随输入框下方的小字），
+ * 以及海报 / 产品矩阵字段的「安全区」虚线预览框。
+ * 尺寸规则集中在 mediaHints.ts（映射表 + 兜底默认值），此处只负责展示。
+ */
+function MediaFieldExtra({
+  blockType,
+  field,
+  blockProps,
+  itemProps,
+}: {
+  blockType: BlockType
+  field: BlockFieldMeta
+  blockProps: Record<string, unknown>
+  itemProps?: Record<string, unknown>
+}) {
+  if (field.kind !== 'image' && field.kind !== 'media') return null
+  const hint = resolveMediaHint({ blockType, fieldName: field.name, blockProps, itemProps })
+  return (
+    <>
+      <span className="field__hint">{mediaHintText(hint)}</span>
+      {isSafetyAreaField(blockType, field.name) && <MediaSafetyPreview ratio={hint.ratio} size={hint.size} />}
+    </>
+  )
+}
+
 /** 单字段输入控件（text / textarea / number / select / switch / image / link / position） */
 function FieldControl({
   field,
@@ -469,12 +497,16 @@ function ItemListEditor({
   items,
   itemFields,
   meta,
+  blockType,
+  blockProps,
   onChange,
 }: {
   field: BlockFieldMeta
   items: Record<string, unknown>[]
   itemFields: BlockFieldMeta[]
   meta: BlockTypeMeta | undefined
+  blockType: BlockType
+  blockProps: Record<string, unknown>
   onChange: (items: Record<string, unknown>[]) => void
 }) {
   const [open, setOpen] = useState<number | null>(items.length > 0 ? 0 : null)
@@ -522,14 +554,19 @@ function ItemListEditor({
                       field={itemField}
                       value={item[itemField.name]}
                       meta={meta}
+                      blockType={blockType}
+                      blockProps={blockProps}
                       onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
                     />
                   ) : (
-                    <FieldControl
-                      field={itemField}
-                      value={item[itemField.name]}
-                      onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
-                    />
+                    <>
+                      <FieldControl
+                        field={itemField}
+                        value={item[itemField.name]}
+                        onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
+                      />
+                      <MediaFieldExtra blockType={blockType} field={itemField} blockProps={blockProps} itemProps={item} />
+                    </>
                   )}
                 </div>
               ))}
@@ -549,11 +586,15 @@ function ListFieldEditor({
   field,
   value,
   meta,
+  blockType,
+  blockProps,
   onChange,
 }: {
   field: BlockFieldMeta
   value: unknown
   meta: BlockTypeMeta | undefined
+  blockType: BlockType
+  blockProps: Record<string, unknown>
   onChange: (value: unknown) => void
 }) {
   if (isStringList(field, value)) {
@@ -570,7 +611,17 @@ function ListFieldEditor({
         item && typeof item === 'object' && !Array.isArray(item) ? (item as Record<string, unknown>) : {},
       )
     : []
-  return <ItemListEditor field={field} items={items} itemFields={itemFields} meta={meta} onChange={onChange} />
+  return (
+    <ItemListEditor
+      field={field}
+      items={items}
+      itemFields={itemFields}
+      meta={meta}
+      blockType={blockType}
+      blockProps={blockProps}
+      onChange={onChange}
+    />
+  )
 }
 
 /**
@@ -606,9 +657,19 @@ export function BlockEditor({
           <div className="field" key={field.name}>
             <span className="field__label">{field.label}</span>
             {field.kind === 'list' ? (
-              <ListFieldEditor field={field} value={value} meta={meta} onChange={(value) => setProp(field.name, value)} />
+              <ListFieldEditor
+                field={field}
+                value={value}
+                meta={meta}
+                blockType={block.type}
+                blockProps={block.props}
+                onChange={(value) => setProp(field.name, value)}
+              />
             ) : (
-              <FieldControl field={field} value={value} onChange={(value) => setProp(field.name, value)} />
+              <>
+                <FieldControl field={field} value={value} onChange={(value) => setProp(field.name, value)} />
+                <MediaFieldExtra blockType={block.type} field={field} blockProps={block.props} />
+              </>
             )}
           </div>
         )

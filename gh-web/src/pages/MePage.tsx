@@ -59,7 +59,7 @@ export function MePage() {
       ) : (
         <>
           <section style={{ marginBottom: 'var(--gh-space-7)' }}>
-            <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+            <h2 className="section__title">
               概览
             </h2>
             <div className="grid-3" style={{ marginTop: 'var(--gh-space-5)' }}>
@@ -78,10 +78,10 @@ export function MePage() {
           <section>
             <div className="section__head">
               <div>
-                <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                <h2 className="section__title">
                   最近工单
                 </h2>
-                <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                <p className="section__desc">
                   状态流转：待处理 → 处理中 → 等待补充 → 已解决 → 已关闭。
                 </p>
               </div>

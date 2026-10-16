@@ -287,7 +287,10 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                   {item.label}
                 </Link>
                 {item.badge && (
-                  <span className={`nav-badge nav-badge--${item.badge}`} aria-hidden="true">
+                  <span
+                    className={`nav-badge nav-badge--${item.badge}${item.badgeShake ? ' nav-badge--shake' : ''}`}
+                    aria-hidden="true"
+                  >
                     {item.badgeText ?? item.badge.toUpperCase()}
                   </span>
                 )}
@@ -393,10 +396,9 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
               <IconAccount />
             </Link>
           ) : (
-            // 未登录：顶栏入口明确写「登录 / 注册」（此前仅图标，指向不清晰）
-            <Link className="icon-btn site-account" to="/login">
-              <IconAccount size={16} />
-              <span>登录 / 注册</span>
+            // 未登录：顶栏只放账号图标（按反馈去掉文字，避免挤压导航）；可访问名保留「登录 / 注册」
+            <Link className="icon-btn" to="/login" aria-label="登录 / 注册" title="登录 / 注册">
+              <IconAccount />
             </Link>
           )}
           <button

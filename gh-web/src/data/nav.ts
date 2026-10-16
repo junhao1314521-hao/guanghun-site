@@ -15,6 +15,8 @@ export type NavItem = {
   /** 右上角角标：new / hot（缺省无）；badgeText 覆盖默认文案（如「免费」） */
   badge?: 'new' | 'hot'
   badgeText?: string
+  /** 角标是否摇动（隔几秒轻摇一下；缺省不摇，`prefers-reduced-motion` 下不摇） */
+  badgeShake?: boolean
 }
 
 /**
@@ -24,8 +26,8 @@ export type NavItem = {
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: '产品', to: '/products', menu: 'products', nav: 'products' },
-  { label: '光魂 Center', to: '/center', menu: '', nav: 'center', badge: 'new' },
-  { label: '天梯榜', to: '/ladder', menu: '', nav: 'ladder', badge: 'hot' },
+  { label: '光魂 Center', to: '/center', menu: '', nav: 'center', badge: 'new', badgeShake: true },
+  { label: '天梯榜', to: '/ladder', menu: '', nav: 'ladder', badge: 'hot', badgeShake: true },
   { label: '服务支持', to: '/support', menu: 'support', nav: 'support' },
   { label: '探索光魂', to: '/about', menu: 'about', nav: 'about' },
 ]

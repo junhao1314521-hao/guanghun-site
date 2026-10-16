@@ -25,19 +25,19 @@ function toItem(value: unknown): TrustItem {
   }
 }
 
-/** 图标名 → 22px 线性图标组件（未知名称回退勾选） */
+/** 图标名 → 28px 线性图标组件（未知名称回退勾选）；accent 启用双色机制（一笔用品牌色） */
 function TrustIcon({ name }: { name: string }): ReactNode {
-  const size = 22
+  const size = 28
   switch (name) {
     case 'flask':
-      return <IconFlask size={size} />
+      return <IconFlask size={size} accent />
     case 'shield':
-      return <IconShield size={size} />
+      return <IconShield size={size} accent />
     case 'box':
-      return <IconCube size={size} />
+      return <IconCube size={size} accent />
     case 'check':
     default:
-      return <IconCheckCircle size={size} />
+      return <IconCheckCircle size={size} accent />
   }
 }
 

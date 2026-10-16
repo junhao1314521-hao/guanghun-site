@@ -14,6 +14,7 @@ import type { PageMeta } from '../data/contentTypes'
 type Listener = () => void
 
 const listeners = new Set<Listener>()
+let pages: readonly PageMeta[] = []
 let disabledPaths: ReadonlySet<string> = new Set()
 let disabledKeys: ReadonlySet<string> = new Set()
 let version = 0
@@ -76,16 +77,25 @@ export function getDisabledPaths(): ReadonlySet<string> {
   return disabledPaths
 }
 
+/**
+ * 当前内容库页面列表（只读，含已下线页面）。
+ * 供页脚「按后台页面层级自动生成分组」等处复用同一份页面数据，避免各自重复拉取。
+ */
+export function getSitePages(): readonly PageMeta[] {
+  return pages
+}
+
 /** 由页面列表刷新停用集合并通知订阅者 */
-export function setDisabledPages(pages: readonly PageMeta[]): void {
+export function setDisabledPages(input: readonly PageMeta[]): void {
   const paths = new Set<string>()
   const keys = new Set<string>()
-  for (const page of pages) {
+  for (const page of input) {
     if (page.enabled === false) {
       paths.add(page.path)
       keys.add(page.key)
     }
   }
+  pages = [...input]
   disabledPaths = paths
   disabledKeys = keys
   version += 1

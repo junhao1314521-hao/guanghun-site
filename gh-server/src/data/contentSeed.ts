@@ -91,11 +91,9 @@ const SITE: SiteConfig = {
     href: '/business/venues',
     dismissible: true,
   },
-  // —— 顶栏右侧行动按钮：主 CTA 预约体验 + 次 CTA 产品总览 ——
-  topCta: {
-    primary: { label: '预约体验', href: '/business/venues' },
-    secondary: { label: '产品总览', href: '/products' },
-  },
+  // —— 顶栏右侧行动按钮：按反馈默认不放 CTA（顶栏更干净）；
+  //     能力保留，运营可在「站点配置 → 顶栏按钮」里随时填文案与链接启用 ——
+  topCta: {},
   // —— 表单安全开关：默认开启图形验证码，第三方登录仅留位 ——
   auth: { captcha: true, thirdParty: false },
   // —— 保修参数：三年质保（含烧屏保护），到期前 30 天提醒 ——
@@ -143,22 +141,39 @@ const SUPPORT_QUICK_HREF: Record<string, string> = {
   contact: '/contact',
 }
 
+/** 首屏 / 全屏海报的统一按钮口径：只保留一个「立即购买」按钮，
+ *  链接保持原来的产品详情页（品牌 / 场景类海报回退到产品总览）；文案与链接后台均可改。 */
+function posterButtons(detailHref: string): { primary: Record<string, unknown> } {
+  return {
+    primary: { label: '立即购买', href: detailHref },
+  }
+}
+
+/** 海报文案位置：水平居中、纵向靠上（复刻客户参考：标题落在卡高约 16% 处，下方留给产品主体） */
+const POSTER_POSITION = { x: 50, y: 16 }
+
 function buildHome(): Page {
   return toPage('home', '/', '首页', '首页装修：首屏、场景、重点产品、天梯榜、评测、品牌、服务、合作与新闻。', [
     {
       type: 'carousel',
       props: {
-        slides: home.HERO_SLIDES.map((slide) => ({
-          eyebrow: slide.eyebrow,
-          title: slide.title,
-          desc: slide.desc,
-          mediaTag: slide.mediaTag,
-          image: slide.poster ?? `/media/home/${slide.id}.svg`,
-          ...(slide.posterMobile ? { imageMobile: slide.posterMobile } : {}),
-          primary: { label: slide.primary, href: slide.primaryTo ?? '#' },
-          ...(slide.secondary ? { secondary: { label: slide.secondary, href: slide.secondaryTo ?? '#' } } : {}),
-          stats: slide.stats,
-        })),
+        slides: home.HERO_SLIDES.map((slide) => {
+          const detail = slide.primaryTo ?? '/products'
+          return {
+            eyebrow: slide.eyebrow,
+            // 默认不显示眉题 / 数据点（后台可开启）
+            eyebrowEnabled: false,
+            title: slide.title,
+            desc: slide.desc,
+            mediaTag: slide.mediaTag,
+            image: slide.poster ?? `/media/home/${slide.id}.svg`,
+            ...(slide.posterMobile ? { imageMobile: slide.posterMobile } : {}),
+            ...posterButtons(detail),
+            stats: slide.stats,
+            statsEnabled: false,
+            contentPosition: POSTER_POSITION,
+          }
+        }),
         autoplay: true,
         // 代码动画作为第 1 张（可关闭；关闭后仅展示下面配置的海报）
         motion: true,
@@ -166,126 +181,146 @@ function buildHome(): Page {
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },
     },
-    // —— 五张全屏海报（§1.3）：一张海报 = 一个区块（hero），各自独立各占一屏 ——
-    // 高度取「比首屏矮一档」（short）；默认 2 个按钮；数据不关联产品，链接手工填写。
+    // —— 五张全屏海报（§1.3）：一张海报 = 一个区块（hero），各自独立、上下无缝衔接 ——
+    // 与首屏同一套字段 / 口径：默认关眉题与数据点、文案居中偏上、只留一个「立即购买」按钮；
+    // 高度档位统一为 21:9 宽幅（h-r219）；通栏满宽、无圆角、无上下留白，相邻海报之间不留间隙。
     {
       type: 'hero',
       props: {
         eyebrow: 'FLAGSHIP / 26.5" 2K@540Hz',
-        eyebrowEnabled: true,
+        eyebrowEnabled: false,
+        statsEnabled: false,
         title: ['54027X1QE 标准款'],
         subtitle: '八面出锋 大巧不工',
         media: '/media/home/showcase/gh-54027x1qe.jpg',
         mediaType: 'image',
         mediaTag: '54027X1QE 主视觉',
-        primary: { label: '进一步了解', href: '/products/gh-54027x1qe' },
-        secondary: { label: '立即购买', href: '/inquiry' },
-        contentPosition: { x: 8, y: 50 },
-        height: 'short',
+        ...posterButtons('/products/gh-54027x1qe'),
+        contentPosition: POSTER_POSITION,
+        height: 'r219',
         theme: 'dark',
       },
+      style: { container: 'full' },
     },
     {
       type: 'hero',
       props: {
         eyebrow: 'DUAL-MODE / 4K@165 · FHD@330',
-        eyebrowEnabled: true,
+        eyebrowEnabled: false,
+        statsEnabled: false,
         title: ['32X1UE 双模款'],
         subtitle: '一机两用 高分辨与高刷兼得',
         media: '/media/home/showcase/gh-32x1ue.jpg',
         mediaType: 'image',
         mediaTag: '32X1UE 主视觉',
-        primary: { label: '进一步了解', href: '/products/gh-32x1ue' },
-        secondary: { label: '立即购买', href: '/inquiry' },
-        contentPosition: { x: 8, y: 50 },
-        height: 'short',
+        ...posterButtons('/products/gh-32x1ue'),
+        contentPosition: POSTER_POSITION,
+        height: 'r219',
         theme: 'dark',
       },
+      style: { container: 'full' },
     },
     {
       type: 'hero',
       props: {
         eyebrow: 'BEST SELLER / 26.5" 2K@280Hz',
-        eyebrowEnabled: true,
+        eyebrowEnabled: false,
+        statsEnabled: false,
         title: ['28027X1QE 热销款'],
         subtitle: '平民超跑 1500 nit 峰值亮度',
         media: '/media/home/showcase/gh-28027x1qe.jpg',
         mediaType: 'image',
         mediaTag: '28027X1QE 主视觉',
-        primary: { label: '进一步了解', href: '/products/gh-28027x1qe' },
-        secondary: { label: '立即购买', href: '/inquiry' },
-        contentPosition: { x: 8, y: 50 },
-        height: 'short',
+        ...posterButtons('/products/gh-28027x1qe'),
+        contentPosition: POSTER_POSITION,
+        height: 'r219',
         theme: 'dark',
       },
+      style: { container: 'full' },
     },
     {
       type: 'hero',
       props: {
-        eyebrow: 'ESPORTS / 电竞对战',
-        eyebrowEnabled: true,
-        title: ['为决胜毫秒而生'],
-        subtitle: '540Hz 刷新与 0.03 ms 响应压缩每一帧延迟',
-        media: '/media/home/scenes/scene-01.jpg',
+        eyebrow: 'ESPORTS IPS / 27" 2K@200Hz',
+        eyebrowEnabled: false,
+        statsEnabled: false,
+        title: ['27Q1F 电竞款'],
+        subtitle: '27 英寸 2K 200Hz Fast IPS，HDR 与广色域兼得',
+        media: '/media/products/gh-27q1f.jpg',
         mediaType: 'image',
-        mediaTag: '电竞对战场景',
-        primary: { label: '进一步了解', href: '/products' },
-        secondary: { label: '立即购买', href: '/inquiry' },
-        contentPosition: { x: 8, y: 50 },
-        height: 'short',
+        mediaTag: '27Q1F 主视觉',
+        ...posterButtons('/products/gh-27q1f'),
+        contentPosition: POSTER_POSITION,
+        height: 'r219',
         theme: 'dark',
       },
+      style: { container: 'full' },
     },
     {
       type: 'hero',
       props: {
-        eyebrow: 'CREATIVE / 内容创作',
-        eyebrowEnabled: true,
-        title: ['为创作还原真实'],
-        subtitle: '99% DCI-P3 与出厂校色，兼顾设计与影像调色',
-        media: '/media/home/scenes/scene-02.jpg',
+        eyebrow: 'ENTRY / 23.8" FHD@200Hz',
+        eyebrowEnabled: false,
+        statsEnabled: false,
+        title: ['24H1 入门款'],
+        subtitle: '23.8 英寸 FHD 200Hz 电竞显示器，HDR400',
+        media: '/media/products/gh-24h1.jpg',
         mediaType: 'image',
-        mediaTag: '内容创作场景',
-        primary: { label: '进一步了解', href: '/products' },
-        secondary: { label: '立即购买', href: '/inquiry' },
-        contentPosition: { x: 8, y: 50 },
-        height: 'short',
+        mediaTag: '24H1 主视觉',
+        ...posterButtons('/products/gh-24h1'),
+        contentPosition: POSTER_POSITION,
+        height: 'r219',
         theme: 'dark',
       },
+      style: { container: 'full' },
     },
     // —— 2×2 产品矩阵（§1.4）：图片铺满卡面，型号 + 一句话 + 按钮悬浮右下 ——
     {
       type: 'productMatrix',
       props: {
-        title: '产品矩阵',
+        // 复刻客户示例：不带区块标题；图片约 1:1；卡片间距见 .blk-pmatrix__grid 的 5px
         source: 'product',
         columns: 2,
-        ratio: '16:9',
+        ratio: '1:1',
         cropFocus: 'center',
         mobileLayout: 'rail',
         items: [
           {
             productId: 'gh-54027x1qe',
             desc: '26.5 英寸 2K@540Hz 第四代 W-OLED 旗舰',
-            buttons: [{ label: '立即购买', href: '/products/gh-54027x1qe' }],
+            buttons: [
+              { label: '进一步了解', href: '/products/gh-54027x1qe' },
+              { label: '购买', href: '/products/gh-54027x1qe' },
+            ],
           },
           {
             productId: 'gh-32x1ue',
             desc: '4K@165 / FHD@330 双模 OLED，一机两用',
-            buttons: [{ label: '立即购买', href: '/products/gh-32x1ue' }],
+            buttons: [
+              { label: '进一步了解', href: '/products/gh-32x1ue' },
+              { label: '购买', href: '/products/gh-32x1ue' },
+            ],
           },
           {
             productId: 'gh-28027x1qe',
             desc: '2K@280Hz，1500 nit 峰值亮度的超跑之选',
-            buttons: [{ label: '立即购买', href: '/products/gh-28027x1qe' }],
+            buttons: [
+              { label: '进一步了解', href: '/products/gh-28027x1qe' },
+              { label: '购买', href: '/products/gh-28027x1qe' },
+            ],
           },
           {
             productId: 'gh-27q1f',
             desc: '27 英寸 2K 200Hz Fast IPS 高性价比之选',
-            buttons: [{ label: '立即购买', href: '/products/gh-27q1f' }],
+            buttons: [
+              { label: '进一步了解', href: '/products/gh-27q1f' },
+              { label: '购买', href: '/products/gh-27q1f' },
+            ],
           },
         ],
       },
+      // 通栏满幅：卡片铺满视口宽度（与上方海报、下方模块无缝相接）
+      style: { container: 'full' },
     },
     // —— 固件与驱动（§1.5）：3 张卡自动带最新版本与日期（取下载中心 downloads 最新一条）——
     {
@@ -296,13 +331,16 @@ function buildHome(): Page {
         subtitle: '保持最新版本，获得更好的兼容与调校。',
         ctaLabel: '前往下载中心',
         ctaHref: '/downloads',
+        // 标题行左侧搜索栏（简约，复用站点输入框）：占位文字与跳转地址后台可改
+        searchPlaceholder: '搜索型号',
+        searchHref: '/search',
         layout: 'entries',
         columns: 3,
         autoVersions: true,
         items: [
-          { tag: '固件', title: '固件一键升级', desc: '在光魂 Center 里检查更新并升级，每次附带变更说明。', href: '/downloads', downloadType: 'firmware' },
-          { tag: '驱动', title: '驱动与调色配置', desc: 'ICC 与调色文件公开下载，无需注册。', href: '/downloads', downloadType: 'driver' },
-          { tag: '软件', title: '光魂 Center', desc: '按键、参数、灯效与固件统一在一处管理。', href: '/center', downloadType: 'software' },
+          { icon: 'chip', tag: '固件', title: '固件一键升级', desc: '在光魂 Center 里检查更新并升级，每次附带变更说明。', href: '/downloads', downloadType: 'firmware' },
+          { icon: 'sliders', tag: '驱动', title: '驱动与调色配置', desc: 'ICC 与调色文件公开下载，无需注册。', href: '/downloads', downloadType: 'driver' },
+          { icon: 'refresh', tag: '软件', title: '光魂 Center', desc: '按键、参数、灯效与固件统一在一处管理。', href: '/center', downloadType: 'software' },
         ],
       },
     },

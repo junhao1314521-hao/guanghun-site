@@ -26,6 +26,7 @@ import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
 import { RichTextField } from '../../components/admin/RichTextField'
 import { Select } from '../../components/admin/Select'
+import { mediaHintText, resolveMediaHint } from '../../components/admin/mediaHints'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 
 /** 无 form 配置时，按列定义兜底生成字段 */
@@ -66,6 +67,7 @@ function FormField({
   required = false,
   invalid = false,
   idPrefix = '',
+  resourceKey,
 }: {
   field: AdminField
   value: unknown
@@ -73,6 +75,8 @@ function FormField({
   required?: boolean
   invalid?: boolean
   idPrefix?: string
+  /** 资源 key：用于解析图片字段的建议上传尺寸（见 components/admin/mediaHints） */
+  resourceKey?: string
 }) {
   const fieldId = `${idPrefix}f-${field.key}`
   const req = required ? <span className="req" aria-hidden="true">*</span> : null
@@ -193,6 +197,7 @@ function FormField({
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
         />
+        <span className="field__hint">{mediaHintText(resolveMediaHint({ resourceKey, fieldKey: field.key }))}</span>
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -227,6 +232,7 @@ function FormField({
           {req}
         </span>
         <MultiImageField value={list} label={field.label} onChange={(next) => onChange(field.key, next)} />
+        <span className="field__hint">{mediaHintText(resolveMediaHint({ resourceKey, fieldKey: field.key }))}</span>
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -556,6 +562,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
                   onChange={setValue}
                   required={requiredKeys.has(field.key)}
                   invalid={Boolean(errors[field.key])}
+                  resourceKey={resource.key}
                 />
                 {errors[field.key] && (
                   <span className="field__error" role="alert">

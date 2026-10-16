@@ -62,8 +62,9 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'footer.miniapp': '官方小程序',
     'footer.qrAria': '{label}二维码',
     'footer.qrNote': '示意二维码，上线前替换为官方码',
-    'footer.copyright':
-      '© 2026 光魂科技（深圳）有限公司 ｜ 网站备案信息以上线后公示为准',
+    'footer.terms': '用户协议',
+    'footer.privacy': '用户隐私',
+    'footer.copyright': '© 2026 保留所有权利',
 
     // —— 右下角悬浮按钮组 ——
     'fab.top': '返回顶部',
@@ -298,8 +299,9 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'footer.miniapp': 'Official mini program',
     'footer.qrAria': '{label} QR code',
     'footer.qrNote': 'Placeholder QR — replace with the official code',
-    'footer.copyright':
-      '© 2026 Guanghun Technology (Shenzhen) Co., Ltd. ｜ Registration details published after launch.',
+    'footer.terms': 'Terms',
+    'footer.privacy': 'Privacy',
+    'footer.copyright': '© 2026 All rights reserved.',
 
     // —— Floating action buttons (bottom-right) ——
     'fab.top': 'Back to top',

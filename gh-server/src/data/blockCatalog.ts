@@ -43,9 +43,23 @@ const POSTER_MEDIA_TYPES: { label: string; value: string }[] = [
   { label: '代码动画', value: 'code' },
 ]
 
-/** 海报高度档位（§1.3）：满屏 / 比首屏矮一档 / 自定义（首屏轮播固定满屏） */
+/**
+ * 海报「立即购买」按钮样式（后台可切换）：
+ * - `plain` 常规（默认，无光效，无光晕）；
+ * - `sweep` 扫光（悬停时高光扫过一次，触屏 / reduced-motion 不扫）；
+ * - `pulse` 呼吸光（光晕缓慢明暗循环）。
+ * 字段缺省 / 老数据无此字段 / 值非法时，渲染层一律按 `plain` 兜底。
+ */
+const POSTER_CTA_STYLES: { label: string; value: string }[] = [
+  { label: '常规（默认，无光效）', value: 'plain' },
+  { label: '扫光（悬停时高光扫过）', value: 'sweep' },
+  { label: '呼吸光（光晕缓慢明暗）', value: 'pulse' },
+]
+
+/** 海报高度档位（§1.3）：满屏 / 21:9 宽幅（高度随宽度）/ 比首屏矮一档 / 自定义（首屏轮播固定满屏） */
 const POSTER_HEIGHTS: { label: string; value: string }[] = [
   { label: '满屏', value: 'full' },
+  { label: '21:9 宽幅', value: 'r219' },
   { label: '矮一档', value: 'short' },
   { label: '自定义高度', value: 'custom' },
 ]
@@ -65,6 +79,25 @@ const DOWNLOAD_TYPES: { label: string; value: string }[] = [
   { label: '软件', value: 'software' },
   { label: '说明书', value: 'manual' },
   { label: '调校配置', value: 'calibration' },
+]
+
+/**
+ * 卡片图标（§1.5 固件驱动「icon + 文案」）：值须与前端 `BlockIcon` 的可用名称一致，
+ * 否则渲染时回退为不显示图标（缺省不破坏排版）。
+ */
+const CARD_ICONS: { label: string; value: string }[] = [
+  { label: '芯片 / 固件（chip）', value: 'chip' },
+  { label: '调校滑杆（sliders）', value: 'sliders' },
+  { label: '刷新 / 升级（refresh）', value: 'refresh' },
+  { label: '下载（download）', value: 'download' },
+  { label: '云（cloud）', value: 'cloud' },
+  { label: '盾牌 / 质保（shield）', value: 'shield' },
+  { label: '显示器（monitor）', value: 'monitor' },
+  { label: '文档（book）', value: 'book' },
+  { label: '帮助（help）', value: 'help' },
+  { label: '网格（grid）', value: 'grid' },
+  { label: '立方（cube）', value: 'cube' },
+  { label: '时钟（clock）', value: 'clock' },
 ]
 
 /**
@@ -97,6 +130,11 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
     { label: '暗色', value: 'dark' },
     { label: '浅色', value: 'light' },
   ] },
+  // 文案 / 按钮配色（后台可改）：kind 用 text，值为 CSS 颜色字符串（如 #FAFAFB / rgba(255,255,255,.8)）；留空沿用既有皮肤
+  { name: 'textColor', label: '文案颜色（留空用默认；如 #FAFAFB / rgba(255,255,255,.8)）', kind: 'text' },
+  { name: 'accentColor', label: '按钮配色（留空用默认；主按钮实底 / 次按钮描边；如 #2040ED）', kind: 'text' },
+  // 按钮样式（后台可切换，hero 与 carousel 每张 slide 各自配置）；缺省 / 老数据 / 非法值一律按 plain 渲染
+  { name: 'ctaStyle', label: '按钮样式（立即购买）', kind: 'select', options: POSTER_CTA_STYLES },
 ]
 
 /**
@@ -227,9 +265,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'overlay', label: '文字浮于媒体', kind: 'switch' },
       { name: 'ratio', label: '媒体宽高比', kind: 'text', placeholder: '如 4 / 5、16 / 9；留空用 16 / 9' },
       { name: 'autoVersions', label: '自动带最新版本（取下载中心）', kind: 'switch' },
+      // 条目列表（固件与驱动）标题行左侧搜索栏：占位文字与跳转地址后台可改（留空用默认）
+      { name: 'searchPlaceholder', label: '搜索栏占位文字（条目列表布局）', kind: 'text', placeholder: '默认「搜索型号」' },
+      { name: 'searchHref', label: '搜索跳转地址（条目列表布局）', kind: 'text', placeholder: '默认 /search，关键词以 ?q= 追加' },
       { name: 'items', label: '卡片', kind: 'list' },
     ],
     listFields: [
+      { name: 'icon', label: '图标（条目列表布局；留空则不显示）', kind: 'select', options: CARD_ICONS },
       { name: 'media', label: '媒体（图/视频/GIF）', kind: 'media' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
       { name: 'image', label: '图片（旧字段）', kind: 'image' },
@@ -814,7 +856,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'href', label: '链接（可选）', kind: 'text' },
     ],
   },
-  // —— 产品矩阵（§1.4 新建）：图片铺满卡面 + 半透明面板悬浮右下；两种数据源 ——
+  // —— 产品矩阵（§1.4 新建）：图片铺满卡面 + 型号 / 一句话 / 按钮置于顶部居中；两种数据源 ——
   {
     type: 'productMatrix',
     name: '产品矩阵',
@@ -863,6 +905,9 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '保持 2×2', value: 'grid' },
         ],
       },
+      // 文案 / 按钮配色（后台可改）：kind 用 text，值为 CSS 颜色字符串（如 #FAFAFB / #17171A）；留空沿用默认
+      { name: 'textColor', label: '文案颜色（留空用默认；如 #FAFAFB / #17171A）', kind: 'text' },
+      { name: 'accentColor', label: '按钮配色（留空用默认；主按钮实底 / 次按钮描边；如 #2040ED）', kind: 'text' },
       { name: 'items', label: '产品条目', kind: 'list' },
     ],
     listFields: [
@@ -872,6 +917,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'model', label: '型号（可覆盖产品型号）', kind: 'text', placeholder: '如 54027X1QE-W54' },
       { name: 'desc', label: '一句话', kind: 'textarea' },
       { name: 'href', label: '详情链接（留空则用产品详情页）', kind: 'text', placeholder: '如 /products/gh-54027x1qe' },
+      // 逐卡文案颜色：同一区块里深浅底混排时，按卡设定（留空沿用区块级 textColor / 默认色）
+      { name: 'textColor', label: '该卡文案颜色（留空用区块默认；如 #17171A / #FAFAFB）', kind: 'text' },
       { name: 'buttons', label: '按钮（文字 + 链接，可增减）', kind: 'list' },
     ],
   },
@@ -941,7 +988,7 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
       return { code: '', height: 360, allowScripts: false, videoUrl: '', poster: '' }
     case 'showcase':
       return { items: [], alternate: true }
-    // 海报（全宽海报）：新建即为满屏海报，文案默认落在左侧居中
+    // 海报（全宽海报）：新建即为满屏海报，文案默认居中偏上，两个按钮「进一步了解 / 购买」
     case 'hero':
       return {
         media: '',
@@ -952,11 +999,13 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
         eyebrowEnabled: false,
         stats: [],
         statsEnabled: false,
-        primary: { label: '', href: '' },
-        secondary: { label: '', href: '' },
-        contentPosition: { x: 8, y: 50 },
+        primary: { label: '进一步了解', href: '' },
+        secondary: { label: '购买', href: '' },
+        contentPosition: { x: 50, y: 32 },
         height: 'full',
         theme: 'dark',
+        textColor: '',
+        accentColor: '',
       }
     case 'carousel':
       return { slides: [], autoplay: true, motion: true }
@@ -964,7 +1013,8 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
       return {
         source: 'product',
         columns: 2,
-        ratio: '16:9',
+        // 矩阵卡片按客户要求为正方形（1:1）
+        ratio: '1:1',
         fullscreen: false,
         cropFocus: 'center',
         mobileLayout: 'rail',

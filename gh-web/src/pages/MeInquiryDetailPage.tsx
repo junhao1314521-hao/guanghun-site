@@ -77,7 +77,7 @@ export function MeInquiryDetailPage() {
         <>
           <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)' }}>
             <div>
-              <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+              <h2 className="section__title">
                 {data.title}
               </h2>
               <div className="row" style={{ marginTop: 'var(--gh-space-2)' }}>

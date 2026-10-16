@@ -56,7 +56,7 @@ export const THEME_TOKEN_META: ThemeTokenMeta[] = [
     key: '--gh-font-sans',
     label: '字体族',
     kind: 'text',
-    placeholder: '"Geist", "MiSans", "PingFang SC", sans-serif',
+    placeholder: '"MiSans VF", "Geist", "MiSans", "PingFang SC", sans-serif',
     hint: '正文字体栈；留空则使用默认字体。',
   },
   {

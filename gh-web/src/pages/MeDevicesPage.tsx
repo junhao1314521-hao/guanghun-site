@@ -65,10 +65,10 @@ export function MeDevicesPage() {
     <div ref={rootRef}>
       <div className="section__head">
         <div>
-          <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+          <h2 className="section__title">
             我的设备
           </h2>
-          <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+          <p className="section__desc">
             同一型号可登记多台；未接入验证源时显示「未验证」。
           </p>
         </div>

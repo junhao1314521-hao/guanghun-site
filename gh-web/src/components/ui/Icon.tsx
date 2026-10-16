@@ -1,5 +1,8 @@
-/** 站点图标：全部为线性 SVG，颜色继承 currentColor，尺寸由父级控制 */
-type IconProps = { size?: number; className?: string }
+/** 站点图标：全部为线性 SVG，颜色继承 currentColor，尺寸由父级控制
+ *  accent：双色机制开关 —— 开启后，图标内参与强调的「一笔 / 一个局部」会带上 .ic-accent 类，
+ *  由样式统一改用品牌色（--color-accent-solid）；主体笔画仍继承 currentColor（中性色）。
+ *  同一套机制被「固件与驱动」条目图标与「信任条」图标复用，不写两份。 */
+type IconProps = { size?: number; className?: string; accent?: boolean }
 
 const box = (size: number) => ({ width: size, height: size, viewBox: `0 0 ${size} ${size}` })
 
@@ -294,23 +297,27 @@ export function IconChat({ size = 20, className }: IconProps) {
 }
 
 /* —— 服务支持页图标（20px 线性）—— */
-export function IconChip({ size = 20, className }: IconProps) {
+export function IconChip({ size = 20, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <rect x={s * 0.275} y={s * 0.275} width={s * 0.45} height={s * 0.45} rx={s * 0.08} stroke="currentColor" strokeWidth="1.5" />
       <path
-        d={`M${s * 0.4} ${s * 0.15}v${s * 0.125}M${s * 0.6} ${s * 0.15}v${s * 0.125}M${s * 0.4} ${s * 0.725}v${s * 0.125}M${s * 0.6} ${s * 0.725}v${s * 0.125}M${s * 0.15} ${s * 0.4}h${s * 0.125}M${s * 0.15} ${s * 0.6}h${s * 0.125}M${s * 0.725} ${s * 0.4}h${s * 0.125}M${s * 0.725} ${s * 0.6}h${s * 0.125}`}
+        d={`M${s * 0.6} ${s * 0.15}v${s * 0.125}M${s * 0.4} ${s * 0.725}v${s * 0.125}M${s * 0.6} ${s * 0.725}v${s * 0.125}M${s * 0.15} ${s * 0.4}h${s * 0.125}M${s * 0.15} ${s * 0.6}h${s * 0.125}M${s * 0.725} ${s * 0.4}h${s * 0.125}M${s * 0.725} ${s * 0.6}h${s * 0.125}`}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
+      {/* 强调笔画：左上引脚用品牌色 */}
+      <path d={`M${s * 0.4} ${s * 0.15}v${s * 0.125}`} className={ac} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
 
-export function IconShield({ size = 20, className }: IconProps) {
+export function IconShield({ size = 20, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path
@@ -319,7 +326,7 @@ export function IconShield({ size = 20, className }: IconProps) {
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
-      <path d={`M${s * 0.36} ${s * 0.5}L${s * 0.45} ${s * 0.59}L${s * 0.64} ${s * 0.39}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`M${s * 0.36} ${s * 0.5}L${s * 0.45} ${s * 0.59}L${s * 0.64} ${s * 0.39}`} className={ac} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -336,23 +343,25 @@ export function IconDocSearch({ size = 20, className }: IconProps) {
   )
 }
 
-export function IconCheckCircle({ size = 20, className }: IconProps) {
+export function IconCheckCircle({ size = 20, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <circle cx={s * 0.5} cy={s * 0.5} r={s * 0.35} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${s * 0.34} ${s * 0.51}L${s * 0.45} ${s * 0.62}L${s * 0.66} ${s * 0.38}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`M${s * 0.34} ${s * 0.51}L${s * 0.45} ${s * 0.62}L${s * 0.66} ${s * 0.38}`} className={ac} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
 
 /* —— 商业合作页图标（20px 线性）—— */
-export function IconCube({ size = 20, className }: IconProps) {
+export function IconCube({ size = 20, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path d={`M${s * 0.15} ${s * 0.325}L${s * 0.5} ${s * 0.15}l${s * 0.35} ${s * 0.175}v${s * 0.35}L${s * 0.5} ${s * 0.85}l-${s * 0.35} -${s * 0.175}v-${s * 0.35}Z`} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d={`M${s * 0.15} ${s * 0.325}L${s * 0.5} ${s * 0.5}l${s * 0.35} -${s * 0.175}M${s * 0.5} ${s * 0.5}v${s * 0.35}`} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d={`M${s * 0.15} ${s * 0.325}L${s * 0.5} ${s * 0.5}l${s * 0.35} -${s * 0.175}M${s * 0.5} ${s * 0.5}v${s * 0.35}`} className={ac} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -456,8 +465,9 @@ export function IconKeyboard({ size = 20, className }: IconProps) {
   )
 }
 
-export function IconSliders({ size = 20, className }: IconProps) {
+export function IconSliders({ size = 20, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path
@@ -467,21 +477,24 @@ export function IconSliders({ size = 20, className }: IconProps) {
         strokeLinecap="round"
       />
       <path
-        d={`M${s * 0.35} ${s * 0.225}v${s * 0.2}M${s * 0.65} ${s * 0.4}v${s * 0.2}M${s * 0.45} ${s * 0.6}v${s * 0.15}`}
+        d={`M${s * 0.65} ${s * 0.4}v${s * 0.2}M${s * 0.45} ${s * 0.6}v${s * 0.15}`}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
       />
+      {/* 强调笔画：顶部滑块用品牌色 */}
+      <path d={`M${s * 0.35} ${s * 0.225}v${s * 0.2}`} className={ac} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
 
-export function IconRefresh({ size = 20, className }: IconProps) {
+export function IconRefresh({ size = 20, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path d={`M${s * 0.775} ${s * 0.425}A${s * 0.3} ${s * 0.3} 0 1 0 ${s * 0.8} ${s * 0.55}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d={`M${s * 0.8} ${s * 0.225}v${s * 0.2}h-${s * 0.2}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`M${s * 0.8} ${s * 0.225}v${s * 0.2}h-${s * 0.2}`} className={ac} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -514,12 +527,72 @@ export function IconHeart({ size = 18, className }: IconProps) {
   )
 }
 
+/* —— 页脚社交平台线性图标（16px 线性、1.5px 描边、圆头圆角、中性色）—— */
+
+/** 微信（两个对话气泡 + 圆点） */
+export function IconWeChat({ size = 16, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      {/* 后气泡（右下） */}
+      <ellipse cx={s * 0.66} cy={s * 0.63} rx={s * 0.28} ry={s * 0.22} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${s * 0.52} ${s * 0.83}l0 ${s * 0.11}l${s * 0.11} -${s * 0.055}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={s * 0.58} cy={s * 0.61} r={s * 0.03} fill="currentColor" />
+      <circle cx={s * 0.74} cy={s * 0.61} r={s * 0.03} fill="currentColor" />
+      {/* 前气泡（左上） */}
+      <ellipse cx={s * 0.4} cy={s * 0.42} rx={s * 0.3} ry={s * 0.25} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${s * 0.26} ${s * 0.63}l0 ${s * 0.12}l${s * 0.12} -${s * 0.06}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={s * 0.31} cy={s * 0.4} r={s * 0.032} fill="currentColor" />
+      <circle cx={s * 0.49} cy={s * 0.4} r={s * 0.032} fill="currentColor" />
+    </svg>
+  )
+}
+
+/** 微博（眼睛外廓 + 瞳孔 + 右上信号弧） */
+export function IconWeibo({ size = 16, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <path d={`M${s * 0.12} ${s * 0.56}c0 -${s * 0.17} ${s * 0.17} -${s * 0.3} ${s * 0.37} -${s * 0.3}s${s * 0.37} ${s * 0.13} ${s * 0.37} ${s * 0.3}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d={`M${s * 0.12} ${s * 0.56}c0 ${s * 0.17} ${s * 0.17} ${s * 0.3} ${s * 0.37} ${s * 0.3}s${s * 0.37} -${s * 0.13} ${s * 0.37} -${s * 0.3}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx={s * 0.49} cy={s * 0.56} r={s * 0.1} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${s * 0.88} ${s * 0.22}a${s * 0.22} ${s * 0.22} 0 0 0 -${s * 0.22} -${s * 0.12}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** B 站（圆角电视 + 天线 + 两个圆点） */
+export function IconBilibili({ size = 16, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <rect x={s * 0.12} y={s * 0.31} width={s * 0.76} height={s * 0.52} rx={s * 0.14} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${s * 0.3} ${s * 0.17}l${s * 0.09} ${s * 0.14}M${s * 0.7} ${s * 0.17}l-${s * 0.09} ${s * 0.14}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx={s * 0.36} cy={s * 0.57} r={s * 0.045} fill="currentColor" />
+      <circle cx={s * 0.64} cy={s * 0.57} r={s * 0.045} fill="currentColor" />
+    </svg>
+  )
+}
+
+/** 抖音（音符：符头 + 符干 + 顶部符尾） */
+export function IconDouyin({ size = 16, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <circle cx={s * 0.38} cy={s * 0.66} r={s * 0.17} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${s * 0.55} ${s * 0.66}V${s * 0.2}c${s * 0.05} ${s * 0.13} ${s * 0.16} ${s * 0.18} ${s * 0.28} ${s * 0.16}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 /**
  * 烧瓶 / 量杯（实测实验室）：§1.7 信任条「实测实验室」专用线性图标。
  * 22px、1.5px 描边、圆头圆角、中性色（颜色继承 currentColor，不发光）。
+ * accent：液面一条线改用品牌色（双色机制，与固件驱动图标共用 .ic-accent）。
  */
-export function IconFlask({ size = 22, className }: IconProps) {
+export function IconFlask({ size = 22, className, accent }: IconProps) {
   const s = size
+  const ac = accent ? 'ic-accent' : undefined
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path
@@ -529,8 +602,10 @@ export function IconFlask({ size = 22, className }: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* 强调笔画：液面用品牌色 */}
       <path
         d={`M${s * 0.33} ${s * 0.56}h${s * 0.34}`}
+        className={ac}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"

@@ -19,6 +19,8 @@ import { asBool, asLink, asNumber, asRecord, asStatItems, asString, asTextLines 
 
 export type PosterMediaType = 'image' | 'video' | 'gif' | 'code'
 export type PosterPosition = { x: number; y: number }
+/** 「立即购买」按钮样式：plain 常规（默认，无光效）/ sweep 扫光 / pulse 呼吸光 */
+export type PosterCtaStyle = 'plain' | 'sweep' | 'pulse'
 
 export type PosterData = {
   eyebrow: string
@@ -39,10 +41,16 @@ export type PosterData = {
   statsEnabled: boolean | undefined
   /** 文案位置（百分比坐标 0–100）；null = 未配置，走既有版心布局 */
   position: PosterPosition | null
-  height: 'full' | 'short' | 'custom'
+  height: 'full' | 'short' | 'custom' | 'r219'
   heightValue: number
   /** '' = 未配置（跟随既有实现：carousel 跟随站点主题、hero 保持暗色） */
   theme: '' | 'dark' | 'light'
+  /** 文案颜色（后台可配，如 #FAFAFB / rgb(…)/ rgba(…)）；'' = 未配置，沿用既有皮肤 */
+  textColor: string
+  /** 主按钮实底 + 次按钮描边色（后台可配）；'' = 未配置，沿用既有品牌色 */
+  accentColor: string
+  /** 「立即购买」按钮样式（后台可切换）；缺省 / 老数据 / 非法值一律按 plain */
+  ctaStyle: PosterCtaStyle
 }
 
 /** 把内容库的原始 props 收敛为海报数据（字段缺失 / 类型不符一律回退，渲染期不抛错） */
@@ -58,6 +66,9 @@ export function toPoster(value: unknown): PosterData {
       : null
   const rawTheme = asString(record.theme)
   const height = asString(record.height)
+  // 「立即购买」按钮样式：仅放开 sweep / pulse，其余（缺省 / 老数据 / 非法值）一律 plain
+  const rawCtaStyle = asString(record.ctaStyle)
+  const ctaStyle: PosterCtaStyle = rawCtaStyle === 'sweep' || rawCtaStyle === 'pulse' ? rawCtaStyle : 'plain'
   return {
     eyebrow: asString(record.eyebrow),
     eyebrowEnabled: record.eyebrowEnabled === undefined ? undefined : asBool(record.eyebrowEnabled),
@@ -75,9 +86,12 @@ export function toPoster(value: unknown): PosterData {
     stats: asStatItems(record.stats),
     statsEnabled: record.statsEnabled === undefined ? undefined : asBool(record.statsEnabled),
     position,
-    height: height === 'short' || height === 'custom' ? height : 'full',
+    height: height === 'short' || height === 'custom' || height === 'r219' ? height : 'full',
     heightValue: Math.max(160, asNumber(record.heightValue, 640)),
     theme: rawTheme === 'dark' || rawTheme === 'light' ? rawTheme : '',
+    textColor: asString(record.textColor),
+    accentColor: asString(record.accentColor),
+    ctaStyle,
   }
 }
 
@@ -95,6 +109,7 @@ export function posterMediaSrc(data: PosterData): string {
 /** 高度档位 → 外壳类名（首屏轮播固定满屏；全宽海报按档位） */
 export function posterHeightClass(height: PosterData['height']): string {
   if (height === 'short') return 'blk-hero--h-short'
+  if (height === 'r219') return 'blk-hero--h-r219'
   if (height === 'custom') return 'blk-hero--h-custom'
   return 'blk-hero--h-full'
 }
@@ -158,6 +173,15 @@ export function PosterOverlay({ data, titleTag = 'h2' }: { data: PosterData; tit
   const showEyebrow = posterShowEyebrow(data)
   const showStats = posterShowStats(data)
   const points = posterPointsText(data)
+  // 文案 / 按钮配色（后台可配）：只在配置时注入 CSS 变量，未配时沿用既有皮肤
+  const vars: Record<string, string> = {}
+  if (data.textColor) vars['--hero-text-color'] = data.textColor
+  if (data.accentColor) vars['--hero-accent'] = data.accentColor
+  const themed = data.textColor ? ' hero__content--themed' : ''
+  const ctaThemed = data.accentColor ? ' hero__cta--themed' : ''
+  // 按钮光效类：plain 时**不加任何光效类**（默认无光晕）
+  const ctaEffect =
+    data.ctaStyle === 'sweep' ? ' hero__cta--sweep' : data.ctaStyle === 'pulse' ? ' hero__cta--pulse' : ''
   const inner = (
     <>
       {showEyebrow && <div className="hero__eyebrow">{data.eyebrow}</div>}
@@ -173,7 +197,7 @@ export function PosterOverlay({ data, titleTag = 'h2' }: { data: PosterData; tit
       )}
       {data.subtitle && <p className="hero__desc">{data.subtitle}</p>}
       {(data.primary || data.secondary) && (
-        <div className="hero__cta">
+        <div className={`hero__cta${ctaThemed}${ctaEffect}`}>
           {data.primary && (
             <SafeLink className="btn btn--primary btn--lg" to={data.primary.href}>
               {data.primary.label}
@@ -195,8 +219,8 @@ export function PosterOverlay({ data, titleTag = 'h2' }: { data: PosterData; tit
     return (
       <div className="blk-hero__grid blk-hero__grid--pos">
         <div
-          className="hero__content hero__content--pos"
-          style={{ left: `${x}%`, top: `${y}%`, transform: `translate(-${x}%, -${y}%)` }}
+          className={`hero__content hero__content--pos${themed}`}
+          style={{ left: `${x}%`, top: `${y}%`, transform: `translate(-${x}%, -${y}%)`, ...vars } as CSSProperties}
         >
           {inner}
         </div>
@@ -206,7 +230,9 @@ export function PosterOverlay({ data, titleTag = 'h2' }: { data: PosterData; tit
 
   return (
     <div className="blk-hero__grid">
-      <div className="hero__content">{inner}</div>
+      <div className={`hero__content${themed}`} style={Object.keys(vars).length > 0 ? (vars as CSSProperties) : undefined}>
+        {inner}
+      </div>
     </div>
   )
 }

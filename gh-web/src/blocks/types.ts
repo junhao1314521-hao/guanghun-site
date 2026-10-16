@@ -56,11 +56,17 @@ export type Slide = {
   statsEnabled?: boolean
   /** 文案位置（九宫格 9 档或拖拽，同一字段，百分比坐标 0–100） */
   contentPosition?: PosterPosition
-  /** 高度档位：满屏 / 矮一档 / 自定义（首屏轮播固定满屏） */
-  height?: 'full' | 'short' | 'custom'
+  /** 高度档位：满屏 / 21:9 宽幅 / 矮一档 / 自定义（首屏轮播固定满屏） */
+  height?: 'full' | 'short' | 'custom' | 'r219'
   heightValue?: number
   /** 背景主题：暗色 / 浅色 */
   theme?: 'dark' | 'light'
+  /** 文案颜色（后台可配，CSS 颜色字符串）；留空沿用既有皮肤 */
+  textColor?: string
+  /** 主按钮实底 + 次按钮描边色（后台可配）；留空沿用既有品牌色 */
+  accentColor?: string
+  /** 「立即购买」按钮样式：plain 常规（默认，无光效）｜sweep 扫光｜pulse 呼吸光 */
+  ctaStyle?: 'plain' | 'sweep' | 'pulse'
 }
 
 /** 1. hero 全宽海报（与 carousel 单张 slide 共用同一套字段） */
@@ -81,9 +87,13 @@ export type HeroProps = {
   stats: StatItem[]
   statsEnabled?: boolean
   contentPosition?: PosterPosition
-  height?: 'full' | 'short' | 'custom'
+  height?: 'full' | 'short' | 'custom' | 'r219'
   heightValue?: number
   theme?: 'dark' | 'light'
+  textColor?: string
+  accentColor?: string
+  /** 「立即购买」按钮样式：plain 常规（默认，无光效）｜sweep 扫光｜pulse 呼吸光 */
+  ctaStyle?: 'plain' | 'sweep' | 'pulse'
 }
 
 /** 2. carousel 轮播 */
@@ -117,11 +127,17 @@ export type CardsProps = {
   ratio?: string
   /** 自动带最新版本（§1.5 固件驱动）：开启后按 item.downloadType 取下载中心最新一条的版本与日期 */
   autoVersions?: boolean
+  /** 条目列表布局的搜索栏：占位文字（留空用「搜索型号」） */
+  searchPlaceholder?: string
+  /** 条目列表布局的搜索栏：跳转地址（留空用 /search，关键词以 ?q= 追加） */
+  searchHref?: string
   items: {
     image?: string
     /** 媒体地址（图片 / 视频 / GIF）；优先于 image */
     media?: string
     mediaType?: 'image' | 'video' | 'gif'
+    /** 图标名（条目列表布局；见 BlockIcon 可用名称，如 chip / sliders / refresh） */
+    icon?: string
     tag?: string
     title: string
     desc: string
@@ -322,7 +338,7 @@ export type B2bValueProps = {
 
 /**
  * 27. productMatrix 产品矩阵（§1.4 新建）。
- * 卡面：图片铺满整张卡；型号 + 一句话 + 按钮悬浮在图片右下角（半透明面板）。
+ * 卡面：图片铺满整张卡；型号（大字）+ 一句话（小字）+ 按钮置于图片顶部、水平居中。
  * 数据源：`product` 关联产品（自动带入主图 / 型号 / 详情链接，文案可覆盖）/ `manual` 手填。
  */
 export type ProductMatrixProps = {
@@ -333,6 +349,10 @@ export type ProductMatrixProps = {
   fullscreen?: boolean
   cropFocus?: 'center' | 'top' | 'bottom' | 'left' | 'right'
   mobileLayout?: 'rail' | 'grid'
+  /** 文案颜色（后台可配，CSS 颜色字符串）；留空沿用默认 */
+  textColor?: string
+  /** 主按钮实底 + 次按钮描边色（后台可配）；留空沿用既有品牌色 */
+  accentColor?: string
   items?: {
     productId?: string
     image?: string
@@ -340,7 +360,7 @@ export type ProductMatrixProps = {
     model?: string
     desc?: string
     href?: string
-    /** 按钮（可增减，默认 1 个「立即购买」） */
+    /** 按钮（可增减；首个实底、其余描边） */
     buttons?: BlockLink[]
   }[]
 }

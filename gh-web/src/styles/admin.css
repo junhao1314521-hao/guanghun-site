@@ -1250,6 +1250,30 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 .file-field__chip a { color: var(--color-accent-text); word-break: break-all; }
 
+/* ---------- 海报 / 矩阵图片字段的「安全区」虚线预览 ----------
+   外框 = 当前比例的半透明虚线框（无投影，随容器自适应、窄屏不溢出）；
+   内框 = 安全区虚线框（向内缩约 7%）。沿用后台既有令牌。 */
+.media-safety { display: flex; flex-direction: column; gap: var(--gh-space-1); margin-top: var(--gh-space-1); }
+.media-safety__frame {
+  position: relative; width: 100%; max-width: 240px;
+  border: 1px dashed color-mix(in srgb, var(--color-border-strong) 55%, transparent);
+  border-radius: var(--gh-radius-md);
+  background: color-mix(in srgb, var(--color-bg-subtle) 60%, transparent);
+}
+.media-safety__safe {
+  position: absolute; inset: 7%;
+  display: grid; place-content: center;
+  border: 1px dashed color-mix(in srgb, var(--color-border-strong) 70%, transparent);
+  border-radius: calc(var(--gh-radius-md) - 2px);
+  text-align: center;
+}
+.media-safety__tag {
+  font-size: var(--gh-font-size-caption);
+  font-weight: var(--gh-weight-medium);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- 素材库选择弹窗（ImageField） ---------- */
 .image-picker {
   position: fixed; inset: 0; z-index: var(--gh-z-modal);

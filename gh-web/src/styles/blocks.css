@@ -85,7 +85,13 @@
 @keyframes blkFadeUp { from { opacity: 0; } to { opacity: 1; } }
 
 /* 背景图：铺满整张海报（宽屏 / 手机竖版由 <picture> 切换） */
-.blk-hero__bg { position: absolute; inset: 0; overflow: hidden; }
+.blk-hero__bg {
+  position: absolute; inset: 0; overflow: hidden;
+  /* 悬停放大（需求 3.1）：放大「背景层」而非图片本身，避免与图片自身的
+     Ken Burns 环境动效（blkKenburns，作用于 img 的 transform）互相覆盖。 */
+  transition: transform .45s var(--gh-ease-accent);
+}
+.blk-hero:hover .blk-hero__bg { transform: scale(1.04); }
 .blk-hero__bg picture { display: block; width: 100%; height: 100%; }
 .blk-hero__bg img {
   width: 100%; height: 100%; object-fit: cover; display: block;
@@ -103,7 +109,12 @@
     linear-gradient(0deg, rgba(7, 10, 22, .78) 0%, rgba(7, 10, 22, 0) 52%);
 }
 @keyframes blkKenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
-@media (prefers-reduced-motion: reduce) { .blk-hero__bg img { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .blk-hero__bg img { animation: none; }
+  /* 尊重「减少动态效果」：不放大 */
+  .blk-hero__bg { transition: none; }
+  .blk-hero:hover .blk-hero__bg { transform: none; }
+}
 
 /* 文案浮层：与各板块标题同左边线对齐。
    海报不做整体压暗（保留原图亮度），改用文字阴影兜底可读性。 */
@@ -178,12 +189,14 @@
    ============================================================ */
 .blk--full[data-block="hero"],
 .blk--full[data-block="carousel"],
+.blk--full[data-block="productMatrix"],
 .blk--full[data-block="showcase"] { padding-block: 0; }
 
 .blk--full .blk-hero {
   border: 0;
   border-radius: 0;
-  min-height: min(100svh, 940px);
+  /* 高度交由各海报的档位类（--h-full / --h-short / --h-custom）决定：
+     通栏满宽后仍保留「矮一档」等档位，且相邻海报之间不留任何上下留白或间隙。 */
 }
 /* 滑动区撑满海报高度，背景图才能真正「满屏」 */
 .blk--full .blk-hero__slides { min-height: inherit; display: flex; }
@@ -192,13 +205,32 @@
   display: flex; flex-direction: column; justify-content: center;
 }
 
-/* —— 海报高度档位（§1.3）：满屏 / 比首屏矮一档 / 自定义（首屏轮播固定满屏）—— */
+/* —— 海报高度档位（§1.3）：满屏 / 21:9 宽幅 / 比首屏矮一档 / 自定义（首屏轮播固定满屏）—— */
 .blk-hero--h-full { min-height: min(100svh, 940px); }
+/* 21:9 宽幅：海报通栏满宽，高度**由宽度决定**（1440 宽 → 617 高、1920 宽 → 823 高） */
+.blk-hero--h-r219 { aspect-ratio: 21 / 9; }
 .blk-hero--h-short { min-height: min(66vh, 600px); }
+/* 窄屏兜底：≤900px 时 21:9 过扁，回退到「矮一档」高度，保证文案与产品主体都放得下 */
+@media (max-width: 900px) {
+  .blk-hero--h-r219 { aspect-ratio: auto; min-height: min(66vh, 600px); }
+}
 .blk-hero--h-full .blk-hero__slides,
 .blk-hero--h-short .blk-hero__slides,
 .blk-hero--h-custom .blk-hero__slides { min-height: inherit; display: flex; }
+/* 21:9 档位有两种取高方式：宽屏用 aspect-ratio（确定高度），≤900px 兜底用 min-height（不确定高度）。
+   两种都要能撑满内层，否则 slides/slide 会塌成内容高度、`contentPosition` 的百分比按错误参照系计算（文案贴顶）：
+   - 确定高度（aspect-ratio）→ `height: 100%` 生效；
+   - 不确定高度（min-height）→ `min-height: inherit` 生效（flex:1 在不确定高度下分不到空间）。 */
+.blk-hero--h-r219 { display: flex; flex-direction: column; }
+.blk-hero--h-r219 .blk-hero__slides,
+.blk-hero--h-r219 .blk-hero__slide.is-active {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: inherit;
+  display: flex;
+}
 .blk-hero--h-full .blk-hero__slide.is-active,
+.blk-hero--h-r219 .blk-hero__slide.is-active,
 .blk-hero--h-short .blk-hero__slide.is-active,
 .blk-hero--h-custom .blk-hero__slide.is-active {
   width: 100%;
@@ -213,8 +245,19 @@
 .hero__content--pos {
   position: absolute;
   max-width: min(620px, calc(100% - 2 * var(--gh-space-5)));
-  text-shadow: 0 1px 24px rgba(7, 10, 22, .6);
+  /* 文案整体居中：位置由 contentPosition 决定，块内标题 / 副标题 / 按钮一律居中；
+     海报文案一律不投影（去掉此前的 text-shadow，客户明确要求）。 */
+  text-align: center;
+  text-shadow: none;
 }
+/* 标题 / 副标题限宽后自身也要居中，否则居中块内仍会看起来靠左 */
+.hero__content--pos .hero__title,
+.hero__content--pos .hero__desc,
+.hero__content--pos .hero__points { margin-left: auto; margin-right: auto; }
+.hero__content--pos .hero__cta { justify-content: center; }
+/* 海报文案与按钮一律不投影（含后台配置了文案色 / 强调色的情形） */
+.blk-hero .hero__content,
+.blk-hero .hero__content * { text-shadow: none; }
 /* 卖点 / 数据点：一行小字（不做三块并列） */
 .hero__points {
   margin: var(--gh-space-5) 0 0;
@@ -222,15 +265,99 @@
   color: rgba(255, 255, 255, .72);
 }
 .blk-hero--light .hero__points { color: var(--color-text-tertiary); }
+/* —— 海报文案颜色 / 按钮配色（后台可配，需求 1.5 / 7）——
+   仅在配置时由组件注入 --hero-text-color / --hero-accent；用 `.blk-hero` 前缀提高权重，
+   确保能覆盖 site.css / components.css 的既有皮肤（浅色主题同样生效）。 */
+.blk-hero .hero__content--themed .hero__eyebrow,
+.blk-hero .hero__content--themed .hero__title,
+.blk-hero .hero__content--themed .hero__desc,
+.blk-hero .hero__content--themed .hero__points { color: var(--hero-text-color); }
+.blk-hero .hero__cta--themed .btn--primary,
+.blk-hero .hero__cta--themed .btn--primary:hover { background: var(--hero-accent); border-color: var(--hero-accent); }
+.blk-hero .hero__cta--themed .btn--secondary,
+.blk-hero .hero__cta--themed .btn--secondary:hover { border-color: var(--hero-accent); color: var(--hero-accent); }
+
+/* ============================================================
+   海报「立即购买」按钮 · 光效切换（后台字段 ctaStyle）
+   ------------------------------------------------------------
+   - plain（默认）：完全无光晕 —— 以 `.blk-hero` 前缀提高权重，把 .btn--primary 在
+     site.css / components.css 里的既有投影（含 :hover / :active）一并归零；深浅主题一致。
+   - sweep（扫光）：按钮内叠一道斜向高光带（::after + linear-gradient），悬停时扫过一次；
+     触屏（hover: none）与 prefers-reduced-motion: reduce 下不扫。
+   - pulse（呼吸光）：双层 box-shadow 光晕在 2.8s 内缓慢明暗循环；reduced-motion 下改为常亮弱光。
+   - 光色统一取品牌色令牌 --color-accent-solid（半透明叠加 color-mix），不写死十六进制。
+   - 按钮形状沿用站内既有 .btn（圆角 / 尺寸），仅叠加光效，不改形态。
+   ============================================================ */
+
+/* —— plain（默认，无光效）：按钮一律无光晕，不再有 hover / active 投影 —— */
+.blk-hero .hero__cta .btn--primary,
+.blk-hero .hero__cta .btn--primary:hover,
+.blk-hero .hero__cta .btn--primary:active { box-shadow: none; }
+
+/* —— sweep 扫光：高光带裁切在按钮形状内（overflow: hidden + border-radius inherit）—— */
+.blk-hero .hero__cta--sweep .btn--primary { position: relative; overflow: hidden; }
+.blk-hero .hero__cta--sweep .btn--primary::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 45%;
+  pointer-events: none; border-radius: inherit; opacity: 0;
+  background: linear-gradient(100deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-accent-solid) 22%, #fff) 50%,
+    transparent 100%);
+  transform: translateX(-160%) skewX(-18deg);
+}
+/* 仅「可悬停 + 未开启减弱动效」时扫光；触屏 / reduced-motion 下保持静止、不扫 */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .blk-hero .hero__cta--sweep .btn--primary:hover::after { animation: heroCtaSweep .75s var(--gh-ease-accent) both; }
+}
+@keyframes heroCtaSweep {
+  from { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
+  25%  { opacity: 1; }
+  to   { transform: translateX(320%) skewX(-18deg); opacity: 0; }
+}
+
+/* —— pulse 呼吸光：双层光晕缓慢明暗循环（2.8s）—— */
+.blk-hero .hero__cta--pulse .btn--primary {
+  --hero-cta-glow: var(--color-accent-solid);
+  animation: heroCtaPulse 2.8s var(--gh-ease-accent) infinite;
+}
+@keyframes heroCtaPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--hero-cta-glow) 0%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--hero-cta-glow) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 14px 2px color-mix(in srgb, var(--hero-cta-glow) 42%, transparent),
+      0 0 38px 8px color-mix(in srgb, var(--hero-cta-glow) 20%, transparent);
+  }
+}
+/* 浅色主题（站点浅色 或 该海报 theme=light）下降低光晕不透明度，避免过曝 */
+:root:not([data-theme="dark"]) .blk-hero .hero__cta--pulse .btn--primary,
+.blk-hero--light .hero__cta--pulse .btn--primary {
+  --hero-cta-glow: color-mix(in srgb, var(--color-accent-solid) 62%, transparent);
+}
+/* reduced-motion：呼吸光静止为常亮弱光（不闪） */
+@media (prefers-reduced-motion: reduce) {
+  .blk-hero .hero__cta--pulse .btn--primary,
+  .blk-hero .hero__cta--pulse .btn--primary:hover {
+    animation: none;
+    box-shadow:
+      0 0 12px 1px color-mix(in srgb, var(--hero-cta-glow) 30%, transparent),
+      0 0 30px 4px color-mix(in srgb, var(--hero-cta-glow) 15%, transparent);
+  }
+}
+
 @media (max-width: 767px) {
-  /* 小屏：按安全区收敛到左下，保证可读、不溢出（覆盖内联坐标） */
+  /* 小屏：保留"文案在上、下方留产品"的口径（覆盖内联坐标），左右留安全边距 */
   .hero__content--pos {
     left: var(--gh-space-4) !important;
     right: var(--gh-space-4);
-    top: auto !important;
-    bottom: var(--gh-space-7);
+    top: 12% !important;
+    bottom: auto;
     transform: none !important;
     max-width: none;
+    text-align: center;
   }
 }
 
@@ -604,7 +731,9 @@
 .contact-block {
   position: relative;
   border-radius: var(--gh-radius-2xl);
-  padding: clamp(var(--gh-space-6), 4.5vw, var(--gh-space-9));
+  /* 需求 6.1：上下留白较原值缩短约 1/3（横向保持不变） */
+  padding-block: clamp(calc(var(--gh-space-6) * 0.66), 3vw, calc(var(--gh-space-9) * 0.66));
+  padding-inline: clamp(var(--gh-space-6), 4.5vw, var(--gh-space-9));
   overflow: hidden;
   isolation: isolate;
 }
@@ -617,7 +746,10 @@
   border: 1px solid var(--color-border-default);
   box-shadow: var(--shadow-sm);
 }
-.contact-block--soft .contact-form { box-shadow: var(--shadow-lg); border-color: var(--color-border-subtle); }
+.contact-block--soft .contact-form { box-shadow: none; border-color: var(--color-border-subtle); background: transparent; }
+/* 需求 6.2：弱化内部模块分割感 —— 左栏要点去浮卡（去底 / 去描边），
+   与右栏表单合并成「一块」，而不是左右两张卡。 */
+.contact-block--soft .contact-points li { background: transparent; border-color: transparent; padding-inline: 0; }
 /* bold：品牌深色收口 */
 .contact-block--bold {
   background:
@@ -764,6 +896,13 @@
   .blk-steps { grid-template-columns: minmax(0, 1fr); gap: var(--gh-space-6); }
 }
 
+/* —— 双色图标机制（共享）——
+   图标主体笔画继承 currentColor（中性色），参与强调的「一笔 / 一个局部」加 .ic-accent 类，
+   统一切换为品牌色。描边型图元用 .ic-accent（stroke）；填充型图元用 .ic-accent-fill（fill）。
+   「固件与驱动」条目图标与「信任条」图标共用同一套规则，不写两份。 —— */
+.ic-accent { stroke: var(--color-accent-solid); }
+.ic-accent-fill { fill: var(--color-accent-solid); }
+
 /* —— cards · entries 布局：条目列表（固件与驱动）
    单容器 + 发丝分隔的横向条目行：左侧标签、中间标题 + 说明、右侧箭头。 —— */
 .blk-entries {
@@ -782,9 +921,21 @@
 }
 .blk-entries__row + .blk-entries__row { border-top: 1px solid var(--color-border-subtle); }
 .blk-entries__row:hover { background: var(--color-bg-subtle); }
-.blk-entries__lead { display: flex; align-items: center; }
+/* 标题行右侧工具区：简约搜索栏（复用站点 .search / .input）+ 「前往下载中心」CTA */
+.blk-entries__tools { display: flex; align-items: center; gap: var(--gh-space-4); flex-wrap: wrap; justify-content: flex-end; }
+.blk-entries__search { width: min(240px, 60vw); }
+.blk-entries__search .input { height: var(--gh-control-height-sm); }
+.blk-entries__lead { display: flex; align-items: center; color: var(--color-text-secondary); }
+/* 条目图标：放大到 28px（更精致；1.5px 描边不变），主体中性色、一笔品牌色（.ic-accent） */
+.blk-entries__lead svg { width: 28px; height: 28px; display: block; }
 .blk-entries__text { display: block; min-width: 0; }
-.blk-entries__title { display: block; font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); color: var(--color-text-primary); }
+.blk-entries__title {
+  display: block; font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold);
+  color: var(--color-text-primary);
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+/* 悬停主标题 → 品牌色（需求 5.3） */
+.blk-entries__row:hover .blk-entries__title { color: var(--color-accent-text); }
 .blk-entries__desc { display: block; margin-top: 2px; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.6; }
 .blk-entries__go { color: var(--color-text-tertiary); transition: color var(--gh-duration-fast) var(--gh-ease-standard), transform var(--gh-duration-base) var(--gh-ease-accent); }
 .blk-entries__row:hover .blk-entries__go { color: var(--color-accent-text); transform: translateX(4px); }
@@ -1190,22 +1341,25 @@
 }
 
 /* ============================================================
-   productMatrix 产品矩阵（§1.4）：图片铺满卡面 + 右下半透明面板
+   productMatrix 产品矩阵（§1.4）：图片铺满卡面 + 文案顶部居中
    ============================================================ */
 .blk-pmatrix__grid {
   display: grid;
   grid-template-columns: repeat(var(--pm-cols, 2), minmax(0, 1fr));
-  gap: var(--gh-space-5);
-  margin-top: var(--gh-space-6);
+  /* 卡片间距：上一轮按参考图估作「2px 紧贴」，客户反馈过密，现按客户给的 5px */
+  gap: 5px;
 }
+/* 仅在「有区块标题」时与标题拉开距离；无标题时网格直接贴住区块上沿（复刻示例的满幅效果） */
+.blk-pmatrix .section__head + .blk-pmatrix__grid { margin-top: var(--gh-space-6); }
 .blk-pmatrix__card {
   position: relative; overflow: hidden; min-width: 0;
-  border-radius: var(--gh-radius-xl);
+  /* 需求 4.1：卡片与图片一律不要圆角 */
+  border-radius: 0;
   background: var(--color-bg-muted);
   border: 1px solid var(--color-border-default);
 }
 /* 图片铺满整张卡（比例由 --pm-ratio 控制，object-fit 裁切不变形） */
-.blk-pmatrix__media { width: 100%; aspect-ratio: var(--pm-ratio, 16 / 9); }
+.blk-pmatrix__media { width: 100%; aspect-ratio: var(--pm-ratio, 16 / 9); border-radius: 0; }
 .blk-pmatrix__media picture { display: block; width: 100%; height: 100%; }
 .blk-pmatrix__img {
   width: 100%; height: 100%; display: block;
@@ -1213,30 +1367,58 @@
   transition: transform .4s var(--gh-ease-accent);
 }
 .blk-pmatrix__card:hover .blk-pmatrix__img { transform: scale(1.03); }
-/* 整卡点击热区：覆盖卡面（面板 / 按钮在其上层，优先响应各自链接） */
+/* 整卡点击热区：覆盖卡面（文案 / 按钮在其上层，优先响应各自链接） */
 .blk-pmatrix__hit { position: absolute; inset: 0; z-index: 1; }
-/* 型号 + 一句话 + 按钮：悬浮在图片右下角（半透明面板保证可读）。
-   面板本身不拦截点击（空白处仍走整卡热区），仅链接可点。 */
+/* 型号 + 一句话 + 按钮：置于卡面**上部水平居中**（复刻客户示例：标题落在卡高约 15–22% 处）。
+   不加面板底、不加投影；容器不拦截点击，空白处仍走整卡热区，仅型号 / 按钮可点。 */
 .blk-pmatrix__panel {
-  position: absolute; right: 0; bottom: 0; z-index: 2;
-  display: flex; flex-direction: column; gap: var(--gh-space-2);
-  max-width: 82%; margin: var(--gh-space-3);
-  padding: var(--gh-space-4) var(--gh-space-5);
-  border-radius: var(--gh-radius-lg);
-  background: rgba(9, 10, 16, .52);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, .12);
-  color: var(--gh-neutral-50);
+  position: absolute; left: 0; right: 0; top: 16%; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  /* 复刻示例的纵向节奏：标题与副标题贴合（6px），副标题到按钮约 12px */
+  gap: 6px;
+  padding: 0 var(--gh-space-4);
   pointer-events: none;
+  color: var(--pm-text, var(--gh-neutral-50));
 }
+.blk-pmatrix__panel,
+.blk-pmatrix__panel * { text-shadow: none; }
 .blk-pmatrix__model, .blk-pmatrix__btns { pointer-events: auto; }
 .blk-pmatrix__model {
-  font-size: var(--gh-font-size-h4); font-weight: var(--gh-weight-semibold);
-  color: var(--gh-neutral-50); text-decoration: none; font-variant-numeric: tabular-nums;
+  font-size: clamp(22px, 2vw, 30px); font-weight: 700; line-height: 1.15;
+  letter-spacing: -.01em;
+  color: currentColor; text-decoration: none; font-variant-numeric: tabular-nums;
 }
-.blk-pmatrix__model:hover { color: var(--gh-blue-200); }
-.blk-pmatrix__desc { margin: 0; font-size: var(--gh-font-size-body-sm); color: rgba(255, 255, 255, .82); max-width: 34ch; }
-.blk-pmatrix__btns { display: flex; flex-wrap: wrap; gap: var(--gh-space-2); margin-top: var(--gh-space-1); }
+.blk-pmatrix__model:hover { opacity: .85; }
+.blk-pmatrix__desc { margin: 0; font-size: 20px; line-height: 1.45; color: currentColor; opacity: .82; }
+/* 文案颜色（后台可配 · 可逐卡覆盖）：有的海报底深、有的底浅，逐卡设定才能都读得清 */
+.blk-pmatrix.is-text-themed .blk-pmatrix__model,
+.blk-pmatrix.is-text-themed .blk-pmatrix__desc { color: var(--pm-text); }
+.blk-pmatrix__btns {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--gh-space-2); margin-top: 12px;
+}
+/* 按钮复刻示例：胶囊形、小号（示例里按钮明显小于站内常规按钮，故显式压掉全局 min-height）；
+   主按钮实底、次按钮描边（描边与文字跟随卡面文字色） */
+.blk-pmatrix__btns .btn {
+  border-radius: 999px;
+  min-height: 0; height: 34px; padding: 0 16px;
+  font-size: var(--gh-font-size-body-sm);
+}
+.blk-pmatrix__btns .btn--secondary {
+  background: transparent;
+  color: currentColor;
+  border-color: color-mix(in srgb, currentColor 42%, transparent);
+}
+.blk-pmatrix__btns .btn--secondary:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-color: color-mix(in srgb, currentColor 70%, transparent);
+  color: currentColor;
+}
+/* 按钮强调色（后台可配）：主按钮实底、次按钮描边跟随 --pm-accent */
+.blk-pmatrix.is-accent-themed .blk-pmatrix__btns .btn--primary,
+.blk-pmatrix.is-accent-themed .blk-pmatrix__btns .btn--primary:hover { background: var(--pm-accent); border-color: var(--pm-accent); }
+.blk-pmatrix.is-accent-themed .blk-pmatrix__btns .btn--secondary,
+.blk-pmatrix.is-accent-themed .blk-pmatrix__btns .btn--secondary:hover { border-color: var(--pm-accent); color: var(--pm-accent); }
 /* 一屏正好放下：等分行高铺满视口高度 */
 .blk-pmatrix.is-full { display: flex; flex-direction: column; min-height: min(100svh, 940px); }
 .blk-pmatrix.is-full .blk-pmatrix__grid { flex: 1 1 auto; grid-auto-rows: 1fr; }
@@ -1251,7 +1433,8 @@
   }
   .blk-pmatrix.is-rail .blk-pmatrix__card { flex: 0 0 82%; scroll-snap-align: start; }
   .blk-pmatrix.is-grid .blk-pmatrix__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-3); }
-  .blk-pmatrix__panel { max-width: none; margin: var(--gh-space-2); }
+  /* 小屏收紧顶部留白，避免文案挤压图片主体 */
+  .blk-pmatrix__panel { padding: var(--gh-space-4) var(--gh-space-3) 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1402,15 +1585,18 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 .blk-trustbar__item {
-  display: flex; align-items: center; justify-content: center; gap: var(--gh-space-3);
+  display: flex; align-items: center; justify-content: center; gap: var(--gh-space-4);
   padding: var(--gh-space-5) var(--gh-space-4);
   color: var(--color-text-secondary); text-decoration: none;
   transition: color var(--gh-duration-fast) var(--gh-ease-standard);
 }
 .blk-trustbar__item + .blk-trustbar__item { border-left: 1px solid var(--color-border-subtle); }
 .blk-trustbar__item:hover { color: var(--color-text-primary); }
+/* 图标放大到 28px：主体中性色、一笔品牌色（.ic-accent，与固件驱动图标共用机制） */
 .blk-trustbar__icon { display: inline-flex; flex: none; color: var(--color-text-tertiary); }
-.blk-trustbar__text { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
+.blk-trustbar__icon svg { width: 28px; height: 28px; display: block; }
+/* 条目文字放大一档（13px → 17px），与放大的图标保持配重 */
+.blk-trustbar__text { font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
 @media (max-width: 900px) {
   .blk-trustbar__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .blk-trustbar__item:nth-child(2n + 1) { border-left: 0; }

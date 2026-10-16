@@ -11,10 +11,12 @@
  * - 媒体：video 用原生 <video autoplay muted loop playsinline>；image / gif 按图片处理；
  * - 有 href 的卡片整体可点击（.card--link / 链接包裹），保留键盘可达。
  */
-import { Link } from 'react-router-dom'
-import { useMemo, type CSSProperties } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import { HScroll } from '../components/home/HScroll'
-import { SectionHeadFromProps } from '../components/home/SectionHead'
+import { SectionCta, SectionHead, SectionHeadFromProps } from '../components/home/SectionHead'
+import { BlockIcon } from '../components/home/BlockIcon'
+import { IconSearch } from '../components/ui/Icon'
 import { MediaImg } from '../components/ui/MediaImg'
 import { resolveMedia } from '../data/media'
 import { fetchDownloads } from '../api/support-extra'
@@ -29,6 +31,8 @@ type CardItem = {
   image: string
   media: string
   mediaType: MediaType
+  /** 图标名（条目列表布局用；见 BlockIcon 可用名称） */
+  icon: string
   tag: string
   title: string
   desc: string
@@ -49,6 +53,7 @@ function toItem(value: unknown): CardItem {
     image: asString(record.image),
     media: asString(record.media),
     mediaType: rawType === 'video' || rawType === 'gif' ? rawType : 'image',
+    icon: asString(record.icon),
     tag: asString(record.tag),
     title: asString(record.title),
     desc: asString(record.desc),
@@ -230,7 +235,22 @@ function SpotlightRow({ item, index }: { item: CardItem; index: number }) {
 
 export function CardsBlock({ props }: { props: Record<string, unknown> }) {
   const { isHrefLive } = useSitePages()
+  const navigate = useNavigate()
+  const [keyword, setKeyword] = useState('')
   const layout = asString(props.layout, 'grid')
+  // 条目列表（固件与驱动）标题行左侧搜索栏：占位文字 / 跳转地址后台可改，留空用默认
+  const searchPlaceholder = asString(props.searchPlaceholder) || '搜索型号'
+  const searchHref = asString(props.searchHref) || '/search'
+  /** 提交搜索：跳转到搜索结果（关键词以 ?q= 追加） */
+  const onSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const query = keyword.trim()
+    if (!query) {
+      navigate(searchHref)
+      return
+    }
+    navigate(`${searchHref}${searchHref.includes('?') ? '&' : '?'}q=${encodeURIComponent(query)}`)
+  }
   const overlay = asBool(props.overlay)
   const ratio = asString(props.ratio) || '16 / 9'
   const columns = gridClass(props.columns, 3)
@@ -349,11 +369,38 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
     )
   }
 
-  // entries：条目列表（固件与驱动）—— 单容器 + 发丝分隔的横向条目行（标签 / 标题+说明 / 箭头）
+  // entries：条目列表（固件与驱动）—— 单容器 + 发丝分隔的横向条目行（图标 / 标题+说明 / 箭头）
+  // 标题行右侧 = 简约搜索栏（复用站点 .search / .input）+ 「前往下载中心」CTA。
   if (layout === 'entries') {
+    const title = asString(props.title)
+    const desc = asString(props.subtitle) || asString(props.desc)
+    const entriesHead = title ? (
+      <SectionHead
+        title={title}
+        desc={desc || undefined}
+        action={
+          <div className="blk-entries__tools">
+            <form className="search blk-entries__search" role="search" onSubmit={onSearch}>
+              <span className="search__icon" aria-hidden="true">
+                <IconSearch size={16} />
+              </span>
+              <input
+                className="input"
+                type="search"
+                value={keyword}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+                onChange={(event) => setKeyword(event.target.value)}
+              />
+            </form>
+            <SectionCta label={asString(props.ctaLabel)} href={asString(props.ctaHref)} />
+          </div>
+        }
+      />
+    ) : null
     return (
       <div>
-        {head}
+        {entriesHead}
         <div className="blk-entries">
           {items.map((item, index) => {
             // 固件驱动：把下载中心最新版本 / 日期随卡片自动带出（运营不再手写版本号）
@@ -361,8 +408,13 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
             const metaText = latest ? `最新 ${latest.version} · ${latest.date}` : ''
             const inner = (
               <>
+                {/* 左列：图标（有配置时）——把卡片从「纯文字」升级为「图标 + 文案」 */}
                 <span className="blk-entries__lead">
-                  {item.tag && <span className="tag tag--pill">{item.tag}</span>}
+                  {item.icon ? (
+                    <BlockIcon name={item.icon} size={28} accent />
+                  ) : (
+                    item.tag && <span className="tag tag--pill">{item.tag}</span>
+                  )}
                 </span>
                 <span className="blk-entries__text">
                   {item.title && <span className="blk-entries__title">{item.title}</span>}

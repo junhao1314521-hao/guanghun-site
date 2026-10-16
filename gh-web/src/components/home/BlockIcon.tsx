@@ -22,7 +22,7 @@ import {
  * 名称与后台装修器「标题图标」下拉选项一致（见 gh-server/src/data/blockCatalog.ts 的 TITLE_ICONS）。
  * 未匹配名称时返回 null（不渲染），保证缺省不破坏排版。
  */
-const ICONS: Record<string, (props: { size?: number }) => ReactNode> = {
+const ICONS: Record<string, (props: { size?: number; accent?: boolean }) => ReactNode> = {
   monitor: IconMonitor,
   trophy: IconTrophy,
   chip: IconChip,
@@ -43,9 +43,9 @@ const ICONS: Record<string, (props: { size?: number }) => ReactNode> = {
 /** 标题图标可用名称（供后台下拉复用） */
 export const BLOCK_ICON_NAMES = Object.keys(ICONS)
 
-export function BlockIcon({ name, size = 18 }: { name?: string; size?: number }) {
+export function BlockIcon({ name, size = 18, accent }: { name?: string; size?: number; accent?: boolean }) {
   if (!name) return null
   const Comp = ICONS[name]
   if (!Comp) return null
-  return <Comp size={size} />
+  return <Comp size={size} accent={accent} />
 }

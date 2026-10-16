@@ -21,10 +21,10 @@ export function MeInquiriesPage() {
     <div ref={rootRef}>
       <div className="section__head">
         <div>
-          <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+          <h2 className="section__title">
             我的咨询
           </h2>
-          <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+          <p className="section__desc">
             点击任一工单查看处理时间线并补充材料。
           </p>
         </div>

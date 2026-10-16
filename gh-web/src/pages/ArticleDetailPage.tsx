@@ -197,7 +197,7 @@ export function ArticleDetailPage() {
               ) : (
                 article.sections.map((section, index) => (
                   <section key={section.heading} style={{ marginTop: index === 0 ? 0 : 'var(--gh-space-6)' }}>
-                    <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                    <h2 className="section__title">
                       {section.heading}
                     </h2>
                     {section.paragraphs.map((paragraph, pIndex) => (

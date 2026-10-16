@@ -2,14 +2,16 @@
  * 页面停用集合查询 hook（下线级联）。
  *
  * 首次调用时拉取内容库页面列表（全程仅一次，模块级去重），写入 `lib/sitePages` 的
- * 模块级 store，并订阅其变化；返回 `{ disabledPaths, isPathLive, isKeyLive }`，
- * 供导航 / 页脚 / 区块等任意组件在渲染链接前统一过滤死链。
+ * 模块级 store，并订阅其变化；返回 `{ pages, disabledPaths, isPathLive, isKeyLive }`，
+ * 供导航 / 页脚 / 区块等任意组件在渲染链接前统一过滤死链（`pages` 供页脚按页面层级生成分组）。
  * 内容库不可用时视为「无停用页面」，不阻断页面渲染。
  */
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { fetchPages } from '../api/content'
+import type { PageMeta } from '../data/contentTypes'
 import {
   getDisabledPaths,
+  getSitePages,
   isHrefLive,
   isKeyLive,
   isPathLive,
@@ -41,6 +43,8 @@ function ensureLoaded(): Promise<void> {
 }
 
 export type SitePagesApi = {
+  /** 内容库页面列表（含已下线页面；未加载时为空数组） */
+  pages: readonly PageMeta[]
   /** 已下线页面的 path 集合（只读） */
   disabledPaths: ReadonlySet<string>
   /** 目标路径是否仍在线 */
@@ -60,6 +64,7 @@ export function useSitePages(): SitePagesApi {
 
   return useMemo(
     () => ({
+      pages: getSitePages(),
       disabledPaths: getDisabledPaths(),
       isPathLive: (path: string) => isPathLive(path),
       isKeyLive: (key: string) => isKeyLive(key),

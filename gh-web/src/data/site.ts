@@ -74,7 +74,7 @@ export function normalizeSocial(raw: unknown): SiteSocialItem[] {
         ...(href && href !== '#' ? { href } : {}),
       })
     }
-    return items
+    return dedupeSocial(items)
   }
   // 旧形态：图标+链接 与 二维码 两条列表 → 按名称合并
   const links = Array.isArray(record.links) ? record.links : []
@@ -106,5 +106,18 @@ export function normalizeSocial(raw: unknown): SiteSocialItem[] {
       push({ label, ...(image ? { qr: image } : {}) })
     }
   }
-  return items
+  return dedupeSocial(items)
+}
+
+/** 按平台名去重（保留首次出现的一条），避免同名平台重复渲染图标 */
+function dedupeSocial(items: SiteSocialItem[]): SiteSocialItem[] {
+  const seen = new Set<string>()
+  const out: SiteSocialItem[] = []
+  for (const item of items) {
+    const key = item.label.trim().toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(item)
+  }
+  return out
 }

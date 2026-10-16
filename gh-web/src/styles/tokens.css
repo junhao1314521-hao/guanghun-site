@@ -49,7 +49,7 @@
   --gh-cyan-500: #06B6D4;
 
   /* —— 字体族 —— */
-  --gh-font-sans: "Geist", "MiSans", "PingFang SC", "HarmonyOS Sans SC",
+  --gh-font-sans: "MiSans VF", "Geist", "MiSans", "PingFang SC", "HarmonyOS Sans SC",
                   "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
   --gh-font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular",
                   Menlo, Consolas, monospace;

@@ -47,10 +47,10 @@ export function MeNotificationsPage() {
     <div ref={rootRef}>
       <div className="section__head">
         <div>
-          <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+          <h2 className="section__title">
             订阅与通知
           </h2>
-          <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+          <p className="section__desc">
             选择需要接收的通知类型；变更即时生效。
           </p>
         </div>

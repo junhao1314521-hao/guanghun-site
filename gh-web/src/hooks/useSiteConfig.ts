@@ -59,6 +59,8 @@ export function useSiteNav(): NavItem[] {
               // 角标以后台站点配置为准；未配置时回退本地 NAV_ITEMS 的默认角标
               badge: link.badge ?? matched?.badge,
               badgeText: link.badgeText ?? matched?.badgeText,
+              // 摇动标记：后台未携带时回退本地默认（沿用 NAV_ITEMS 的 badgeShake）
+              badgeShake: matched?.badgeShake,
             }
           })
     // 下线级联：过滤指向已停用页面的一级入口，避免死链
@@ -67,14 +69,20 @@ export function useSiteNav(): NavItem[] {
 }
 
 /**
- * 页脚分组：优先内容库 `site.footer`，为空 / 不可用时回退本地硬编码。
- * 下线级联：过滤组内指向已停用页面的链接；组内链接被清空时整组不渲染。
+ * 页脚分组：
+ * 1. **后台配置优先**：站点配置 `site.footer` 存在且非空 → 直接使用（运营手工编排分组与顺序）；
+ * 2. 内容库尚未就绪 / 未配置页脚 → 回退本地硬编码 FOOTER_GROUPS，页脚永不为空。
+ *
+ * 注：曾实现过「按页面路径层级自动生成页脚」作为中间回退，客户明确否掉了
+ * （"路径层级映射太死"），故只保留「后台配置 + 本地兜底」两条路径。
+ * 最后统一做下线级联：过滤指向已停用页面的链接；组内链接被清空时整组不渲染。
  */
 export function useSiteFooterGroups(): SiteFooterGroup[] {
   const site = useSiteConfig()
   const { isPathLive } = useSitePages()
   return useMemo(() => {
-    const groups = site?.footer && site.footer.length > 0 ? site.footer : fallbackFooter()
+    const configured = site?.footer && site.footer.length > 0 ? site.footer : null
+    const groups = configured ?? fallbackFooter()
     return groups
       .map((group) => ({ ...group, links: group.links.filter((link) => isPathLive(link.href)) }))
       .filter((group) => group.links.length > 0)

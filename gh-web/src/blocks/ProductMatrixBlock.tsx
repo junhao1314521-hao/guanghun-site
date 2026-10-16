@@ -1,8 +1,9 @@
 /**
  * 27. productMatrix 产品矩阵（需求 §1.4 新建独立区块）。
  * ============================================================
- * 卡面：**图片铺满整张卡**；型号 + 一句话 + 按钮**悬浮在图片右下角**（半透明面板保证可读）。
- * 交互：点卡片 / 型号 → 产品详情页；点按钮 → 按钮自配链接。
+ * 卡面：**图片铺满整张卡**；型号（大字）+ 一句话（小字）+ 按钮**置于图片顶部、水平居中**，
+ * 一律不加投影（背景有深有浅，靠 textColor / accentColor 后台可配保证可读）。
+ * 交互：点卡片 / 型号 → 产品详情页；点按钮 → 按钮自配链接（首个实底、其余描边）。
  *
  * 数据源（`source`）：
  * - `product` 关联产品：填 productId，自动带入产品主图 / 型号 / 详情链接，文案可覆盖；
@@ -29,6 +30,8 @@ type MatrixItem = {
   model: string
   desc: string
   href: string
+  /** 该卡文案颜色（可逐卡覆盖区块级 textColor）：背景深浅不一的卡片各自设定 */
+  textColor: string
   buttons: BlockLink[]
 }
 
@@ -44,6 +47,7 @@ function toItem(value: unknown): MatrixItem {
     model: asString(record.model),
     desc: asString(record.desc),
     href: asString(record.href),
+    textColor: asString(record.textColor),
     buttons,
   }
 }
@@ -80,6 +84,9 @@ export function ProductMatrixBlock({ props }: { props: Record<string, unknown> }
   const fullscreen = asBool(props.fullscreen)
   const cropFocus = asString(props.cropFocus, 'center')
   const mobileLayout = asString(props.mobileLayout, 'rail') === 'grid' ? 'grid' : 'rail'
+  // 文案颜色 / 按钮强调色（后台可配）：只在配置时注入，未配沿用默认（浅底海报用深色、深底用浅色）
+  const textColor = asString(props.textColor)
+  const accentColor = asString(props.accentColor)
   const items = asArray(props.items).map(toItem)
 
   // 关联产品：取产品集合（手填时为空，不阻塞渲染）
@@ -96,7 +103,16 @@ export function ProductMatrixBlock({ props }: { props: Record<string, unknown> }
       // 下线级联：卡面 / 型号链接指向已停用页面时归一化为空（退化为不可点内容）；按钮链接同理被过滤
       const href = rawHref && isHrefLive(rawHref) ? rawHref : ''
       const buttons = item.buttons.filter((button) => isHrefLive(button.href))
-      return { key: `${item.productId || model || 'card'}-${index}`, image, imageMobile: item.imageMobile, model, desc, href, buttons }
+      return {
+        key: `${item.productId || model || 'card'}-${index}`,
+        image,
+        imageMobile: item.imageMobile,
+        model,
+        desc,
+        href,
+        textColor: item.textColor,
+        buttons,
+      }
     })
     .filter((card) => Boolean(card.image || card.model || card.desc))
 
@@ -106,9 +122,17 @@ export function ProductMatrixBlock({ props }: { props: Record<string, unknown> }
     '--pm-ratio': ratioCss(ratio),
     '--pm-focus': focusCss(cropFocus),
   } as CSSProperties
+  // 文案 / 按钮配色变量（仅配置时注入）
+  const themeVars = {
+    ...(textColor ? { '--pm-text': textColor } : {}),
+    ...(accentColor ? { '--pm-accent': accentColor } : {}),
+  } as CSSProperties
 
   return (
-    <div className={`blk-pmatrix${fullscreen ? ' is-full' : ''} is-${mobileLayout}`}>
+    <div
+      className={`blk-pmatrix${fullscreen ? ' is-full' : ''} is-${mobileLayout}${textColor ? ' is-text-themed' : ''}${accentColor ? ' is-accent-themed' : ''}`}
+      style={textColor || accentColor ? themeVars : undefined}
+    >
       <SectionHeadFromProps props={props} />
       {error ? (
         <p className="section__desc" style={{ padding: 'var(--gh-space-6) 0' }}>
@@ -129,7 +153,12 @@ export function ProductMatrixBlock({ props }: { props: Record<string, unknown> }
       ) : (
         <div className="blk-pmatrix__grid" style={gridStyle}>
           {cards.map((card) => (
-            <article className="blk-pmatrix__card" key={card.key}>
+            <article
+              className="blk-pmatrix__card"
+              key={card.key}
+              // 逐卡文案颜色：只在该卡配置时注入，覆盖区块级 --pm-text
+              style={card.textColor ? ({ '--pm-text': card.textColor } as CSSProperties) : undefined}
+            >
               <div className="blk-pmatrix__media">
                 {card.imageMobile ? (
                   // 手机端单独传图：留空则沿用桌面图（<900px 生效）
@@ -155,7 +184,12 @@ export function ProductMatrixBlock({ props }: { props: Record<string, unknown> }
                 {card.buttons.length > 0 && (
                   <div className="blk-pmatrix__btns">
                     {card.buttons.map((button, index) => (
-                      <Link className="btn btn--primary btn--sm" to={button.href} key={`${button.label}-${index}`}>
+                      // 首个按钮实底（主），其余描边（次）；强调色由 accentColor 下发
+                      <Link
+                        className={`btn btn--sm ${index === 0 ? 'btn--primary' : 'btn--secondary'}`}
+                        to={button.href}
+                        key={`${button.label}-${index}`}
+                      >
                         {button.label}
                       </Link>
                     ))}

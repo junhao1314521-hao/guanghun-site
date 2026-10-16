@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <!-- MiSans VF 自托管：预加载最高频分片（第 0 片），再引入分片样式表 -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/misans/MiSansVF.16240990c6f7f7dd.0.woff2" />
+    <link rel="stylesheet" href="/fonts/misans/MiSansVF.min.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- 以下为静态默认值（供不执行 JS 的爬虫读取）；运行时由 usePageMeta 按路由覆盖 -->
     <meta name="description" content="以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。" />

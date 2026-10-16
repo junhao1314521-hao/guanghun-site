@@ -149,10 +149,10 @@ export function MeSettingsPage() {
           <section style={{ marginBottom: 'var(--gh-space-8)' }}>
             <div className="section__head">
               <div>
-                <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                <h2 className="section__title">
                   账号与安全
                 </h2>
-                <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                <p className="section__desc">
                   手机与邮箱可分别用于找回；更换后需重新验证。
                 </p>
               </div>
@@ -176,10 +176,10 @@ export function MeSettingsPage() {
           <section style={{ marginBottom: 'var(--gh-space-8)' }}>
             <div className="section__head">
               <div>
-                <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                <h2 className="section__title">
                   基本资料
                 </h2>
-                <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                <p className="section__desc">
                   昵称与手机号用于个人中心展示与联系。
                 </p>
               </div>
@@ -247,10 +247,10 @@ export function MeSettingsPage() {
           <section style={{ marginBottom: 'var(--gh-space-8)' }}>
             <div className="section__head">
               <div>
-                <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                <h2 className="section__title">
                   修改密码
                 </h2>
-                <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                <p className="section__desc">
                   修改后其他设备的登录态将失效，需重新登录。
                 </p>
               </div>
@@ -323,10 +323,10 @@ export function MeSettingsPage() {
           <section style={{ marginBottom: 'var(--gh-space-8)' }}>
             <div className="section__head">
               <div>
-                <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                <h2 className="section__title">
                   登录设备
                 </h2>
-                <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                <p className="section__desc">
                   如非本人操作，请退出该设备并修改密码。
                 </p>
               </div>
@@ -369,10 +369,10 @@ export function MeSettingsPage() {
           <section>
             <div className="section__head">
               <div>
-                <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h3)' }}>
+                <h2 className="section__title">
                   注销账号
                 </h2>
-                <p className="section__desc" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                <p className="section__desc">
                   注销后账号数据将按隐私政策处理，且不可恢复。
                 </p>
               </div>
