@@ -106,7 +106,13 @@ main.main--flush + .site-footer { margin-top: 0; }
               border-color var(--gh-duration-base) var(--gh-ease-standard),
               box-shadow var(--gh-duration-base) var(--gh-ease-standard);
 }
-.site-header__inner { display: flex; align-items: center; gap: var(--gh-space-6); height: 64px; }
+/* 顶栏内容高度 64px（按客户要求由 72 收紧到 60–64 区间，取 8pt 网格上的 64）。
+   注意：此值被 5 处派生值引用的「顶栏高」必须同步——首屏顶入、carousel margin-top、
+   blk-hero__grid padding、auth-shell--page 高度、以及 SiteHeader.tsx 的 over-hero 阈值（HEADER_HEIGHT）。
+   布局为「三段式网格」：左 LOGO ／ 中 导航 ／ 右 actions（1fr auto 1fr）。
+   两侧 1fr 等宽 → 中间 auto 段（导航 + 商城）在顶栏里**真正水平居中**（不受左右两侧宽度差异影响）。
+   窄屏导航隐藏时中间 auto 列塌缩为 0，LOGO 依旧靠左、actions 靠右，布局不破。 */
+.site-header__inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--gh-space-6); height: 64px; }
 .logo { display: inline-flex; align-items: center; gap: var(--gh-space-3); text-decoration: none; color: var(--color-text-primary); font-weight: var(--gh-weight-semibold); font-size: var(--gh-font-size-body-lg); letter-spacing: -0.01em; }
 .logo__mark { width: 30px; height: 30px; display: block; flex: none; }
 /* 字标：使用官方设计的矢量字形（SVDC.svg），经 CSS 遮罩取 currentColor，随深浅底自动适配 */
@@ -120,27 +126,30 @@ main.main--flush + .site-footer { margin-top: 0; }
   mask: url(/brand/svdc.svg) center / contain no-repeat;
 }
 /* 一级导航与下拉面板共用一个悬停热区（.site-navzone），热区纵向撑满顶栏，
-   指针在「导航 ↔ 面板」之间移动不会误收起。 */
-/* 客户反馈：一级导航紧贴 LOGO、显得挤。这里把热区与 LOGO 的距离再拉开 32px
-   （24 → 56），5 个一级项整体右移；项间距（32px）与字号（16px/400）保持不变。 */
-.site-navzone { display: flex; align-items: stretch; align-self: stretch; flex: 1; min-width: 0; margin-left: calc(var(--gh-space-5) + var(--gh-space-6)); }
-/* 一级导航（16px / 400 / 主文字色；当前项加 2px 品牌色下划线）。
-   客户反馈：链接挤在一起、字号偏小。字号调大一档、字重调轻，栏目间拉开间距（32px），
-   字距微开、不换行，5 个栏目仍在 1024–1440 全区间单行排布。 */
+   指针在「导航 ↔ 面板」之间移动不会误收起。
+   三段式网格下本区落在中间 auto 列，自身不再用 flex:1 撑开、也不再留 margin-left——
+   之前用于「把一级项整体右移」的偏移会让导航偏离顶栏中心，现全部移除以保证真居中。
+   商城入口作为本区第二个子级（排在导航之后），gap 取与导航项间距同档的 32px。 */
+.site-navzone { display: flex; align-items: stretch; align-self: stretch; min-width: 0; gap: var(--gh-space-6); }
+/* 一级导航（15px / 400 / 次级文字色；当前项加 2px 品牌色下划线）。
+   精致化：字号 16 → 15px（用 body 档令牌）、颜色改为次级灰（非纯黑，更克制）、
+   项间距 40 → 32px（客户要求「稍紧凑」；8pt 网格有 32px 档位）、字距微开、不换行。
+   当前项仅靠 2px 细下划线标识（不加背景块、不加粗，见 .site-nav a::after）。 */
 .site-nav { display: flex; align-items: center; gap: var(--gh-space-6); min-width: 0; }
-.site-nav a { color: var(--color-text-primary); text-decoration: none; font-size: 16px; font-weight: var(--gh-weight-regular); letter-spacing: .005em; white-space: nowrap; padding: var(--gh-space-2) 0; }
+.site-nav a { color: var(--color-text-secondary); text-decoration: none; font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-regular); letter-spacing: .005em; white-space: nowrap; padding: var(--gh-space-2) 0; }
 .site-nav a:hover { color: var(--color-text-primary); }
-.site-nav a.is-active { color: var(--color-text-primary); font-weight: var(--gh-weight-medium); }
-.site-actions { display: flex; align-items: center; gap: var(--gh-space-2); }
+.site-nav a.is-active { color: var(--color-text-primary); }
+.site-actions { display: flex; align-items: center; gap: var(--gh-space-2); justify-self: end; }
 /* ============================================================
-   顶栏右侧「图标按钮」统一规范（单一真源）
+   顶栏右侧「操作项」统一规范（单一真源）
    ------------------------------------------------------------
-   搜索 / 主题 / 语言 / 客服 / 账号 5 个按钮共用同一套几何与反馈，避免此前「两套规则」：
-     · 尺寸 34×34、圆角 8px、hover 浮出浅底（沿用既有 .icon-btn 视觉语言）；
-     · 内边距统一 0 —— 之前 <button>（浏览器 UA 默认 6px）与 <a>（0）来源不同，
-       这里显式归零收敛为一套，同时保证图标严格居中；
-     · 图标 18×18（月亮 / 账号两枚「轮廓偏小」的做 +1px 光学补偿，见调用处）；
-     · 按钮间距统一 8px（.site-actions gap），中心距恒为 42px。
+   搜索 / 主题 / 语言 / 商铺 / 客服 / 账号 共用同一套几何与反馈，收敛此前「圆钮 / 方钮 / 文字项」混排：
+     · 尺寸 34×34（语言项为唯一例外：保持「简体中文 ⌄」文字形态，宽度自适应、高度仍 34px 对齐）；
+     · 圆角统一 8px（--gh-radius-lg），形状语言一致；
+     · 图标 18×18（含此前做过 +1px 光学补偿的月亮 / 账号，本轮按客户要求统一回 18px）；
+     · 内边距统一 0（<button> 的 UA 默认 6px 显式归零，保证图标严格居中）；
+     · hover 统一为「悬停浮出浅底」（见下方分组规则）；
+     · 项间距统一 8px（.site-actions gap），垂直居中对齐一致。
    ============================================================ */
 .site-header .icon-btn {
   width: 34px; height: 34px;
@@ -150,8 +159,14 @@ main.main--flush + .site-footer { margin-top: 0; }
   transition: background var(--gh-duration-fast) var(--gh-ease-standard),
               color var(--gh-duration-fast) var(--gh-ease-standard);
 }
-/* 搜索 / 语言各带一层容器承载展开浮层：容器只负责定位，宽度贴合按钮、零外边距，
-   不引入额外间距，保证 5 个按钮中心距完全一致（8px 间距 → 42px 中心距）。 */
+/* 统一悬停浅底：以当前主题文字色做 6% 半透明叠加（浅色≈rgba(23,23,26,.06)、深色≈6% 白）。
+   比 --color-bg-subtle 更明确——后者浅色下等于画布色，浮在顶栏上几乎看不见；
+   用 color-mix 保持随主题自适应，零写死色值。 */
+.site-actions .icon-btn:hover,
+.site-actions .lang__toggle:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+}
+/* 搜索 / 语言各带一层容器承载展开浮层：容器只负责定位，宽度贴合按钮、零外边距。 */
 .site-actions > .site-search,
 .site-actions > .site-lang { margin: 0; }
 /* 顶栏操作图标 */
@@ -186,8 +201,25 @@ main.main--flush + .site-footer { margin-top: 0; }
   box-shadow: var(--focus-ring);
 }
 
-/* 顶栏语言入口（骨架层）：图标 + 下拉，单一真源，移动端收纳进抽屉 */
+/* 顶栏语言入口（骨架层）：文字 + 下拉，单一真源，移动端收纳进抽屉。
+   精致化：由「地球图标」改为「当前语言名 + 小 ⌄」文本形态（对齐参考站）。
+   不套用 .icon-btn（图标方钮），保持文字形态；但高度 34px、圆角 8px、hover 浅底
+   并入右侧统一规范（见上方分组规则），因此补 0 8px 左右内边距以承载 hover 药丸底，
+   项间距仍由 .site-actions 的 8px gap 统一控制。 */
 .site-lang { position: relative; }
+.lang__toggle {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 34px; padding: 0 var(--gh-space-2);
+  border: 0; background: transparent;
+  border-radius: var(--gh-radius-lg);
+  color: var(--color-text-secondary);
+  font-family: inherit; font-size: 14px; font-weight: var(--gh-weight-regular); /* 14px：令牌无该档位（13/15 之间），按参考站取 14px */
+  white-space: nowrap; cursor: pointer;
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard),
+              background var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.lang__toggle:hover { color: var(--color-text-primary); }
+.lang__toggle svg { flex: none; color: var(--color-text-tertiary); }
 .lang__panel {
   position: absolute; top: calc(100% + var(--gh-space-2)); right: 0;
   min-width: 172px; padding: var(--gh-space-2);
@@ -210,35 +242,45 @@ main.main--flush + .site-footer { margin-top: 0; }
   font-family: inherit; font-size: var(--gh-font-size-body-sm); text-align: left; cursor: pointer;
 }
 .lang__opt:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
-.lang__opt.is-active { color: var(--color-accent-text); font-weight: var(--gh-weight-medium); }
-.lang__code { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+/* 当前项：品牌色文字 + 淡底（对齐参考站；去掉此前的 code 副标签，保持纯文字两行的简风格） */
+.lang__opt.is-active { color: var(--color-accent-text); font-weight: var(--gh-weight-medium); background: var(--color-bg-subtle); }
 @media (max-width: 1023px) {
+  /* 窄屏：一级导航 / 搜索 / 语言全部隐藏；商城入口已并入 .site-navzone，随之一并隐藏，
+     仅在抽屉里出现一次（避免重复）。 */
   .site-navzone, .site-nav, .site-search, .site-lang { display: none; }
-  .site-header__inner { gap: var(--gh-space-4); }
-  /* 桌面端靠 .site-navzone(flex:1) 撑开把操作区推到右侧；窄屏导航隐藏后需显式补上 */
-  .site-actions { margin-left: auto; }
+  /* 导航隐藏后网格只剩 LOGO + actions 两项；若仍用 1fr auto 1fr，actions 会落进中间的空 auto 列、
+     右侧留下一段死空白。窄屏直接改成两列（1fr auto），保证 actions 真正贴右。 */
+  .site-header__inner { grid-template-columns: 1fr auto; gap: var(--gh-space-4); }
 }
 
-/* ---------- 顶栏「店铺」圆钮（放在导航区末尾，独立于右侧图标组） ----------
-   形态：品牌色实心圆底 + 白色店铺图标（32px）。hover 轻微加深 + 微放大，不加投影。 */
-.shop-wrap { position: relative; align-self: center; margin-left: var(--gh-space-6); display: inline-flex; }
-.shop-btn {
-  width: 32px; height: 32px;
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 0; border: 0; border-radius: var(--gh-radius-full);
-  background: var(--color-accent-solid); color: var(--gh-neutral-50);
-  cursor: pointer;
-  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
-              transform var(--gh-duration-fast) var(--gh-ease-standard);
+/* ---------- 顶栏「商城」入口（已按客户要求并入中间导航区：一级导航最后一项之后） ----------
+   形态与一级导航项同一套文字风格：购物袋图标（18px）+「商城」文字，无品牌色实底块；
+   hover 仅文字提亮（与 .site-nav a 一致）。浮层为纯文字行（与语言下拉同套简风格）。 */
+.shop-wrap { position: relative; display: inline-flex; align-items: center; }
+.shop-trigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: var(--gh-space-2) 0; /* 与 .site-nav a 同高（上下各 8px），保证与导航项基线一致 */
+  border: 0; background: transparent;
+  color: var(--color-text-secondary);
+  font-family: inherit; font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-regular);
+  letter-spacing: .005em; white-space: nowrap; cursor: pointer;
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard);
 }
-.shop-btn:hover { background: var(--color-accent-solid-hover); transform: scale(1.05); }
-.shop-btn:active { background: var(--color-accent-solid-active); transform: scale(1); }
-/* 抽屉内为纯展示图标位（非交互），尺寸略小 */
+.shop-trigger:hover { color: var(--color-text-primary); }
+.shop-trigger svg { flex: none; }
+/* 抽屉内为纯展示图标位（非交互），沿用品牌色实底小方块，尺寸略小 */
+.shop-btn {
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; border: 0; border-radius: var(--gh-radius-lg);
+  background: var(--color-accent-solid); color: var(--gh-neutral-50);
+}
 .shop-btn--sm { width: 26px; height: 26px; cursor: default; }
-/* 浮层：渠道列表（图标位 + 名称 + 外链箭头）；贴右时由 JS 下发 left 向左收。
+/* 浮层：渠道列表（纯文字行，与语言下拉保持同一套简风格）。
+   默认 `right:0` 以入口右缘为锚；展开态由 JS 下发 left（并对贴右越界做左移修正），见 SiteHeader.tsx。
    不加投影，仅靠描边 + 实底与页面区分。 */
 .shop-pop {
-  position: absolute; top: calc(100% + var(--gh-space-2)); left: 0;
+  position: absolute; top: calc(100% + var(--gh-space-2)); right: 0;
   min-width: 172px; padding: var(--gh-space-2);
   display: flex; flex-direction: column; gap: 2px;
   background: var(--color-bg-raised);
@@ -252,20 +294,14 @@ main.main--flush + .site-footer { margin-top: 0; }
 }
 .shop-wrap.is-open .shop-pop { opacity: 1; visibility: visible; transform: none; }
 .shop-pop__item {
-  display: flex; align-items: center; gap: var(--gh-space-3);
+  display: flex; align-items: center;
+  min-height: 40px; /* 可点区域 ≥40px（客户要求；据此取满 40，而非沿用语言下拉的 34） */
   padding: var(--gh-space-2) var(--gh-space-3);
   border-radius: var(--gh-radius-sm);
   color: var(--color-text-secondary); text-decoration: none;
   font-size: var(--gh-font-size-body-sm);
 }
 .shop-pop__item:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
-.shop-pop__icon {
-  flex: none; display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; border-radius: var(--gh-radius-full);
-  background: var(--color-accent-solid); color: var(--gh-neutral-50);
-}
-.shop-pop__name { flex: 1; white-space: nowrap; }
-.shop-pop__arrow { color: var(--color-text-tertiary); flex: none; }
 
 /* ---------- 通用区块 ---------- */
 /* 只设纵向内边距：横向内边距由 .container 提供。用 padding 简写会把 left/right 归零导致内容贴边 */
@@ -1172,11 +1208,17 @@ main.main--flush + .site-footer { margin-top: 0; }
 .site-header--over-hero .site-nav a::after { background: var(--gh-blue-400); }
 .site-header--over-hero .icon-btn { color: var(--gh-neutral-100); border-color: rgba(255, 255, 255, .18); }
 .site-header--over-hero .icon-btn:hover { background: rgba(255, 255, 255, .10); }
+/* 语言文本入口在深色海报浮层下同步提亮（不再是图标按钮，故单独给色） */
+.site-header--over-hero .lang__toggle { color: rgba(255, 255, 255, .72); }
+.site-header--over-hero .lang__toggle:hover { color: var(--gh-neutral-50); }
+/* 商城入口（在中间导航区）浮层下与导航项同步提亮 */
+.site-header--over-hero .shop-trigger { color: rgba(255, 255, 255, .72); }
+.site-header--over-hero .shop-trigger:hover { color: var(--gh-neutral-50); }
 .site-header--over-hero .site-search .input { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .20); color: var(--gh-neutral-50); }
 .site-header--over-hero .site-search .input::placeholder { color: rgba(255, 255, 255, .55); }
 .site-header--over-hero .site-search .search__icon { color: rgba(255, 255, 255, .60); }
 
-/* —— 首屏向上顶入顶栏区域（顶栏高 64px）——
+/* —— 首屏向上顶入顶栏区域（顶栏内容高 64px，与 .site-header__inner height 同步）——
    旧 .hero 结构（页面稿）已不再使用；现首屏由内容库 carousel 区块渲染，
    故把顶入规则挂到首页首个通栏海报区块上，使磨砂顶栏浮于海报之上、轻微透出海报。 */
 .hero { margin-top: -64px; padding-top: 64px; }
@@ -1312,34 +1354,37 @@ main.main--flush + .site-footer { margin-top: 0; }
    ============================================================ */
 .mega {
   position: absolute; left: 0; right: 0; top: 100%; z-index: 60;
-  /* 实色底优先，保证覆盖首屏海报时不透字；backdrop-filter 仅作增强 */
+  /* 实色底优先，保证覆盖首屏海报时不透字；backdrop-filter 仅作增强。
+     精致化：对齐参考站「通栏白底、无边框、无阴影」——去掉底部描边与投影，
+     靠遮罩（.mega-scrim）与页面内容分层；底色沿用与顶栏同值的近白画布色，衔接无缝。 */
   background: var(--color-bg-page);
   backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--color-border-subtle);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, .28);
   opacity: 0; visibility: hidden;
   transition: opacity .26s var(--gh-ease-standard), visibility 0s linear .26s;
 }
 .mega.is-open { opacity: 1; visibility: visible; transition: opacity .26s var(--gh-ease-standard); }
 .mega__inner { height: 0; overflow: hidden; transition: height .42s var(--gh-ease-accent); }
-.mega__panel { display: none; padding: var(--gh-space-7) 0 var(--gh-space-8); }
+/* 面板上下内边距加大（48/64 → 40/56），更透气；左右沿用 .container 的内边距 */
+.mega__panel { display: none; padding: 40px 0 56px; }
 .mega__panel.is-active { display: block; animation: ghMegaPanel .34s var(--gh-ease-accent) both; }
 @keyframes ghMegaPanel { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .site-nav a.is-menu-active { color: var(--color-text-primary); }
-/* 导航入口角标（NEW / HOT）：文字右上角；紧凑尺寸（caption 一档 + 收紧内边距/行高）。
+/* 导航入口角标（NEW / HOT）：贴到文字右上角（客户反馈此前「飘」在文字上方太远）。
+   偏移收紧：top -6 → -4px（角标下缘正好贴住文字墨迹顶，不遮挡）、right -10 → -2px（贴齐文字右缘）。
+   尺寸（10px / 25×14 左右）维持上一轮，不再放大。
    注意：`.site-nav a` 为点击涟漪设了 overflow:hidden，会裁掉溢出框外的角标，
    因此角标挂在**不裁剪的外层 `.site-nav__item`** 上。 */
 .site-nav__item { position: relative; display: inline-flex; }
 .nav-badge {
   position: absolute;
-  top: -6px;
-  right: -10px;
+  top: -4px;
+  right: -2px;
   z-index: 1;
   pointer-events: none;
-  padding: 1px 4px;
+  padding: 1px 3px; /* 客户要求角标整体缩小约 20%：4px → 3px（横向内边距） */
   border-radius: var(--gh-radius-full);
   font-family: var(--gh-font-mono);
-  font-size: var(--gh-font-size-caption);
+  font-size: 10px; /* 12px → 10px（≈-17%）；令牌无 10px 档位，直接写 px */
   font-weight: var(--gh-weight-semibold);
   line-height: 1.2;
   letter-spacing: .04em;
@@ -1386,7 +1431,7 @@ main.main--flush + .site-footer { margin-top: 0; }
 .auth-shell__form .card { border: none; box-shadow: none; padding: 0; background: transparent; }
 /* 站内登录 / 注册（variant='page'）：整屏铺满的左右分栏，去掉卡片描边与圆角与上下留白 */
 .auth-shell--page {
-  /* 铺满「顶栏以下的整屏」，上下不留空隙（100vh 兜底 + 100dvh 更准） */
+  /* 铺满「顶栏以下的整屏」，上下不留空隙（100vh 兜底 + 100dvh 更准）；顶栏内容高 64px */
   min-height: calc(100vh - 64px);
   min-height: calc(100dvh - 64px);
   border: 0;
@@ -1405,7 +1450,7 @@ main.main--flush + .site-footer { margin-top: 0; }
   .auth-shell { grid-template-columns: 1fr; }
   .auth-shell--full { min-height: auto; }
   .auth-shell--card { min-height: 0; }
-  /* 手机端同样铺满：顶部背景条 + 表单占满剩余高度（表单垂直居中） */
+  /* 手机端同样铺满：顶部背景条 + 表单占满剩余高度（表单垂直居中）；顶栏内容高 64px */
   .auth-shell--page {
     min-height: calc(100vh - 64px);
     min-height: calc(100dvh - 64px);
@@ -1426,28 +1471,33 @@ main.main--flush + .site-footer { margin-top: 0; }
 .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), minmax(0, 1fr)); }
 .mega__col { display: flex; flex-direction: column; }
 .mega__eyebrow {
-  margin: 0 0 var(--gh-space-3);
-  font-size: var(--gh-font-size-body-lg);
+  /* 列头：18px / 600 / 近黑；与 14px 浅灰子项形成更强的「大 / 小」对比。列头 → 首条链接间距 16px。 */
+  margin: 0 0 var(--gh-space-4);
+  font-size: 18px; /* 令牌无 18px 档位（17/20 之间），客户要求拉大与 14px 子项的对比，直接写 px */
   font-weight: var(--gh-weight-semibold);
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--color-text-primary);
 }
 .mega__link {
-  display: block; padding: 5px 0;
-  font-size: var(--gh-font-size-body-sm);
-  font-weight: var(--gh-weight-regular);
-  color: var(--color-text-secondary);
+  /* 二级链接：14px / 300 / 更浅一档的灰；行内边距加大到 9px，配合紧凑行高（≈17px）
+     使相邻链接行距 ≈ 35px（目标 34–36px，非常透气）。
+     字重 400 → 300：MiSans VF 可变字体字重轴 150–700，支持 300；系统字体回退时浏览器按 400 渲染亦可接受。 */
+  display: block; padding: 9px 0;
+  font-size: 14px; /* 令牌无 14px 档位（13/15 之间），按参考站取 14px */
+  line-height: 1.2; /* 单行行高 ≈17px：padding 9px×2 + 17px ≈ 35px 行距 */
+  font-weight: 300;
+  color: #71717B; /* 比 --color-text-tertiary(#6B6B75) 再浅一档；对面板底 #FAFAFB 实测对比度 ≈4.63:1，仍满足 WCAG AA(4.5:1) */
   text-decoration: none;
   transition: color .18s var(--gh-ease-standard), transform .3s var(--gh-ease-accent);
 }
+/* 深色主题：上面写死的浅色灰只在浅底成立；深色面板(#0E0E10) 下回到令牌更深一档的浅灰(neutral-400，≈6.4:1) */
+[data-theme="dark"] .mega__link { color: var(--color-text-tertiary); }
 .mega__link:hover { color: var(--color-text-primary); transform: translateX(2px); }
 /* 宽屏下拉面板专用（≥1024px）。<1024px 时整个下拉菜单 display:none，抽屉里复用的
-   .mega__eyebrow / .mega__link 不受本块影响，移动/紧凑形态保持原样。
-   ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（margin-left 等效实现），
-      不贴左、不贴右；列间距由 24px 拉开到 88px（3 列面板收紧到 68px，仍远大于原来）；
-   ② 列头（品牌/合作/合规）17 → 20px（h4 档），字重 600 不变；
-   ③ 二级链接 13 → 17px（body-lg 档），行距收紧到约 6px，让「列头 → 首条链接」(≈15px)
-      明显大于链接行距，一组一眼可辨。 */
+   .mega__eyebrow / .mega__link 不受本块影响，移动/紧凑形态走基础规则。
+   ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（保留上一轮锚定关系），
+      不贴左、不贴右；列间距 88 → 150px（3 列面板收紧到 120px），更透气；
+   ② 列头 / 二级链接的字号与行距统一走基础规则（列头 16px、链接 14px/行距≈35px），此处不再覆写。 */
 @media (min-width: 1024px) {
   /* 列宽改为「内容自适应」，整组才能先居中再右移（原来的 1fr 会等分铺满整行、无法偏移） */
   .mega__cols {
@@ -1455,13 +1505,12 @@ main.main--flush + .site-footer { margin-top: 0; }
     justify-content: center;
     /* 「居中偏右」：先居中，再整体右移面板宽度的 16% */
     margin-left: 16%;
-    column-gap: 88px;
+    /* 列间距 88 → 150px（8pt 网格无该档位，直接写 px） */
+    column-gap: 150px;
   }
   .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), auto); }
-  /* 3 列面板（如「探索光魂」）适当收紧列间距，避免整组过宽 */
-  .mega__cols--wide { column-gap: 68px; }
-  .mega__eyebrow { font-size: var(--gh-font-size-h4); }
-  .mega__link { font-size: var(--gh-font-size-body-lg); padding: 3px 0; }
+  /* 3 列面板（如「探索光魂」）适当收紧列间距到 120px，避免整组过宽 */
+  .mega__cols--wide { column-gap: 120px; }
 }
 .mega__feature {
   display: flex; flex-direction: column; gap: var(--gh-space-2);
@@ -1648,7 +1697,9 @@ main.main--flush + .site-footer { margin-top: 0; }
 .drawer__group.is-open .drawer__sub { grid-template-rows: 1fr; }
 .drawer__sub-inner { min-height: 0; overflow: hidden; }
 .drawer__sub-inner .mega__eyebrow:not(:first-child) { margin-top: var(--gh-space-3); }
-.drawer__sub-inner .mega__link { padding: 7px 0; }
+/* 抽屉二级链接沿用同一套字号 / 行高，但用更大的内边距把点击热区补到 ≥40px
+   （14px 字 × line-height 1.2 ≈ 17px 内容高 + 12px×2 padding ≈ 41px）。 */
+.drawer__sub-inner .mega__link { padding: var(--gh-space-3) 0; }
 .drawer__sub-inner .mega__link:last-child { margin-bottom: var(--gh-space-4); }
 .drawer__group--lang { padding: var(--gh-space-4) 0 var(--gh-space-5); }
 .drawer__group--lang .lang__opt { padding-left: 0; padding-right: 0; }
@@ -2003,6 +2054,10 @@ body.drawer-open { overflow: hidden; }
 :root:not([data-theme="dark"]) .site-header--over-hero .site-nav a::after { background: var(--color-accent); }
 :root:not([data-theme="dark"]) .site-header--over-hero .icon-btn { color: var(--color-text-secondary); border-color: transparent; }
 :root:not([data-theme="dark"]) .site-header--over-hero .icon-btn:hover { background: rgba(23, 23, 26, .05); }
+:root:not([data-theme="dark"]) .site-header--over-hero .lang__toggle { color: var(--color-text-secondary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .lang__toggle:hover { color: var(--color-text-primary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .shop-trigger { color: var(--color-text-secondary); }
+:root:not([data-theme="dark"]) .site-header--over-hero .shop-trigger:hover { color: var(--color-text-primary); }
 :root:not([data-theme="dark"]) .site-header--over-hero .site-search .input {
   background: rgba(255, 255, 255, .82);
   border-color: var(--color-border-default);

@@ -14,8 +14,7 @@ import { trackEvent } from '../../lib/track'
 import type { ShopChannel, SiteAnnouncement } from '../../data/contentTypes'
 import {
   IconAccount,
-  IconChevronRight,
-  IconGlobe,
+  IconChevronDown,
   IconMenu,
   IconMoon,
   IconSearch,
@@ -29,6 +28,12 @@ type Props = {
   onLangChange: (code: string) => void
   onOpenDrawer: () => void
 }
+
+/**
+ * 顶栏内容高度（px）：与 `styles/site.css` 中 `.site-header__inner` 的 height 严格保持一致。
+ * 首屏「顶入顶栏」偏移与 over-hero（磨砂浮于海报）判定阈值都由它派生，改高度时只改这一处 + CSS。
+ */
+const HEADER_HEIGHT = 64
 
 /**
  * 下拉面板右侧推荐卡的配图（按面板 key 固定）。
@@ -72,10 +77,11 @@ function announceDismissKey(text: string): string {
 }
 
 /**
- * 顶栏「店铺」圆钮：品牌色实心圆底 + 白色店铺图标；点击 / 悬停弹出渠道浮层。
+ * 顶栏「商城」入口：已按客户要求从右侧操作区并入中间导航区（.site-navzone 内、一级导航最后一项之后）。
+ * - 形态与一级导航项同一套文字风格：购物袋图标（18px）+「商城」文字，无品牌色实底块；
+ * - 点击 / 悬停弹出渠道浮层；浮层为纯文字行（与语言下拉同套简风格：无图标、无箭头）；
  * - 渠道来自站点配置 `shopChannels`（空数组时父级不渲染整块）；
- * - 浮层每行为「图标位 + 名称 + 外链箭头」，外链 `target="_blank" rel="noreferrer"`；
- * - 点外部 / Esc / 移开收起；贴右时整体左移避免被视口裁切；不加投影。
+ * - 外链 `target="_blank" rel="noreferrer"`；点外部 / Esc / 移开收起；贴右时整体左移避免被视口裁切；不加投影。
  */
 function ShopButton({ channels }: { channels: ShopChannel[] }) {
   const { t } = useI18n()
@@ -141,7 +147,7 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
     >
       <button
         type="button"
-        className="shop-btn"
+        className="shop-trigger"
         aria-label={t('a11y.shop')}
         aria-haspopup="true"
         aria-expanded={open}
@@ -153,9 +159,18 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
           if (event.detail === 0 || pointerType.current !== 'mouse') setOpen((value) => !value)
         }}
       >
-        <IconShop size={17} />
+        <IconShop />
+        <span className="shop-trigger__label">商城</span>
       </button>
-      <div className="shop-pop" role="menu" aria-label={t('a11y.shop')} ref={panelRef} style={{ left: shift }}>
+      {/* 展开态才下发 left（并解除 CSS 的 right 锚定）；关闭态回到 right:0，避免隐藏浮层向右溢出视口 */}
+      <div
+        className="shop-pop"
+        role="menu"
+        aria-label={t('a11y.shop')}
+        ref={panelRef}
+        style={open ? { left: shift, right: 'auto' } : undefined}
+      >
+        {/* 纯文字行（去掉每行重复的购物袋图标与箭头）：与语言下拉同一套简风格 */}
         {channels.map((channel) => (
           <a
             key={channel.name}
@@ -166,11 +181,8 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
             role="menuitem"
             onClick={() => setOpen(false)}
           >
-            <span className="shop-pop__icon" aria-hidden="true">
-              <IconShop size={15} />
-            </span>
-            <span className="shop-pop__name">{channel.name}</span>
-            <IconChevronRight size={14} className="shop-pop__arrow" />
+            {/* 站点配置存的是渠道品牌名（天猫 / 京东 / 淘宝），这里按客户要求补「店铺」后缀成完整行文案 */}
+            {channel.name}店铺
           </a>
         ))}
       </div>
@@ -246,7 +258,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
       if (isHome) {
         // 首屏海报由内容库 carousel 区块渲染（旧 .hero 结构已停用）
         const poster = document.querySelector('[data-block="carousel"]')
-        if (poster) over = poster.getBoundingClientRect().bottom > 64
+        if (poster) over = poster.getBoundingClientRect().bottom > HEADER_HEIGHT
       }
       setOverHero(over)
     }
@@ -375,7 +387,9 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
         <div className="site-navzone" onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
         <nav className="site-nav" ref={navRef} aria-label={t('a11y.mainNav')} style={{ position: 'relative' }}>
           {navItems.map((item) => {
-            const isActive = !!wantNav && item.nav === wantNav
+            // 仅当当前路径确实属于某个一级栏目时才给该项加当前项下划线；
+            // 首页（/）不显示任何当前项下划线（不做「默认高亮第一项」的兜底）。
+            const isActive = !isHome && !!wantNav && item.nav === wantNav
             const isMenuActive = !!item.menu && openMenu === item.menu
             const openIfMenu = () => {
               if (!item.menu) return
@@ -409,7 +423,9 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             )
           })}
         </nav>
-        {/* 店铺圆钮：置于导航区末尾（最后一个一级导航项之后、右侧图标组之前） */}
+        {/* 商城入口：并入中间导航区，排在最后一个一级导航项之后。
+            注意放在 <nav> 之外（同为 .site-navzone 的子级），避免通用 `.site-nav a` 规则
+            误作用到商城浮层里的外链（会给它们套上导航字号/内边距与 hover 下划线）。 */}
         {shopChannels.length > 0 && <ShopButton channels={shopChannels} />}
         </div>
 
@@ -452,13 +468,13 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             aria-label={theme === 'dark' ? t('a11y.themeLight') : t('a11y.themeDark')}
             onClick={toggleTheme}
           >
-            {/* 月亮轮廓偏细、视觉重量轻，+1px 光学补偿，与其余图标并排重心一致 */}
-            {theme === 'dark' ? <IconSun /> : <IconMoon size={19} />}
+            {/* 图标统一 18px（本轮按客户要求取消月亮 / 账号此前的 +1px 光学补偿） */}
+            {theme === 'dark' ? <IconSun /> : <IconMoon />}
           </button>
 
           <div className={`site-lang${langOpen ? ' is-open' : ''}`}>
             <button
-              className="lang__toggle icon-btn"
+              className="lang__toggle"
               type="button"
               aria-label={t('a11y.langToggle', { lang: activeLang.label })}
               aria-haspopup="true"
@@ -468,7 +484,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                 setLangOpen((open) => !open)
               }}
             >
-              <IconGlobe />
+              {activeLang.label}
+              <IconChevronDown size={14} />
             </button>
             <div className="lang__panel" role="menu" aria-label={t('a11y.langMenu')}>
               {LANG_OPTIONS.map((option) => (
@@ -484,7 +501,6 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                   }}
                 >
                   {option.label}
-                  <span className="lang__code">{option.code}</span>
                 </button>
               ))}
             </div>
@@ -507,13 +523,12 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
           </Link>
           {user ? (
             <Link className="icon-btn" to="/me" aria-label="个人中心">
-              {/* 人形轮廓偏瘦，+1px 光学补偿，与相邻图标并排重心一致 */}
-              <IconAccount size={19} />
+              <IconAccount />
             </Link>
           ) : (
             // 未登录：顶栏只放账号图标（按反馈去掉文字，避免挤压导航）；可访问名保留「登录 / 注册」
             <Link className="icon-btn" to="/login" aria-label="登录 / 注册" title="登录 / 注册">
-              <IconAccount size={19} />
+              <IconAccount />
             </Link>
           )}
           <button

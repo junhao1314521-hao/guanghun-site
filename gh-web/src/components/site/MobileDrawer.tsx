@@ -203,7 +203,6 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
                 }}
               >
                 {option.label}
-                <span className="lang__code">{option.code}</span>
               </button>
             ))}
           </div>

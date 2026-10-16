@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { LANG_OPTIONS } from './data/site'
+import { LANG_LABELS } from './data/site'
 import { setActiveLocale } from './lib/locale'
 
 /**
- * 站点语言代码（与 data/site.ts 的 LANG_OPTIONS 一一对应）。
- * 语言名称本身使用其母语写法（简体中文 / 繁體中文 / English），故不参与翻译。
+ * 站点语言代码（与 data/site.ts 的 LANG_LABELS 一一对应）。
+ * 语言名称本身使用其母语写法（中文 / 繁體中文 / English），故不参与翻译。
  */
 export type LangCode = 'zh-CN' | 'zh-HK' | 'en'
 
@@ -513,7 +513,9 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
 }
 
 function isLangCode(code: string): code is LangCode {
-  return LANG_OPTIONS.some((option) => option.code === code)
+  // 用「已知语言」校验（而非下拉的「可选列表」）：繁体虽已从下拉下线，
+  // 但仍需被识别为合法语言码，才能走到下面的「建设中」提示分支（不拿中文冒充）。
+  return Object.prototype.hasOwnProperty.call(LANG_LABELS, code)
 }
 
 /** 读取持久化语言；非法 / 未就绪一律回退默认（避免记住一个不可用语言） */
@@ -596,7 +598,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
       return
     }
-    const label = LANG_OPTIONS.find((option) => option.code === code)?.label ?? code
+    const label = LANG_LABELS[code] ?? code
     setNotice(interpolate(MESSAGES[DEFAULT_LANG]['lang.notice'], { lang: label }))
   }, [])
 

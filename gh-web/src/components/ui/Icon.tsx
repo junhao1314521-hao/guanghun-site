@@ -6,11 +6,18 @@ type IconProps = { size?: number; className?: string; accent?: boolean }
 
 const box = (size: number) => ({ width: size, height: size, viewBox: `0 0 ${size} ${size}` })
 
+/**
+ * 把坐标对齐到 0.5px 网格（顶栏右侧这组图标专用，配合 1.5px 描边使用）。
+ * 因为 box(size) 已保证「渲染尺寸 == viewBox」，1.5px 描边本就按 1:1 渲染（实际线宽 1.5px）；
+ * 进一步把中心点落在 0.5 网格上，可让描边呈「1px 实心芯 + 淡边」，比落在任意小数上更锐利、粗细更匀。
+ */
+const snap = (v: number) => Math.round(v * 2) / 2
+
 export function IconSearch({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <circle cx={size * 0.42} cy={size * 0.42} r={size * 0.28} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${size * 0.64} ${size * 0.64} ${size * 0.9} ${size * 0.9}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx={snap(size * 0.42)} cy={snap(size * 0.42)} r={snap(size * 0.28)} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${snap(size * 0.6)} ${snap(size * 0.6)}L${snap(size * 0.86)} ${snap(size * 0.86)}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -32,11 +39,21 @@ export function IconGlobe({ size = 18, className }: IconProps) {
 export function IconSun({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <circle cx={size / 2} cy={size / 2} r={size * 0.21} stroke="currentColor" strokeWidth="1.5" />
+      <circle cx={size / 2} cy={size / 2} r={snap(size * 0.21)} stroke="currentColor" strokeWidth="1.5" />
+      {/* 八向光芒：统一 1.5px（此前为 1.4px，与其他图标粗细不匀） */}
       <path
-        d={`M${size / 2} ${size * 0.06}v${size * 0.12}M${size / 2} ${size * 0.82}v${size * 0.12}M${size * 0.06} ${size / 2}h${size * 0.12}M${size * 0.82} ${size / 2}h${size * 0.12}M${size * 0.19} ${size * 0.19}l${size * 0.08} ${size * 0.08}M${size * 0.73} ${size * 0.73}l${size * 0.08} ${size * 0.08}M${size * 0.81} ${size * 0.19}l-${size * 0.08} ${size * 0.08}M${size * 0.27} ${size * 0.73}l-${size * 0.08} ${size * 0.08}`}
+        d={
+          `M${size / 2} ${snap(size * 0.06)}V${snap(size * 0.18)}` +
+          `M${size / 2} ${snap(size * 0.82)}V${snap(size * 0.94)}` +
+          `M${snap(size * 0.06)} ${size / 2}H${snap(size * 0.18)}` +
+          `M${snap(size * 0.82)} ${size / 2}H${snap(size * 0.94)}` +
+          `M${snap(size * 0.19)} ${snap(size * 0.19)}L${snap(size * 0.27)} ${snap(size * 0.27)}` +
+          `M${snap(size * 0.73)} ${snap(size * 0.73)}L${snap(size * 0.81)} ${snap(size * 0.81)}` +
+          `M${snap(size * 0.81)} ${snap(size * 0.19)}L${snap(size * 0.73)} ${snap(size * 0.27)}` +
+          `M${snap(size * 0.27)} ${snap(size * 0.73)}L${snap(size * 0.19)} ${snap(size * 0.81)}`
+        }
         stroke="currentColor"
-        strokeWidth="1.4"
+        strokeWidth="1.5"
         strokeLinecap="round"
       />
     </svg>
@@ -47,7 +64,7 @@ export function IconMoon({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path
-        d={`M${size * 0.72} ${size * 0.62}A${size * 0.3} ${size * 0.3} 0 0 1 ${size * 0.38} ${size * 0.28}a${size * 0.31} ${size * 0.31} 0 1 0 ${size * 0.34} ${size * 0.34}Z`}
+        d={`M${snap(size * 0.72)} ${snap(size * 0.62)}A${snap(size * 0.3)} ${snap(size * 0.3)} 0 0 1 ${snap(size * 0.38)} ${snap(size * 0.28)}a${snap(size * 0.31)} ${snap(size * 0.31)} 0 1 0 ${snap(size * 0.34)} ${snap(size * 0.34)}Z`}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
@@ -59,9 +76,9 @@ export function IconMoon({ size = 18, className }: IconProps) {
 export function IconSupport({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <path d={`M${size * 0.22} ${size * 0.39}a${size * 0.28} ${size * 0.28} 0 0 1 ${size * 0.56} 0v${size * 0.17}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <rect x={size * 0.14} y={size * 0.39} width={size * 0.17} height={size * 0.25} rx={size * 0.07} stroke="currentColor" strokeWidth="1.5" />
-      <rect x={size * 0.69} y={size * 0.39} width={size * 0.17} height={size * 0.25} rx={size * 0.07} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${snap(size * 0.22)} ${snap(size * 0.39)}a${snap(size * 0.28)} ${snap(size * 0.28)} 0 0 1 ${snap(size * 0.56)} 0v${snap(size * 0.17)}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x={snap(size * 0.14)} y={snap(size * 0.39)} width={snap(size * 0.17)} height={snap(size * 0.25)} rx={snap(size * 0.07)} stroke="currentColor" strokeWidth="1.5" />
+      <rect x={snap(size * 0.69)} y={snap(size * 0.39)} width={snap(size * 0.17)} height={snap(size * 0.25)} rx={snap(size * 0.07)} stroke="currentColor" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -69,25 +86,24 @@ export function IconSupport({ size = 18, className }: IconProps) {
 export function IconAccount({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <circle cx={size / 2} cy={size * 0.33} r={size * 0.17} stroke="currentColor" strokeWidth="1.5" />
-      <path d={`M${size * 0.19} ${size * 0.83}c${size * 0.03} -${size * 0.16} ${size * 0.16} -${size * 0.23} ${size * 0.31} -${size * 0.23}s${size * 0.28} ${size * 0.07} ${size * 0.31} ${size * 0.23}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx={size / 2} cy={snap(size * 0.33)} r={snap(size * 0.17)} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${snap(size * 0.19)} ${snap(size * 0.83)}c${snap(size * 0.03)} -${snap(size * 0.16)} ${snap(size * 0.16)} -${snap(size * 0.23)} ${snap(size * 0.31)} -${snap(size * 0.23)}s${snap(size * 0.28)} ${snap(size * 0.07)} ${snap(size * 0.31)} ${snap(size * 0.23)}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }
 
-/** 店铺 / 购物袋（顶栏「店铺」圆钮与渠道浮层用）：梯形袋身 + 提手，1.5px 描边、圆头圆角 */
+/** 店铺 / 购物袋（顶栏「商城」入口与渠道浮层 / 抽屉用）：梯形袋身 + 提手，1.5px 描边、圆头圆角 */
 export function IconShop({ size = 18, className }: IconProps) {
-  const s = size
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
       <path
-        d={`M${s * 0.26} ${s * 0.37}h${s * 0.48}l${s * 0.06} ${s * 0.45}a${s * 0.06} ${s * 0.06} 0 0 1 -${s * 0.06} ${s * 0.07}h-${s * 0.48}a${s * 0.06} ${s * 0.06} 0 0 1 -${s * 0.06} -${s * 0.07}Z`}
+        d={`M${snap(size * 0.26)} ${snap(size * 0.37)}h${snap(size * 0.48)}l${snap(size * 0.06)} ${snap(size * 0.45)}a${snap(size * 0.06)} ${snap(size * 0.06)} 0 0 1 -${snap(size * 0.06)} ${snap(size * 0.07)}h-${snap(size * 0.48)}a${snap(size * 0.06)} ${snap(size * 0.06)} 0 0 1 -${snap(size * 0.06)} -${snap(size * 0.07)}Z`}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       <path
-        d={`M${s * 0.37} ${s * 0.37}v-${s * 0.07}a${s * 0.13} ${s * 0.13} 0 0 1 ${s * 0.26} 0v${s * 0.07}`}
+        d={`M${snap(size * 0.37)} ${snap(size * 0.37)}v-${snap(size * 0.07)}a${snap(size * 0.13)} ${snap(size * 0.13)} 0 0 1 ${snap(size * 0.26)} 0v${snap(size * 0.07)}`}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
@@ -116,7 +132,7 @@ export function IconClose({ size = 18, className }: IconProps) {
 export function IconChevronDown({ size = 14, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
-      <path d={`M${size * 0.25} ${size * 0.38}L${size * 0.5} ${size * 0.63}l${size * 0.25} -${size * 0.25}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`M${snap(size * 0.25)} ${snap(size * 0.38)}L${snap(size * 0.5)} ${snap(size * 0.63)}l${snap(size * 0.25)} -${snap(size * 0.25)}`} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

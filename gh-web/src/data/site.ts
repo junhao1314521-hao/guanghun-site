@@ -3,11 +3,25 @@ import type { ShopChannel, SiteSocialConfig, SiteSocialItem } from './contentTyp
 
 export type LangOption = { code: string; label: string }
 
+/**
+ * 语言「可选列表」单一真源（顶栏 / 抽屉下拉都读它）。
+ * 客户要求只保留「中文 / English」两项：移除繁体入口，标签同时把「简体中文」简写为「中文」。
+ */
 export const LANG_OPTIONS: LangOption[] = [
-  { code: 'zh-CN', label: '简体中文' },
-  { code: 'zh-HK', label: '繁體中文' },
+  { code: 'zh-CN', label: '中文' },
   { code: 'en', label: 'English' },
 ]
+
+/**
+ * 已知语言的标签（含已从「可选列表」下线的繁体）。
+ * 繁体虽不再出现在下拉里，但保留其标签与文案字典（见 i18n.tsx 的 MESSAGES['zh-HK']），
+ * 以便切换逻辑仍能识别该语言码并给出正确的「建设中」提示，不拿中文冒充（AC-15③）。
+ */
+export const LANG_LABELS: Record<string, string> = {
+  'zh-CN': '中文',
+  'zh-HK': '繁體中文',
+  en: 'English',
+}
 
 export const FOOTER_GROUPS = [
   { title: '产品', links: [{ label: '全部产品', to: '/products' }, { label: '产品对比', to: '/compare' }, { label: '天梯榜', to: '/ladder' }] },
