@@ -11,6 +11,7 @@
  * 兼容：历史字段 `image` / `mediaTag` / `desc` 继续可用（见 PosterSlide.toPoster）。
  */
 import { CodeBackdrop } from '../components/site/CodeBackdrop'
+import { PosterDownloads } from './PosterDownloads'
 import {
   PosterMedia,
   PosterOverlay,
@@ -40,6 +41,7 @@ export function HeroBlock({ props }: { props: Record<string, unknown> }) {
             {!isCode && src && <PosterMedia data={data} src={src} eager />}
           </div>
           <PosterOverlay data={data} titleTag="h2" />
+          <PosterDownloads data={data} />
         </article>
       </div>
     </div>

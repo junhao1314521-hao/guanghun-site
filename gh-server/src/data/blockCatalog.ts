@@ -98,6 +98,8 @@ const CARD_ICONS: { label: string; value: string }[] = [
   { label: '网格（grid）', value: 'grid' },
   { label: '立方（cube）', value: 'cube' },
   { label: '时钟（clock）', value: 'clock' },
+  { label: '键盘（keyboard）', value: 'keyboard' },
+  { label: '亮度 / 护眼（light）', value: 'light' },
 ]
 
 /**
@@ -123,6 +125,9 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
   { name: 'statsEnabled', label: '显示卖点 / 数据点', kind: 'switch' },
   { name: 'primary', label: '按钮①（文字 + 链接，必填）', kind: 'link' },
   { name: 'secondary', label: '按钮②（留空则只显示 1 个）', kind: 'link' },
+  // 海报底部悬浮下载条：从下载中心勾选条目（保存 ID 列表，顺序即展示顺序）；
+  // 前台按 ID 取真实版本 / 大小与文件地址，渲染成底部的下载按钮（留空则不显示）
+  { name: 'downloadIds', label: '底部下载按钮（从下载中心勾选，留空则不显示）', kind: 'ref', source: 'downloads' },
   { name: 'contentPosition', label: '文案位置（九宫格 + 拖拽）', kind: 'position' },
   { name: 'height', label: '高度档位', kind: 'select', options: POSTER_HEIGHTS },
   { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
@@ -260,6 +265,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '信任条（紧凑横排）', value: 'trust' },
           { label: '编号步骤', value: 'steps' },
           { label: '条目列表', value: 'entries' },
+          { label: '能力网格（编号 + 图标 + 说明）', value: 'capability' },
         ],
       },
       { name: 'overlay', label: '文字浮于媒体', kind: 'switch' },
@@ -271,7 +277,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'items', label: '卡片', kind: 'list' },
     ],
     listFields: [
-      { name: 'icon', label: '图标（条目列表布局；留空则不显示）', kind: 'select', options: CARD_ICONS },
+      { name: 'id', label: '锚点 ID（可选，供 /页面#id 深链；能力网格布局据此落 DOM id）', kind: 'text', placeholder: '如：manage' },
+      { name: 'icon', label: '图标（条目列表 / 能力网格布局；留空则不显示）', kind: 'select', options: CARD_ICONS },
       { name: 'media', label: '媒体（图/视频/GIF）', kind: 'media' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
       { name: 'image', label: '图片（旧字段）', kind: 'image' },

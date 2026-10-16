@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { MEGA_PANELS } from '../../data/nav'
+import { Link, useLocation } from 'react-router-dom'
+import { MEGA_PANELS, PAGE_NAV, pageIdFromPath } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
 import { useSiteNav, useSiteShopChannels } from '../../hooks/useSiteConfig'
@@ -24,10 +24,14 @@ const FOCUSABLE = 'button, a[href], input, [tabindex]:not([tabindex="-1"])'
  */
 export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
   const { t } = useI18n()
+  const { pathname } = useLocation()
   // 一级导航来自内容库站点配置（回落本地真源），二级栏目按语言选用本地 MEGA_PANELS（中文）/ EN 覆盖
   const navItems = useSiteNav()
   const shopChannels = useSiteShopChannels()
   const panels = lang === 'en' ? MEGA_PANELS_EN : MEGA_PANELS
+  // 当前栏目高亮：与顶栏同一套口径（pageIdFromPath → PAGE_NAV）；首页不做「默认高亮第一项」的兜底
+  const isHome = pathname === '/'
+  const wantNav = PAGE_NAV[pageIdFromPath(pathname)]
   // 下线级联：抽屉二级栏目与顶栏下拉同源，统一走 isPathLive 过滤，已下线页面入口不出现
   const { isPathLive } = useSitePages()
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -118,11 +122,18 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
         <nav className="drawer__body" aria-label={t('a11y.drawerMobileNav')}>
           {navItems.map((item) => {
             const panel = panels.find((p) => p.key === item.menu)
+            // 当前栏目（与顶栏同口径）：一级项与叶子项共用同一个 is-active，信号统一
+            const isActive = !isHome && !!wantNav && item.nav === wantNav
             // 无二级面板的一级项：退化为直接跳转链接，保持抽屉可导航
             if (!panel) {
               return (
                 <div className="drawer__group" key={item.to}>
-                  <Link className="drawer__group-btn" to={item.to} onClick={onClose}>
+                  <Link
+                    className={`drawer__group-btn${isActive ? ' is-active' : ''}`}
+                    to={item.to}
+                    onClick={onClose}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
                     {item.label}
                   </Link>
                 </div>
@@ -133,8 +144,9 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
               <div className={`drawer__group${isOpen ? ' is-open' : ''}`} key={item.menu}>
                 <button
                   type="button"
-                  className="drawer__group-btn"
+                  className={`drawer__group-btn${isActive ? ' is-active' : ''}`}
                   aria-expanded={isOpen}
+                  aria-current={isActive ? 'page' : undefined}
                   onClick={() => setExpanded(isOpen ? null : item.menu)}
                 >
                   <span>{item.label}</span>

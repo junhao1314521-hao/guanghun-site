@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { FALLBACK_SOCIAL, SITE_COMPANY, SITE_RECORD, normalizeSocial } from '../../data/site'
-import { SITE_URL } from '../../data/meta'
 import { useSiteConfig, useSiteFooterGroups } from '../../hooks/useSiteConfig'
 import { useI18n } from '../../i18n'
 import { useTheme } from '../../lib/useTheme'
@@ -211,8 +210,6 @@ export function SiteFooter() {
   const site = useSiteConfig()
   // 社交：新数据「每平台一条」；旧数据（图标+链接 / 二维码两条列表）由 normalizeSocial 兜底合并
   const social = normalizeSocial(site?.social ?? FALLBACK_SOCIAL)
-  // 官网地址展示为浅灰小字（去掉协议头，仅留域名）
-  const siteHost = SITE_URL.replace(/^https?:\/\//, '')
 
   return (
     <footer className="site-footer" style={{ position: 'relative' }}>
@@ -221,14 +218,13 @@ export function SiteFooter() {
       <div className="site-footer__scrim" aria-hidden="true" />
       <div className="container site-footer__content">
         <div className="site-footer__top">
-          {/* 左：品牌 + slogan + 官网地址 + 社交图标 */}
+          {/* 左：品牌 + slogan + 社交图标（官网地址已按客户要求移除） */}
           <div className="site-footer__brand">
             <Link className="logo" to="/">
               <BrandMark className="logo__mark" />
               <span className="logo__word" role="img" aria-label={t('brand.wordmark')} />
             </Link>
             <p className="site-footer__slogan">{t('footer.slogan')}</p>
-            <span className="site-footer__url">{siteHost}</span>
             {social.length > 0 && <FooterSocial items={social} label={t('footer.follow')} />}
           </div>
 

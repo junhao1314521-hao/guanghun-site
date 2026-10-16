@@ -3,9 +3,10 @@
  *
  * 通过公开端点 `GET /api/content/pages/:key` 取「页面 → 有序区块列表」，
  * 三态（loading / error / data）与既有约定一致；数据到位后交由 BlockRenderer 渲染。
- * 页头（面包屑 + h1）取自内容库的 `page.title`，为页面提供唯一 h1（区块内标题统一 h2）。
+ * 页面不再渲染任何页头（面包屑 + 大标题），首个区块直接接在顶栏之下；
+ * 仍以 `page.title` 渲染一个仅供读屏 / SEO 的隐藏 h1，保证每页有唯一 h1（区块内标题统一 h2）。
  */
-import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { fetchPage } from '../api/content'
@@ -16,16 +17,10 @@ import { BlockRenderer } from './BlockRenderer'
 import type { Block, BlockType } from './types'
 
 /** 页面骨架：区块到位前的占位，避免布局跳动 */
-function PageSkeleton({ head }: { head: boolean }) {
+function PageSkeleton() {
   return (
     <div className="container" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="内容加载中">
-      {head && (
-        <>
-          <div className="skeleton" style={{ height: 14, width: 200 }} />
-          <div className="skeleton" style={{ height: 32, width: 280, marginTop: 'var(--gh-space-4)' }} />
-        </>
-      )}
-      <div className="grid-2" style={{ marginTop: 'var(--gh-space-8)', alignItems: 'center' }}>
+      <div className="grid-2" style={{ alignItems: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-3)' }}>
           <div className="skeleton" style={{ height: 28, width: '72%' }} />
           <div className="skeleton" style={{ height: 16, width: '100%' }} />
@@ -52,8 +47,6 @@ export type BlockDefaults = Partial<Record<BlockType, Record<string, unknown>>>
 type Props = {
   /** 内容库页面 key（契约 §2） */
   pageKey: string
-  /** 是否渲染页头（面包屑 + h1）；首页等自带首屏的页面可关闭 */
-  head?: boolean
   /**
    * 数据源区块的交互能力开关（如 `{ productGrid: { showFilter: true } }`）。
    *
@@ -62,8 +55,6 @@ type Props = {
    * 完全由内容库的区块序列驱动，同时不丢失原有交互。
    */
   blockDefaults?: BlockDefaults
-  /** 页头右侧操作区（如「产品对比」入口）；仅当渲染页头时生效 */
-  headAction?: ReactNode
 }
 
 /** 把页面级默认 props 合并进匹配类型的区块（服务端 props 覆盖默认值） */
@@ -77,7 +68,7 @@ function applyDefaults(blocks: Block[], defaults?: BlockDefaults): Block[] {
 }
 
 /** 内容页视图：取内容库单页 → 渲染 page.blocks */
-export function PageView({ pageKey, head = true, blockDefaults, headAction }: Props) {
+export function PageView({ pageKey, blockDefaults }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -112,7 +103,7 @@ export function PageView({ pageKey, head = true, blockDefaults, headAction }: Pr
           </div>
         </div>
       ) : loading || !page ? (
-        <PageSkeleton head={head} />
+        <PageSkeleton />
       ) : page.enabled === false ? (
         // 页面已下线（后台页面开关关闭）：给出明确空态，不白屏、不当成通用报错
         <div className="container" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }}>
@@ -128,23 +119,8 @@ export function PageView({ pageKey, head = true, blockDefaults, headAction }: Pr
         </div>
       ) : (
         <>
-          {head ? (
-            <div className="container page-head">
-              <nav className="page-head__crumb" aria-label="面包屑">
-                <Link to="/">首页</Link>
-                <span>/</span>
-                <span>{page.title}</span>
-              </nav>
-              <div className="page-head__row">
-                <h1 className="page-head__title">{page.title}</h1>
-                {headAction}
-              </div>
-              <div className="page-head__rule" aria-hidden="true" />
-            </div>
-          ) : (
-            // 关闭页头时（如自带首屏的页面）仍保留唯一 h1，仅供读屏与 SEO，不占据视觉
-            <h1 className="sr-only">{page.title}</h1>
-          )}
+          {/* 仅供读屏 / SEO 的隐藏 h1：页面不再有视觉页头，标题由各页首个区块承载 */}
+          <h1 className="sr-only">{page.title}</h1>
           {(() => {
             const blocks = applyDefaults(page.blocks, blockDefaults)
             // 页面存在但无启用区块（后台全部停用 / 空页面）→ 给出空态，避免白屏

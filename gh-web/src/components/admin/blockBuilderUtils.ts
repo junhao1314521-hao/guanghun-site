@@ -389,6 +389,10 @@ export function emptyItem(fields: BlockFieldMeta[]): Record<string, unknown> {
       case 'list':
         item[field.name] = []
         break
+      case 'ref':
+        // 集合挑选（如海报底部下载按钮）：值为 ID 列表
+        item[field.name] = []
+        break
       case 'position':
         // 海报文案位置：默认落在左侧居中（后台可再拖拽 / 点九宫格）
         item[field.name] = { x: 8, y: 50 }

@@ -184,6 +184,161 @@
 .blk-hero__arrow:hover { background: rgba(9, 10, 16, .6); }
 @media (max-width: 767px) { .blk-hero__arrow { display: none; } }
 
+/* —— 海报底部悬浮下载条（后台勾选下载中心条目，字段 downloadIds）——
+   对标 Razer Synapse / MSI Center 的软件下载位：
+   · 每个系统一个 CTA，文案动词开头（下载 Windows 版），不用「下载与安装」这类标签头（会压画面）；
+   · 系统要求（支持 Windows 10 / 11（64 位））作副行小字，位置与 Razer 一致（按钮内次级文案）；
+   · 版本 + 大小参考 MSI 的资料元数据，收成右侧等宽小字，不抢主文案。
+   交互：悬停上浮 + 描边提亮 + 品牌色环 + 高光扫过 + 徽标/字形放大 + 尾部图标转为品牌色实底；
+   入场错峰淡入；触屏（hover: none）与 prefers-reduced-motion 下不位移、不扫光。 */
+.hero__downloads {
+  position: absolute; left: 50%; bottom: var(--gh-space-8); transform: translateX(-50%);
+  z-index: 3; width: 100%; max-width: calc(var(--gh-container-max) + 16rem);
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch;
+  gap: var(--gh-space-4); padding: 0 var(--gh-space-4);
+}
+.hero__dl {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: var(--gh-space-4);
+  /* 窄屏：一行一个，铺满可用宽度（两个并排会各自过窄） */
+  flex: 1 1 100%; min-width: 0;
+  padding: var(--gh-space-4) var(--gh-space-5);
+  border-radius: var(--gh-radius-2xl);
+  background: linear-gradient(150deg, rgba(255, 255, 255, .15) 0%, rgba(255, 255, 255, .06) 100%);
+  border: 1px solid rgba(255, 255, 255, .2);
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  color: #fff; text-decoration: none;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, .3), inset 0 1px 0 rgba(255, 255, 255, .12);
+  /* fill-mode 用 backwards：入场结束后不再占用 transform，悬停的位移才能生效 */
+  animation: heroDlRise .6s var(--gh-ease-accent) backwards;
+  transition: transform var(--gh-duration-base) var(--gh-ease-standard),
+              border-color var(--gh-duration-base) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-base) var(--gh-ease-standard);
+}
+.hero__dl:nth-child(2) { animation-delay: 90ms; }
+.hero__dl:nth-child(3) { animation-delay: 180ms; }
+.hero__dl:nth-child(4) { animation-delay: 270ms; }
+@keyframes heroDlRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 系统徽标：圆形玻璃片 + 内高光；悬停放大并亮出品牌色环 */
+.hero__dl-mark {
+  flex: none; display: grid; place-items: center;
+  width: 48px; height: 48px; border-radius: var(--gh-radius-full);
+  background: radial-gradient(120% 120% at 32% 22%, rgba(255, 255, 255, .3) 0%, rgba(255, 255, 255, .06) 72%);
+  border: 1px solid rgba(255, 255, 255, .24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), 0 4px 14px rgba(2, 6, 23, .22);
+  transition: transform var(--gh-duration-base) var(--gh-ease-accent),
+              box-shadow var(--gh-duration-base) var(--gh-ease-standard);
+}
+.hero__dl-glyph {
+  display: block; opacity: .96;
+  transition: transform var(--gh-duration-base) var(--gh-ease-accent);
+}
+
+/* 主文案（CTA，动词开头）+ 副行（系统要求） */
+.hero__dl-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; text-align: left; }
+.hero__dl-cta { font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); letter-spacing: .01em; white-space: nowrap; }
+.hero__dl-sub {
+  font-size: var(--gh-font-size-caption); color: rgba(255, 255, 255, .6);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* 版本 + 大小（MSI 式元数据）：右侧等宽小字，靠「·」分隔，数字等宽对齐 */
+.hero__dl-meta {
+  flex: none; margin-left: auto;
+  font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption);
+  color: rgba(255, 255, 255, .56); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hero__dl-meta b { font-weight: var(--gh-weight-regular); color: rgba(255, 255, 255, .8); }
+.hero__dl-meta i { font-style: normal; opacity: .45; margin: 0 4px; }
+
+/* 尾部下载图标：圆形描边，悬停转为品牌色实底并下沉（明确的「点我下载」） */
+.hero__dl-go {
+  flex: none; display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: var(--gh-radius-full);
+  border: 1px solid rgba(255, 255, 255, .24); color: rgba(255, 255, 255, .86);
+  transition: transform var(--gh-duration-base) var(--gh-ease-accent),
+              background-color var(--gh-duration-base) var(--gh-ease-standard),
+              border-color var(--gh-duration-base) var(--gh-ease-standard),
+              color var(--gh-duration-base) var(--gh-ease-standard);
+}
+
+/* 悬停：整体上浮 + 描边提亮 + 品牌色环 + 阴影加深 + 高光自左上扫过（.hero__dl::after） */
+a.hero__dl::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 34%, rgba(255, 255, 255, .18) 50%, transparent 66%);
+  transform: translateX(-120%);
+}
+a.hero__dl:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-accent-solid) 55%, rgba(255, 255, 255, .5));
+  box-shadow: 0 20px 46px rgba(2, 6, 23, .44),
+              0 0 0 3px color-mix(in srgb, var(--color-accent-solid) 22%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+a.hero__dl:hover::after { animation: heroDlSweep .8s var(--gh-ease-accent) both; }
+@keyframes heroDlSweep { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+a.hero__dl:hover .hero__dl-mark {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent-solid) 26%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, .32), 0 6px 20px rgba(2, 6, 23, .3);
+}
+a.hero__dl:hover .hero__dl-glyph { transform: translateY(-1px) scale(1.06); }
+a.hero__dl:hover .hero__dl-go {
+  transform: translateY(3px);
+  background: var(--color-accent-solid);
+  border-color: var(--color-accent-solid);
+  color: var(--color-text-on-accent);
+}
+a.hero__dl:active { transform: translateY(-1px); }
+a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline-offset: 3px; }
+/* 既无文件地址、详情页又已下线：只读展示，不给悬停反馈 */
+.hero__dl.is-static { opacity: .8; }
+
+/* 浅色海报：玻璃底换成浅实底 + 深色文字，保证反差 */
+.blk-hero--light .hero__dl {
+  background: linear-gradient(150deg, rgba(255, 255, 255, .97) 0%, rgba(255, 255, 255, .86) 100%);
+  border-color: var(--color-border-default); color: var(--color-text-primary);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .12), inset 0 1px 0 #fff;
+}
+.blk-hero--light .hero__dl-mark { background: radial-gradient(120% 120% at 32% 22%, rgba(15, 23, 42, .12) 0%, rgba(15, 23, 42, .03) 72%); border-color: var(--color-border-default); }
+.blk-hero--light .hero__dl-sub { color: var(--color-text-tertiary); }
+.blk-hero--light .hero__dl-meta { color: var(--color-text-tertiary); }
+.blk-hero--light .hero__dl-meta b { color: var(--color-text-secondary); }
+.blk-hero--light .hero__dl-go { border-color: var(--color-border-default); color: var(--color-text-secondary); }
+.blk-hero--light a.hero__dl:hover { border-color: color-mix(in srgb, var(--color-accent-solid) 55%, var(--color-border-strong)); background: #fff; }
+.blk-hero--light a.hero__dl:hover .hero__dl-go { background: var(--color-accent-solid); border-color: var(--color-accent-solid); color: var(--color-text-on-accent); }
+
+/* 桌面：按钮「宽一点」——按行等分撑开（每个最宽 640px），文案与元数据都放得开 */
+@media (min-width: 768px) {
+  .hero__dl { flex: 1 1 0; max-width: 640px; padding: 18px 22px; }
+}
+
+@media (max-width: 767px) {
+  .hero__downloads { bottom: var(--gh-space-5); gap: var(--gh-space-2); }
+  .hero__dl { gap: var(--gh-space-3); padding: var(--gh-space-3) var(--gh-space-4); }
+  .hero__dl-mark { width: 42px; height: 42px; }
+  .hero__dl-cta { font-size: var(--gh-font-size-body); }
+  .hero__dl-go { width: 30px; height: 30px; }
+}
+/* 极窄屏：让位给主文案与系统要求，版本 / 大小收进原生提示 */
+@media (max-width: 560px) {
+  .hero__dl-meta { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__dl { animation: none; }
+  a.hero__dl:hover { transform: none; }
+  a.hero__dl:hover::after { animation: none; }
+  a.hero__dl:hover .hero__dl-mark,
+  a.hero__dl:hover .hero__dl-glyph,
+  a.hero__dl:hover .hero__dl-go { transform: none; }
+}
+/* 触屏无 hover：把「悬停才出现」的反馈收掉，只保留按压态 */
+@media (hover: none) {
+  a.hero__dl:active { transform: translateY(-2px); }
+  a.hero__dl:active .hero__dl-mark { transform: scale(1.04); }
+}
+
 /* ============================================================
    通栏（container:'full'）海报：破出内容容器，铺满视口
    ============================================================ */
@@ -987,6 +1142,102 @@
 .card--link:hover .blk-icard__go { color: var(--color-accent-text); transform: translateX(4px); }
 @media (prefers-reduced-motion: reduce) {
   .blk-icard__go, .card--link:hover .blk-icard__go { transition: none; transform: none; }
+}
+
+/* ============================================================
+   cards · capability 布局：能力网格（编号 + 图标块 + 标题 + 说明）
+   ------------------------------------------------------------
+   对齐竞品（ASUS Armoury Crate 的「能力拆解」）：每张卡 =
+   顶部「图标块 + 等宽编号」→ 标题 → 说明 → 底部发丝线；等高分栏，发丝线落底对齐。
+   交互：PC 端指针聚光（--mx / --my 由 useHomeEffects 的弹簧下发）+ 悬停时
+   图标块转品牌色实底（白字）、编号转品牌色、发丝线自左延展为品牌色；
+   仅「带链接」的卡上浮加阴影（静态卡不位移、不暗示可点）；触屏 / reduced-motion 下不位移、不延展。
+   ============================================================ */
+.blk-cap__card {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: var(--gh-space-4);
+  padding: var(--gh-space-6);
+  background: var(--veil-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-2xl);
+  transition: transform var(--gh-duration-base) var(--gh-ease-standard),
+              border-color var(--gh-duration-base) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-base) var(--gh-ease-standard);
+}
+/* 指针聚光层：跟随光标（--mx / --my），只在悬停时显形，位于内容之下 */
+.blk-cap__card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(
+    280px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--gh-blue-500) 10%, transparent),
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity var(--gh-duration-base) var(--gh-ease-standard);
+}
+.blk-cap__card:hover::before { opacity: 1; }
+
+.blk-cap__top { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-3); }
+/* 图标块：品牌色淡底 + 同色描边；悬停转「品牌色实底 + 白字」并轻微上浮 —— 一次到位的强反馈 */
+.blk-cap__icon {
+  display: grid; place-items: center;
+  width: 48px; height: 48px; border-radius: var(--gh-radius-xl);
+  background: var(--color-accent-subtle); color: var(--color-accent-text);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  transition: background-color var(--gh-duration-base) var(--gh-ease-standard),
+              color var(--gh-duration-base) var(--gh-ease-standard),
+              border-color var(--gh-duration-base) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-base) var(--gh-ease-standard),
+              transform var(--gh-duration-base) var(--gh-ease-accent);
+}
+/* 等宽编号：给这一栏「技术感」，与底部发丝线一起构成卡片的骨架 */
+.blk-cap__index {
+  font-family: var(--gh-font-mono); font-size: var(--gh-font-size-body-sm);
+  font-variant-numeric: tabular-nums; letter-spacing: .06em;
+  color: var(--color-text-tertiary);
+  transition: color var(--gh-duration-base) var(--gh-ease-standard);
+}
+.blk-cap__text { display: flex; flex-direction: column; gap: var(--gh-space-2); }
+.blk-cap__title { margin: 0; font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); }
+.blk-cap__desc { margin: 0; font-size: var(--gh-font-size-body-sm); line-height: 1.7; color: var(--color-text-secondary); }
+/* 底部发丝线：默认中性色，悬停自左向右延展为品牌色（收尾用线，不用投影） */
+.blk-cap__rule {
+  position: relative; margin-top: auto; height: 1px; width: 100%;
+  background: var(--color-border-subtle);
+}
+.blk-cap__rule::after {
+  content: ''; position: absolute; inset: 0; background: var(--color-accent);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform .5s var(--gh-ease-accent);
+}
+.blk-cap__card:hover .blk-cap__rule::after { transform: scaleX(1); }
+.blk-cap__card:hover .blk-cap__icon {
+  background: var(--color-accent-solid); color: var(--color-text-on-accent);
+  border-color: var(--color-accent-solid);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-accent-solid) 28%, transparent);
+}
+.blk-cap__card:hover .blk-cap__index { color: var(--color-accent-text); }
+/* 可点卡（有 href）才上浮 + 加阴影；静态卡保持不动，避免暗示可点 */
+.blk-cap__card--link:hover { transform: translateY(-4px); border-color: var(--color-accent); box-shadow: var(--shadow-md); }
+.blk-cap__card--link:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+@media (max-width: 640px) {
+  /* 单列时收紧内边距与图标块，避免手机上卡片过高 */
+  .blk-cap__card { padding: var(--gh-space-5); gap: var(--gh-space-3); }
+  .blk-cap__icon { width: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blk-cap__card,
+  .blk-cap__card--link:hover { transition: none; transform: none; }
+  .blk-cap__rule::after,
+  .blk-cap__card:hover .blk-cap__rule::after { transition: none; }
+  .blk-cap__card:hover .blk-cap__icon { transform: none; }
+  .blk-cap__card::before { display: none; }
+}
+/* 触屏无 hover：收掉悬停反馈，保留品牌的静态层次（图标块本身就是品牌色淡底） */
+@media (hover: none) {
+  .blk-cap__card::before { display: none; }
+  .blk-cap__card--link:active { transform: translateY(-2px); }
 }
 
 /* ============================================================

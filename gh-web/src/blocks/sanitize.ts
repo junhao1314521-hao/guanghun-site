@@ -85,6 +85,22 @@ function cssTextSafe(css: string): boolean {
   return !DANGEROUS_CSS.test(css.toLowerCase())
 }
 
+/**
+ * 归一化记录里的 `fileUrl`（下载资源 / 品牌资料 / 型号支持等「带文件地址」的记录共用）。
+ *
+ * 口径与富文本净化的 `a[href]` 完全一致：只放行相对路径（如 `/uploads/...`）与 http / https；
+ * `javascript:` / `vbscript:` / `data:` 等非法协议一律清空为 `''`，调用方据此走回退分支
+ * （回到下载详情页 / 降级为静态展示），不会产生可点的危险链接。
+ *
+ * 放在接口层统一过一遍的理由：所有把 `fileUrl` 直接落到 `<a href>` 的渲染点
+ * （海报下载条 / 卡片下载按钮 / 下载列表 / 型号支持 / 下载详情页 / 品牌资料）都拿到安全值，
+ * 避免逐处判断导致漏改。
+ */
+export function sanitizeFileUrl<T extends { fileUrl?: string }>(item: T): T {
+  if (!item.fileUrl || urlAllowed(item.fileUrl, false)) return item
+  return { ...item, fileUrl: '' }
+}
+
 /** `<style>` 文本内容的清理：去掉 `</style>` 逃逸与 @import */
 function sanitizeStyleText(css: string): string {
   return css.replace(/<\/style/gi, '').replace(/@import[^;]*;?/gi, '')

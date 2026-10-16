@@ -213,6 +213,14 @@ function ShopChannelEditor({ channels, onChange }: { channels: ShopChannel[]; on
 /* ============================================================
    页脚编辑器（分组 + 组内链接）
    ============================================================ */
+/**
+ * 页脚分组数量上限。
+ * ⚠️ 与前台强绑定：前台 ≤767px 是**固定三列并排**的网格（避免「第三组另起一行、凭空拉高页脚」），
+ * 因此这里必须同口径限死 3 组；超过 3 组前台会退化为两列并出现孤行。
+ * 如需放开数量，请同时改 `styles/site.css` 的 `.site-footer__cols` 移动端列数。
+ */
+const MAX_FOOTER_GROUPS = 3
+
 function FooterEditor({ groups, onChange }: { groups: SiteFooterGroup[]; onChange: (groups: SiteFooterGroup[]) => void }) {
   const updateGroup = (index: number, patch: Partial<SiteFooterGroup>) => {
     const next = groups.slice()
@@ -223,6 +231,12 @@ function FooterEditor({ groups, onChange }: { groups: SiteFooterGroup[]; onChang
   return (
     <div className="site-groups">
       {groups.length === 0 && <span className="field__hint">暂无页脚分组，点击下方「新增分组」添加。</span>}
+      {groups.length > MAX_FOOTER_GROUPS && (
+        <span className="field__hint">
+          已有 {groups.length} 组（超出上限 {MAX_FOOTER_GROUPS} 组）：前台手机端固定三列并排，
+          超出会出现「孤行」把页脚拉高，请删减到 {MAX_FOOTER_GROUPS} 组以内。
+        </span>
+      )}
       {groups.map((group, index) => (
         <div className="site-group" key={index}>
           <div className="site-group__head">
@@ -268,7 +282,17 @@ function FooterEditor({ groups, onChange }: { groups: SiteFooterGroup[]; onChang
           />
         </div>
       ))}
-      <button type="button" className="btn btn--secondary btn--sm" onClick={() => onChange([...groups, { title: '', links: [] }])}>
+      <button
+        type="button"
+        className="btn btn--secondary btn--sm"
+        disabled={groups.length >= MAX_FOOTER_GROUPS}
+        title={
+          groups.length >= MAX_FOOTER_GROUPS
+            ? `前台手机端固定三列并排，最多 ${MAX_FOOTER_GROUPS} 组（超出会在第二行出现孤行）`
+            : undefined
+        }
+        onClick={() => onChange([...groups, { title: '', links: [] }])}
+      >
         + 新增分组
       </button>
     </div>
@@ -453,10 +477,14 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
         <section className="admin-panel">
           <div className="admin-panel__head">
             <h2 className="admin-panel__title">页脚</h2>
-            <span className="admin-table__count">{site.footer.length} 个分组</span>
+            <span className="admin-table__count">
+              {site.footer.length} / {MAX_FOOTER_GROUPS} 个分组
+            </span>
           </div>
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
             页脚分组：每组包含一个「分组标题」与一组链接，分组顺序与组内链接顺序均即展示顺序。
+            <br />
+            <b>最多 {MAX_FOOTER_GROUPS} 组</b>：前台手机端为固定三列并排，超过 {MAX_FOOTER_GROUPS} 组会在第二行出现孤行、把页脚拉高。
           </p>
           <FooterEditor groups={site.footer} onChange={setFooter} />
         </section>

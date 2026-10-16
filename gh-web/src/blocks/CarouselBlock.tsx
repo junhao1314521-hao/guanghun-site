@@ -13,6 +13,7 @@ import { prefersReducedMotion } from '../lib/motion'
 import { useTheme } from '../lib/useTheme'
 import { CodeBackdrop } from '../components/site/CodeBackdrop'
 import { asArray, asBool } from './blockUtils'
+import { PosterDownloads } from './PosterDownloads'
 import {
   PosterMedia,
   PosterOverlay,
@@ -118,6 +119,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
                 {renderable && <PosterMedia data={slide} src={src} eager={i === 0} />}
               </div>
               <PosterOverlay data={slide} titleTag={active ? 'h1' : 'h2'} />
+              {active && <PosterDownloads data={slide} />}
             </article>
           )
         })}

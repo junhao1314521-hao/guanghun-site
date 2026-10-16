@@ -88,8 +88,8 @@ export function useHomeEffects(containerRef: RefObject<HTMLElement | null>, refr
       })
     })
 
-    // —— 形态 D：产品列表卡 / 通用链接卡 指针跟随聚光（不倾斜，与首页区分）——
-    page.querySelectorAll<HTMLElement>('.pcard, .card--link').forEach((card) => {
+    // —— 形态 D：产品列表卡 / 通用链接卡 / 能力网格卡 指针跟随聚光（不倾斜，与首页区分）——
+    page.querySelectorAll<HTMLElement>('.pcard, .card--link, .blk-cap__card').forEach((card) => {
       const jobX = makeSpring((v) => card.style.setProperty('--mx', `${v.toFixed(1)}px`), 0.15, 0.78)
       const jobY = makeSpring((v) => card.style.setProperty('--my', `${v.toFixed(1)}px`), 0.15, 0.78)
       bind(card, 'pointermove', (e) => {

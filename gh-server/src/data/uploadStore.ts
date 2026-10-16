@@ -85,6 +85,10 @@ const EXT_MIME: Record<string, string[]> = {
   zip: ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip', OCTET],
   rar: ['application/vnd.rar', 'application/x-rar-compressed', 'application/x-rar', OCTET],
   '7z': ['application/x-7z-compressed', OCTET],
+  // 二进制 · 固件包（显示器固件升级包，如 54027X1QE 的 .bin）。
+  // 浏览器不会执行 .bin（非「可内联执行」类，与 zip / rar 同档风险），故与压缩包一并放行；
+  // 安装包 exe / dmg / msi 仍**不放行** —— 体积大且属于可执行文件，统一走对象存储外链。
+  bin: [OCTET, 'application/x-binary', 'application/macbinary'],
 }
 
 /** 各扩展名的默认 MIME（请求未带 Content-Type 时回退） */
@@ -111,6 +115,7 @@ const EXT_DEFAULT_MIME: Record<string, string> = {
   zip: 'application/zip',
   rar: 'application/vnd.rar',
   '7z': 'application/x-7z-compressed',
+  bin: 'application/octet-stream',
 }
 
 /**

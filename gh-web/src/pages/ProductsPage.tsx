@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { PageView } from '../blocks/PageView'
 
 /**
@@ -7,18 +6,8 @@ import { PageView } from '../blocks/PageView'
  *
  * 通过 `blockDefaults` 为 productGrid 区块注入 `showFilter`，在区块内保留原产品列表页的
  * 类别 / 连接 / 价格 / 库存筛选、排序、分页与对比选择，装修化后交互能力不回归。
- * 页头右侧提供「产品对比」入口，避免对比功能被埋在筛选区里。
+ * 页头已取消，「产品对比」入口由 productGrid 区块内的对比浮条承载。
  */
 export function ProductsPage() {
-  return (
-    <PageView
-      pageKey="products"
-      blockDefaults={{ productGrid: { showFilter: true } }}
-      headAction={
-        <Link className="btn btn--ghost btn--sm" to="/compare">
-          产品对比 →
-        </Link>
-      }
-    />
-  )
+  return <PageView pageKey="products" blockDefaults={{ productGrid: { showFilter: true } }} />
 }

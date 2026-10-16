@@ -28,10 +28,12 @@ import { asArray, asBool, asRecord, asString, gridClass } from './blockUtils'
 type MediaType = 'image' | 'video' | 'gif'
 
 type CardItem = {
+  /** 锚点 ID（能力网格布局据此外落 DOM id，支持 /页面#id 深链） */
+  id: string
   image: string
   media: string
   mediaType: MediaType
-  /** 图标名（条目列表布局用；见 BlockIcon 可用名称） */
+  /** 图标名（条目列表 / 能力网格布局用；见 BlockIcon 可用名称） */
   icon: string
   tag: string
   title: string
@@ -50,6 +52,7 @@ function toItem(value: unknown): CardItem {
   const record = asRecord(value)
   const rawType = asString(record.mediaType, 'image')
   return {
+    id: asString(record.id),
     image: asString(record.image),
     media: asString(record.media),
     mediaType: rawType === 'video' || rawType === 'gif' ? rawType : 'image',
@@ -454,6 +457,58 @@ export function CardsBlock({ props }: { props: Record<string, unknown> }) {
               <SpotlightRow key={`${item.title}-${index}`} item={item} index={index} />
             ))}
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // capability：能力网格（编号 + 图标块 + 标题 + 说明）——比默认网格多做一层「技术感」，
+  // 与 Armoury Crate 的能力拆解同位：顶部「图标块 + 等宽编号」→ 标题 → 说明 → 底部发丝线；
+  // PC 端指针聚光 + 悬停逐项反馈（图标块转品牌色实底、编号转品牌色、发丝线品牌色延展）；
+  // 有 href 才整体可点（无 href 则不位移、不暗示可点），并据 item.id 落 DOM id 支持 /页面#id 深链。
+  if (layout === 'capability') {
+    return (
+      <div>
+        {head}
+        <div className={columns}>
+          {items.map((item, index) => {
+            const key = `${item.title}-${index}`
+            const delay = (index % 3) + 1
+            const body = (
+              <>
+                <span className="blk-cap__top">
+                  {item.icon && (
+                    <span className="blk-cap__icon">
+                      <BlockIcon name={item.icon} size={22} />
+                    </span>
+                  )}
+                  <span className="blk-cap__index" aria-hidden="true">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </span>
+                <span className="blk-cap__text">
+                  {item.title && <h3 className="blk-cap__title">{item.title}</h3>}
+                  {item.desc && <p className="blk-cap__desc">{item.desc}</p>}
+                </span>
+                <span className="blk-cap__rule" aria-hidden="true" />
+              </>
+            )
+            return item.href ? (
+              <Link
+                className="blk-cap__card blk-cap__card--link reveal"
+                to={item.href}
+                key={key}
+                id={item.id || undefined}
+                data-delay={delay}
+              >
+                {body}
+              </Link>
+            ) : (
+              <div className="blk-cap__card reveal" key={key} id={item.id || undefined} data-delay={delay}>
+                {body}
+              </div>
+            )
+          })}
         </div>
       </div>
     )

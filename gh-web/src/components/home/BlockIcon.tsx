@@ -10,10 +10,12 @@ import {
   IconDownload,
   IconGrid,
   IconHelp,
+  IconKeyboard,
   IconMonitor,
   IconRefresh,
   IconShield,
   IconSliders,
+  IconSun,
   IconTrophy,
 } from '../ui/Icon'
 
@@ -32,6 +34,8 @@ const ICONS: Record<string, (props: { size?: number; accent?: boolean }) => Reac
   sliders: IconSliders,
   refresh: IconRefresh,
   cloud: IconCloud,
+  keyboard: IconKeyboard,
+  light: IconSun,
   book: IconBook,
   download: IconDownload,
   help: IconHelp,

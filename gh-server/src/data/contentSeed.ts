@@ -619,30 +619,41 @@ function buildAbout(): Page {
   ])
 }
 
-/** Center 软件：软件首屏 → 核心能力 → 功能深读 ×2 → 支持设备 → 下载 → 更新日志 → FAQ */
+/** Center 软件：软件首屏（含底部下载条）→ 核心能力 → 功能深读 ×2 → 更新日志 → FAQ */
 function buildCenter(): Page {
   return toPage('center', '/center', 'Center 软件', 'Center 软件装修。', [
     {
       type: 'hero',
       props: {
+        // 与首页首屏同一套文案格式与排版：眉题默认不显示、标题 + 一句话、文案居中偏上；
+        // 下载入口不再占用文案区按钮，改为海报底部悬浮的下载条（downloadIds）
         eyebrow: 'SOFTWARE / 配套软件',
+        eyebrowEnabled: false,
+        statsEnabled: false,
         title: ['光魂 Center'],
-        desc: '一套软件管理全部光魂显示器：色彩与亮度、HDR 与刷新率、校色配置同步，都在同一个界面里完成。',
+        subtitle: '一套软件，管理全部光魂显示器。',
         mediaTag: '软件界面',
         image: '/media/center/hero.svg',
-        primary: { label: '立即下载', href: '/center#download' },
-        // 次 CTA 指向页内更新日志区块（此前指向 /center 自身，等于原地刷新）
-        secondary: { label: '查看更新日志', href: '/center#changelog' },
+        contentPosition: POSTER_POSITION,
+        // 底部悬浮下载条：从下载中心勾选 Windows / macOS 两个安装包（版本与大小自动取真实值）
+        downloadIds: ['center-win', 'center-mac'],
       },
       // hero 海报同样通栏，与首页 carousel 保持一致
       style: { theme: 'dark', container: 'full' },
     },
     {
+      // 核心能力：能力网格布局（编号 + 图标块 + 标题 + 说明）；item.id 同时作为锚点（/center#manage 等）
       type: 'cards',
       props: {
         title: '核心能力',
+        layout: 'capability',
         columns: 3,
-        items: center.CAPABILITIES.map((item) => ({ tag: item.id, title: item.title, desc: item.desc })),
+        items: center.CAPABILITIES.map((item) => ({
+          id: item.id,
+          icon: item.icon,
+          title: item.title,
+          desc: item.desc,
+        })),
       },
     },
     {
@@ -664,33 +675,9 @@ function buildCenter(): Page {
       },
     },
     {
-      type: 'cards',
-      props: {
-        title: '支持的设备',
-        columns: 3,
-        items: center.DEVICE_SUPPORT.map((item) => ({ tag: item.statusText, title: item.title, desc: item.models })),
-      },
-    },
-    {
-      type: 'cards',
-      props: {
-        title: '下载与安装',
-        columns: 2,
-        // §4.18 / T5.15：每张卡补真实下载按钮，取下载中心 downloads 集合对应资料（与首页固件驱动同一取数方式）
-        autoVersions: true,
-        items: center.DOWNLOADS.map((item) => ({
-          title: item.os,
-          desc: `${item.version} · ${item.size} · ${item.date}`,
-          downloadId: /mac/i.test(item.os) ? 'center-mac' : 'center-win',
-        })),
-      },
-      // 锚点 #download：供「立即下载」与外部深链直达本区块
-      style: { anchor: 'download' },
-    },
-    {
       type: 'timeline',
       props: { title: '更新日志', items: center.CHANGELOG.map((item) => ({ time: item.version, title: item.title, desc: item.date })) },
-      // 锚点 #changelog：供首屏「查看更新日志」次 CTA 直达本区块
+      // 锚点 #changelog：供站内 / 站外深链直达本区块
       style: { anchor: 'changelog' },
     },
     { type: 'faqList', props: { title: '常见问题', source: 'center', limit: 10 } },

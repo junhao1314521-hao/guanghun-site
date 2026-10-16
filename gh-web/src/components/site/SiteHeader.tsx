@@ -20,7 +20,6 @@ import {
   IconSearch,
   IconShop,
   IconSun,
-  IconSupport,
 } from '../ui/Icon'
 
 type Props = {
@@ -520,9 +519,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             </Link>
           )}
 
-          <Link className="icon-btn" to="/support" aria-label={t('a11y.support')}>
-            <IconSupport />
-          </Link>
+          {/* 客服入口已移除：与服务支持（一级导航 / 下拉 / 页脚）重复，顶栏不再重复暴露 */}
           {user ? (
             <Link className="icon-btn" to="/me" aria-label="个人中心">
               <IconAccount />

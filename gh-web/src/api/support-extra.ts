@@ -1,5 +1,6 @@
 /** 接口层 · 服务支持深度线资源：页面通过本模块取数，不直接 import data/support-extra */
 import { ApiError, transport } from './client'
+import { sanitizeFileUrl } from '../blocks/sanitize'
 import {
   CONTACT_PAYLOAD,
   DOWNLOAD_CATEGORIES,
@@ -39,11 +40,11 @@ export type InquiryResult = { ok: boolean; ticketId: string; receivedAt: string 
 
 /** 下载中心列表：一次返回全部资料与筛选项（类别 / 类型），过滤在前端完成 */
 export function fetchDownloads(signal?: AbortSignal): Promise<DownloadsPayload> {
-  return transport({ path: '/api/downloads', signal }, () => ({
+  return transport<DownloadsPayload>({ path: '/api/downloads', signal }, () => ({
     items: DOWNLOAD_ITEMS,
     categories: DOWNLOAD_CATEGORIES,
     types: DOWNLOAD_TYPES,
-  }))
+  })).then((res) => ({ ...res, items: res.items.map(sanitizeFileUrl) }))
 }
 
 /** 下载详情：按 id 查询，未命中抛 404 供页面区分「不存在」 */
@@ -52,7 +53,7 @@ export function fetchDownload(id: string, signal?: AbortSignal): Promise<Downloa
     const detail = getDownloadDetail(id)
     if (!detail) throw new ApiError('未找到该资料', 404)
     return detail
-  })
+  }).then(sanitizeFileUrl)
 }
 
 /** 常见问题列表：一次返回全部问答与类别筛选项 */
@@ -75,7 +76,7 @@ export function fetchModelSupport(id: string, signal?: AbortSignal): Promise<Mod
     const model = getModelSupport(id)
     if (!model) throw new ApiError('未找到该型号的支持资料', 404)
     return model
-  })
+  }).then((model) => ({ ...model, downloads: model.downloads.map(sanitizeFileUrl) }))
 }
 
 /** 提交咨询：真实 POST；占位环境仅回执工单号（后端不落库） */

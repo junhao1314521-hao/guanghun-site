@@ -89,9 +89,18 @@ function isClippedColumn(column: AdminColumn): boolean {
 
 /** 按列类型渲染单元格（兼容对象 status / 字符串数组等规范形状） */
 function renderCell(value: unknown, column: AdminColumn) {
-  // 文件列：显式展示「有 / 无」，避免空值统一落到「—」而看不出语义
+  // 文件列：区分「素材库文件 / 外链」并显式展示「有 / 无」。
+  // 口径与前台 `sanitizeFileUrl` 一致：http(s) 视为外链，其余（如 /uploads/...）为站内素材库文件。
+  // 安装包（exe / dmg）不在素材库白名单内，只能填外链 —— 这列让运营一眼看出该条走的是哪种。
   if (column.type === 'file') {
-    return value ? <span className="tag tag--accent">有</span> : <span className="admin-cell--muted">无</span>
+    if (!value) return <span className="admin-cell--muted">无</span>
+    const url = String(value)
+    const external = /^https?:\/\//i.test(url.trim())
+    return (
+      <span className="tag tag--accent" title={url}>
+        {external ? '外链' : '素材库'}
+      </span>
+    )
   }
   if (value === undefined || value === null || value === '') return <span className="admin-cell--muted">—</span>
   switch (column.type) {

@@ -1,5 +1,6 @@
 /** 接口层 · 商业合作深度线：页面通过本模块取数，不直接 import data/business-extra */
 import { transport, ApiError } from './client'
+import { sanitizeFileUrl } from '../blocks/sanitize'
 import {
   BIZ_CASES,
   BIZ_SCENES,
@@ -61,8 +62,11 @@ export function fetchBizVenue(id: string, signal?: AbortSignal): Promise<VenueDe
 export function fetchBrandAssets(
   signal?: AbortSignal,
 ): Promise<{ items: BrandAssetItem[]; categories: string[] }> {
-  return transport({ path: '/api/business/brand-assets', signal }, () => ({
-    items: BRAND_ASSET_ITEMS,
-    categories: BRAND_ASSET_CATEGORIES,
-  }))
+  return transport<{ items: BrandAssetItem[]; categories: string[] }>(
+    { path: '/api/business/brand-assets', signal },
+    () => ({
+      items: BRAND_ASSET_ITEMS,
+      categories: BRAND_ASSET_CATEGORIES,
+    }),
+  ).then((res) => ({ ...res, items: res.items.map(sanitizeFileUrl) }))
 }

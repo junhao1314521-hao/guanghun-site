@@ -57,7 +57,10 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     size: '86.4 MB',
     date: '2026-09-20',
     note: '支持 Windows 10 / 11（64 位）',
-    fileUrl: '/uploads/center-2.4.1-win.exe',
+    // 约定字段：前台软件下载按钮据此显示系统图标与「下载 Windows 版」文案（详见后台表单该字段 hint）
+    platform: 'Windows',
+    // 安装包体积 90MB 级、且素材库白名单有意不放行可执行文件 → 统一走对象存储 / CDN **外链**（占位域名，上线前替换）
+    fileUrl: 'https://dl.guanghun.example/center/Center-2.4.1-win64.exe',
   },
   {
     id: 'center-mac',
@@ -69,7 +72,9 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     size: '92.1 MB',
     date: '2026-09-20',
     note: '支持 macOS 12 及以上',
-    fileUrl: '/uploads/center-2.4.1-mac.dmg',
+    platform: 'macOS',
+    // 同上：安装包走外链（占位域名，上线前替换）
+    fileUrl: 'https://dl.guanghun.example/center/Center-2.4.1-mac.dmg',
   },
   {
     id: 'gh-54027x1qe-firmware',

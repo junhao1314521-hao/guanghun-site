@@ -15,7 +15,7 @@ import type { CSSProperties } from 'react'
 import { SafeLink } from '../components/ui/SafeLink'
 import { MediaImg } from '../components/ui/MediaImg'
 import type { BlockLink, StatItem } from './types'
-import { asBool, asLink, asNumber, asRecord, asStatItems, asString, asTextLines } from './blockUtils'
+import { asArray, asBool, asLink, asNumber, asRecord, asStatItems, asString, asTextLines } from './blockUtils'
 
 export type PosterMediaType = 'image' | 'video' | 'gif' | 'code'
 export type PosterPosition = { x: number; y: number }
@@ -51,6 +51,8 @@ export type PosterData = {
   accentColor: string
   /** 「立即购买」按钮样式（后台可切换）；缺省 / 老数据 / 非法值一律按 plain */
   ctaStyle: PosterCtaStyle
+  /** 底部悬浮下载条：下载中心条目 ID 列表（顺序即展示顺序）；空 = 不显示 */
+  downloadIds: string[]
 }
 
 /** 把内容库的原始 props 收敛为海报数据（字段缺失 / 类型不符一律回退，渲染期不抛错） */
@@ -92,6 +94,7 @@ export function toPoster(value: unknown): PosterData {
     textColor: asString(record.textColor),
     accentColor: asString(record.accentColor),
     ctaStyle,
+    downloadIds: asArray(record.downloadIds).filter((id): id is string => typeof id === 'string' && id.length > 0),
   }
 }
 

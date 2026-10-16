@@ -576,27 +576,34 @@ function buildCenterEn(): Page {
       type: 'hero',
       props: {
         eyebrow: 'SOFTWARE / Companion app',
+        eyebrowEnabled: false,
+        statsEnabled: false,
         title: ['Guanghun Center'],
-        desc: 'One app to manage every Guanghun device: params, macros, lighting, firmware and config sync — all in one place.',
+        subtitle: 'One app to manage every Guanghun display.',
         mediaTag: 'Software UI',
         image: '/media/center/hero.svg',
-        primary: { label: 'Download', href: '/center#download' },
-        secondary: { label: 'Changelog', href: '/center#changelog' },
+        contentPosition: { x: 50, y: 16 },
+        // Floating download bar at the poster bottom (pick entries from the download center)
+        downloadIds: ['center-win', 'center-mac'],
       },
       style: { theme: 'dark', container: 'full' },
     },
     {
+      // Core capabilities: capability grid layout (index + icon tile + title + desc);
+      // item.id doubles as the anchor and is kept identical to the Chinese page so
+      // deep links such as /center#manage work in both languages.
       type: 'cards',
       props: {
         title: 'Core capabilities',
+        layout: 'capability',
         columns: 3,
         items: [
-          { tag: 'tune', title: 'OSD & color', desc: 'Brightness, gamut, tone and response levels.' },
-          { tag: 'preset', title: 'Presets & scenes', desc: 'Save and switch per-scenario presets.' },
-          { tag: 'eye', title: 'Eye care', desc: 'Low blue light and stable brightness.' },
-          { tag: 'fw', title: 'Firmware', desc: 'Update with one click.' },
-          { tag: 'sync', title: 'Config sync', desc: 'Carry settings across devices.' },
-          { tag: 'cloud', title: 'Cloud profiles', desc: 'Sign in to back up profiles.' },
+          { id: 'manage', icon: 'grid', title: 'Unified device management', desc: 'Every connected Guanghun display in one list — input, refresh rate and firmware at a glance.' },
+          { id: 'macro', icon: 'keyboard', title: 'Presets & scenes', desc: 'Save brightness, gamut and HDR settings as presets and switch them per scenario.' },
+          { id: 'tuning', icon: 'sliders', title: 'OSD & color', desc: 'Brightness, gamut, tone and response levels in one place, measured on the same scale as our leaderboard.' },
+          { id: 'lighting', icon: 'light', title: 'Eye care & lighting', desc: 'Low blue light, flicker-free backlight and ambient lighting follow your scene.' },
+          { id: 'firmware', icon: 'refresh', title: 'Firmware & drivers', desc: 'New versions are surfaced in one place, with release notes before and after updating.' },
+          { id: 'sync', icon: 'cloud', title: 'Cloud profiles', desc: 'Sign in and your presets follow your account across machines and reinstalls.' },
         ],
       },
     },
@@ -616,30 +623,6 @@ function buildCenterEn(): Page {
         title: 'Full-speed connectivity',
         body: 'DP 2.1 at 80 Gbps keeps 540Hz at full speed.\nProfile switching is instant, with no re-plugging.',
         side: 'left',
-      },
-    },
-    {
-      type: 'cards',
-      props: {
-        title: 'Supported devices',
-        columns: 3,
-        items: [
-          { tag: 'Supported', title: 'OLED flagship', desc: '54027X1QE-W54, 28027X1QE-W28' },
-          { tag: 'Supported', title: 'Dual-mode', desc: '32X1UE-W16, 27X1U' },
-          { tag: 'Supported', title: 'Gaming IPS', desc: '27Q1F, 24H1, 25S1FP' },
-        ],
-      },
-    },
-    {
-      type: 'cards',
-      props: {
-        title: 'Download & install',
-        columns: 2,
-        autoVersions: true,
-        items: [
-          { title: 'Windows', desc: 'v2.1.0 · 48 MB · 2026-09', downloadId: 'center-win' },
-          { title: 'macOS', desc: 'v2.1.0 · 52 MB · 2026-09', downloadId: 'center-mac' },
-        ],
       },
     },
     {

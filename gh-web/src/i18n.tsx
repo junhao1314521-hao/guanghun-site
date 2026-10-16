@@ -52,7 +52,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.drawerNav': '站点导航',
     'a11y.drawerMobileNav': '移动端导航',
     'a11y.closeDrawer': '关闭导航菜单',
-    'drawer.langHeading': '语言 / Language',
+    'drawer.langHeading': '语言',
     'drawer.shopHeading': '店铺',
 
     // —— 页脚 ——
@@ -291,7 +291,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.drawerNav': 'Site navigation',
     'a11y.drawerMobileNav': 'Mobile navigation',
     'a11y.closeDrawer': 'Close navigation menu',
-    'drawer.langHeading': 'Language / 语言',
+    'drawer.langHeading': 'Language',
     'drawer.shopHeading': 'Shop',
 
     // —— Footer ——

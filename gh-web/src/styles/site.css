@@ -355,9 +355,10 @@ main.main--flush + .site-footer { margin-top: 0; }
 .site-footer__brand .logo__mark { width: 32px; height: 32px; }
 /* 页脚品牌 mark 去掉辉光 / 呼吸（页脚无投影；仅页脚内收口，不改动顶栏品牌动效） */
 .site-footer__brand .logo__mark { filter: none; animation: none; }
-.site-footer__slogan { color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.7; max-width: 34ch; margin: 0 0 var(--gh-space-3); }
-/* 官网地址：浅灰小字 */
-.site-footer__url { display: inline-block; color: var(--color-text-tertiary); font-size: var(--gh-font-size-caption); font-family: var(--gh-font-mono); margin-bottom: var(--gh-space-5); }
+/* 品牌口号：客户要求「大一点」——13 → 16px（令牌无 16px 档位，15/17 之间，与页脚组名同口径）；
+   移除官网地址小字后，此处顺带承接原「slogan → 网址 → 社交图标」的整体间距（下间距 24px）。 */
+.site-footer__slogan { color: var(--color-text-secondary); font-size: 16px; line-height: 1.7; max-width: 34ch; margin: 0 0 var(--gh-space-5); }
+/* 官网地址已按客户要求从页脚移除（`.site-footer__url` 样式一并删除） */
 
 /* 社交关注：仅保留线性图标本体（去掉圆形描边框与圆形底色）；
    悬停时图标本体变品牌色 + 轻微上移，带过渡；不使用任何投影。 */
@@ -381,9 +382,7 @@ main.main--flush + .site-footer { margin-top: 0; }
 .qr__box svg { width: 100%; height: 100%; display: block; }
 .qr__label { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 @media (max-width: 767px) {
-  /* 手机端：字号整体上调一档，并加大命中区，避免信息「细碎」（桌面端不受影响） */
-  .site-footer__slogan,
-  .site-footer__url { font-size: var(--gh-font-size-body-sm); }
+  /* 手机端：社交图标加大命中区，避免信息「细碎」（桌面端不受影响） */
   .site-footer__social-item { width: 42px; height: 42px; font-size: var(--gh-font-size-body-sm); }
   .qr__label { font-size: var(--gh-font-size-body-sm); }
 }
@@ -419,7 +418,6 @@ main.main--flush + .site-footer { margin-top: 0; }
 [data-theme="dark"] .site-footer a:hover { color: #fff; }
 [data-theme="dark"] .site-footer__brand .logo { color: var(--gh-neutral-50); }
 [data-theme="dark"] .site-footer__slogan { color: rgba(255, 255, 255, .68); }
-[data-theme="dark"] .site-footer__url { color: rgba(255, 255, 255, .5); }
 [data-theme="dark"] .site-footer__bottom { color: rgba(255, 255, 255, .5); }
 [data-theme="dark"] .site-footer__bottom a:hover { color: #fff; }
 [data-theme="dark"] .site-footer__social-item { color: rgba(255, 255, 255, .72); }
@@ -1480,10 +1478,11 @@ main.main--flush + .site-footer { margin-top: 0; }
 .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), minmax(0, 1fr)); }
 .mega__col { display: flex; flex-direction: column; }
 .mega__eyebrow {
-  /* 列头：27px(=18×1.5) / 600 / 近黑（客户要求再大二分之一倍）；与 14px 浅灰子项形成更强的「大 / 小」对比。
-     列头放大后，列头 → 首条链接的间距同步由 16px 放宽到 24px（--gh-space-5），避免显得拥挤。 */
-  margin: 0 0 var(--gh-space-5);
-  font-size: 27px; /* 令牌无 27px 档位；客户明确要求 18px × 1.5 = 27px，直接写 px */
+  /* ⚠️ 本类被两处共用：① 桌面下拉的列头（≥1024px）；② 抽屉的分区小标题 / 二级面板列头（<1024px）。
+     因此**基础规则只能写「紧凑形态」的值**，桌面下拉的放大值必须写在 ≥1024px 断点里
+     （见下方「宽屏下拉面板专用」块）——否则会连带把抽屉的分区标题一起放大，层级倒挂。 */
+  margin: 0 0 var(--gh-space-4);
+  font-size: 18px;
   line-height: 1.25;
   font-weight: var(--gh-weight-semibold);
   letter-spacing: .08em; text-transform: uppercase;
@@ -1505,12 +1504,18 @@ main.main--flush + .site-footer { margin-top: 0; }
 [data-theme="dark"] .mega__link { color: var(--color-text-tertiary); }
 .mega__link:hover { color: var(--color-text-primary); transform: translateX(2px); }
 /* 宽屏下拉面板专用（≥1024px）。<1024px 时整个下拉菜单 display:none，抽屉里复用的
-   .mega__eyebrow / .mega__link 不受本块影响，移动/紧凑形态走基础规则。
+   .mega__eyebrow / .mega__link 走上面的基础规则（紧凑形态），不受本块影响。
    ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（锚定关系不变），
       不贴左、不贴右；列间距随列头放大（18 → 27px，字更宽）由 150 → 180px（3 列面板 120 → 144px），
       避免相邻两列因列头变宽而挤到一起；
-   ② 列头 / 二级链接的字号与行距统一走基础规则（列头 27px、链接 14px/行距≈35px），此处不再覆写。 */
+   ② 列头 18 → 27px（客户要求再大二分之一倍）只写在**本断点内**；列头放大后，
+      列头 → 首条链接的间距由 16px 放宽到 24px（--gh-space-5），避免显得拥挤。
+      二级链接 14px / 行距≈35px 仍走基础规则，此处不覆写。 */
 @media (min-width: 1024px) {
+  .mega__eyebrow {
+    margin-bottom: var(--gh-space-5);
+    font-size: 27px; /* 令牌无 27px 档位；客户明确要求 18px × 1.5 = 27px，直接写 px */
+  }
   /* 列宽改为「内容自适应」，整组才能先居中再右移（原来的 1fr 会等分铺满整行、无法偏移） */
   .mega__cols {
     grid-template-columns: repeat(var(--mega-cols, 3), auto) minmax(230px, 300px);
@@ -1699,22 +1704,49 @@ main.main--flush + .site-footer { margin-top: 0; }
 .drawer__group { border-bottom: 1px solid var(--color-border-subtle); }
 .drawer__group-btn {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
-  gap: var(--gh-space-3); padding: var(--gh-space-4) 0;
+  gap: var(--gh-space-3); padding: var(--gh-space-4) 0; min-height: 56px;
   background: none; border: 0; cursor: pointer; font: inherit;
   font-size: var(--gh-font-size-body-lg); color: var(--color-text-primary);
+  /* 同一个类同时用在 <button>（有二级面板的一级项）与 <a>（叶子项：光魂 Center / 天梯榜）上，
+     站内没有全局 a 重置，故必须显式去掉下划线，否则只有 <a> 那几个露出浏览器默认下划线。 */
+  text-decoration: none;
 }
+/* 当前栏目：与语言项的当前态同一套信号（品牌色 + 中粗），不再靠下划线暗示 */
+.drawer__group-btn.is-active,
+.drawer__group-btn.is-active svg { color: var(--color-accent-text); }
+.drawer__group-btn.is-active { font-weight: var(--gh-weight-medium); }
 .drawer__group-btn svg { color: var(--color-text-tertiary); transition: transform .3s var(--gh-ease-accent); }
 .drawer__group.is-open .drawer__group-btn svg { transform: rotate(180deg); }
 .drawer__sub { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .34s var(--gh-ease-accent); }
 .drawer__group.is-open .drawer__sub { grid-template-rows: 1fr; }
 .drawer__sub-inner { min-height: 0; overflow: hidden; }
-.drawer__sub-inner .mega__eyebrow:not(:first-child) { margin-top: var(--gh-space-3); }
-/* 抽屉二级链接沿用同一套字号 / 行高，但用更大的内边距把点击热区补到 ≥40px
-   （14px 字 × line-height 1.2 ≈ 17px 内容高 + 12px×2 padding ≈ 41px）。 */
-.drawer__sub-inner .mega__link { padding: var(--gh-space-3) 0; }
+/* 抽屉内的分区小标题（店铺 / 语言 / 二级面板列头）：与桌面下拉列头共用 .mega__eyebrow，
+   但这里是**中文分组标签**语境 —— 去掉拉丁大写与 .08em 字距，字号收到「比一级导航小一档」，
+   让视觉重心留在 17px 的一级项上（桌面下拉列头的 27px 只写在 ≥1024px 断点里，不影响此处）。 */
+.drawer .mega__eyebrow {
+  margin: 0 0 var(--gh-space-3);
+  font-size: var(--gh-font-size-body-sm);
+  letter-spacing: .04em; text-transform: none;
+  color: var(--color-text-tertiary);
+}
+.drawer__sub-inner .mega__eyebrow:not(:first-child) { margin-top: var(--gh-space-4); }
+/* 抽屉内所有「列表行」统一热区 ≥44px（触屏标准）并垂直居中：二级链接 / 店铺渠道 / 语言选项三处同口径 */
+.drawer__sub-inner .mega__link,
+.drawer__shop-item,
+.drawer__group--lang .lang__opt {
+  display: flex; align-items: center;
+  min-height: 44px;
+  padding-top: 0; padding-bottom: 0;
+}
+.drawer__sub-inner .mega__link { padding-inline: 0; }
 .drawer__sub-inner .mega__link:last-child { margin-bottom: var(--gh-space-4); }
 .drawer__group--lang { padding: var(--gh-space-4) 0 var(--gh-space-5); }
-.drawer__group--lang .lang__opt { padding-left: 0; padding-right: 0; }
+/* 语言项：抽屉里与一级项左对齐（负外边距抵消内边距），上下由 min-height 统一到 44px；
+   保留左右内边距是给 hover 底色留出呼吸，否则文字会贴着色块边缘。 */
+.drawer__group--lang .lang__opt {
+  padding: 0 var(--gh-space-2);
+  margin-left: calc(-1 * var(--gh-space-2));
+}
 /* 抽屉内「店铺」渠道：图标位 + 名称 + 外链箭头（与顶栏浮层同一组数据） */
 .drawer__group--shop { padding: var(--gh-space-4) 0 var(--gh-space-5); }
 .drawer__shop { display: flex; flex-direction: column; gap: 2px; margin-top: var(--gh-space-3); }
@@ -2078,42 +2110,6 @@ body.drawer-open { overflow: hidden; }
 :root:not([data-theme="dark"]) .site-header--over-hero .site-search .input::placeholder { color: var(--color-text-tertiary); }
 
 /* ============================================================
-   内容页页头：面包屑 → 中等字号标题 → 发丝分隔
-   ============================================================ */
-/* 页面头（一级 / 二级页）：克制的「编辑部式」版式 —— 面包屑 → 中等字号标题 → 发丝分隔。
-   标题字号不再放大到 hero 级（原 56px 过重），与正文层级更协调，也避免压过区块标题。 */
-.page-head { padding-top: var(--gh-space-6); padding-bottom: var(--gh-space-5); }
-.page-head__crumb {
-  display: flex; align-items: center; gap: var(--gh-space-2);
-  font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary);
-}
-.page-head__crumb a { color: inherit; text-decoration: none; }
-.page-head__crumb a:hover { color: var(--color-text-primary); }
-.page-head__row {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: var(--gh-space-5); flex-wrap: wrap;
-  margin-top: var(--gh-space-3);
-}
-.page-head__title {
-  margin: 0;
-  font-size: clamp(30px, 3vw, 42px);
-  line-height: 1.12; letter-spacing: -.025em;
-  font-weight: var(--gh-weight-medium);
-  text-wrap: balance;
-}
-.page-head__rule {
-  height: 1px; margin: var(--gh-space-5) 0 0;
-  background: linear-gradient(90deg, var(--color-border-default), transparent 72%);
-  transform-origin: left center;
-  /* 入场：分隔线自左向右「延展」 */
-  animation: ghRuleGrow .7s var(--gh-ease-accent) both;
-}
-@keyframes ghRuleGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-/* 页头之后的第一个区块：收紧上留白，让「页头 → 内容」连成一体（原先区块自带 64px 上边距，显得空） */
-.page-head + .blk { padding-top: var(--gh-space-6); }
-@media (prefers-reduced-motion: reduce) { .page-head__rule { animation: none; } }
-
-/* ============================================================
    环境背景层：网格底纹 + 品牌光晕 + 噪点 + 光标柔光
    —— 固定铺满视口、位于内容之下（z-index:-1）；只动 transform/opacity，深浅主题各一套。
    ============================================================ */
@@ -2185,10 +2181,6 @@ body.drawer-open { overflow: hidden; }
 }
 .card--link:hover::after { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .card--link::after { display: none; } }
-@media (max-width: 767px) {
-  .page-head { padding-top: var(--gh-space-5); padding-bottom: var(--gh-space-4); }
-  .page-head__title { font-size: clamp(26px, 6.5vw, 32px); }
-}
 
 /* ============================================================
    公告条（顶栏上方细条；后台站点配置可配、可定时、可关闭）
@@ -2332,7 +2324,11 @@ body.drawer-open { overflow: hidden; }
 }
 @media (max-width: 767px) {
   .site-footer__bottom { flex-direction: column; align-items: flex-start; }
-  /* 链接组两列并排，窄屏不挤爆 */
-  .site-footer__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-5) var(--gh-space-6); }
+  /* 链接组三列并排：此前是两列网格，第三组被挤到下一行、凭空把页脚拉高一整行；
+     列间距收窄到 16px，保证 320px 窄屏下三列仍放得下（最长链接「合规与协议」5 字 ≈ 75px）。 */
+  .site-footer__cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gh-space-5) var(--gh-space-4); }
   .site-footer__col { min-width: 0; }
+  /* 兜底：存量配置可能超过 3 组（后台已限 3 组，见 AdminSiteConfigPage 的 MAX_FOOTER_GROUPS）。
+     此时三列会在第二行留下「孤行」，改为两列让换行看起来是有意的。 */
+  .site-footer__cols:has(> .site-footer__col:nth-child(4)) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
