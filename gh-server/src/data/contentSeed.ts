@@ -107,6 +107,12 @@ const SITE: SiteConfig = {
       { label: '抖音', account: '光魂' },
     ],
   },
+  // —— 店铺渠道：顶栏「店铺」圆钮下拉用；href 为占位，上线前替换为真实店铺链接 ——
+  shopChannels: [
+    { name: '天猫', href: 'https://tmall.example/' },
+    { name: '京东', href: 'https://jd.example/' },
+    { name: '淘宝', href: 'https://taobao.example/' },
+  ],
 }
 
 /* ============================================================

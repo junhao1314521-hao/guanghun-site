@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { fetchSite } from '../api/content'
 import type {
+  ShopChannel,
   SiteAnnouncement,
   SiteAuthConfig,
   SiteConfig,
@@ -11,7 +12,7 @@ import type {
   SiteWarrantyConfig,
 } from '../data/contentTypes'
 import { NAV_ITEMS, type NavItem } from '../data/nav'
-import { FOOTER_GROUPS } from '../data/site'
+import { FALLBACK_SHOP_CHANNELS, FOOTER_GROUPS, orderShopChannels } from '../data/site'
 import { useApi } from './useApi'
 import { useSitePages } from './useSitePages'
 
@@ -147,4 +148,14 @@ export function useSiteWarranty(): SiteWarrantyConfig {
 export function useSiteAuth(): SiteAuthConfig {
   const site = useSiteConfig()
   return site?.auth ?? FALLBACK_AUTH
+}
+
+/**
+ * 店铺渠道（顶栏「店铺」圆钮与抽屉用）：
+ * - 后台配置优先：显式配置为空数组 → 返回空（前台整块不渲染）；
+ * - 缺省（内容库未就绪 / 未配置）→ 回退本地真源（天猫 / 京东 / 淘宝）。
+ */
+export function useSiteShopChannels(): ShopChannel[] {
+  const site = useSiteConfig()
+  return useMemo(() => orderShopChannels(site?.shopChannels ?? FALLBACK_SHOP_CHANNELS), [site])
 }

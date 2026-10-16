@@ -47,6 +47,8 @@ contentStoreRouter.get('/site', (req, res) => {
     ...(site.warranty ? { warranty: site.warranty } : {}),
     // 页脚社交：统一归一化为「每平台一条」（兼容历史 links+qr 两条列表的旧配置）
     ...(site.social ? { social: normalizeSocialConfig(site.social) } : {}),
+    // 店铺渠道（顶栏「店铺」按钮下拉；未设置则不返回，前台不渲染该按钮）
+    ...(site.shopChannels ? { shopChannels: site.shopChannels } : {}),
     // 下拉面板推荐卡开关（未设置则不返回，前台缺省即不渲染推荐卡）
     ...(site.navFeatureEnabled !== undefined ? { navFeatureEnabled: site.navFeatureEnabled } : {}),
     // 留言轻量分流开关（未设置则不返回，前台缺省 = 开启）

@@ -43,6 +43,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.langToggle': '切换语言，当前：{lang}',
     'a11y.langMenu': '选择语言',
     'a11y.support': '客服',
+    'a11y.shop': '店铺',
     'a11y.account': '账号',
     'a11y.openDrawer': '打开导航菜单',
     'search.placeholder': '搜索型号 / 文章',
@@ -52,6 +53,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.drawerMobileNav': '移动端导航',
     'a11y.closeDrawer': '关闭导航菜单',
     'drawer.langHeading': '语言 / Language',
+    'drawer.shopHeading': '店铺',
 
     // —— 页脚 ——
     'footer.slogan': '以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。',
@@ -280,6 +282,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.langToggle': 'Switch language, current: {lang}',
     'a11y.langMenu': 'Select language',
     'a11y.support': 'Support',
+    'a11y.shop': 'Shop',
     'a11y.account': 'Account',
     'a11y.openDrawer': 'Open navigation menu',
     'search.placeholder': 'Search models / articles',
@@ -289,6 +292,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'a11y.drawerMobileNav': 'Mobile navigation',
     'a11y.closeDrawer': 'Close navigation menu',
     'drawer.langHeading': 'Language / 语言',
+    'drawer.shopHeading': 'Shop',
 
     // —— Footer ——
     'footer.slogan': 'Defining esports gear performance with measured data. Open specs, open methods, traceable sources.',

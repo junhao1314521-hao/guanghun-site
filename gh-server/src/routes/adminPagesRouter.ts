@@ -16,6 +16,7 @@ import type {
   Block,
   BlockStyle,
   BlockType,
+  ShopChannel,
   SiteAnnouncement,
   SiteAuthConfig,
   SiteCta,
@@ -96,6 +97,28 @@ function parseSiteLink(raw: unknown): SiteLink {
   return out
 }
 
+/**
+ * 解析店铺渠道数组（顶栏「店铺」按钮下拉）：
+ * - `name` 与 `href` 均非空才保留，空项静默丢弃（不报错）；
+ * - `icon` / `order` 为可选扩展字段，缺省不写入。
+ */
+function parseShopChannels(raw: unknown[]): ShopChannel[] {
+  const out: ShopChannel[] = []
+  for (const entry of raw) {
+    if (!isPlainObject(entry)) continue
+    const name = readString(entry.name)
+    const href = readString(entry.href)
+    if (!name || !href) continue
+    const channel: ShopChannel = { name, href }
+    const icon = readString(entry.icon)
+    if (icon) channel.icon = icon
+    const order = Number(entry.order)
+    if (Number.isFinite(order)) channel.order = order
+    out.push(channel)
+  }
+  return out
+}
+
 /** 校验并规整区块数组：非法项直接拒绝（返回 null） */
 function parseBlocks(raw: unknown): Block[] | null {
   if (!Array.isArray(raw)) return null
@@ -127,7 +150,7 @@ function parseBlocks(raw: unknown): Block[] | null {
  * 校验站点配置结构：`{ nav, footer }` 为必填；其余为可选扩展字段。
  * - `enabledBlocks`：字符串数组，且每项须为已知区块类型（否则整体不合法 → 400）；
  * - `theme`：对象，保存时按白名单过滤键（非白名单键静默丢弃，避免任意变量注入）；
- * - `announcement` / `topCta` / `auth` / `warranty` / `social`：新增扩展字段，结构不合法时整体 400；
+ * - `announcement` / `topCta` / `auth` / `warranty` / `social` / `shopChannels`：新增扩展字段，结构不合法时整体 400；
  *   合法但字段缺失时按「缺省」处理（如 auth 缺省视为开启验证码）。
  * 返回 `null` 表示结构不合法。
  */
@@ -141,6 +164,7 @@ function parseSite(raw: unknown): Partial<{
   auth: SiteAuthConfig
   warranty: SiteWarrantyConfig
   social: SiteSocialConfig
+  shopChannels: ShopChannel[]
   defaultTheme: 'auto' | 'light' | 'dark'
   navFeatureEnabled: boolean
   inquiryRouting: boolean
@@ -166,6 +190,7 @@ function parseSite(raw: unknown): Partial<{
     auth: SiteAuthConfig
     warranty: SiteWarrantyConfig
     social: SiteSocialConfig
+    shopChannels: ShopChannel[]
     defaultTheme: 'auto' | 'light' | 'dark'
     navFeatureEnabled: boolean
     inquiryRouting: boolean
@@ -222,6 +247,11 @@ function parseSite(raw: unknown): Partial<{
   if (data.social !== undefined) {
     if (!isPlainObject(data.social)) return null
     result.social = normalizeSocialConfig(data.social)
+  }
+  // —— 店铺渠道：数组；结构非法（非数组）整体 400，空项静默丢弃 ——
+  if (data.shopChannels !== undefined) {
+    if (!Array.isArray(data.shopChannels)) return null
+    result.shopChannels = parseShopChannels(data.shopChannels)
   }
   // —— 留言轻量分流开关（§1.6）：布尔，缺省 true（开启）——
   if (data.inquiryRouting !== undefined) {

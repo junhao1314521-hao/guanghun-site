@@ -56,6 +56,12 @@ export const SITE_EN: NonNullable<SiteConfig['en']> = {
   },
   // 顶栏 CTA 默认不放（与中文站一致）；能力保留，后台可随时配置启用
   topCta: {},
+  // 店铺渠道英文覆盖（品牌名为专有名词；href 占位，上线前替换为真实店铺链接）
+  shopChannels: [
+    { name: 'Tmall', href: 'https://tmall.example/' },
+    { name: 'JD', href: 'https://jd.example/' },
+    { name: 'Taobao', href: 'https://taobao.example/' },
+  ],
   footer: [
     {
       title: 'Products',

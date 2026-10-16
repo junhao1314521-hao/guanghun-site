@@ -157,6 +157,22 @@ export type SiteAnnouncement = {
 /** 顶栏右侧行动按钮（购买 / 预约体验等） */
 export type SiteCta = { label: string; href: string }
 
+/**
+ * 店铺渠道（扩展字段；顶栏「店铺」圆钮下拉用）。
+ * 客户需求：点按钮弹出天猫 / 京东 / 淘宝等店铺入口，用品牌色圆框展示。
+ * 注意：默认 `href` 为占位外链，**上线前替换为真实店铺链接**。
+ */
+export type ShopChannel = {
+  /** 渠道名称（如 天猫 / 京东 / 淘宝） */
+  name: string
+  /** 店铺外链（占位，上线前替换为真实店铺链接） */
+  href: string
+  /** 图标位标识（可选；前台无对应图标时回退通用店铺图标） */
+  icon?: string
+  /** 排序（可选，数值升序；缺省按数组顺序） */
+  order?: number
+}
+
 /** 表单与账号安全开关（图形验证码；第三方登录仅留开关位，暂不开放外部入口） */
 export type SiteAuthConfig = {
   /** 咨询 / 合作 / 订阅等表单是否要求图形验证码 */
@@ -229,6 +245,8 @@ export type SiteConfig = {
   warranty?: SiteWarrantyConfig
   /** 页脚社交与二维码（扩展字段；缺省用前台本地真源） */
   social?: SiteSocialConfig
+  /** 店铺渠道（扩展字段；缺省 / 空数组 = 前台不渲染「店铺」按钮） */
+  shopChannels?: ShopChannel[]
   /** 下拉面板推荐卡开关（扩展字段；缺省 false = 前台不渲染推荐卡） */
   navFeatureEnabled?: boolean
   /**
@@ -253,6 +271,8 @@ export type SiteConfig = {
     footer: SiteFooterGroup[]
     announcement?: SiteAnnouncement
     topCta?: { primary?: SiteCta; secondary?: SiteCta }
+    /** 英文店铺渠道覆盖（可选；缺省沿用主配置） */
+    shopChannels?: ShopChannel[]
   }
 }
 

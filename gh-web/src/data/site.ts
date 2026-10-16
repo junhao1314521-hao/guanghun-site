@@ -1,5 +1,5 @@
 /** 全站共用数据：语言选项、页脚 */
-import type { SiteSocialConfig, SiteSocialItem } from './contentTypes'
+import type { ShopChannel, SiteSocialConfig, SiteSocialItem } from './contentTypes'
 
 export type LangOption = { code: string; label: string }
 
@@ -120,4 +120,23 @@ function dedupeSocial(items: SiteSocialItem[]): SiteSocialItem[] {
     out.push(item)
   }
   return out
+}
+
+/**
+ * 店铺渠道兜底（后台未配置时使用）：天猫 / 京东 / 淘宝。
+ * 注意：`href` 为占位外链，**上线前替换为真实店铺链接**。
+ */
+export const FALLBACK_SHOP_CHANNELS: ShopChannel[] = [
+  { name: '天猫', href: 'https://tmall.example/' },
+  { name: '京东', href: 'https://jd.example/' },
+  { name: '淘宝', href: 'https://taobao.example/' },
+]
+
+/** 店铺渠道排序：任一条配置了 `order` 时按数值升序（稳定），否则保持数组原序 */
+export function orderShopChannels(channels: ShopChannel[]): ShopChannel[] {
+  if (!channels.some((channel) => typeof channel.order === 'number')) return channels
+  return channels
+    .map((channel, index) => ({ channel, index }))
+    .sort((a, b) => (a.channel.order ?? a.index) - (b.channel.order ?? b.index))
+    .map((entry) => entry.channel)
 }

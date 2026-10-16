@@ -24,7 +24,7 @@ import type {
   SiteWarrantyConfig,
 } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
-import type { SiteSocialItem } from '../../data/contentTypes'
+import type { ShopChannel, SiteSocialItem } from '../../data/contentTypes'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { Select } from '../../components/admin/Select'
 import { ErrorState } from '../../components/admin/states'
@@ -136,6 +136,75 @@ function LinkListEditor({
       ))}
       <button type="button" className="btn btn--secondary btn--sm" onClick={() => onChange([...links, { label: '', href: '' }])}>
         + {addLabel}
+      </button>
+    </div>
+  )
+}
+
+/* ============================================================
+   店铺渠道编辑器（顶栏「店铺」圆钮下拉）
+   ============================================================ */
+function ShopChannelEditor({ channels, onChange }: { channels: ShopChannel[]; onChange: (channels: ShopChannel[]) => void }) {
+  const update = (index: number, patch: Partial<ShopChannel>) => {
+    const next = channels.slice()
+    next[index] = { ...next[index], ...patch }
+    onChange(next)
+  }
+
+  return (
+    <div className="site-links">
+      {channels.length === 0 && <span className="field__hint">暂无店铺渠道，点击下方「新增店铺渠道」添加。</span>}
+      {channels.map((channel, index) => (
+        <div className="site-link" key={index}>
+          <input
+            className="input"
+            type="text"
+            placeholder="渠道名称（如 天猫）"
+            value={channel.name}
+            onChange={(event) => update(index, { name: event.target.value })}
+          />
+          <input
+            className="input"
+            type="text"
+            placeholder="店铺链接（如 https://tmall.example/）"
+            value={channel.href}
+            onChange={(event) => update(index, { href: event.target.value })}
+          />
+          <div className="site-link__actions">
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              disabled={index === 0}
+              title="上移"
+              onClick={() => onChange(move(channels, index, -1))}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              disabled={index === channels.length - 1}
+              title="下移"
+              onClick={() => onChange(move(channels, index, 1))}
+            >
+              ↓
+            </button>
+            <button
+              type="button"
+              className="btn btn--danger-ghost btn--sm"
+              onClick={() => onChange(channels.filter((_, i) => i !== index))}
+            >
+              删除
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        className="btn btn--secondary btn--sm"
+        onClick={() => onChange([...channels, { name: '', href: '' }])}
+      >
+        + 新增店铺渠道
       </button>
     </div>
   )
@@ -267,6 +336,12 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setDirty(true)
   }
 
+  // 店铺渠道：顶栏「店铺」圆钮下拉（名称 / 链接，可增删排序）
+  const setShopChannels = (shopChannels: ShopChannel[]) => {
+    setSite((prev) => ({ ...prev, shopChannels }))
+    setDirty(true)
+  }
+
   // 留言轻量分流开关（§1.6；缺省开启）
   const setInquiryRouting = (inquiryRouting: boolean) => {
     setSite((prev) => ({ ...prev, inquiryRouting }))
@@ -360,6 +435,19 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               下拉面板显示右侧推荐卡（默认关闭）
             </label>
           </div>
+        </section>
+
+        {/* —— 店铺渠道：顶栏「店铺」圆钮下拉（天猫 / 京东 / 淘宝等）—— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">店铺渠道</h2>
+            <span className="admin-table__count">{(site.shopChannels ?? []).length} 个渠道</span>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            顶栏导航区「店铺」圆钮弹出的渠道列表（天猫 / 京东 / 淘宝等）：顺序即展示顺序。
+            链接为外链，默认为占位地址，<b>上线前请替换为真实店铺链接</b>；列表为空时该圆钮不展示。
+          </p>
+          <ShopChannelEditor channels={site.shopChannels ?? []} onChange={setShopChannels} />
         </section>
 
         <section className="admin-panel">

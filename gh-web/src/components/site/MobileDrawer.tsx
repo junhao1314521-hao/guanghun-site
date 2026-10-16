@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import { MEGA_PANELS } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
-import { useSiteNav } from '../../hooks/useSiteConfig'
+import { useSiteNav, useSiteShopChannels } from '../../hooks/useSiteConfig'
 import { useSitePages } from '../../hooks/useSitePages'
 import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
-import { IconChevronDown, IconClose } from '../ui/Icon'
+import { IconChevronDown, IconChevronRight, IconClose, IconShop } from '../ui/Icon'
 
 type Props = {
   open: boolean
@@ -26,6 +26,7 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
   const { t } = useI18n()
   // 一级导航来自内容库站点配置（回落本地真源），二级栏目按语言选用本地 MEGA_PANELS（中文）/ EN 覆盖
   const navItems = useSiteNav()
+  const shopChannels = useSiteShopChannels()
   const panels = lang === 'en' ? MEGA_PANELS_EN : MEGA_PANELS
   // 下线级联：抽屉二级栏目与顶栏下拉同源，统一走 isPathLive 过滤，已下线页面入口不出现
   const { isPathLive } = useSitePages()
@@ -160,6 +161,31 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
               </div>
             )
           })}
+
+          {/* 店铺渠道：镜像顶栏「店铺」圆钮浮层（同一份站点配置数据） */}
+          {shopChannels.length > 0 && (
+            <div className="drawer__group drawer__group--shop">
+              <p className="mega__eyebrow">{t('drawer.shopHeading')}</p>
+              <div className="drawer__shop">
+                {shopChannels.map((channel) => (
+                  <a
+                    key={channel.name}
+                    className="drawer__shop-item"
+                    href={channel.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={onClose}
+                  >
+                    <span className="shop-btn shop-btn--sm" aria-hidden="true">
+                      <IconShop size={15} />
+                    </span>
+                    <span className="drawer__shop-name">{channel.name}</span>
+                    <IconChevronRight size={14} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 语言：抽屉内镜像顶栏语言入口（同一份选项，单一真源） */}
           <div className="drawer__group drawer__group--lang">

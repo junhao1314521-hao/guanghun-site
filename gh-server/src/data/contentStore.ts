@@ -144,6 +144,8 @@ export function getSiteConfig(locale?: Locale): SiteConfig {
     delete merged.topCta
     if (site.en.announcement) merged.announcement = site.en.announcement
     if (site.en.topCta) merged.topCta = site.en.topCta
+    // 店铺渠道：英文变体存在时覆盖，缺省沿用主配置（品牌名多为专有名词）
+    if (site.en.shopChannels) merged.shopChannels = site.en.shopChannels
     return merged
   }
   return site

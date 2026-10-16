@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { MEGA_PANELS, PAGE_NAV, pageIdFromPath } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
-import { useSiteAnnouncement, useSiteConfig, useSiteNav, useTopCta } from '../../hooks/useSiteConfig'
+import { useSiteAnnouncement, useSiteConfig, useSiteNav, useSiteShopChannels, useTopCta } from '../../hooks/useSiteConfig'
 import { useSession } from '../../hooks/useSession'
 import { useSitePages } from '../../hooks/useSitePages'
 import { useI18n } from '../../i18n'
@@ -11,13 +11,15 @@ import { BrandMark } from './BrandMark'
 import { toggleTheme } from '../../lib/theme'
 import { useTheme } from '../../lib/useTheme'
 import { trackEvent } from '../../lib/track'
-import type { SiteAnnouncement } from '../../data/contentTypes'
+import type { ShopChannel, SiteAnnouncement } from '../../data/contentTypes'
 import {
   IconAccount,
+  IconChevronRight,
   IconGlobe,
   IconMenu,
   IconMoon,
   IconSearch,
+  IconShop,
   IconSun,
   IconSupport,
 } from '../ui/Icon'
@@ -69,6 +71,113 @@ function announceDismissKey(text: string): string {
   return `gh-announce-dismissed:${text.slice(0, 60)}`
 }
 
+/**
+ * 顶栏「店铺」圆钮：品牌色实心圆底 + 白色店铺图标；点击 / 悬停弹出渠道浮层。
+ * - 渠道来自站点配置 `shopChannels`（空数组时父级不渲染整块）；
+ * - 浮层每行为「图标位 + 名称 + 外链箭头」，外链 `target="_blank" rel="noreferrer"`；
+ * - 点外部 / Esc / 移开收起；贴右时整体左移避免被视口裁切；不加投影。
+ */
+function ShopButton({ channels }: { channels: ShopChannel[] }) {
+  const { t } = useI18n()
+  const { pathname } = useLocation()
+  const [open, setOpen] = useState(false)
+  // 浮层相对圆钮的水平偏移：右侧越界时为负值（整体左移）
+  const [shift, setShift] = useState(0)
+  const wrapRef = useRef<HTMLSpanElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  // 最近一次指针类型：区分鼠标点击（悬停已开，无需切换）与触屏点击（需切换）
+  const pointerType = useRef('')
+
+  // 路由切换时收起浮层
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  // 浮层贴右自动向左对齐：默认左对齐圆钮，右侧越界则整体左移（留 8px 边距）
+  useLayoutEffect(() => {
+    if (!open) return
+    const panel = panelRef.current
+    const wrap = wrapRef.current
+    if (!panel || !wrap) return
+    const measure = () => {
+      const pw = panel.offsetWidth
+      const rect = wrap.getBoundingClientRect()
+      const vw = document.documentElement.clientWidth
+      const margin = 8
+      let left = rect.left
+      if (left + pw > vw - margin) left = vw - margin - pw
+      if (left < margin) left = margin
+      setShift(left - rect.left)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [open])
+
+  // Esc / 点击浮层与圆钮以外区域 → 收起
+  useEffect(() => {
+    if (!open) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    const onDown = (event: PointerEvent) => {
+      const target = event.target
+      if (wrapRef.current && target instanceof Node && !wrapRef.current.contains(target)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('pointerdown', onDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onDown)
+    }
+  }, [open])
+
+  return (
+    <span
+      className={`shop-wrap${open ? ' is-open' : ''}`}
+      ref={wrapRef}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="shop-btn"
+        aria-label={t('a11y.shop')}
+        aria-haspopup="true"
+        aria-expanded={open}
+        onPointerDown={(event) => {
+          pointerType.current = event.pointerType
+        }}
+        onClick={(event) => {
+          // 键盘触发（detail=0）或非鼠标点击 → 切换；鼠标点击不做切换（悬停已开）
+          if (event.detail === 0 || pointerType.current !== 'mouse') setOpen((value) => !value)
+        }}
+      >
+        <IconShop size={17} />
+      </button>
+      <div className="shop-pop" role="menu" aria-label={t('a11y.shop')} ref={panelRef} style={{ left: shift }}>
+        {channels.map((channel) => (
+          <a
+            key={channel.name}
+            className="shop-pop__item"
+            href={channel.href}
+            target="_blank"
+            rel="noreferrer"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            <span className="shop-pop__icon" aria-hidden="true">
+              <IconShop size={15} />
+            </span>
+            <span className="shop-pop__name">{channel.name}</span>
+            <IconChevronRight size={14} className="shop-pop__arrow" />
+          </a>
+        ))}
+      </div>
+    </span>
+  )
+}
+
 /** 顶栏：主导航 + 宽屏下拉菜单 + 搜索 + 语言 + 主题 + 客服/账号 */
 export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const { pathname } = useLocation()
@@ -77,6 +186,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const { t } = useI18n()
   // 一级导航来自内容库站点配置（回落本地真源），下拉展开面按语言选用本地 MEGA_PANELS（中文）/ EN 覆盖
   const navItems = useSiteNav()
+  // 店铺渠道（站点配置 `shopChannels`；空数组时整块不渲染）
+  const shopChannels = useSiteShopChannels()
   const panels = lang === 'en' ? MEGA_PANELS_EN : MEGA_PANELS
   // 下拉面板右侧推荐卡：由站点配置开关控制，默认关闭（见 navFeatureEnabled）
   const navFeatureEnabled = useSiteConfig()?.navFeatureEnabled === true
@@ -298,6 +409,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             )
           })}
         </nav>
+        {/* 店铺圆钮：置于导航区末尾（最后一个一级导航项之后、右侧图标组之前） */}
+        {shopChannels.length > 0 && <ShopButton channels={shopChannels} />}
         </div>
 
         <div className="site-actions">
@@ -339,7 +452,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
             aria-label={theme === 'dark' ? t('a11y.themeLight') : t('a11y.themeDark')}
             onClick={toggleTheme}
           >
-            {theme === 'dark' ? <IconSun /> : <IconMoon />}
+            {/* 月亮轮廓偏细、视觉重量轻，+1px 光学补偿，与其余图标并排重心一致 */}
+            {theme === 'dark' ? <IconSun /> : <IconMoon size={19} />}
           </button>
 
           <div className={`site-lang${langOpen ? ' is-open' : ''}`}>
@@ -393,12 +507,13 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
           </Link>
           {user ? (
             <Link className="icon-btn" to="/me" aria-label="个人中心">
-              <IconAccount />
+              {/* 人形轮廓偏瘦，+1px 光学补偿，与相邻图标并排重心一致 */}
+              <IconAccount size={19} />
             </Link>
           ) : (
             // 未登录：顶栏只放账号图标（按反馈去掉文字，避免挤压导航）；可访问名保留「登录 / 注册」
             <Link className="icon-btn" to="/login" aria-label="登录 / 注册" title="登录 / 注册">
-              <IconAccount />
+              <IconAccount size={19} />
             </Link>
           )}
           <button
@@ -439,7 +554,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
                 >
                   {/* 二级栏目按自身列数自适应列宽；推荐卡关闭时不占列（--mega-cols 仍由 CSS 变量下发）。 */}
                   <div
-                    className={`mega__cols${navFeatureEnabled ? '' : ' mega__cols--plain'}`}
+                    className={`mega__cols${navFeatureEnabled ? '' : ' mega__cols--plain'}${columns.length >= 3 ? ' mega__cols--wide' : ''}`}
                     style={{ '--mega-cols': columns.length } as CSSProperties}
                   >
                     {columns.map((column) => (

@@ -132,14 +132,28 @@ main.main--flush + .site-footer { margin-top: 0; }
 .site-nav a:hover { color: var(--color-text-primary); }
 .site-nav a.is-active { color: var(--color-text-primary); font-weight: var(--gh-weight-medium); }
 .site-actions { display: flex; align-items: center; gap: var(--gh-space-2); }
-/* 顶栏工具图标：去掉常驻描边，改为「悬停才浮出浅底」的纯净样式，视觉更精致 */
+/* ============================================================
+   顶栏右侧「图标按钮」统一规范（单一真源）
+   ------------------------------------------------------------
+   搜索 / 主题 / 语言 / 客服 / 账号 5 个按钮共用同一套几何与反馈，避免此前「两套规则」：
+     · 尺寸 34×34、圆角 8px、hover 浮出浅底（沿用既有 .icon-btn 视觉语言）；
+     · 内边距统一 0 —— 之前 <button>（浏览器 UA 默认 6px）与 <a>（0）来源不同，
+       这里显式归零收敛为一套，同时保证图标严格居中；
+     · 图标 18×18（月亮 / 账号两枚「轮廓偏小」的做 +1px 光学补偿，见调用处）；
+     · 按钮间距统一 8px（.site-actions gap），中心距恒为 42px。
+   ============================================================ */
 .site-header .icon-btn {
   width: 34px; height: 34px;
+  padding: 0;
   border-color: transparent;
   border-radius: var(--gh-radius-lg);
   transition: background var(--gh-duration-fast) var(--gh-ease-standard),
               color var(--gh-duration-fast) var(--gh-ease-standard);
 }
+/* 搜索 / 语言各带一层容器承载展开浮层：容器只负责定位，宽度贴合按钮、零外边距，
+   不引入额外间距，保证 5 个按钮中心距完全一致（8px 间距 → 42px 中心距）。 */
+.site-actions > .site-search,
+.site-actions > .site-lang { margin: 0; }
 /* 顶栏操作图标 */
 .site-search { position: relative; display: flex; align-items: center; }
 .search__panel {
@@ -204,6 +218,54 @@ main.main--flush + .site-footer { margin-top: 0; }
   /* 桌面端靠 .site-navzone(flex:1) 撑开把操作区推到右侧；窄屏导航隐藏后需显式补上 */
   .site-actions { margin-left: auto; }
 }
+
+/* ---------- 顶栏「店铺」圆钮（放在导航区末尾，独立于右侧图标组） ----------
+   形态：品牌色实心圆底 + 白色店铺图标（32px）。hover 轻微加深 + 微放大，不加投影。 */
+.shop-wrap { position: relative; align-self: center; margin-left: var(--gh-space-6); display: inline-flex; }
+.shop-btn {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; border: 0; border-radius: var(--gh-radius-full);
+  background: var(--color-accent-solid); color: var(--gh-neutral-50);
+  cursor: pointer;
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
+              transform var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.shop-btn:hover { background: var(--color-accent-solid-hover); transform: scale(1.05); }
+.shop-btn:active { background: var(--color-accent-solid-active); transform: scale(1); }
+/* 抽屉内为纯展示图标位（非交互），尺寸略小 */
+.shop-btn--sm { width: 26px; height: 26px; cursor: default; }
+/* 浮层：渠道列表（图标位 + 名称 + 外链箭头）；贴右时由 JS 下发 left 向左收。
+   不加投影，仅靠描边 + 实底与页面区分。 */
+.shop-pop {
+  position: absolute; top: calc(100% + var(--gh-space-2)); left: 0;
+  min-width: 172px; padding: var(--gh-space-2);
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-md);
+  opacity: 0; visibility: hidden; transform: translateY(-4px);
+  transition: opacity var(--gh-duration-fast) var(--gh-ease-standard),
+              transform var(--gh-duration-fast) var(--gh-ease-standard),
+              visibility var(--gh-duration-fast);
+  z-index: var(--gh-z-sticky);
+}
+.shop-wrap.is-open .shop-pop { opacity: 1; visibility: visible; transform: none; }
+.shop-pop__item {
+  display: flex; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-2) var(--gh-space-3);
+  border-radius: var(--gh-radius-sm);
+  color: var(--color-text-secondary); text-decoration: none;
+  font-size: var(--gh-font-size-body-sm);
+}
+.shop-pop__item:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+.shop-pop__icon {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: var(--gh-radius-full);
+  background: var(--color-accent-solid); color: var(--gh-neutral-50);
+}
+.shop-pop__name { flex: 1; white-space: nowrap; }
+.shop-pop__arrow { color: var(--color-text-tertiary); flex: none; }
 
 /* ---------- 通用区块 ---------- */
 /* 只设纵向内边距：横向内边距由 .container 提供。用 padding 简写会把 left/right 归零导致内容贴边 */
@@ -1381,18 +1443,25 @@ main.main--flush + .site-footer { margin-top: 0; }
 .mega__link:hover { color: var(--color-text-primary); transform: translateX(2px); }
 /* 宽屏下拉面板专用（≥1024px）。<1024px 时整个下拉菜单 display:none，抽屉里复用的
    .mega__eyebrow / .mega__link 不受本块影响，移动/紧凑形态保持原样。
-   ① 列组整体靠右：右缘与顶栏右侧图标组对齐（两者共用同一 .container 右内边距），列间距沿用 24px；
+   ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（margin-left 等效实现），
+      不贴左、不贴右；列间距由 24px 拉开到 88px（3 列面板收紧到 68px，仍远大于原来）；
    ② 列头（品牌/合作/合规）17 → 20px（h4 档），字重 600 不变；
-   ③ 二级链接 13 → 17px（body-lg 档），行距放松，字重 400 不变。 */
+   ③ 二级链接 13 → 17px（body-lg 档），行距收紧到约 6px，让「列头 → 首条链接」(≈15px)
+      明显大于链接行距，一组一眼可辨。 */
 @media (min-width: 1024px) {
-  /* 列宽改为「内容自适应」，整组才能被推到右侧（原来的 1fr 会等分铺满整行、无法靠右） */
+  /* 列宽改为「内容自适应」，整组才能先居中再右移（原来的 1fr 会等分铺满整行、无法偏移） */
   .mega__cols {
     grid-template-columns: repeat(var(--mega-cols, 3), auto) minmax(230px, 300px);
-    justify-content: end;
+    justify-content: center;
+    /* 「居中偏右」：先居中，再整体右移面板宽度的 16% */
+    margin-left: 16%;
+    column-gap: 88px;
   }
   .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), auto); }
+  /* 3 列面板（如「探索光魂」）适当收紧列间距，避免整组过宽 */
+  .mega__cols--wide { column-gap: 68px; }
   .mega__eyebrow { font-size: var(--gh-font-size-h4); }
-  .mega__link { font-size: var(--gh-font-size-body-lg); padding: 8px 0; }
+  .mega__link { font-size: var(--gh-font-size-body-lg); padding: 3px 0; }
 }
 .mega__feature {
   display: flex; flex-direction: column; gap: var(--gh-space-2);
@@ -1583,6 +1652,18 @@ main.main--flush + .site-footer { margin-top: 0; }
 .drawer__sub-inner .mega__link:last-child { margin-bottom: var(--gh-space-4); }
 .drawer__group--lang { padding: var(--gh-space-4) 0 var(--gh-space-5); }
 .drawer__group--lang .lang__opt { padding-left: 0; padding-right: 0; }
+/* 抽屉内「店铺」渠道：图标位 + 名称 + 外链箭头（与顶栏浮层同一组数据） */
+.drawer__group--shop { padding: var(--gh-space-4) 0 var(--gh-space-5); }
+.drawer__shop { display: flex; flex-direction: column; gap: 2px; margin-top: var(--gh-space-3); }
+.drawer__shop-item {
+  display: flex; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-2) 0;
+  color: var(--color-text-secondary); text-decoration: none;
+  font-size: var(--gh-font-size-body-sm);
+}
+.drawer__shop-item:hover { color: var(--color-text-primary); }
+.drawer__shop-name { flex: 1; white-space: nowrap; }
+.drawer__shop-item svg { color: var(--color-text-tertiary); }
 body.drawer-open { overflow: hidden; }
 
 /* ============================================================

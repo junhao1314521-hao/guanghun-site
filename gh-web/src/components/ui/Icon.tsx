@@ -75,6 +75,28 @@ export function IconAccount({ size = 18, className }: IconProps) {
   )
 }
 
+/** 店铺 / 购物袋（顶栏「店铺」圆钮与渠道浮层用）：梯形袋身 + 提手，1.5px 描边、圆头圆角 */
+export function IconShop({ size = 18, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <path
+        d={`M${s * 0.26} ${s * 0.37}h${s * 0.48}l${s * 0.06} ${s * 0.45}a${s * 0.06} ${s * 0.06} 0 0 1 -${s * 0.06} ${s * 0.07}h-${s * 0.48}a${s * 0.06} ${s * 0.06} 0 0 1 -${s * 0.06} -${s * 0.07}Z`}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d={`M${s * 0.37} ${s * 0.37}v-${s * 0.07}a${s * 0.13} ${s * 0.13} 0 0 1 ${s * 0.26} 0v${s * 0.07}`}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function IconMenu({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
