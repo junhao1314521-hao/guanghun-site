@@ -21,6 +21,8 @@ export type HeroSlide = {
   mediaContain?: boolean
   /** 压暗遮罩开关；缺省开启，关闭后完整呈现海报细节 */
   scrim?: boolean
+  /** 海报皮肤：缺省跟随站点主题；图片海报建议显式设为 dark，避免浅色主题下文字变深 */
+  theme?: 'dark' | 'light'
   eyebrow: string
   title: string[]
   desc: string
@@ -66,6 +68,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     position: { x: 50, y: 16 },
     mediaContain: true,
     scrim: false,
+    theme: 'dark',
   },
   {
     id: 's1',

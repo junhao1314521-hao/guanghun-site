@@ -175,6 +175,7 @@ function buildHome(): Page {
             ...(slide.posterMobile ? { imageMobile: slide.posterMobile } : {}),
             ...(slide.mediaContain ? { mediaContain: true } : {}),
             ...(slide.scrim === false ? { scrim: false } : {}),
+            ...(slide.theme ? { theme: slide.theme } : {}),
             ...posterButtons(detail),
             stats: slide.stats,
             statsEnabled: false,
