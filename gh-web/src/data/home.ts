@@ -67,7 +67,6 @@ export const HERO_SLIDES: HeroSlide[] = [
     primaryTo: '/products',
     stats: [],
     position: { x: 50, y: 16 },
-    mediaContain: true,
     scrim: false,
     theme: 'dark',
   },

@@ -146,6 +146,8 @@
   position: absolute; left: 50%; bottom: var(--gh-space-5); transform: translateX(-50%);
   z-index: 3; display: flex; align-items: center; gap: var(--gh-space-5);
 }
+/* 满屏海报：公告条会把页面整体下推，圆点上移一档，避免落到视口之外 */
+.blk-hero--h-full .blk-hero__nav { bottom: calc(var(--gh-space-5) + var(--gh-space-8)); }
 .blk-hero__count {
   display: inline-flex; align-items: baseline; gap: 4px;
   font-family: var(--gh-font-mono); color: rgba(255, 255, 255, .5);
