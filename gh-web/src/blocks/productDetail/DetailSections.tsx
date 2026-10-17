@@ -6,7 +6,6 @@
  */
 import type { ReactNode } from 'react'
 import { SafeLink } from '../../components/ui/SafeLink'
-import type { TestRecord } from '../../api/products'
 import type { ProductDetail } from '../../data/products'
 import { sanitizeRichText } from '../sanitize'
 
@@ -15,9 +14,7 @@ const GROUP_ORDER = ['显示', '接口', '电源', '机械', '物理尺寸', '�
 
 export type DetailSectionKey =
   | 'overview'
-  | 'summary'
   | 'specs'
-  | 'test'
   | 'compatibility'
   | 'downloads'
   | 'rich'
@@ -71,45 +68,7 @@ function OverviewContent({ detail }: { detail: ProductDetail }) {
   )
 }
 
-/** ② 性能摘要（标称 / 实测） */
-function SummaryContent({ detail, t, sectionTitle }: { detail: ProductDetail; t: T; sectionTitle: string }) {
-  return (
-    <>
-      {detail.summary.map((group) => (
-        <div key={group.title} className="pd-summary">
-          {group.title !== sectionTitle && <h3 className="pd-summary__title">{group.title}</h3>}
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th style={{ width: '26%' }}>{t('blocks.pd.colParam')}</th>
-                  <th>{t('blocks.pd.colNominal')}</th>
-                  <th>{t('blocks.pd.colMeasured')}</th>
-                  <th>{t('blocks.pd.colNote')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {group.rows.map((row) => (
-                  <tr key={row.label}>
-                    <td>{row.label}</td>
-                    <td className="mono">{row.nominal ?? '—'}</td>
-                    <td className={row.missing ? 'missing' : 'mono'}>
-                      {row.measured ?? row.value ?? '—'}
-                    </td>
-                    <td className="muted">{row.note ?? ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
-      <p className="field__hint">{t('blocks.pd.missingNote')}</p>
-    </>
-  )
-}
-
-/** ③ 完整规格（分组折叠） */
+/** ② 完整规格（分组折叠） */
 function SpecsContent({ detail, t }: { detail: ProductDetail; t: T }) {
   const groups = groupAttributes(detail.attributes)
   if (!groups.length) return null
@@ -135,48 +94,7 @@ function SpecsContent({ detail, t }: { detail: ProductDetail; t: T }) {
   )
 }
 
-/** ④ 测试记录（后台已发布） */
-function TestRecordsContent({ records }: { records: TestRecord[] }) {
-  return (
-    <>
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>指标</th>
-              <th>实测值</th>
-              <th>测试方法</th>
-              <th>测试日期</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((record) => (
-              <tr key={record.id}>
-                <td>{record.metric}</td>
-                <td className="mono">{record.value}</td>
-                <td className="muted">{record.method}</td>
-                <td className="muted mono">{record.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {records.some((record) => record.conclusion) && (
-        <ul className="pdl-conclusions">
-          {records
-            .filter((record) => record.conclusion)
-            .map((record) => (
-              <li key={`${record.id}-conclusion`} className="muted">
-                {record.title}：{record.conclusion}
-              </li>
-            ))}
-        </ul>
-      )}
-    </>
-  )
-}
-
-/** ⑤ 兼容与保修 */
+/** ③ 兼容与保修 */
 function CompatibilityContent({ detail, t }: { detail: ProductDetail; t: T }) {
   return (
     <div className="card">
@@ -275,7 +193,6 @@ function BuyContent({ props, t }: { props: Record<string, unknown>; t: T }) {
  */
 export function buildDetailSections(
   detail: ProductDetail,
-  testRecords: TestRecord[],
   props: Record<string, unknown>,
   t: T,
 ): DetailSection[] {
@@ -290,15 +207,6 @@ export function buildDetailSections(
     })
   }
 
-  if (detail.summary.length) {
-    const summaryTitle = t('blocks.pd.summaryTitle')
-    sections.push({
-      key: 'summary',
-      title: summaryTitle,
-      node: <SummaryContent detail={detail} t={t} sectionTitle={summaryTitle} />,
-    })
-  }
-
   const groups = groupAttributes(detail.attributes)
   if (groups.length) {
     sections.push({
@@ -306,15 +214,6 @@ export function buildDetailSections(
       title: t('blocks.pd.specTitle'),
       count: groups.reduce((sum, [, rows]) => sum + rows.length, 0),
       node: <SpecsContent detail={detail} t={t} />,
-    })
-  }
-
-  if (testRecords.length) {
-    sections.push({
-      key: 'test',
-      title: t('blocks.pd.testRecords'),
-      count: testRecords.length,
-      node: <TestRecordsContent records={testRecords} />,
     })
   }
 

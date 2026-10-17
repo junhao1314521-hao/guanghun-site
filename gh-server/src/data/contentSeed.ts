@@ -1074,6 +1074,7 @@ function buildTemplates(): Page[] {
         type: 'productDetailLayout',
         props: {
           layout: 'toc',
+          showBuy: false,
           // §4.22 3-2：主 CTA「立即购买」取当前产品的「购买链接」(buyUrl)；次 CTA「预约体验」→ 体验点
           primaryLabel: '立即购买',
           primaryHref: '',
@@ -1089,6 +1090,20 @@ function buildTemplates(): Page[] {
           buyPrimaryHref: '/business/venues',
           buySecondaryLabel: '在线顾问',
           buySecondaryHref: '/inquiry',
+        },
+      },
+      // H5 长图：按产品读取切片；未上传时前台自动跳过（不占位）
+      { type: 'productLongImage', props: {} },
+      // 购买 / 咨询收口放在长图之后，保证「参数 → 长图 → 咨询」的阅读顺序
+      {
+        type: 'productBuy',
+        props: {
+          title: '准备入手？',
+          subtitle: '先把参数看明白，再决定也不迟。',
+          primaryLabel: '预约体验',
+          primaryHref: '/business/venues',
+          secondaryLabel: '在线顾问',
+          secondaryHref: '/inquiry',
         },
       },
       {

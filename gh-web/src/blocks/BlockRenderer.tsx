@@ -41,6 +41,7 @@ import { B2bValueBlock } from './B2bValueBlock'
 import { ProductMatrixBlock } from './ProductMatrixBlock'
 import { ProductDetailRichBlock } from './ProductDetailRichBlock'
 import { ProductDetailLayoutBlock } from './ProductDetailLayoutBlock'
+import { ProductLongImageBlock } from './ProductLongImageBlock'
 import { BrandAssetListBlock } from './BrandAssetListBlock'
 import { TrustBarBlock } from './TrustBarBlock'
 import { FullscreenVisualBlock } from './FullscreenVisualBlock'
@@ -119,6 +120,9 @@ function renderBlock(block: Block): ReactNode {
     // 产品详情 · 四套布局（同一数据源，仅切换 UI / 交互）
     case 'productDetailLayout':
       return <ProductDetailLayoutBlock props={props} />
+    // 产品详情 · H5 长图（读取当前产品的长图切片）
+    case 'productLongImage':
+      return <ProductLongImageBlock props={props} />
     // 品牌资料（B 端，独立集合 brand-assets）
     case 'brandAssetList':
       return <BrandAssetListBlock props={props} />
@@ -141,11 +145,13 @@ export function BlockRenderer({ blocks }: { blocks: Block[] }) {
   // 产品详情图文（productDetailRich）无内容时整块跳过（外壳也不出现），避免留下空位
   const productDetail = useProductDetail()
   const hasDetailHtml = Boolean(productDetail?.detailHtml && productDetail.detailHtml.trim())
+  const hasLongImages = Boolean(productDetail?.h5LongImages?.length || productDetail?.h5LongImagesMobile?.length)
   return (
     <>
       {blocks
         .filter((block) => block.enabled)
         .filter((block) => block.type !== 'productDetailRich' || hasDetailHtml)
+        .filter((block) => block.type !== 'productLongImage' || hasLongImages)
         .map((block) => (
           // style.anchor → 区块外壳 id，支持 /path#anchor 页内深链定位
           <section

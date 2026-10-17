@@ -101,6 +101,9 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
 
     // —— 产品详情区块（productHero / productSpecs）——
     'blocks.pd.refPrice': '参考价',
+    'blocks.pd.selected': '已选',
+    'blocks.pd.inStock': '现货',
+    'blocks.pd.outOfStock': '缺货',
     'blocks.pd.view': '视图 {n}',
     'blocks.pd.missingNote': '缺失与零值含义不同：「未测量」表示尚未完成该测试，不代表零值表现。',
     'blocks.pd.keyMetrics': '关键指标',
@@ -133,7 +136,6 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'blocks.pd.point3': '参数公开、方法公开，结论可复现',
     // 产品详情四套布局（productDetailLayout）
     'blocks.pd.overview': '概览',
-    'blocks.pd.testRecords': '测试记录',
     'blocks.pd.compatTitle': '兼容与保修',
     'blocks.pd.supportTitle': '下载与支持',
     'blocks.pd.richTitle': '图文详情',
@@ -351,6 +353,9 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
 
     // —— Product detail blocks (productHero / productSpecs) ——
     'blocks.pd.refPrice': 'Reference price',
+    'blocks.pd.selected': 'Selected',
+    'blocks.pd.inStock': 'In stock',
+    'blocks.pd.outOfStock': 'Out of stock',
     'blocks.pd.view': 'View {n}',
     'blocks.pd.missingNote': 'Missing and zero are different: “Not measured” means the test is not finished yet — not a zero result.',
     'blocks.pd.keyMetrics': 'Key metrics',
@@ -383,7 +388,6 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'blocks.pd.point3': 'Public params and methods; reproducible results',
     // Product detail layout variants (productDetailLayout)
     'blocks.pd.overview': 'Overview',
-    'blocks.pd.testRecords': 'Test records',
     'blocks.pd.compatTitle': 'Compatibility & warranty',
     'blocks.pd.supportTitle': 'Downloads & support',
     'blocks.pd.richTitle': 'Details',

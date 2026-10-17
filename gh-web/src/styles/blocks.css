@@ -393,6 +393,9 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 .long-image__link { display: block; color: inherit; }
 
+/* 产品详情 · H5 长图：居中、按 750px 设计宽展示；移动端铺满 */
+.pdl-h5-long { width: 100%; max-width: 750px; margin: 0 auto; }
+
 .blk--full .blk-hero {
   border: 0;
   border-radius: 0;

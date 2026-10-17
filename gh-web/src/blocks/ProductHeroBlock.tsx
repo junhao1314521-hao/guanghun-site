@@ -27,6 +27,31 @@ import { asBool, asString } from './blockUtils'
 /** 超过该张数时缩略图行改为横向滑动（少量时与现状一致） */
 const THUMB_SCROLL_THRESHOLD = 4
 
+/** 后台 SKU 规格值支持「数组」或「逗号分隔文本」两种录入方式 */
+function splitSkuValues(value: string | string[] | undefined): string[] {
+  if (Array.isArray(value)) return value.map((item) => item.trim()).filter(Boolean)
+  return (value ?? '')
+    .split(/[,，/、]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+/** 常见颜色 → 色点（仅用于「颜色」规格组的视觉提示） */
+const COLOR_DOT: Array<[string, string]> = [
+  ['黑', '#1B1B1F'],
+  ['白', '#F2F2F2'],
+  ['银', '#C9CCD1'],
+  ['灰', '#8B8F94'],
+  ['粉', '#E8B7C6'],
+  ['蓝', '#3B6FD8'],
+  ['绿', '#3D9B6A'],
+  ['金', '#C9A24B'],
+]
+
+function colorDotOf(value: string): string | undefined {
+  return COLOR_DOT.find(([keyword]) => value.includes(keyword))?.[1]
+}
+
 export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -92,6 +117,50 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
       alive = false
     }
   }, [user, productName])
+
+  /* —— SKU 选择（颜色 / 版本等；无 SKU 数据时整块隐藏）—— */
+  const [pickedSku, setPickedSku] = useState<{ productId: string; values: string[] } | null>(null)
+  const skuOptions = (detail?.skuOptions ?? [])
+    .map((option) => ({ name: option.name, values: splitSkuValues(option.values) }))
+    .filter((option) => option.name && option.values.length > 0)
+  const skuList = (detail?.skus ?? [])
+    .map((sku, index) => {
+      const options = Array.isArray(sku.options)
+        ? sku.options.filter(Boolean)
+        : [sku.option1, sku.option2, sku.option3].filter((value): value is string => Boolean(value))
+      const rawStock = sku.stock
+      const stock =
+        typeof rawStock === 'number'
+          ? rawStock
+          : typeof rawStock === 'string' && rawStock.trim()
+            ? Number(rawStock)
+            : undefined
+      return {
+        id: sku.id ?? `sku-${index}`,
+        options,
+        price: sku.price,
+        stock: Number.isFinite(stock) ? stock : undefined,
+        skuCode: sku.skuCode,
+      }
+    })
+    .filter((sku) => sku.options.length > 0)
+  const defaultSelection = skuList[0]?.options?.length
+    ? skuList[0].options
+    : skuOptions.map((option) => option.values[0]).filter(Boolean)
+  const selectedValues =
+    pickedSku && pickedSku.productId === detail?.id && pickedSku.values.length === skuOptions.length
+      ? pickedSku.values
+      : defaultSelection
+  const selectedSku = skuList.find((sku) => sku.options.every((value, index) => value === selectedValues[index]))
+  const displayPrice = selectedSku?.price || detail?.price || ''
+
+  const pickSku = (index: number, value: string) => {
+    if (!detail) return
+    const next = skuOptions.map((option, optionIndex) =>
+      optionIndex === index ? value : selectedValues[optionIndex] ?? option.values[0],
+    )
+    setPickedSku({ productId: detail.id, values: next })
+  }
 
   if (!detail) return null
 
@@ -222,7 +291,7 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
 
           {showPrice && (
             <div className="detail-price">
-              {detail.price}{' '}
+              {displayPrice}{' '}
               <small
                 style={{
                   fontFamily: 'var(--gh-font-sans)',
@@ -233,6 +302,45 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
               >
                 {t('blocks.pd.refPrice')}
               </small>
+            </div>
+          )}
+
+          {/* SKU 规格：颜色 / 版本等；没有配置 SKU 的产品不显示 */}
+          {skuOptions.length > 0 && (
+            <div className="sku-picker">
+              {skuOptions.map((option, index) => (
+                <div className="sku-group" key={option.name}>
+                  <span className="sku-group__label">{option.name}</span>
+                  <div className="sku-group__values" role="group" aria-label={option.name}>
+                    {option.values.map((value) => {
+                      const dot = colorDotOf(value)
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          className={`sku-chip${selectedValues[index] === value ? ' is-active' : ''}`}
+                          aria-pressed={selectedValues[index] === value}
+                          onClick={() => pickSku(index, value)}
+                        >
+                          {dot && <span className="sku-chip__dot" style={{ background: dot }} />}
+                          {value}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+              <div className="sku-picked">
+                <span>
+                  {t('blocks.pd.selected')}：<strong>{selectedValues.join(' · ') || '—'}</strong>
+                </span>
+                {selectedSku?.skuCode && <span className="sku-code">{selectedSku.skuCode}</span>}
+                {selectedSku?.stock !== undefined && (
+                  <span className={`sku-stock${selectedSku.stock > 0 ? '' : ' is-out'}`}>
+                    {selectedSku.stock > 0 ? t('blocks.pd.inStock') : t('blocks.pd.outOfStock')}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 

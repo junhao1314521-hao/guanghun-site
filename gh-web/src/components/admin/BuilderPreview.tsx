@@ -26,6 +26,8 @@ import type { Block, BlockTypeMeta } from '../../api/adminPages'
 import { BlockRenderer } from '../../blocks/BlockRenderer'
 import { ProductDetailContext } from '../../blocks/ProductDetailContext'
 import { getProductDetail } from '../../data/products'
+import { fetchProductDetail } from '../../api/products'
+import { useApi } from '../../hooks/useApi'
 import { asString, containerClass, shellClass } from '../../blocks/blockUtils'
 import { AdminIcon } from './AdminIcon'
 import {
@@ -343,6 +345,9 @@ export function BuilderPreview({
   onToggleGuides: () => void
 }) {
   const [tier, setTier] = useState<PreviewTier>('fit')
+  // 产品详情区块预览：优先取真实产品数据（含后台刚保存的 SKU / 长图），未就绪时回退本地样例
+  const { data: liveProduct } = useApi((signal) => fetchProductDetail('gh-54027x1qe', signal), [])
+  const previewProduct = liveProduct ?? PREVIEW_PRODUCT
   // 预览内拖拽状态（仅本组件内的瞬时 UI；顺序本身由上层 blocks 单一维护）
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropHint, setDropHint] = useState<{ id: string; before: boolean } | null>(null)
@@ -474,7 +479,7 @@ export function BuilderPreview({
 
       <div className="builder-preview__frame">
         <div className={canvasClass}>
-          <ProductDetailContext.Provider value={PREVIEW_PRODUCT}>
+          <ProductDetailContext.Provider value={previewProduct}>
             <PreviewList blocks={blocks} parentId={null} column={0} api={api} />
           </ProductDetailContext.Provider>
         </div>

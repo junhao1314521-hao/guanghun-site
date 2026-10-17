@@ -13,6 +13,24 @@ export type ProductAttribute = {
   group?: string
 }
 
+/** SKU 规格组（如 颜色 / 版本）；values 支持数组或「逗号分隔」文本（后台录入） */
+export type ProductSkuOption = {
+  name: string
+  values: string | string[]
+}
+
+/** SKU 明细：option1..3 按规格组顺序填写；options 为前端规范化后的等价数组 */
+export type ProductSku = {
+  id?: string
+  option1?: string
+  option2?: string
+  option3?: string
+  options?: string[]
+  price?: string
+  stock?: number | string
+  skuCode?: string
+}
+
 export type Product = {
   id: string
   model: string
@@ -44,6 +62,14 @@ export type Product = {
   gallery?: string[]
   /** 详情富文本 HTML（长图 / 图文混排；渲染前复用 sanitizeRichText 白名单净化） */
   detailHtml?: string
+  /** SKU 规格组（颜色 / 版本等；缺省则不显示选择器） */
+  skuOptions?: ProductSkuOption[]
+  /** SKU 明细（价格 / 库存 / 编码；缺省则沿用产品参考价） */
+  skus?: ProductSku[]
+  /** H5 长图切片（桌面）；按顺序垂直拼接 */
+  h5LongImages?: string[]
+  /** H5 长图切片（移动端，可选；按索引与桌面切片对应，缺省回退桌面图） */
+  h5LongImagesMobile?: string[]
   /** 购买链接（详情页 / 对比页主按钮「立即购买」取此值；未填则回退） */
   buyUrl?: string
 }
@@ -73,6 +99,17 @@ export const PRODUCTS: Product[] = [
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
     weight: 6500,
+    // SKU 示例：显示器通常只有颜色 / 版本；字段为通用结构，后续可扩第三组规格
+    skuOptions: [
+      { name: '颜色', values: ['曜石黑', '冰川白'] },
+      { name: '版本', values: ['标准版', '尊享版'] },
+    ],
+    skus: [
+      { id: 'gh-54027x1qe-bk-std', option1: '曜石黑', option2: '标准版', price: '¥4,999', stock: 12, skuCode: 'GH540-BK-STD' },
+      { id: 'gh-54027x1qe-wh-std', option1: '冰川白', option2: '标准版', price: '¥4,999', stock: 8, skuCode: 'GH540-WH-STD' },
+      { id: 'gh-54027x1qe-bk-pro', option1: '曜石黑', option2: '尊享版', price: '¥5,299', stock: 5, skuCode: 'GH540-BK-PRO' },
+      { id: 'gh-54027x1qe-wh-pro', option1: '冰川白', option2: '尊享版', price: '¥5,299', stock: 3, skuCode: 'GH540-WH-PRO' },
+    ],
     buyUrl: 'https://buy.guanghun.example/gh-54027x1qe',
   },
   { id: 'gh-28027x1qe', model: '28027X1QE-W28', name: '闪电 280Hz 电竞OLED显示器', category: 'OLED旗舰', connection: 'DP 2.1', specs: ['26.5 英寸', '2K 280Hz', '1500 nit', 'W-OLED'], status: { level: 'success', text: '在售' }, price: '¥2,699', priceValue: 2699, releasedAt: '2026-08-15', variant: 'monitor', flag: '热销' },
@@ -140,6 +177,11 @@ export type ProductDetail = {
   gallery?: string[]
   /** 详情富文本 HTML（按产品维护；渲染前经白名单净化） */
   detailHtml?: string
+  /** SKU 规格组 / 明细 / H5 长图（来自产品记录） */
+  skuOptions?: ProductSkuOption[]
+  skus?: ProductSku[]
+  h5LongImages?: string[]
+  h5LongImagesMobile?: string[]
   /** 购买链接（详情页主按钮「立即购买」取此值，见 §4.22 3-2） */
   buyUrl?: string
 }
@@ -189,6 +231,10 @@ function extendedFields(base: Product): Partial<ProductDetail> {
   if (base.weight !== undefined) out.weight = base.weight
   if (base.gallery !== undefined) out.gallery = base.gallery
   if (base.detailHtml !== undefined) out.detailHtml = base.detailHtml
+  if (base.skuOptions !== undefined) out.skuOptions = base.skuOptions
+  if (base.skus !== undefined) out.skus = base.skus
+  if (base.h5LongImages !== undefined) out.h5LongImages = base.h5LongImages
+  if (base.h5LongImagesMobile !== undefined) out.h5LongImagesMobile = base.h5LongImagesMobile
   if (base.buyUrl !== undefined) out.buyUrl = base.buyUrl
   return out
 }

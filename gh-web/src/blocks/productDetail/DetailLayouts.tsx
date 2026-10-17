@@ -143,9 +143,7 @@ type TabGroup = { key: string; label: string; sections: DetailSection[] }
 export function TabsLayout({ sections, heroProps, t }: CommonProps) {
   const buy = sectionOf(sections, 'buy')
   const overview = sectionOf(sections, 'overview')
-  const summary = sectionOf(sections, 'summary')
   const specs = sectionOf(sections, 'specs')
-  const test = sectionOf(sections, 'test')
   const compatibility = sectionOf(sections, 'compatibility')
   const downloads = sectionOf(sections, 'downloads')
   const rich = sectionOf(sections, 'rich')
@@ -159,7 +157,7 @@ export function TabsLayout({ sections, heroProps, t }: CommonProps) {
     {
       key: 'specs',
       label: t('blocks.pd.specTitle'),
-      sections: [summary, specs, test].filter(Boolean) as DetailSection[],
+      sections: [specs].filter(Boolean) as DetailSection[],
     },
     {
       key: 'support',
@@ -225,9 +223,7 @@ export function AccordionLayout({ sections, heroProps, t }: CommonProps) {
     {
       key: 'specs',
       title: t('blocks.pd.specTitle'),
-      children: [sectionOf(sections, 'summary'), sectionOf(sections, 'specs'), sectionOf(sections, 'test')].filter(
-        Boolean,
-      ) as DetailSection[],
+      children: [sectionOf(sections, 'specs')].filter(Boolean) as DetailSection[],
     },
     {
       key: 'support',

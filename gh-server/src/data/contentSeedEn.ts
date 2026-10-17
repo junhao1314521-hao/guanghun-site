@@ -1025,6 +1025,7 @@ function buildTemplatesEn(): Page[] {
           type: 'productDetailLayout',
           props: {
             layout: 'toc',
+            showBuy: false,
             // §4.22 3-2: primary CTA "Buy now" takes the product buyUrl; secondary "Book a demo" → venues
             primaryLabel: 'Buy now',
             primaryHref: '',
@@ -1040,6 +1041,20 @@ function buildTemplatesEn(): Page[] {
             buyPrimaryHref: '/business/venues',
             buySecondaryLabel: 'Talk to a specialist',
             buySecondaryHref: '/inquiry',
+          },
+        },
+        // H5 long image: reads slices from the current product; skipped when empty
+        { type: 'productLongImage', props: {} },
+        // Buying CTA after the long images: specs → long images → contact
+        {
+          type: 'productBuy',
+          props: {
+            title: 'Ready to buy?',
+            subtitle: 'Read the specs first — no rush.',
+            primaryLabel: 'Book a demo',
+            primaryHref: '/business/venues',
+            secondaryLabel: 'Talk to a specialist',
+            secondaryHref: '/inquiry',
           },
         },
         {

@@ -187,6 +187,38 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         ],
       },
       {
+        title: 'SKU 与规格',
+        fields: [
+          {
+            key: 'skuOptions',
+            label: 'SKU 规格组',
+            type: 'records',
+            span: 2,
+            hint: '最多 3 组（如 颜色 / 版本）；规格值用逗号分隔，如：曜石黑,冰川白',
+            recordFields: [
+              { key: 'name', label: '规格名', type: 'text' },
+              { key: 'values', label: '规格值（逗号分隔）', type: 'text' },
+            ],
+          },
+          {
+            key: 'skus',
+            label: 'SKU 明细',
+            type: 'records',
+            span: 2,
+            hint: 'option1～option3 按规格组顺序填写；价格留空沿用产品参考价；库存填数字',
+            recordFields: [
+              { key: 'id', label: 'SKU ID', type: 'text' },
+              { key: 'option1', label: '规格值 1', type: 'text' },
+              { key: 'option2', label: '规格值 2', type: 'text' },
+              { key: 'option3', label: '规格值 3', type: 'text' },
+              { key: 'price', label: '价格', type: 'text' },
+              { key: 'stock', label: '库存', type: 'text' },
+              { key: 'skuCode', label: 'SKU 编码', type: 'text' },
+            ],
+          },
+        ],
+      },
+      {
         title: '参数',
         fields: [
           { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '仅用于列表页卡片摘要（每行一项，如：26.5 英寸 2K 540Hz）；完整规格请在下方「结构化参数」维护，两处不要重复填' },
@@ -225,6 +257,20 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             type: 'rich',
             span: 2,
             hint: '长图 / 图文混排（HTML 原文）；前台详情页「产品详情图文」区块渲染，渲染前经白名单净化，留空则不展示',
+          },
+          {
+            key: 'h5LongImages',
+            label: 'H5 长图切片（桌面）',
+            type: 'images',
+            span: 2,
+            hint: '按顺序上传切片；前台「产品长图（H5）」区块会无缝隙垂直拼接。未上传则整个区块不显示',
+          },
+          {
+            key: 'h5LongImagesMobile',
+            label: 'H5 长图切片（移动端）',
+            type: 'images',
+            span: 2,
+            hint: '可选；按同顺序上传，移动端优先使用；缺省回退桌面切片',
           },
         ],
       },

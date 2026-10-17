@@ -37,6 +37,8 @@ export type BlockType =
   | 'productDetailRich'
   // 产品详情 · 四套布局（同一数据源：目录式 / 标签式 / 折叠式 / 长页式）
   | 'productDetailLayout'
+  // 产品详情 · H5 长图（按产品读取切片，垂直无缝拼接）
+  | 'productLongImage'
   // 品牌资料（B 端，独立集合 brand-assets；与下载中心数据分开）
   | 'brandAssetList'
   // 信任条（§1.7 新建：分隔线横排，四项均分、项间竖线、上下细线收边、无卡片底）

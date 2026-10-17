@@ -284,6 +284,8 @@ const BLOCK_ICON: Record<BlockType, string> = {
   productDetailRich: 'book',
   // 产品详情 · 四套布局
   productDetailLayout: 'sliders',
+  // 产品详情 · H5 长图
+  productLongImage: 'monitor',
   // 品牌资料（B 端）
   brandAssetList: 'download',
   // 信任条

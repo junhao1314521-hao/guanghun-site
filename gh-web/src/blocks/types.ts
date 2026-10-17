@@ -383,6 +383,8 @@ export type ProductDetailRichProps = Record<string, never>
 export type ProductDetailLayoutProps = {
   /** 默认布局（由后台区块设置；前台不提供切换入口） */
   layout?: 'toc' | 'tabs' | 'accordion' | 'long'
+  /** 是否显示区块内的底部购买 / 咨询区（关闭后可用独立「购买咨询」区块承接） */
+  showBuy?: boolean
   /* —— 首屏展示台（与 productHero 字段一致，复用同一组件）—— */
   primaryLabel?: string
   primaryHref?: string
@@ -399,6 +401,12 @@ export type ProductDetailLayoutProps = {
   buyPrimaryHref?: string
   buySecondaryLabel?: string
   buySecondaryHref?: string
+}
+
+/** 产品详情 · H5 长图（productLongImage）：读取当前产品的长图切片 */
+export type ProductLongImageProps = {
+  /** 整块点击跳转（可选） */
+  href?: string
 }
 
 /**
@@ -491,6 +499,7 @@ export type BlockPropsMap = {
   productMatrix: ProductMatrixProps
   productDetailRich: ProductDetailRichProps
   productDetailLayout: ProductDetailLayoutProps
+  productLongImage: ProductLongImageProps
   brandAssetList: BrandAssetListProps
   trustBar: TrustBarProps
   fullscreenVisual: FullscreenVisualProps
