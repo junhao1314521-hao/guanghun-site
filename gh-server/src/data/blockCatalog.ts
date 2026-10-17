@@ -58,10 +58,10 @@ const POSTER_CTA_STYLES: { label: string; value: string }[] = [
 
 /** 海报高度档位（§1.3）：满屏 / 21:9 宽幅（高度随宽度）/ 比首屏矮一档 / 自定义（首屏轮播固定满屏） */
 const POSTER_HEIGHTS: { label: string; value: string }[] = [
-  { label: '满屏', value: 'full' },
-  { label: '21:9 宽幅', value: 'r219' },
-  { label: '矮一档', value: 'short' },
-  { label: '自定义高度', value: 'custom' },
+  { label: '满屏高度（100vh，最高 940px）', value: 'full' },
+  { label: '21:9 宽幅（高度 = 宽度 ÷ 2.33）', value: 'r219' },
+  { label: '矮一档（66vh，最高 600px）', value: 'short' },
+  { label: '自定义固定高度（px）', value: 'custom' },
 ]
 
 /** 信任条图标（§1.7）：实验室烧瓶 / 质保盾牌 / 正品勾选 / 物流包裹 */
@@ -159,7 +159,7 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
 export const BLOCK_TYPES: BlockTypeMeta[] = [
   {
     type: 'hero',
-    name: '全宽海报',
+    name: '海报（满屏 / 21:9 / 固定高度）',
     group: '内容',
     // 与 carousel 单张 slide 共用同一套字段（后台只有一套「海报编辑器」）
     fields: POSTER_FIELDS,
@@ -374,6 +374,17 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'showStatus', label: '显示状态', kind: 'switch' },
       { name: 'showFlag', label: '显示角标', kind: 'switch' },
       { name: 'showFilter', label: '显示筛选 / 排序', kind: 'switch' },
+      // 卡片底色：跟随主题 / 适配白底图 / 适配深底图
+      {
+        name: 'cardTone',
+        label: '卡片底色',
+        kind: 'select',
+        options: [
+          { label: '跟随主题', value: 'auto' },
+          { label: '浅色（白底产品图）', value: 'light' },
+          { label: '深色（深底产品图）', value: 'dark' },
+        ],
+      },
     ],
   },
   {

@@ -60,12 +60,15 @@ function GridSkeleton({ count }: { count: number }) {
   return (
     <div className="p-grid" aria-busy="true" aria-label="产品加载中">
       {Array.from({ length: Math.min(count || 4, 8) }).map((_, index) => (
-        <div className="pcard" key={index}>
+        <div className="pcard pcard--auto" key={index}>
+          <div className="pcard__head">
+            <div className="skeleton" style={{ height: 12, width: '38%' }} />
+            <div className="skeleton" style={{ height: 22, width: '76%', marginTop: 10 }} />
+          </div>
           <div className="pcard__media skeleton" style={{ borderRadius: 0 }} />
-          <div className="pcard__body">
-            <div className="skeleton" style={{ height: 12, width: '40%' }} />
-            <div className="skeleton" style={{ height: 18, width: '70%' }} />
-            <div className="skeleton" style={{ height: 12, width: '55%' }} />
+          <div className="pcard__foot">
+            <div className="skeleton" style={{ height: 14, width: '28%' }} />
+            <div className="skeleton" style={{ height: 38, width: 96, borderRadius: 999 }} />
           </div>
         </div>
       ))}
@@ -84,11 +87,13 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const columns = asNumber(props.columns, 3)
   const layout = asString(props.layout, 'grid') // grid | rail
   const showFilter = asBool(props.showFilter)
-  // 展示字段开关（缺省 = 显示）
-  const showSpecs = props.showSpecs === undefined ? true : asBool(props.showSpecs)
+  // 展示字段开关（缺省：保留状态 / 型号，隐藏价格与参数，对齐新版产品卡）
+  const showSpecs = props.showSpecs === undefined ? false : asBool(props.showSpecs)
   const showStatus = props.showStatus === undefined ? true : asBool(props.showStatus)
-  const showPrice = props.showPrice === undefined ? true : asBool(props.showPrice)
+  const showPrice = props.showPrice === undefined ? false : asBool(props.showPrice)
   const showFlag = props.showFlag === undefined ? true : asBool(props.showFlag)
+  // 卡片底色：auto 跟随主题；light 适配白底图；dark 适配深底图
+  const cardTone = asString(props.cardTone, 'auto')
   // 3 列沿用既有自适应产品网格 .p-grid；2 / 4 列用区块网格类固定列数
   const gridClassName = columns === 3 ? 'p-grid' : gridClass(columns)
 
@@ -235,77 +240,71 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   /** 产品卡（列表页与普通网格共用同一套结构与交互） */
   const renderCard = (item: Product) => {
     const isPicked = picked.includes(item.id)
+    const live = isHrefLive(`/products/${item.id}`)
+    const tone = cardTone === 'light' || cardTone === 'dark' ? cardTone : 'auto'
     return (
       <article
-        className={`pcard${showFilter && isPicked ? ' is-picked' : ''}`}
+        className={`pcard pcard--${tone}${showFilter && isPicked ? ' is-picked' : ''}`}
         key={item.id}
         onPointerDown={() => flushSync(() => setVtId(item.id))}
       >
-        <div
-          className="pcard__media media-ph"
-          style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
-        >
-          {showFlag && item.flag && (
-            <div className="pcard__flags">
-              <span className="tag tag--accent">{item.flag}</span>
-            </div>
-          )}
-          {showFilter && (
-            <div className="pcard__pick">
-              <span className="check">
-                <input
-                  type="checkbox"
-                  checked={isPicked}
-                  aria-label={`加入对比 ${item.model}`}
-                  onChange={() => togglePick(item.id)}
-                />
-              </span>
-            </div>
-          )}
-          <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
-        </div>
-        <div className="pcard__body">
-          {isHrefLive(`/products/${item.id}`) ? (
-            <Link to={`/products/${item.id}`} viewTransition style={{ color: 'inherit', textDecoration: 'none' }}>
-              <div className="pcard__model">{item.model}</div>
+        {showFlag && item.flag && (
+          <div className="pcard__flags">
+            <span className="tag tag--accent">{item.flag}</span>
+          </div>
+        )}
+        <div className="pcard__head">
+          <div className="pcard__model">{item.model}</div>
+          {live ? (
+            <Link to={`/products/${item.id}`} viewTransition className="pcard__name-link">
               <h3 className="pcard__name">{item.name}</h3>
             </Link>
           ) : (
-            // 下线级联：详情页已停用时型号 / 名称退化为不可点内容
-            <div>
-              <div className="pcard__model">{item.model}</div>
-              <h3 className="pcard__name">{item.name}</h3>
-            </div>
+            <h3 className="pcard__name">{item.name}</h3>
           )}
-          {showSpecs && (
-            <div className="pcard__specs">
-              {item.specs.map((spec) => (
-                <span key={spec}>{spec}</span>
-              ))}
-            </div>
-          )}
-          {showStatus && (
-            <div className="row" style={{ marginTop: 'var(--gh-space-1)' }}>
-              <span className={`status status--${item.status.level}`}>{item.status.text}</span>
-            </div>
-          )}
-          <div className="pcard__foot">
-            {showPrice && <span className="pcard__price">{item.price}</span>}
-            {showFilter ? (
-              <button
-                className={`btn btn--sm ${isPicked ? 'btn--primary is-magnetic' : 'btn--secondary'}`}
-                type="button"
-                disabled={item.status.level === 'warning'}
-                onClick={() => togglePick(item.id)}
-              >
-                {isPicked ? '对比中' : '加入对比'}
-              </button>
-            ) : (
-              <SafeLink className="btn btn--sm btn--secondary" to={`/products/${item.id}`} viewTransition>
-                查看详情
-              </SafeLink>
+        </div>
+        <div
+          className="pcard__media"
+          style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
+        >
+          <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
+        </div>
+        <div className="pcard__foot">
+          <div className="pcard__meta">
+            {showFilter && (
+              <label className="pcard__pick">
+                <span className="check">
+                  <input
+                    type="checkbox"
+                    checked={isPicked}
+                    aria-label={`加入对比 ${item.model}`}
+                    onChange={() => togglePick(item.id)}
+                  />
+                </span>
+                <span>对比</span>
+              </label>
             )}
+            {showStatus && (
+              <span className={`pcard__status pcard__status--${item.status.level}`}>{item.status.text}</span>
+            )}
+            {showSpecs && (
+              <div className="pcard__specs">
+                {item.specs.map((spec) => (
+                  <span key={spec}>{spec}</span>
+                ))}
+              </div>
+            )}
+            {showPrice && <span className="pcard__price">{item.price}</span>}
           </div>
+          {live ? (
+            <SafeLink className="btn btn--sm btn--primary pcard__buy" to={`/products/${item.id}`} viewTransition>
+              购买
+            </SafeLink>
+          ) : (
+            <span className="btn btn--sm pcard__buy is-disabled" aria-disabled="true">
+              购买
+            </span>
+          )}
         </div>
       </article>
     )

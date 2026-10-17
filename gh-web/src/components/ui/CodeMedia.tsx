@@ -23,7 +23,10 @@ export function isPlaceholderMedia(src?: string): boolean {
   if (!src) return true
   const value = src.trim()
   if (!value || value === '#') return true
-  // 内置占位命名空间：/media/**（真实上传走 /uploads/** 或 http(s) 外链）
-  if (value.startsWith('/media/')) return true
+  // `/media/**` 默认是占位命名空间，但真实 JPG/PNG/WebP/GIF 素材必须正常渲染
+  // （产品图、场景图、海报图都在 /media/ 下；只有 .svg 才是占位）
+  if (value.startsWith('/media/')) {
+    return !/\.(jpe?g|png|webp|avif|gif)(\?|#|$)/i.test(value)
+  }
   return false
 }
