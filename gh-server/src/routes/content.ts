@@ -4,6 +4,7 @@ import * as business from '../data/business'
 import * as center from '../data/center'
 import * as home from '../data/home'
 import * as support from '../data/support'
+import { withModelNames } from '../data/support-extra'
 import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
 import {
@@ -55,7 +56,9 @@ contentRouter.get('/support', (req, res) => {
   const locale = readLocale(req)
   res.json({
     quickEntries: support.QUICK_ENTRIES,
-    downloads: buildSupportDownloads(listCollection('downloads', locale)),
+    downloads: buildSupportDownloads(
+      withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale),
+    ),
     warrantyPoints: support.WARRANTY_POINTS,
     spots: support.SUPPORT_SPOTS,
     faqs: buildSupportFaqs(listCollection('faqs', locale)),

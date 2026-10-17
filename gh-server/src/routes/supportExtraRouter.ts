@@ -6,6 +6,7 @@ import {
   FAQ_CATEGORIES,
   getDownloadDetail,
   getFaqDetail,
+  withModelNames,
 } from '../data/support-extra'
 import { createCollectionItem, getCollectionItem, listCollection } from '../data/collectionStore'
 import { getUserSession, USER_SESSION_COOKIE } from '../data/userStore'
@@ -29,12 +30,19 @@ function readString(value: unknown): string {
 
 export const supportExtraRouter = Router()
 
+/** 下载列表 + 型号显示名（models 存型号 id，前台展示 modelNames） */
+function downloadItems(locale: ReturnType<typeof readLocale>) {
+  return withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale)
+}
+
 supportExtraRouter.get('/downloads', (req, res) => {
-  res.json({ items: listCollection('downloads', readLocale(req)), categories: DOWNLOAD_CATEGORIES, types: DOWNLOAD_TYPES })
+  const locale = readLocale(req)
+  res.json({ items: downloadItems(locale), categories: DOWNLOAD_CATEGORIES, types: DOWNLOAD_TYPES })
 })
 
 supportExtraRouter.get('/downloads/:id', (req, res) => {
-  const detail = getDownloadDetail(listCollection('downloads', readLocale(req)), req.params.id)
+  const locale = readLocale(req)
+  const detail = getDownloadDetail(downloadItems(locale), req.params.id)
   if (!detail) {
     res.status(404).json({ error: '未找到该资料' })
     return

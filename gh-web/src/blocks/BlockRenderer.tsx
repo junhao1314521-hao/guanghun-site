@@ -42,6 +42,8 @@ import { ProductMatrixBlock } from './ProductMatrixBlock'
 import { ProductDetailRichBlock } from './ProductDetailRichBlock'
 import { BrandAssetListBlock } from './BrandAssetListBlock'
 import { TrustBarBlock } from './TrustBarBlock'
+import { FullscreenVisualBlock } from './FullscreenVisualBlock'
+import { LongImageBlock } from './LongImageBlock'
 import { useProductDetail } from './ProductDetailContext'
 
 /** 按区块类型分派到对应组件；未知类型返回 null（向前兼容后台新增类型） */
@@ -119,6 +121,12 @@ function renderBlock(block: Block): ReactNode {
     // 信任条（§1.7 新建）
     case 'trustBar':
       return <TrustBarBlock props={props} />
+    // 全屏视觉模块（R3 新建）
+    case 'fullscreenVisual':
+      return <FullscreenVisualBlock props={props} />
+    // 长图无缝拼接（R6 新建）
+    case 'longImage':
+      return <LongImageBlock props={props} />
     default:
       return null
   }

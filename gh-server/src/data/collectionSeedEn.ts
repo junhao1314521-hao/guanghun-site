@@ -281,6 +281,13 @@ const MODELS_EN: Record<string, Overlay> = {
       { title: 'Port troubleshooting', desc: 'Path for no signal, low refresh rate and not detected.' },
     ],
   },
+  'gh-24h1': {
+    summary: '23.8" FHD 200Hz gaming monitor with HDR400 for entry-level and daily use.',
+    guides: [
+      { title: 'Quick start', desc: 'Unboxing, stand mounting and HDMI connection basics.' },
+      { title: 'Color & eye care', desc: 'Gamut, brightness and low blue light settings.' },
+    ],
+  },
   'gh-arm01': {
     summary: 'Monitor arm supporting VESA 75/100 and 9 kg, with mounting and adjustment guidance.',
     guides: [

@@ -11,7 +11,7 @@
  */
 
 /**
- * 区块类型（共 32 类：契约 §3 的 16 类基础 + 自定义模块 3 类 + `showcase` +
+ * 区块类型（共 34 类：契约 §3 的 16 类基础 + 自定义模块 3 类 + `showcase` +
  * 产品详情主体 3 类 + 商业合作 2 类 + 测评方法 1 类 + B2B 采购价值 1 类 + 邮件订阅 1 类 +
  * 产品矩阵 1 类 + 产品详情图文 1 类 + 品牌资料 1 类 + 信任条 1 类）。
  *
@@ -46,6 +46,10 @@ export type BlockType =
   | 'brandAssetList'
   // 信任条（§1.7 新建：分隔线横排，四项均分、项间竖线、上下细线收边、无卡片底）
   | 'trustBar'
+  // 全屏视觉模块（R3：纯媒体铺满，无文案层；高度四档）
+  | 'fullscreenVisual'
+  // 长图无缝拼接（R6：多张切片垂直拼接，桌面 / 移动可分别指定）
+  | 'longImage'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {
@@ -87,6 +91,20 @@ export type Page = {
   /** 后台显示名 */
   title: string
   description?: string
+  /** SEO 标题（R10.4；缺省回退 title） */
+  seoTitle?: string
+  /** SEO 描述（R10.4；缺省回退 description） */
+  seoDescription?: string
+  /**
+   * 英文变体（R10.3）：与主记录同源，英文 locale 下覆盖标题 / 描述 / SEO。
+   * 历史 seed 的 `__en` 独立记录仍优先兼容（见 contentStore.getPage）。
+   */
+  en?: {
+    title?: string
+    description?: string
+    seoTitle?: string
+    seoDescription?: string
+  }
   /** 有序 */
   blocks: Block[]
   /** ISO */
@@ -104,6 +122,9 @@ export type PageMeta = {
   path: string
   title: string
   description?: string
+  /** SEO 标题 / 描述（R10.4） */
+  seoTitle?: string
+  seoDescription?: string
   /** 区块数量，供列表展示 */
   blockCount: number
   updatedAt: string

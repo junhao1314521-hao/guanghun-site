@@ -41,7 +41,7 @@ export function AuthShell({
             {badge && <span className="auth-shell__badge">{badge}</span>}
           </div>
           <div className="auth-shell__pitch">
-            <p className="auth-shell__eyebrow">{eyebrow}</p>
+            {eyebrow && <p className="auth-shell__eyebrow">{eyebrow}</p>}
             <h2 className="auth-shell__headline">{headline}</h2>
             <p className="auth-shell__subtitle">{subtitle}</p>
             {points.length > 0 && (

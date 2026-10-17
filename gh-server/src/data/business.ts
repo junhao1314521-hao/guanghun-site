@@ -52,23 +52,12 @@ export const BRAND_ASSETS: BrandAsset[] = [
 /** 「合作类型」下拉：与「合作方向」保持一致（单一真源） */
 export const COOP_TYPE_OPTIONS = COOP_DIRECTIONS.map((item) => item.title)
 
-/** 联系方式：按合作类型分流 */
+/** 联系方式（R5.2：只保留邮箱与地址，不再重复合作类型） */
 export const COOP_CONTACTS = [
   {
     icon: 'cube' as const,
     title: '商务合作',
-    rows: [
-      { k: '邮箱', v: 'business@guanghun.example' },
-      { k: '响应时间', v: '工作日 1–2 个工作日' },
-    ],
-  },
-  {
-    icon: 'monitor' as const,
-    title: '媒体送测',
-    rows: [
-      { k: '邮箱', v: 'press@guanghun.example' },
-      { k: '说明', v: '请附往期评测链接' },
-    ],
+    rows: [{ k: '邮箱', v: 'business@guanghun.example' }],
   },
   {
     icon: 'pin' as const,

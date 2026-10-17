@@ -72,6 +72,9 @@ export type SavePageBody = {
   path?: string
   title?: string
   description?: string
+  /** SEO 标题 / 描述（R10.4） */
+  seoTitle?: string
+  seoDescription?: string
   blocks?: Block[]
   /** 页面启用状态（true 上线 / false 下线） */
   enabled?: boolean
@@ -83,6 +86,12 @@ export type CreatePageBody = {
   path: string
   title: string
   description?: string
+  /** SEO 标题 / 描述（R10.4） */
+  seoTitle?: string
+  seoDescription?: string
+  /** 英文变体（R10.3）：提供 enTitle 即同时创建 `<key>__en` */
+  enTitle?: string
+  enDescription?: string
   blocks?: Block[]
   enabled?: boolean
 }

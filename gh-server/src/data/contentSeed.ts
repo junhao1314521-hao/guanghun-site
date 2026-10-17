@@ -686,27 +686,22 @@ function buildCenter(): Page {
 /** 商业合作首页：合作方向与权益 → 合作流程 → 案例 → 品牌资料 → 申请 → 联系方式（§4.9：8 块 → 6 块） */
 function buildBusiness(): Page {
   return toPage('business', '/business', '商业合作首页', '商业合作首页装修。', [
-    // ①「合作方向」+⑦「合作权益」合并为一个区块：先讲能合作什么，再讲合作能得到什么
+    // ①「合作方向」：6 条单一真源（删除与 COOP_DIRECTIONS 重复的 4 条硬编码）
     {
       type: 'cards',
       props: {
-        title: '合作方向与权益',
+        title: '合作方向',
+        subtitle: '选择最接近的合作方式；提交后由对应团队对接。',
         columns: 3,
-        // 卡片不带链接：合作方向是说明性内容，避免指向自身造成「点了没反应」（原先 href 全为 /business）
-        items: [
-          ...business.COOP_DIRECTIONS.map((item) => ({ tag: item.id, title: item.title, desc: item.desc })),
-          { title: '渠道分销', desc: '授权渠道与价格体系支持。' },
-          { title: '赛事合作', desc: '赛场装备与赛事曝光联动。' },
-          { title: '内容共创', desc: '联合评测、直播与内容分发。' },
-          { title: '品牌联名', desc: '联名型号与定制化外观。' },
-        ],
+        items: business.COOP_DIRECTIONS.map((item) => ({ tag: item.id, title: item.title, desc: item.desc })),
       },
     },
-    // ②「媒体与评测送测」+⑧「合作流程」合并为一条流程主线（提交申请 → 送测 / 商务对接 → 落地执行）
+    // ② 合作流程：横向流程模块（序号 + 连接线；移动端纵向）
     {
       type: 'timeline',
       props: {
         title: '合作流程',
+        layout: 'flow',
         items: [
           { time: '01', title: '提交申请', desc: '填写合作表单，说明合作类型与诉求。' },
           { time: '02', title: '送测 / 商务对接', desc: '媒体送测按送测规范寄送样机；商务合作由专人对接，确认方案与合作条款。' },
@@ -717,9 +712,11 @@ function buildBusiness(): Page {
     {
       type: 'cards',
       props: {
-        title: '合作案例',
+        title: '精选合作案例',
         columns: 3,
         items: business.COOP_CASES.map((item) => ({ tag: item.tag, title: item.title, desc: item.desc, href: '/business/cases' })),
+        ctaLabel: '查看全部案例',
+        ctaHref: '/business/cases',
       },
     },
     // 品牌资料（B 端）：由独立集合 brand-assets 驱动，锚点 brand-assets
@@ -743,16 +740,11 @@ function buildBusiness(): Page {
         desc: '提交后进入与产品咨询同一套工单系统，来源字段标注为「商业合作」。',
         channel: 'business',
         showForm: true,
+        // R5.2：联系方式只留邮箱与地址，并入表单左栏，不再单独占一个区块
+        points: ['商务合作邮箱：business@guanghun.example', '办公地址：广东省深圳市 · 光魂（到访需提前预约）'],
       },
-    },
-    {
-      type: 'cards',
-      props: {
-        title: '联系方式',
-        icon: 'chat',
-        columns: 3,
-        items: business.COOP_CONTACTS.map((item) => ({ title: item.title, desc: item.rows.map((row) => `${row.k}：${row.v}`).join('；') })),
-      },
+      // R5.5：表单区块上下留白收紧（md → sm），整块高度下降
+      style: { paddingY: 'sm' },
     },
   ])
 }
@@ -847,8 +839,8 @@ function buildSupport(): Page {
     },
     // 下载中心：支持首页只放精选（完整列表去 /downloads，避免页面过长）；锚点 #download
     { type: 'downloadList', props: { title: '下载中心', icon: 'download', subtitle: '说明书、固件与调校配置，最新资料优先。', category: 'all', limit: 6, ctaLabel: '查看全部资料', ctaHref: '/downloads' }, style: { anchor: 'download' } },
-    // 保修与售后：锚点 #warranty，供导航「保修与售后」深链直达（不做独立查询页）；默认停用（§4.3）
-    { enabled: false, type: 'cards', props: { title: '保修与售后', icon: 'shield', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) }, style: { anchor: 'warranty' } },
+    // 保修与售后：锚点 #warranty，供导航「保修与售后」深链直达（R4-②）
+    { type: 'cards', props: { title: '保修与售后', icon: 'shield', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) }, style: { anchor: 'warranty' } },
     // 服务承诺条（三年质保 · 顺丰 · 15 天退换）；与首页信任条同源，默认停用（§4.3）
     {
       enabled: false,

@@ -118,7 +118,8 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
               <div className={`blk-hero__bg${renderable ? ' has-media' : ''}`}>
                 {renderable && <PosterMedia data={slide} src={src} eager={i === 0} />}
               </div>
-              <PosterOverlay data={slide} titleTag={active ? 'h1' : 'h2'} />
+              {/* 区块内标题统一 h2：页面级唯一 h1 由 PageView 的 sr-only h1 提供（R11 无障碍） */}
+              <PosterOverlay data={slide} titleTag="h2" />
               {active && <PosterDownloads data={slide} />}
             </article>
           )

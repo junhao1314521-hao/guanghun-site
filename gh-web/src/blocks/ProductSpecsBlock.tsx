@@ -15,6 +15,9 @@ import { useApi } from '../hooks/useApi'
 import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
 
+/** 完整规格分组展示顺序（未列出的分组排在最后） */
+const GROUP_ORDER = ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证']
+
 export function ProductSpecsBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const detail = useProductDetail()
@@ -31,6 +34,26 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
   const showGuides = props.showGuides === undefined ? true : asBool(props.showGuides)
   const downloadLabel = asString(props.guideDownloadLabel, t('blocks.pd.goDownload'))
   const contactLabel = asString(props.guideContactLabel, t('blocks.pd.submitTicket'))
+
+  // R8.3：attributes 按 group 分组（缺省归入「其他」），按固定顺序折叠展示
+  const groupedAttributes = (() => {
+    const map = new Map<string, Array<{ label: string; value: string; group?: string }>>()
+    for (const attr of detail.attributes ?? []) {
+      const key = attr.group?.trim() || '其他'
+      const list = map.get(key) ?? []
+      list.push(attr)
+      map.set(key, list)
+    }
+    return Array.from(map.entries()).sort((a, b) => {
+      const ia = GROUP_ORDER.indexOf(a[0])
+      const ib = GROUP_ORDER.indexOf(b[0])
+      return (ia < 0 ? GROUP_ORDER.length : ia) - (ib < 0 ? GROUP_ORDER.length : ib)
+    })
+  })()
+
+  const features = detail.features ?? []
+  const hasCompatibility =
+    Boolean(detail.os?.length) || detail.weight !== undefined || Boolean(detail.warranty) || Boolean(detail.inBox?.length)
 
   return (
     <div>
@@ -54,95 +77,115 @@ export function ProductSpecsBlock({ props }: { props: Record<string, unknown> })
       <div className="section--tight">
         {!showTabs || tab === 0 ? (
           <>
-            {title && (
-              <h2 className="section__title" style={{ fontSize: 'var(--gh-font-size-h4)', marginBottom: 'var(--gh-space-4)' }}>
-                {title}
-              </h2>
-            )}
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '30%' }}>{t('blocks.pd.colParam')}</th>
-                    <th>{t('blocks.pd.colNominal')}</th>
-                    <th>{t('blocks.pd.colMeasured')}</th>
-                    <th>{t('blocks.pd.colNote')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detail.specTable.map((row) => (
-                    <tr key={row.name}>
-                      <td>{row.name}</td>
-                      <td className="mono">{row.nominal}</td>
-                      <td className={row.missing ? 'missing' : 'mono'}>{row.measured}</td>
-                      <td className="muted">{row.note}</td>
-                    </tr>
+            {/* ① 核心卖点：可感知的收益，先于参数 */}
+            {features.length > 0 && (
+              <section className="pd-spec-section">
+                <h2 className="section__title pd-spec-section__title">{t('blocks.pd.highlights')}</h2>
+                <ul className="pd-feature-grid">
+                  {features.map((item, index) => (
+                    <li key={item}>
+                      <span className="pd-feature-grid__idx">{String(index + 1).padStart(2, '0')}</span>
+                      <span>{item}</span>
+                    </li>
                   ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* 运营维护的扩展信息：卖点 / 结构化参数 / 兼容系统 / 重量 / 保修 / 包装清单（缺省不展示） */}
-            {(Boolean(detail.features?.length) || Boolean(detail.attributes?.length)) && (
-              <div className="grid-2" style={{ marginTop: 'var(--gh-space-5)' }}>
-                {Boolean(detail.features?.length) && (
-                  <div className="card">
-                    <h3 className="card__title">{t('blocks.pd.highlights')}</h3>
-                    <ul className="feature-list" style={{ marginTop: 'var(--gh-space-3)' }}>
-                      {detail.features?.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {Boolean(detail.attributes?.length) && (
-                  <div className="card">
-                    <h3 className="card__title">{t('blocks.pd.attributes')}</h3>
-                    <div className="dl-meta" style={{ marginTop: 'var(--gh-space-3)' }}>
-                      {detail.attributes?.map((attr) => (
-                        <div key={attr.label}>
-                          <div className="dl-meta__k">{attr.label}</div>
-                          <div className="dl-meta__v">{attr.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+                </ul>
+              </section>
             )}
-            {(Boolean(detail.os?.length) || detail.weight !== undefined || Boolean(detail.warranty) || Boolean(detail.inBox?.length)) && (
-              <div className="card" style={{ marginTop: 'var(--gh-space-4)' }}>
-                <div className="dl-meta">
-                  {Boolean(detail.os?.length) && (
-                    <div>
-                      <div className="dl-meta__k">{t('blocks.pd.os')}</div>
-                      <div className="dl-meta__v">{detail.os?.join(' / ')}</div>
-                    </div>
-                  )}
-                  {detail.weight !== undefined && (
-                    <div>
-                      <div className="dl-meta__k">{t('blocks.pd.weight')}</div>
-                      <div className="dl-meta__v mono">{detail.weight} g</div>
-                    </div>
-                  )}
-                  {Boolean(detail.warranty) && (
-                    <div>
-                      <div className="dl-meta__k">{t('blocks.pd.warranty')}</div>
-                      <div className="dl-meta__v">{detail.warranty}</div>
+
+            {/* ② 性能摘要：标称 / 实测并列（原 specTable 已合并进 summary） */}
+            <section className="pd-spec-section">
+              <h2 className="section__title pd-spec-section__title">{t('blocks.pd.summaryTitle')}</h2>
+              {detail.summary.map((group) => (
+                <div key={group.title} className="pd-summary">
+                  <h3 className="pd-summary__title">{group.title}</h3>
+                  <div className="table-wrap">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '26%' }}>{t('blocks.pd.colParam')}</th>
+                          <th>{t('blocks.pd.colNominal')}</th>
+                          <th>{t('blocks.pd.colMeasured')}</th>
+                          <th>{t('blocks.pd.colNote')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.rows.map((row) => (
+                          <tr key={row.label}>
+                            <td>{row.label}</td>
+                            <td className="mono">{row.nominal ?? '—'}</td>
+                            <td className={row.missing ? 'missing' : 'mono'}>{row.measured ?? row.value ?? '—'}</td>
+                            <td className="muted">{row.note ?? ''}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+              <p className="field__hint">{t('blocks.pd.missingNote')}</p>
+            </section>
+
+            {/* ③ 完整规格：attributes 唯一真源，按分组折叠 */}
+            {groupedAttributes.length > 0 && (
+              <section className="pd-spec-section">
+                <h2 className="section__title pd-spec-section__title">{title}</h2>
+                <div className="pd-spec-groups">
+                  {groupedAttributes.map(([group, rows], index) => (
+                    <details className="pd-spec-group" key={group} open={index === 0}>
+                      <summary>
+                        <span>{group}</span>
+                        <span className="pd-spec-group__count">{t('blocks.pd.specCount', { n: rows.length })}</span>
+                      </summary>
+                      <dl className="pd-spec-group__list">
+                        {rows.map((attr) => (
+                          <div key={attr.label}>
+                            <dt>{attr.label}</dt>
+                            <dd>{attr.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ④ 兼容与保修 */}
+            {hasCompatibility && (
+              <section className="pd-spec-section">
+                <div className="card">
+                  <div className="dl-meta">
+                    {Boolean(detail.os?.length) && (
+                      <div>
+                        <div className="dl-meta__k">{t('blocks.pd.os')}</div>
+                        <div className="dl-meta__v">{detail.os?.join(' / ')}</div>
+                      </div>
+                    )}
+                    {detail.weight !== undefined && (
+                      <div>
+                        <div className="dl-meta__k">{t('blocks.pd.weight')}</div>
+                        <div className="dl-meta__v mono">{detail.weight} g</div>
+                      </div>
+                    )}
+                    {Boolean(detail.warranty) && (
+                      <div>
+                        <div className="dl-meta__k">{t('blocks.pd.warranty')}</div>
+                        <div className="dl-meta__v">{detail.warranty}</div>
+                      </div>
+                    )}
+                  </div>
+                  {Boolean(detail.inBox?.length) && (
+                    <div style={{ marginTop: 'var(--gh-space-4)' }}>
+                      <div className="dl-meta__k">{t('blocks.pd.inBox')}</div>
+                      <ul className="feature-list" style={{ marginTop: 'var(--gh-space-2)' }}>
+                        {detail.inBox?.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
-                {Boolean(detail.inBox?.length) && (
-                  <div style={{ marginTop: 'var(--gh-space-4)' }}>
-                    <div className="dl-meta__k">{t('blocks.pd.inBox')}</div>
-                    <ul className="feature-list" style={{ marginTop: 'var(--gh-space-2)' }}>
-                      {detail.inBox?.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+              </section>
             )}
           </>
         ) : detail.tabs[tab] === '测试记录' && testRecords.length > 0 ? (

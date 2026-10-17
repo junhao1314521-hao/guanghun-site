@@ -106,6 +106,8 @@ function toMeta(page: Page): PageMeta {
     path: page.path,
     title: page.title,
     ...(page.description ? { description: page.description } : {}),
+    ...(page.seoTitle ? { seoTitle: page.seoTitle } : {}),
+    ...(page.seoDescription ? { seoDescription: page.seoDescription } : {}),
     blockCount: page.blocks.length,
     updatedAt: page.updatedAt,
     enabled: page.enabled !== false,
@@ -122,6 +124,12 @@ export type PageInput = {
   path?: string
   title?: string
   description?: string
+  /** SEO 标题 / 描述（R10.4） */
+  seoTitle?: string
+  seoDescription?: string
+  /** 新建时的英文变体（R10.3）：提供 enTitle 即同时写入 `<key>__en` 页面 */
+  enTitle?: string
+  enDescription?: string
   blocks?: Block[]
   /** 页面启用状态（缺省不修改既有值） */
   enabled?: boolean
@@ -178,7 +186,21 @@ export function getPage(key: string, locale?: Locale): Page | undefined {
     if (enRow) return normalizePage(JSON.parse(enRow.data) as Page)
   }
   const row = getDb().prepare('SELECT data FROM content_pages WHERE key = ?').get(baseKey) as { data: string } | undefined
-  return row ? normalizePage(JSON.parse(row.data) as Page) : undefined
+  if (!row) return undefined
+  const base = normalizePage(JSON.parse(row.data) as Page)
+  // `en` 为内部覆盖层，不透出给前台
+  const { en: enOverlay, ...baseRest } = base
+  // R10.3：主记录若带 en 覆盖层，英文 locale 下覆盖标题 / 描述 / SEO（`__en` 独立记录仍优先）
+  if (locale === 'en' && enOverlay) {
+    return {
+      ...baseRest,
+      title: enOverlay.title ?? baseRest.title,
+      description: enOverlay.description ?? baseRest.description,
+      seoTitle: enOverlay.seoTitle ?? baseRest.seoTitle,
+      seoDescription: enOverlay.seoDescription ?? baseRest.seoDescription,
+    }
+  }
+  return baseRest
 }
 
 /** 是否为内置页面（禁删） */
@@ -222,8 +244,10 @@ export function getPageByPath(path: string, locale?: Locale): Page | undefined {
 /** 保存整页（blocks 全量覆盖）；未命中返回 undefined */
 export function savePage(key: string, input: PageInput): Page | undefined {
   initStore()
-  const current = getPage(key)
-  if (!current) return undefined
+  // 读取原始记录（含 `en` 内部覆盖层），避免保存时把英文变体写丢
+  const row = getDb().prepare('SELECT data FROM content_pages WHERE key = ?').get(key) as { data: string } | undefined
+  if (!row) return undefined
+  const current = normalizePage(JSON.parse(row.data) as Page)
   const next: Page = {
     ...current,
     path: input.path?.trim() || current.path,
@@ -232,6 +256,8 @@ export function savePage(key: string, input: PageInput): Page | undefined {
     updatedAt: new Date().toISOString(),
   }
   if (input.description !== undefined) next.description = input.description
+  if (input.seoTitle !== undefined) next.seoTitle = input.seoTitle
+  if (input.seoDescription !== undefined) next.seoDescription = input.seoDescription
   if (input.enabled !== undefined) next.enabled = input.enabled
   runInTransaction((db) => {
     db.prepare('UPDATE content_pages SET data = ?, updated_at = ? WHERE key = ?').run(JSON.stringify(next), next.updatedAt, key)
@@ -249,6 +275,19 @@ export function createPage(input: Required<Pick<PageInput, 'path' | 'title'>> & 
     path: input.path.trim(),
     title: input.title.trim(),
     ...(input.description ? { description: input.description } : {}),
+    ...(input.seoTitle ? { seoTitle: input.seoTitle } : {}),
+    ...(input.seoDescription ? { seoDescription: input.seoDescription } : {}),
+    // R10.3：英文变体与主记录同源（不另建 `__en` 记录，避免删除 / 恢复时的孤儿数据）
+    ...(input.enTitle
+      ? {
+          en: {
+            title: input.enTitle,
+            ...(input.enDescription ? { description: input.enDescription } : {}),
+            ...(input.seoTitle ? { seoTitle: input.seoTitle } : {}),
+            ...(input.seoDescription ? { seoDescription: input.seoDescription } : {}),
+          },
+        }
+      : {}),
     blocks: Array.isArray(input.blocks) ? input.blocks : [],
     updatedAt: new Date().toISOString(),
     enabled: input.enabled !== false,

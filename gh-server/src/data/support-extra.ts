@@ -19,13 +19,28 @@ export type DownloadItem = {
   name: string
   category: string
   type: DownloadType
+  /** 适用型号 id 列表（如 gh-54027x1qe）；通用资料用 ALL_MODELS 标记 */
   models: string[]
+  /** 适用型号显示名（接口按 models 派生，只读；前台展示优先使用） */
+  modelNames?: string[]
   version: string
   size: string
   date: string
   note: string
   /** 适用平台（如 Windows 10 / 11、macOS 12+）；运营维护，缺省不展示 */
   platform?: string
+  /** 适用操作系统（比 platform 更细，如「Windows 11 / macOS 14」）；缺省回退 platform */
+  os?: string
+  /** 发布时间（ISO 日期）；缺省回退 date */
+  releasedAt?: string
+  /** 文件字节数（数值），用于排序 / 筛选；缺省按 size 文本展示 */
+  sizeBytes?: number
+  /** 同型号同类型的最新版标记 */
+  isLatest?: boolean
+  /** 校验算法标识（如 SHA-256）；具体校验值在详情页展示 */
+  checksumType?: string
+  /** 被本版本替代的旧版本 id（版本链路，预留） */
+  supersedes?: string
   /**
    * 文件地址（`GET /api/downloads/:id` 返回）。
    * 可为 `/uploads/<文件名>`（本服务素材库）或外部/对象存储占位地址；上线前由运营替换为真实地址。
@@ -34,6 +49,7 @@ export type DownloadItem = {
 }
 
 /** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
+export const ALL_MODELS = 'all'
 export const DOWNLOAD_CATEGORIES = ['全部', '软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边']
 export const DOWNLOAD_TYPES = ['全部', '说明书', '固件', '驱动', '软件', '调校配置']
 
@@ -46,17 +62,36 @@ export const DOWNLOAD_TYPE_LABELS: Record<DownloadType, string> = {
   calibration: '调校配置',
 }
 
+/** 为下载条目派生型号显示名（models 存型号 id；通用资料用 ALL_MODELS） */
+export function withModelNames(
+  items: DownloadItem[],
+  models: Array<{ id: string; model: string }>,
+  locale: 'zh-CN' | 'en' = 'zh-CN',
+): DownloadItem[] {
+  const byId = new Map(models.map((item) => [item.id, item.model]))
+  const allLabel = locale === 'en' ? 'All supported models' : '全部支持型号'
+  return items.map((item) => ({
+    ...item,
+    modelNames: item.models.map((id) => (id === ALL_MODELS ? allLabel : byId.get(id) ?? id)),
+  }))
+}
+
 export const DOWNLOAD_ITEMS: DownloadItem[] = [
   {
     id: 'center-win',
     name: 'Center 显示器调校软件 · Windows 安装包',
     category: '软件',
     type: 'software',
-    models: ['全部支持型号'],
+    models: [ALL_MODELS],
     version: 'v2.4.1',
     size: '86.4 MB',
     date: '2026-09-20',
     note: '支持 Windows 10 / 11（64 位）',
+    os: 'Windows 10 / 11（64 位）',
+    releasedAt: '2026-09-20',
+    sizeBytes: 90596966,
+    isLatest: true,
+    checksumType: 'SHA-256',
     // 约定字段：前台软件下载按钮据此显示系统图标与「下载 Windows 版」文案（详见后台表单该字段 hint）
     platform: 'Windows',
     // 安装包体积 90MB 级、且素材库白名单有意不放行可执行文件 → 统一走对象存储 / CDN **外链**（占位域名，上线前替换）
@@ -67,11 +102,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: 'Center 显示器调校软件 · macOS 安装包',
     category: '软件',
     type: 'software',
-    models: ['全部支持型号'],
+    models: [ALL_MODELS],
     version: 'v2.4.1',
     size: '92.1 MB',
     date: '2026-09-20',
     note: '支持 macOS 12 及以上',
+    os: 'macOS 12 及以上',
+    releasedAt: '2026-09-20',
+    sizeBytes: 96573850,
+    isLatest: true,
+    checksumType: 'SHA-256',
     platform: 'macOS',
     // 同上：安装包走外链（占位域名，上线前替换）
     fileUrl: 'https://dl.guanghun.example/center/Center-2.4.1-mac.dmg',
@@ -81,11 +121,15 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '54027X1QE-W54 固件升级包',
     category: 'OLED 旗舰',
     type: 'firmware',
-    models: ['54027X1QE-W54'],
+    models: ['gh-54027x1qe'],
     version: 'v1.6.3',
     size: '3.8 MB',
     date: '2026-09-15',
     note: '优化 DP 2.1 满速握手与 HDR 调校',
+    releasedAt: '2026-09-15',
+    sizeBytes: 3984589,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-54027x1qe-firmware-1.6.3.bin',
   },
   {
@@ -93,11 +137,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '54027X1QE-W54 色彩配置文件（ICC）',
     category: 'OLED 旗舰',
     type: 'calibration',
-    models: ['54027X1QE-W54'],
+    models: ['gh-54027x1qe'],
     version: 'v2.1',
     size: '1.2 MB',
     date: '2026-09-12',
     note: '含 sRGB / DCI-P3 两套色彩配置',
+    os: 'Windows / macOS',
+    releasedAt: '2026-09-12',
+    sizeBytes: 1258291,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-54027x1qe-icc-v2.1.zip',
   },
   {
@@ -105,11 +154,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '32X1UE-W16 显示器驱动（INF）',
     category: '双模高刷',
     type: 'driver',
-    models: ['32X1UE-W16'],
+    models: ['gh-32x1ue'],
     version: 'v1.2.0',
     size: '2.6 MB',
     date: '2026-09-08',
     note: '含双模切换与色彩配置文件注册',
+    os: 'Windows 10 / 11',
+    releasedAt: '2026-09-08',
+    sizeBytes: 2726298,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-32x1ue-driver-1.2.0.zip',
   },
   {
@@ -117,11 +171,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '32X1UE-W16 使用说明书',
     category: '双模高刷',
     type: 'manual',
-    models: ['32X1UE-W16'],
+    models: ['gh-32x1ue'],
     version: 'v1.3',
     size: '5.6 MB',
     date: '2026-09-05',
     note: '含双模切换与 OSD 菜单说明',
+    os: '全平台',
+    releasedAt: '2026-09-05',
+    sizeBytes: 5872026,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-32x1ue-manual-v1.3.pdf',
   },
   {
@@ -129,11 +188,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27Q1F 显示器驱动（INF）',
     category: '电竞 IPS',
     type: 'driver',
-    models: ['27Q1F'],
+    models: ['gh-27q1f'],
     version: 'v2.0.4',
     size: '11.8 MB',
     date: '2026-06-12',
     note: 'Windows 下识别型号与色域映射',
+    os: 'Windows 10 / 11',
+    releasedAt: '2026-06-12',
+    sizeBytes: 12373197,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-27q1f-driver-2.0.4.zip',
   },
   {
@@ -141,11 +205,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27Q1F 使用说明书',
     category: '电竞 IPS',
     type: 'manual',
-    models: ['27Q1F'],
+    models: ['gh-27q1f'],
     version: 'v1.1',
     size: '4.2 MB',
     date: '2026-04-10',
     note: '含 OSD 调校与 HDR 设置说明',
+    os: '全平台',
+    releasedAt: '2026-04-10',
+    sizeBytes: 4404019,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-27q1f-manual-v1.1.pdf',
   },
   {
@@ -153,11 +222,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '24H1 色彩配置文件（ICC）',
     category: '电竞 IPS',
     type: 'calibration',
-    models: ['24H1'],
+    models: ['gh-24h1'],
     version: 'v1.0',
     size: '0.9 MB',
     date: '2026-02-26',
     note: '含 sRGB 出厂校准配置',
+    os: 'Windows / macOS',
+    releasedAt: '2026-02-26',
+    sizeBytes: 943718,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-24h1-icc-v1.0.zip',
   },
   {
@@ -165,11 +239,16 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: 'GH-ARM01 安装说明书',
     category: '周边',
     type: 'manual',
-    models: ['GH-ARM01'],
+    models: ['gh-arm01'],
     version: 'v1.2',
     size: '2.1 MB',
     date: '2026-05-20',
     note: '含 VESA 75/100 安装与承重说明',
+    os: '全平台',
+    releasedAt: '2026-05-20',
+    sizeBytes: 2202010,
+    isLatest: true,
+    checksumType: 'SHA-256',
     fileUrl: '/uploads/gh-arm01-manual-v1.2.pdf',
   },
 ]
@@ -375,7 +454,7 @@ export type ModelSupport = {
 
 /* ⚠️ 型号与下载的关联**不再内嵌快照**（原 `ModelSupport.downloads` + `downloadsFor()` 已删除）：
    型号页改为「按 `model` 过滤 downloads 集合」——后台改一条下载，下载中心与型号页同时生效。
-   过滤口径：`item.models` 含该型号，或含通用标记 `全部支持型号`。 */
+   过滤口径：`item.models` 含该型号 id，或含通用标记 `ALL_MODELS`（'all'）。 */
 
 function faqsByIds(...ids: string[]): FaqItem[] {
   return FAQ_ITEMS.filter((item) => ids.includes(item.id))
@@ -416,6 +495,17 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
       { title: '快速上手', desc: '开箱、支架安装与 HDMI 2.1 连接的基础操作。' },
       { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
       { title: '接口排障', desc: '无信号、刷新率不达标与识别不到的排查路径。' },
+    ],
+  },
+  {
+    id: 'gh-24h1',
+    model: '24H1',
+    line: '电竞IPS',
+    summary: '23.8 英寸 FHD 200Hz 电竞显示器，支持 HDR400，面向入门与日常办公。',
+    faqs: faqsByIds('faq-pair-notfound', 'faq-warranty-serial'),
+    guides: [
+      { title: '快速上手', desc: '开箱、支架安装与 HDMI 连接的基础操作。' },
+      { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
     ],
   },
   {

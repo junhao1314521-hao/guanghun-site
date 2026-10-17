@@ -5,8 +5,13 @@ export type ProductCategory = 'OLED旗舰' | '双模高刷' | '电竞IPS' | '周
 /** 视频接口规格（显示器主接口） */
 export type ProductConnection = 'DP 2.1' | 'HDMI 2.1' | 'USB-C'
 
-/** 结构化参数项（面板 / 分辨率 / 刷新率 / 响应时间 / 亮度 / 接口等） */
-export type ProductAttribute = { label: string; value: string }
+/** 结构化参数项（唯一完整规格源；group 用于详情页分组折叠） */
+export type ProductAttribute = {
+  label: string
+  value: string
+  /** 规格分组：显示 / 接口 / 电源 / 机械 / 物理尺寸 / 包装 / 认证 */
+  group?: string
+}
 
 export type Product = {
   id: string
@@ -50,14 +55,19 @@ export const PRODUCTS: Product[] = [
     price: '¥4,999', priceValue: 4999, releasedAt: '2026-09-20', variant: 'monitor', flag: '旗舰',
     features: ['第四代 W-OLED 面板，2K 540Hz 满速刷新', '0.03 ms GTG 灰阶响应，告别拖影', '368 万像素级控光，原生 100 万:1 对比度', '满速 DP 2.1（80 Gbps）· 原厂石墨烯散热', 'CNC 阳极氧化铝背板 · AR 光面抗反涂层', '三年质保，含 OLED 烧屏保护'],
     attributes: [
-      { label: '面板', value: '第四代 W-OLED' },
-      { label: '尺寸 / 分辨率', value: '26.5 英寸 · 2560×1440' },
-      { label: '刷新率', value: '540 Hz' },
-      { label: '响应时间', value: '0.03 ms (GTG)' },
-      { label: '对比度', value: '1,000,000:1' },
-      { label: '色域', value: '99% DCI-P3 · 原生 10bit' },
-      { label: '接口', value: 'DP 2.1 (UHBR20) · HDMI 2.1 · USB-C' },
-      { label: '同步技术', value: 'G-SYNC 兼容 · FreeSync · VRR+' },
+      { group: '显示', label: '面板', value: '第四代 W-OLED' },
+      { group: '显示', label: '尺寸 / 分辨率', value: '26.5 英寸 · 2560×1440' },
+      { group: '显示', label: '刷新率', value: '540 Hz' },
+      { group: '显示', label: '响应时间', value: '0.03 ms (GTG)' },
+      { group: '显示', label: '对比度', value: '1,000,000:1' },
+      { group: '显示', label: '色域', value: '99% DCI-P3 · 原生 10bit' },
+      { group: '接口', label: '接口', value: 'DP 2.1 (UHBR20) · HDMI 2.1 · USB-C' },
+      { group: '接口', label: '同步技术', value: 'G-SYNC 兼容 · FreeSync · VRR+' },
+      { group: '认证', label: 'HDR 认证', value: 'DisplayHDR True Black 400' },
+      { group: '电源', label: '功耗', value: '典型 38 W / 峰值 72 W' },
+      { group: '机械', label: '支架', value: 'VESA 100×100 · 升降 130 mm · 俯仰 -5°~20°' },
+      { group: '物理尺寸', label: '净重', value: '6.5 kg（含支架）' },
+      { group: '认证', label: '认证', value: 'CE / FCC / CCC' },
     ],
     inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
@@ -94,12 +104,19 @@ export const STATUS_FILTERS: Array<'全部' | '在售' | '缺货'> = ['全部', 
 /** 列表页占位的商品总量（分页用），真实值由接口层提供 */
 export const PRODUCT_TOTAL = 24
 
-/** 详情页：标称 / 实测严格分区，缺失值以「未测量」显式表达，与零值区分 */
-export type SpecSummaryRow = { label: string; value: string; missing?: boolean }
+/** 性能摘要行：标称 / 实测并列（R8.2：specTable 已合并进 summary） */
+export type SpecSummaryRow = {
+  label: string
+  /** 摘要值（无标称 / 实测并列时使用） */
+  value?: string
+  /** 标称值（厂商公布） */
+  nominal?: string
+  /** 实测值（实验室） */
+  measured?: string
+  note?: string
+  missing?: boolean
+}
 export type SpecSummaryGroup = { title: string; rows: SpecSummaryRow[] }
-
-/** 详情页：参数规格表（标称值 / 实测值 / 备注） */
-export type SpecTableRow = { name: string; nominal: string; measured: string; note: string; missing?: boolean }
 
 /** 详情页数据：按产品 id 组织；缺省时由列表数据兜底 */
 export type ProductDetail = {
@@ -111,7 +128,6 @@ export type ProductDetail = {
   price: string
   tag: string
   summary: SpecSummaryGroup[]
-  specTable: SpecTableRow[]
   tabs: string[]
   /** 运营可维护的扩展字段（缺省则前端不展示） */
   features?: string[]
@@ -140,32 +156,25 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     tag: 'OLED旗舰',
     summary: [
       {
-        title: '标称参数（厂商公布）',
+        title: '性能摘要（标称 / 实测）',
         rows: [
-          { label: '刷新率', value: '540 Hz' },
-          { label: '响应时间', value: '0.03 ms (GTG)' },
-          { label: '对比度', value: '1,000,000:1' },
+          { label: '刷新率', nominal: '540 Hz', measured: '540 Hz', note: 'DP 2.1 满速下达成' },
+          { label: '响应时间', nominal: '0.03 ms', measured: '0.04 ms (GTG)', note: '过驱档位「标准」' },
+          { label: 'HDR 峰值亮度', nominal: '1500 nit', measured: '1,320 nit', note: '10% 窗口' },
+          { label: '色域容积', nominal: '99% DCI-P3', measured: '97.6% DCI-P3', note: '实测色域容积' },
+          { label: '对比度', nominal: '1,000,000:1', measured: '∞', note: 'OLED 纯黑，仪器底噪以下' },
+          { label: '均匀度（9 点）', nominal: '—', measured: '未测量', note: '测试方法审核中', missing: true },
         ],
       },
       {
-        title: '实测参数（小雪人评测实验室 · 2026-09-25 · n=3）',
+        title: '实测补充（小雪人评测实验室 · 2026-09-25 · n=3）',
         rows: [
-          { label: 'HDR 峰值亮度', value: '1,320 nit' },
           { label: 'SDR 亮度', value: '468 nit' },
           { label: '运动响应 BET', value: '1.8 ms' },
-          { label: '均匀度（9 点）', value: '未测量', missing: true },
         ],
       },
     ],
-    specTable: [
-      { name: '刷新率', nominal: '540 Hz', measured: '540 Hz', note: 'DP 2.1 满速下达成' },
-      { name: '响应时间', nominal: '0.03 ms', measured: '0.04 ms (GTG)', note: '过驱档位「标准」' },
-      { name: 'HDR 峰值亮度', nominal: '1500 nit', measured: '1,320 nit', note: '10% 窗口' },
-      { name: '色域容积', nominal: '99% DCI-P3', measured: '97.6% DCI-P3', note: '实测色域容积' },
-      { name: '对比度', nominal: '1,000,000:1', measured: '∞', note: 'OLED 纯黑，仪器底噪以下' },
-      { name: '均匀度（9 点）', nominal: '—', measured: '未测量', note: '测试方法审核中', missing: true },
-    ],
-    tabs: ['参数规格', '测试记录', '评测文章', '下载资料'],
+    tabs: ['参数规格', '测试记录'],
   },
 }
 
@@ -184,10 +193,12 @@ export function getProductDetail(id: string): ProductDetail | null {
     price: base.price,
     tag: base.category,
     summary: [
-      { title: '标称参数（厂商公布）', rows: base.specs.map((spec, index) => ({ label: `${base.category}规格 ${index + 1}`, value: spec })) },
+      {
+        title: '标称参数（厂商公布）',
+        rows: base.specs.map((spec, index) => ({ label: `${base.category}规格 ${index + 1}`, value: spec, nominal: spec })),
+      },
     ],
-    specTable: base.specs.map((spec) => ({ name: spec, nominal: '—', measured: '未测量', note: '待补测', missing: true })),
-    tabs: ['参数规格', '测试记录', '评测文章', '下载资料'],
+    tabs: ['参数规格', '测试记录'],
     buyUrl: base.buyUrl,
   }
 }

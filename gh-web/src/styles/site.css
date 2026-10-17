@@ -612,14 +612,14 @@ main.main--flush + .site-footer { margin-top: 0; }
 .toast--float {
   position: fixed;
   right: var(--gh-space-5);
-  bottom: calc(var(--gh-space-5) + 162px);
+  bottom: calc(var(--gh-space-5) + 136px);
   z-index: var(--gh-z-toast);
   align-items: flex-start;
 }
 
 /* ============================================================
-   右下角悬浮按钮组（返回顶部 / 在线留言 / 联系客服）
-   —— 磨砂圆钮 + 悬停展开的联系面板
+   右下角悬浮按钮组（返回顶部 / 联系客服）
+   —— 两钮制：主钮品牌色实底，次钮磨砂；悬停只做层级与阴影过渡
    ============================================================ */
 .fab {
   position: fixed;
@@ -629,15 +629,15 @@ main.main--flush + .site-footer { margin-top: 0; }
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--gh-space-2);
+  gap: 10px;
 }
 .fab__btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--color-border-default);
   border-radius: var(--gh-radius-full);
@@ -647,30 +647,34 @@ main.main--flush + .site-footer { margin-top: 0; }
   color: var(--color-text-secondary);
   box-shadow: var(--shadow-lg);
   cursor: pointer;
-  transition: transform var(--gh-duration-base) var(--gh-ease-standard),
-    border-color var(--gh-duration-base) var(--gh-ease-standard),
+  transition: border-color var(--gh-duration-base) var(--gh-ease-standard),
     color var(--gh-duration-base) var(--gh-ease-standard),
     background-color var(--gh-duration-base) var(--gh-ease-standard),
+    box-shadow var(--gh-duration-base) var(--gh-ease-standard),
     opacity var(--gh-duration-base) var(--gh-ease-standard);
 }
 .fab__btn:hover {
-  transform: translateY(-2px);
   border-color: var(--color-accent-solid);
   color: var(--color-accent-text);
+  box-shadow: var(--shadow-xl);
 }
 .fab__btn:focus-visible {
   outline: 2px solid var(--color-accent-solid);
   outline-offset: 2px;
 }
 .fab__btn--primary {
+  width: 52px;
+  height: 52px;
   background: var(--color-accent-solid);
   border-color: var(--color-accent-solid);
   color: #fff;
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--color-accent-solid) 30%, transparent), var(--shadow-lg);
 }
 .fab__btn--primary:hover {
   background: var(--color-accent-solid-hover);
   border-color: var(--color-accent-solid-hover);
   color: #fff;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--color-accent-solid) 38%, transparent), var(--shadow-lg);
 }
 /* 返回顶部：滚动超过一屏后才淡入 */
 .fab__btn--top {
@@ -825,6 +829,10 @@ main.main--flush + .site-footer { margin-top: 0; }
   .fab__btn {
     width: 44px;
     height: 44px;
+  }
+  .fab__btn--primary {
+    width: 48px;
+    height: 48px;
   }
   .fab__panel {
     width: min(264px, calc(100vw - 88px));
@@ -1431,9 +1439,9 @@ main.main--flush + .site-footer { margin-top: 0; }
 .auth-shell__brand { display: flex; align-items: center; gap: var(--gh-space-3); font-size: var(--gh-font-size-body-lg); }
 .auth-shell__badge { padding: 3px 10px; border: 1px solid rgba(255, 255, 255, .28); border-radius: var(--gh-radius-full); font-size: var(--gh-font-size-caption); letter-spacing: .12em; color: rgba(255, 255, 255, .82); }
 .auth-shell__eyebrow { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); letter-spacing: .18em; color: rgba(255, 255, 255, .6); }
-.auth-shell__headline { margin-top: var(--gh-space-3); font-size: clamp(26px, 3vw, 40px); line-height: 1.2; color: var(--gh-neutral-50); }
-.auth-shell__subtitle { margin-top: var(--gh-space-3); color: rgba(255, 255, 255, .72); max-width: 32ch; }
-.auth-shell__points { list-style: none; margin: var(--gh-space-5) 0 0; padding: 0; display: grid; gap: var(--gh-space-2); }
+.auth-shell__headline { margin-top: var(--gh-space-4); max-width: 28ch; font-size: clamp(30px, 3.4vw, 48px); line-height: 1.14; letter-spacing: -.02em; color: var(--gh-neutral-50); text-wrap: balance; }
+.auth-shell__subtitle { margin-top: var(--gh-space-4); max-width: 28ch; line-height: 1.7; color: rgba(255, 255, 255, .72); }
+.auth-shell__points { list-style: none; margin: var(--gh-space-6) 0 0; padding: 0; display: grid; gap: var(--gh-space-2); }
 .auth-shell__points li { position: relative; padding-left: 20px; color: rgba(255, 255, 255, .78); font-size: var(--gh-font-size-body-sm); }
 .auth-shell__points li::before { content: ''; position: absolute; left: 0; top: .55em; width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent-solid); }
 .auth-shell__main { display: flex; align-items: center; justify-content: center; padding: clamp(24px, 4vw, 64px); background: var(--color-bg-surface); }
@@ -1448,7 +1456,7 @@ main.main--flush + .site-footer { margin-top: 0; }
   border-radius: 0;
 }
 .auth-shell--page .auth-shell__aside-inner { padding: clamp(32px, 4.2vw, 88px); }
-.auth-shell--page .auth-shell__headline { font-size: clamp(30px, 3.4vw, 46px); }
+.auth-shell--page .auth-shell__headline { font-size: clamp(32px, 3.6vw, 52px); }
 /* 表单侧：品牌柔光 + 略宽的版心，避免「空而不高级」 */
 .auth-shell--page .auth-shell__main {
   background:

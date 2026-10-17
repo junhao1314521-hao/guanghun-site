@@ -4,7 +4,7 @@ import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { ApiError } from '../api/client'
 import { fetchDownloads, fetchModelSupport } from '../api/support-extra'
 import { IconBook, IconDownload, IconHelp } from '../components/ui/Icon'
-import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
+import { ALL_MODELS, DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
@@ -30,11 +30,11 @@ export function ModelSupportPage() {
 
   const { data, loading, error } = useApi((signal) => fetchModelSupport(id, signal), [id, reloadKey])
   // R4：可下载资料不再内嵌在型号记录里（原 ModelSupport.downloads），改为按型号过滤下载集合 ——
-  // 与下载中心同一数据源：后台改一条下载，两处同时生效；通用资料用「全部支持型号」标记匹配。
+  // 与下载中心同一数据源：后台改一条下载，两处同时生效；通用资料用 ALL_MODELS 标记匹配。
   const { data: downloadsData } = useApi((signal) => fetchDownloads(signal), [])
   const modelDownloads = data
     ? (downloadsData?.items ?? []).filter(
-        (item) => item.models.includes(data.model) || item.models.includes('全部支持型号'),
+        (item) => item.models.includes(data.id) || item.models.includes(ALL_MODELS),
       )
     : []
   const notFound = error instanceof ApiError && error.status === 404

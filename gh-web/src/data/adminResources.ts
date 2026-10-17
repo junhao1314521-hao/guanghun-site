@@ -189,7 +189,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       {
         title: '参数',
         fields: [
-          { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '每行一项，如：26.5 英寸 2K 540Hz' },
+          { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '仅用于列表页卡片摘要（每行一项，如：26.5 英寸 2K 540Hz）；完整规格请在下方「结构化参数」维护，两处不要重复填' },
         ],
       },
       {
@@ -201,8 +201,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '结构化参数',
             type: 'records',
             span: 2,
-            hint: '按「参数名 + 取值」逐项维护（面板 / 分辨率 / 刷新率 / 接口等）；可增删改与上下移动',
+            hint: '唯一「完整规格」来源，详情页按分组折叠展示。常用参数名——显示：面板 / 尺寸 / 分辨率 / 刷新率 / 响应时间 / 对比度 / 色域 / HDR 认证；接口：接口 / 同步技术；电源：功耗；机械：支架；物理尺寸：净重 / 尺寸；包装：包装清单；认证：CE / FCC / CCC',
             recordFields: [
+              { key: 'group', label: '分组', type: 'select', options: ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证'] },
               { key: 'label', label: '参数名', type: 'text' },
               { key: 'value', label: '取值', type: 'text' },
             ],
@@ -476,6 +477,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'category', label: '分类', type: 'tag' },
       { key: 'type', label: '类型', type: 'tag' },
       { key: 'version', label: '版本', type: 'mono' },
+      { key: 'isLatest', label: '最新', type: 'bool' },
       { key: 'size', label: '大小', type: 'mono' },
       { key: 'fileUrl', label: '文件', type: 'file' },
       { key: 'models', label: '适用型号', type: 'list' },
@@ -498,7 +500,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows / macOS', hint: '约定字段：填「Windows」或「macOS」。前台软件下载按钮据此显示系统图标与「下载 Windows 版 / 下载 macOS 版」文案；留空时回退按资源名称识别，识别不到则退化为通用文件按钮' },
           { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '固件升级包与适配器／说明书（pdf / zip / bin / 图片 / txt / md）可上传或从素材库选择；安装包（exe / dmg / msi）不在素材库白名单内，请直接填对象存储 / CDN 的外链地址；前台下载按钮指向该地址' },
           { key: 'date', label: '更新时间', type: 'date' },
-          { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一项，如：54027X1QE-W54' },
+          { key: 'releasedAt', label: '发布时间', type: 'date', hint: '用于按发布时间排序；留空沿用「更新时间」' },
+          { key: 'os', label: '适用系统', type: 'text', placeholder: 'Windows 11 / macOS 14', hint: '比「适用平台」更细，前台卡片优先展示该值' },
+          { key: 'sizeBytes', label: '文件字节数', type: 'number', hint: '用于排序与体积筛选；留空按「文件大小」文本展示' },
+          { key: 'isLatest', label: '最新版', type: 'switch', hint: '同型号同类型建议只标记一条，前台卡片显示「最新」徽标' },
+          { key: 'checksumType', label: '校验算法', type: 'text', placeholder: 'SHA-256', hint: '具体校验值在下载详情页展示' },
+          { key: 'supersedes', label: '替代旧版本 ID', type: 'text', span: 2, hint: '被本版本替代的资料 id（版本链路，预留）' },
+          { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一个型号 id（如 gh-54027x1qe）；通用资料填 all' },
           { key: 'note', label: '说明', type: 'textarea', span: 2 },
         ],
       },

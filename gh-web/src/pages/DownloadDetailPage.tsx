@@ -148,7 +148,7 @@ export function DownloadDetailPage() {
                 className="dl-meta__v"
                 style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}
               >
-                {detail.models.join(' / ')}
+                {detail.modelNames?.join(' / ') ?? detail.models.join(' / ')}
               </div>
             </div>
             {detail.platform && (

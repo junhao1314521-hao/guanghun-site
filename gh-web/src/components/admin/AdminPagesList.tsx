@@ -39,6 +39,11 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
   const [path, setPath] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  // R10.3 / R10.4：SEO meta 与英文变体（新建时写入；留空则不创建 en 页面）
+  const [seoTitle, setSeoTitle] = useState('')
+  const [seoDescription, setSeoDescription] = useState('')
+  const [enTitle, setEnTitle] = useState('')
+  const [enDescription, setEnDescription] = useState('')
   const [templateId, setTemplateId] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,6 +64,10 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
         path: path.trim(),
         title: title.trim(),
         description: description.trim() || undefined,
+        seoTitle: seoTitle.trim() || undefined,
+        seoDescription: seoDescription.trim() || undefined,
+        enTitle: enTitle.trim() || undefined,
+        enDescription: enDescription.trim() || undefined,
         ...(template ? { blocks: template.blocks } : {}),
       })
       onCreated({
@@ -104,6 +113,57 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
               描述（选填）
             </label>
             <input id="np-desc" className="input" type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="np-seo-title">
+              SEO 标题（选填）
+            </label>
+            <input
+              id="np-seo-title"
+              className="input"
+              type="text"
+              placeholder="留空回退页面标题"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="np-seo-desc">
+              SEO 描述（选填）
+            </label>
+            <input
+              id="np-seo-desc"
+              className="input"
+              type="text"
+              placeholder="留空回退页面描述"
+              value={seoDescription}
+              onChange={(e) => setSeoDescription(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="np-en-title">
+              英文标题（选填，填了即创建 __en 变体）
+            </label>
+            <input
+              id="np-en-title"
+              className="input"
+              type="text"
+              placeholder="如 Autumn Campaign"
+              value={enTitle}
+              onChange={(e) => setEnTitle(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="np-en-desc">
+              英文描述（选填）
+            </label>
+            <input
+              id="np-en-desc"
+              className="input"
+              type="text"
+              value={enDescription}
+              onChange={(e) => setEnDescription(e.target.value)}
+            />
           </div>
           <div className="field">
             <label className="field__label" htmlFor="np-template">

@@ -143,7 +143,7 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
 ]
 
 /**
- * 区块类型目录（共 32 类）：
+ * 区块类型目录（共 34 类）：
  * - 16 类基础区块（契约 §4）+ 3 类自定义模块（richText / html / embed）+ showcase（通栏产品展示）= 20；
  * - 扩展：产品详情主体 3 类（productHero / productSpecs / productBuy）+ 商业合作 2 类（caseList / venueList）
  *   + 测评方法 1 类（methodList）+ 邮件订阅 1 类（subscribe）+ B2B 采购价值 1 类（b2bValue）
@@ -292,10 +292,19 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
   },
   {
     type: 'timeline',
-    name: '时间轴',
+    name: '时间轴 / 流程',
     group: '内容',
     fields: [
       { name: 'title', label: '标题', kind: 'text' },
+      {
+        name: 'layout',
+        label: '布局',
+        kind: 'select',
+        options: [
+          { label: '列表（时间轴）', value: 'list' },
+          { label: '横向流程（步骤 + 连接线）', value: 'flow' },
+        ],
+      },
       { name: 'items', label: '节点', kind: 'list' },
     ],
     listFields: [
@@ -863,6 +872,44 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'href', label: '链接（可选）', kind: 'text' },
     ],
   },
+  // —— 全屏视觉模块（R3 新建）：纯媒体铺满，无文案层；高度档位与海报同口径 ——
+  {
+    type: 'fullscreenVisual',
+    name: '全屏视觉模块',
+    group: '内容',
+    fields: [
+      { name: 'media', label: '媒体（图片 / GIF / 视频）', kind: 'media' },
+      {
+        name: 'mediaType',
+        label: '媒体类型',
+        kind: 'select',
+        options: [
+          { label: '图片', value: 'image' },
+          { label: 'GIF', value: 'gif' },
+          { label: '视频', value: 'video' },
+        ],
+      },
+      { name: 'imageMobile', label: '手机竖版图（可选）', kind: 'image' },
+      { name: 'height', label: '高度档位', kind: 'select', options: POSTER_HEIGHTS },
+      { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
+      { name: 'alt', label: '替代文本（无障碍）', kind: 'text' },
+    ],
+  },
+  // —— 长图无缝拼接（R6 新建）：切片按顺序垂直拼接；桌面 / 移动可分别指定 ——
+  {
+    type: 'longImage',
+    name: '长图拼接',
+    group: '内容',
+    fields: [
+      { name: 'items', label: '切片（按顺序垂直拼接）', kind: 'list' },
+      { name: 'href', label: '整块点击跳转（可选）', kind: 'link' },
+    ],
+    listFields: [
+      { name: 'image', label: '桌面图', kind: 'image' },
+      { name: 'imageMobile', label: '移动图（可选）', kind: 'image' },
+      { name: 'alt', label: '替代文本', kind: 'text' },
+    ],
+  },
   // —— 产品矩阵（§1.4 新建）：图片铺满卡面 + 型号 / 一句话 / 按钮置于顶部居中；两种数据源 ——
   {
     type: 'productMatrix',
@@ -971,13 +1018,18 @@ export function getBlockTypeMeta(type: BlockType): BlockTypeMeta | undefined {
   return BLOCK_TYPES.find((meta) => meta.type === type)
 }
 
-/** 全部区块类型（32 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
+/** 全部区块类型（34 类）的 type 值清单；用于站点配置 enabledBlocks 校验与缺省「全部启用」 */
 export const BLOCK_TYPE_VALUES: BlockType[] = BLOCK_TYPES.map((meta) => meta.type)
 
 /** 新建区块：生成随机稳定 id 的区块对象（后台新增用） */
 export function createBlock(type: BlockType, props: Record<string, unknown> = {}, style?: BlockStyle): Block {
   const block: Block = { id: randomUUID(), type, enabled: true, props: { ...defaultProps(type), ...props } }
-  if (style) block.style = style
+  // R3 / R6：媒体型区块默认通栏铺满（运营仍可在后台改为版心宽度）
+  if (type === 'fullscreenVisual' || type === 'longImage') {
+    block.style = { container: 'full', ...style }
+  } else if (style) {
+    block.style = style
+  }
   return block
 }
 
@@ -1029,6 +1081,12 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
       }
     case 'trustBar':
       return { columns: 4, items: [] }
+    case 'fullscreenVisual':
+      // R3：默认满屏、图片类型；新建后运营只需上传媒体
+      return { media: '', mediaType: 'image', imageMobile: '', height: 'full', heightValue: 720, alt: '' }
+    case 'longImage':
+      // R6：空切片列表；上传后按顺序垂直拼接
+      return { items: [], href: '' }
     default:
       return {}
   }

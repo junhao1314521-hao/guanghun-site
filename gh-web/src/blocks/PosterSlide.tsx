@@ -12,6 +12,7 @@
  * - 视频海报统一带 `poster` 首帧图 + `preload="metadata"`。
  */
 import type { CSSProperties } from 'react'
+import { heightClass, heightStyle } from './heightUtils'
 import { SafeLink } from '../components/ui/SafeLink'
 import { MediaImg } from '../components/ui/MediaImg'
 import type { BlockLink, StatItem } from './types'
@@ -111,15 +112,12 @@ export function posterMediaSrc(data: PosterData): string {
 
 /** 高度档位 → 外壳类名（首屏轮播固定满屏；全宽海报按档位） */
 export function posterHeightClass(height: PosterData['height']): string {
-  if (height === 'short') return 'blk-hero--h-short'
-  if (height === 'r219') return 'blk-hero--h-r219'
-  if (height === 'custom') return 'blk-hero--h-custom'
-  return 'blk-hero--h-full'
+  return heightClass('blk-hero', height)
 }
 
 /** 自定义高度 → 内联 min-height（其余档位由类名控制） */
 export function posterHeightStyle(data: PosterData): CSSProperties | undefined {
-  return data.height === 'custom' ? { minHeight: `${data.heightValue}px` } : undefined
+  return heightStyle(data.height, data.heightValue)
 }
 
 /** 是否渲染眉题 / 卖点：显式开关优先，缺省按「有内容即显示」兜底 */

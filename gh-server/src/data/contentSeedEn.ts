@@ -645,28 +645,29 @@ function buildCenterEn(): Page {
 
 function buildBusinessEn(): Page {
   return toPage('business', '/business', 'Business', 'Business partnerships.', [
-    // ① + ⑦ merged: directions & benefits (§4.9: 8 blocks → 6)
+    // ① partnership directions: 6 single-source items (duplicates removed)
     {
       type: 'cards',
       props: {
-        title: 'Directions & benefits',
+        title: 'Partnership directions',
+        subtitle: 'Pick the closest fit; the right team will follow up after you submit.',
         columns: 3,
         items: [
           { tag: 'channel', title: 'Channel distribution', desc: 'Regional and category partners.' },
           { tag: 'review', title: 'Review & sampling', desc: 'Press and creator sampling program.' },
           { tag: 'esports', title: 'Esports', desc: 'Team and tournament sponsorships.' },
-          { title: 'Channel reselling', desc: 'Authorized channels and pricing structure.' },
-          { title: 'Esports co-op', desc: 'Arena gear and event exposure.' },
-          { title: 'Content co-creation', desc: 'Joint reviews, streams and distribution.' },
-          { title: 'Co-branding', desc: 'Co-branded models and custom looks.' },
+          { tag: 'campus', title: 'Campus ambassadors', desc: 'Student clubs and campus trial programs.' },
+          { tag: 'content', title: 'Content co-creation', desc: 'Joint reviews, streams and distribution.' },
+          { tag: 'cobrand', title: 'Co-branding', desc: 'Co-branded models and custom looks.' },
         ],
       },
     },
-    // ② + ⑧ merged: one partnership process line
+    // ② partnership process: horizontal flow (connector lines; vertical on mobile)
     {
       type: 'timeline',
       props: {
         title: 'Partnership process',
+        layout: 'flow',
         items: [
           { time: '01', title: 'Submit an application', desc: 'Fill in the form with the partnership type and goals.' },
           { time: '02', title: 'Sampling / business contact', desc: 'Press sampling follows the sampling guide; business deals are handled by a dedicated contact.' },
@@ -677,13 +678,15 @@ function buildBusinessEn(): Page {
     {
       type: 'cards',
       props: {
-        title: 'Case studies',
+        title: 'Selected case studies',
         columns: 3,
         items: [
           { tag: 'Esports', title: 'Team sponsorship', desc: 'Multi-year gear supply', href: '/business/cases' },
           { tag: 'Retail', title: 'Flagship store', desc: 'Shenzhen Nanshan', href: '/business/cases' },
           { tag: 'Press', title: 'Editorial review', desc: 'Independent teardown', href: '/business/cases' },
         ],
+        ctaLabel: 'View all cases',
+        ctaHref: '/business/cases',
       },
     },
     {
@@ -705,19 +708,11 @@ function buildBusinessEn(): Page {
         desc: 'Submissions enter the same ticket system as product inquiries, tagged as Business.',
         channel: 'business',
         showForm: true,
+        // R5.2: only email and address, merged into the form's left column
+        points: ['Business email: business@guanghun.example', 'Office: Shenzhen, Guangdong · Guanghun (visit by appointment)'],
       },
-    },
-    {
-      type: 'cards',
-      props: {
-        title: 'Contacts',
-        columns: 3,
-        items: [
-          { title: 'Business', desc: 'business@guanghun.example' },
-          { title: 'Press / sampling', desc: 'press@guanghun.example' },
-          { title: 'Esports', desc: 'esports@guanghun.example' },
-        ],
-      },
+      // R5.5: tighten the form section's vertical padding (md → sm)
+      style: { paddingY: 'sm' },
     },
   ])
 }
@@ -813,18 +808,18 @@ function buildSupportEn(): Page {
     },
     { type: 'downloadList', props: { title: 'Downloads', category: 'all', limit: 20 } },
     {
-      enabled: false,
       type: 'cards',
       props: {
         title: 'Warranty & after-sales',
         columns: 2,
         items: [
-          { title: '2-year warranty' },
-          { title: 'Claim process' },
-          { title: 'Service points' },
-          { title: 'Return policy' },
+          { title: '3-year warranty with OLED burn-in cover' },
+          { title: 'Coverage starts from the purchase date on your receipt' },
+          { title: 'Free repair for non-accidental damage; paid repair quotes available' },
+          { title: 'Submit a ticket before shipping and keep the tracking number' },
         ],
       },
+      style: { anchor: 'warranty' },
     },
     // Data-source block: spots come from the service-info collection (edited in admin, live on the site)
     {
@@ -989,6 +984,7 @@ function buildModelSupportEn(): Page {
           { tag: 'OLED flagship', title: '54027X1QE-W54', desc: '26.5" 2K@540Hz flagship OLED with DP 2.1 full speed and Center tuning.', href: '/support/model/gh-54027x1qe' },
           { tag: 'Dual-mode', title: '32X1UE-W16', desc: '31.5" 4K@165 / FHD@330 dual-mode OLED esports display.', href: '/support/model/gh-32x1ue' },
           { tag: 'Esports IPS', title: '27Q1F', desc: '27" 2K 200Hz Fast IPS esports display with HDMI 2.1.', href: '/support/model/gh-27q1f' },
+          { tag: 'Esports IPS', title: '24H1', desc: '23.8" FHD 200Hz gaming monitor with HDR400 for entry-level and daily use.', href: '/support/model/gh-24h1' },
           { tag: 'Accessory', title: 'GH-ARM01', desc: 'Monitor arm with VESA 75/100 and 9 kg load capacity.', href: '/support/model/gh-arm01' },
         ],
       },

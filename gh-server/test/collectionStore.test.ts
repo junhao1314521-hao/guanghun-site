@@ -154,7 +154,7 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
     const models = listCollection('models')
     assert.ok(models.length > 0, '型号支持集合应非空')
     assert.equal(models.length, seed.models.length, '型号数量应与 seed 一致')
-    assert.equal(models.length, 4, 'seed 型号应为 4 条')
+    assert.equal(models.length, 5, 'seed 型号应为 5 条（含 24H1，保证下载集合的型号 id 均可解析）')
     for (const item of models) {
       assert.equal(typeof item.id, 'string', '每条型号记录应含字符串 id')
       assert.ok(item.model, '每条型号记录应含 model')

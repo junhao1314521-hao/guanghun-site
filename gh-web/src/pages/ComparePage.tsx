@@ -19,13 +19,14 @@ function display(value: string | undefined): string {
   return value
 }
 
-/** 某字段（标称 / 实测）在各产品间派生出的参数行 */
+/** 某字段（标称 / 实测）在各产品间派生出的参数行（R8.2：规格已合并进 summary） */
 function buildRows(names: string[], details: ProductDetail[], field: 'nominal' | 'measured'): CompareRow[] {
   return names.map((name) => ({
     name,
     values: details.map((detail) => {
-      const row = detail.specTable.find((item) => item.name === name)
-      return display(row ? row[field] : undefined)
+      const row = detail.summary.flatMap((group) => group.rows).find((item) => item.label === name)
+      if (!row) return MISSING
+      return display(field === 'nominal' ? row.nominal : row.measured ?? row.value)
     }),
   }))
 }
@@ -61,9 +62,9 @@ export function ComparePage() {
 
   const paramNames = useMemo(() => {
     const names: string[] = []
-    details.forEach((detail) => detail.specTable.forEach((row) => {
-      if (!names.includes(row.name)) names.push(row.name)
-    }))
+    details.forEach((detail) => detail.summary.forEach((group) => group.rows.forEach((row) => {
+      if (!names.includes(row.label)) names.push(row.label)
+    })))
     return names
   }, [details])
 

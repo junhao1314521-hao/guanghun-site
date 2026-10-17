@@ -5,10 +5,11 @@ import { IconArrowUp, IconChat, IconChevronRight, IconPhone, IconSupport } from 
 import { QrBox } from './QrPlaceholder'
 
 /**
- * 右下角悬浮按钮组：返回顶部 / 在线留言 / 联系客服。
+ * 右下角悬浮按钮组：返回顶部 / 联系客服。
  * - 「返回顶部」仅在滚动超过一屏后淡入；
- * - 「联系客服」悬停（桌面）/ 聚焦（键盘）/ 点击（触屏）展开二维码面板，
+ * - 「联系客服」悬停（桌面）/ 聚焦（键盘）/ 点击（触屏）展开面板，
  *   点击外部或 Esc 关闭；动效受 prefers-reduced-motion 约束。
+ * - 「在线留言」不再单独成钮：面板内已有同一入口（R7.2 精简）。
  */
 export function FloatingActions() {
   const { t } = useI18n()
@@ -50,10 +51,6 @@ export function FloatingActions() {
       <button type="button" className="fab__btn fab__btn--top" aria-label={t('fab.top')} onClick={toTop}>
         <IconArrowUp size={18} />
       </button>
-
-      <Link className="fab__btn" to="/inquiry" aria-label={t('fab.message')}>
-        <IconChat />
-      </Link>
 
       <div className={`fab__contact${open ? ' is-open' : ''}`} ref={contactRef}>
         <button

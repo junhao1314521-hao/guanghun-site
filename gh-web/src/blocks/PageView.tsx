@@ -6,11 +6,13 @@
  * 页面不再渲染任何页头（面包屑 + 大标题），首个区块直接接在顶栏之下；
  * 仍以 `page.title` 渲染一个仅供读屏 / SEO 的隐藏 h1，保证每页有唯一 h1（区块内标题统一 h2）。
  */
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { fetchPage } from '../api/content'
+import { upsertMeta } from '../hooks/usePageMeta'
 import { useApi } from '../hooks/useApi'
+import { useI18n } from '../i18n'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
 import { BlockRenderer } from './BlockRenderer'
@@ -71,8 +73,28 @@ function applyDefaults(blocks: Block[], defaults?: BlockDefaults): Block[] {
 export function PageView({ pageKey, blockDefaults }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const { lang } = useI18n()
 
-  const { data: page, loading, error } = useApi((signal) => fetchPage(pageKey, signal), [pageKey, reloadKey])
+  // R10.3：语言切换时重新取页（英文 locale 走 `__en` / en 覆盖层）
+  const { data: page, loading, error } = useApi((signal) => fetchPage(pageKey, signal), [pageKey, reloadKey, lang])
+
+  // R10.4：后台为页面配置了 SEO 标题 / 描述时覆盖默认 meta（未配置则沿用站点默认）
+  useLayoutEffect(() => {
+    if (!page) return
+    const title = page.seoTitle?.trim()
+    const description = page.seoDescription?.trim() || page.description?.trim()
+    if (!title && !description) return
+    if (title) {
+      document.title = title
+      upsertMeta('property', 'og:title', title)
+      upsertMeta('name', 'twitter:title', title)
+    }
+    if (description) {
+      upsertMeta('name', 'description', description)
+      upsertMeta('property', 'og:description', description)
+      upsertMeta('name', 'twitter:description', description)
+    }
+  }, [page])
 
   // 数据到位后各区块才挂载，用 readyKey 触发一次动效重绑
   const readyKey = `${pageKey}:${reloadKey}:${loading ? 'loading' : 'ready'}`

@@ -12,6 +12,7 @@ import { ApiError } from '../../api/client'
 import { fetchPageByPath } from '../../api/content'
 import { PageSkeleton, PageView } from '../../blocks/PageView'
 import { useApi } from '../../hooks/useApi'
+import { useI18n } from '../../i18n'
 
 type Props = {
   /** 路径未命中内容库时渲染的内容（由调用方传入站内 404） */
@@ -20,7 +21,8 @@ type Props = {
 
 export function DynamicPage({ fallback }: Props) {
   const { pathname } = useLocation()
-  const { data: page, loading, error } = useApi((signal) => fetchPageByPath(pathname, signal), [pathname])
+  const { lang } = useI18n()
+  const { data: page, loading, error } = useApi((signal) => fetchPageByPath(pathname, signal), [pathname, lang])
 
   // 404（路径不存在）→ 站内 404；其他错误（网络 / 服务异常）给出可重试提示，不误报「页面不存在」
   if (error) {

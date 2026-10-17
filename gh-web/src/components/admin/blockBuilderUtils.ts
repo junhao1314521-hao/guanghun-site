@@ -286,6 +286,9 @@ const BLOCK_ICON: Record<BlockType, string> = {
   brandAssetList: 'download',
   // 信任条
   trustBar: 'venn',
+  // 全屏视觉模块 / 长图拼接（R3 / R6）
+  fullscreenVisual: 'monitor',
+  longImage: 'doc',
 }
 
 export function blockIcon(type: BlockType): string {

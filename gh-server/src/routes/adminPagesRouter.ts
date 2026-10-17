@@ -352,6 +352,10 @@ adminPagesRouter.post(
     path,
     title,
     description: readString(body.description) || undefined,
+    seoTitle: readString(body.seoTitle) || undefined,
+    seoDescription: readString(body.seoDescription) || undefined,
+    enTitle: readString(body.enTitle) || undefined,
+    enDescription: readString(body.enDescription) || undefined,
     blocks,
     enabled: typeof body.enabled === 'boolean' ? body.enabled : undefined,
   })

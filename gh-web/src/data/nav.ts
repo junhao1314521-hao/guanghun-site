@@ -71,6 +71,8 @@ export const MEGA_PANELS: MegaPanel[] = [
           { label: '下载中心', to: '/downloads' },
           { label: '型号与兼容', to: '/support/models' },
           { label: '常见问题', to: '/faq' },
+          // 保修与售后：独立入口，直达服务支持页的保修区块（页面内锚点 #warranty）
+          { label: '保修与售后', to: '/support#warranty' },
         ],
       },
       {

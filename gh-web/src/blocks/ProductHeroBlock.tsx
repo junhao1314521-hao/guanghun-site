@@ -12,10 +12,14 @@
  * 数据来自 `ProductDetailContext`（当前产品）；装修配置来自区块 props（模板级，统一生效）。
  */
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
+import { IconHeart } from '../components/ui/Icon'
 import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
 import { MediaImg } from '../components/ui/MediaImg'
+import { addMyFavorite, fetchMyFavorites, removeMyFavorite } from '../api/account'
+import { useSession } from '../hooks/useSession'
 import { useProductDetail } from './ProductDetailContext'
 import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
@@ -25,8 +29,13 @@ const THUMB_SCROLL_THRESHOLD = 4
 
 export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
+  const navigate = useNavigate()
+  const { user } = useSession()
   const detail = useProductDetail()
   const [thumb, setThumb] = useState(0)
+  /** 收藏状态（登录后与个人中心同源） */
+  const [saved, setSaved] = useState(false)
+  const [favBusy, setFavBusy] = useState(false)
   /** 悬停放大：跟随光标的缩放原点（%）；null = 未放大 */
   const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null)
   /** 灯箱当前索引；null = 关闭 */
@@ -64,6 +73,26 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
     return () => document.removeEventListener('keydown', onKey)
   }, [lightbox, gallery.length])
 
+  // 登录后回查收藏状态（R8.5：收藏能力保留）
+  const productName = detail?.name
+  useEffect(() => {
+    if (!user || !productName) {
+      setSaved(false)
+      return
+    }
+    let alive = true
+    fetchMyFavorites()
+      .then((res) => {
+        if (alive) setSaved(res.items.some((item) => item.name === productName))
+      })
+      .catch(() => {
+        /* 未登录 / 网络失败：保持未收藏态 */
+      })
+    return () => {
+      alive = false
+    }
+  }, [user, productName])
+
   if (!detail) return null
 
   const showBadges = props.showBadges === undefined ? true : asBool(props.showBadges)
@@ -93,6 +122,29 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
 
   const stepLightbox = (offset: number) =>
     setLightbox((i) => (i === null ? i : (i + offset + gallery.length) % gallery.length))
+
+  // 收藏切换：未登录引导登录；已登录调用真实接口（与个人中心「收藏」同源）
+  const toggleFavorite = async () => {
+    if (favBusy) return
+    if (!user) {
+      navigate(`/login?from=${encodeURIComponent(`/products/${detail.id}`)}`)
+      return
+    }
+    setFavBusy(true)
+    try {
+      if (saved) {
+        await removeMyFavorite(detail.name)
+        setSaved(false)
+      } else {
+        await addMyFavorite({ name: detail.name, spec: [detail.model, detail.price].filter(Boolean).join(' · ') })
+        setSaved(true)
+      }
+    } catch {
+      /* 失败静默：保持原状态 */
+    } finally {
+      setFavBusy(false)
+    }
+  }
 
   return (
     <>
@@ -205,18 +257,32 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                   {secondaryLabel}
                 </a>
               ))}
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label={saved ? '取消收藏' : '收藏'}
+              aria-pressed={saved}
+              disabled={favBusy}
+              onClick={toggleFavorite}
+              style={{ color: saved ? 'var(--color-accent-text)' : undefined }}
+            >
+              <IconHeart size={18} />
+            </button>
           </div>
 
           {showSummary && (
             <>
+              {/* 首屏只放 3 条关键指标（实测优先）；完整摘要与规格在下方产品规格区块 */}
               <dl className="summary">
-                {detail.summary.map((group) => (
+                {detail.summary.slice(0, 1).map((group) => (
                   <div key={group.title}>
-                    <div className="summary__group-title">{group.title}</div>
-                    {group.rows.map((row) => (
+                    <div className="summary__group-title">{t('blocks.pd.keyMetrics')}</div>
+                    {group.rows.slice(0, 3).map((row) => (
                       <div className="summary__row" key={row.label}>
                         <dt>{row.label}</dt>
-                        <dd className={row.missing ? 'missing' : undefined}>{row.value}</dd>
+                        <dd className={row.missing ? 'missing' : undefined}>
+                          {row.measured ?? row.value ?? row.nominal ?? '—'}
+                        </dd>
                       </div>
                     ))}
                   </div>

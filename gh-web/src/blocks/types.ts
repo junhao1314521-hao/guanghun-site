@@ -402,6 +402,34 @@ export type TrustBarProps = {
   }[]
 }
 
+/** 31. fullscreenVisual 全屏视觉模块（R3 新建）：纯媒体铺满，无文案层 */
+export type FullscreenVisualProps = {
+  /** 媒体地址（图片 / GIF / 视频） */
+  media?: string
+  mediaType?: 'image' | 'gif' | 'video'
+  /** 手机竖版图（可选） */
+  imageMobile?: string
+  /** 高度档位：满屏 / 21:9 / 矮一档 / 自定义 */
+  height?: 'full' | 'r219' | 'short' | 'custom'
+  /** 自定义高度（px） */
+  heightValue?: number
+  /** 替代文本（无障碍） */
+  alt?: string
+}
+
+/** 32. longImage 长图拼接（R6 新建）：切片按顺序垂直无缝拼接 */
+export type LongImageProps = {
+  items?: {
+    /** 桌面切片 */
+    image?: string
+    /** 移动切片（可选，缺省回退桌面图） */
+    imageMobile?: string
+    alt?: string
+  }[]
+  /** 整块点击跳转（可选） */
+  href?: string
+}
+
 /** 类型名 → props 类型映射（区块组件用） */
 export type BlockPropsMap = {
   hero: HeroProps
@@ -435,4 +463,6 @@ export type BlockPropsMap = {
   productDetailRich: ProductDetailRichProps
   brandAssetList: BrandAssetListProps
   trustBar: TrustBarProps
+  fullscreenVisual: FullscreenVisualProps
+  longImage: LongImageProps
 }

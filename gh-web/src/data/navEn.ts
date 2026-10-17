@@ -41,6 +41,7 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
           { label: 'Downloads', to: '/downloads' },
           { label: 'Model support', to: '/support/models' },
           { label: 'FAQ', to: '/faq' },
+          { label: 'Warranty & after-sales', to: '/support#warranty' },
         ],
       },
       {

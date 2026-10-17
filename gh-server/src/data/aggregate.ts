@@ -87,11 +87,11 @@ export function buildTechArticles(articles: ArticleSummary[]): ArticleCard[] {
 
 /* ---------------- 服务支持 ---------------- */
 
-/** 服务支持页下载列表：由下载集合派生（models 数组按既有口径以「 / 」拼接为字符串） */
+/** 服务支持页下载列表：由下载集合派生（优先用接口派生的型号显示名） */
 export function buildSupportDownloads(downloads: DownloadItem[]): Array<{ name: string; models: string; version: string; size: string; date: string }> {
   return downloads.map((item) => ({
     name: item.name,
-    models: item.models.join(' / '),
+    models: (item.modelNames ?? item.models).join(' / '),
     version: item.version,
     size: item.size,
     date: item.date,

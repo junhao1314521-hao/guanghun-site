@@ -81,10 +81,10 @@ export function AdminLoginPage() {
       <AuthShell
         variant="full"
         badge="管理端"
-        eyebrow="ADMIN / SIGN IN"
-        headline="光魂内容管理系统"
-        subtitle="统一管理产品、内容、装修与服务数据，改动即时反映到前台。"
-        points={['页面装修器 · 可视化拖拽编辑', '集合数据 · 前后台单一数据源', '角色权限 · 发布与版本备份']}
+        eyebrow=""
+        headline="让每一帧都有据可查"
+        subtitle="产品、内容与服务，改一处即刻生效。"
+        points={['装修、参数与服务数据同源，无需重复录入。']}
       >
         <div className="card">
           <h1 className="card__title">登录后台</h1>
