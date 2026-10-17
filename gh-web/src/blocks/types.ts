@@ -381,10 +381,8 @@ export type ProductDetailRichProps = Record<string, never>
  * - long：单页长滚动叙事
  */
 export type ProductDetailLayoutProps = {
-  /** 默认布局；URL `?layout=` 可临时覆盖，便于对比 */
+  /** 默认布局（由后台区块设置；前台不提供切换入口） */
   layout?: 'toc' | 'tabs' | 'accordion' | 'long'
-  /** 是否显示页面顶部的「布局预览」切换器 */
-  showSwitcher?: boolean
   /* —— 首屏展示台（与 productHero 字段一致，复用同一组件）—— */
   primaryLabel?: string
   primaryHref?: string

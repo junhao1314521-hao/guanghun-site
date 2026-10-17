@@ -1074,7 +1074,6 @@ function buildTemplates(): Page[] {
         type: 'productDetailLayout',
         props: {
           layout: 'toc',
-          showSwitcher: true,
           // §4.22 3-2：主 CTA「立即购买」取当前产品的「购买链接」(buyUrl)；次 CTA「预约体验」→ 体验点
           primaryLabel: '立即购买',
           primaryHref: '',

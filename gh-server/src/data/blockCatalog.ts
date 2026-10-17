@@ -738,7 +738,6 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
           { label: '长页式（单页滚动）', value: 'long' },
         ],
       },
-      { name: 'showSwitcher', label: '显示「布局预览」切换器', kind: 'switch' },
       { name: 'primaryLabel', label: '主按钮文案', kind: 'text', placeholder: '如：立即购买（留空则不显示）' },
       { name: 'primaryHref', label: '主按钮链接', kind: 'text', placeholder: '如：/inquiry' },
       { name: 'primaryFromProduct', label: '主按钮取产品购买链接（buyUrl）', kind: 'switch' },

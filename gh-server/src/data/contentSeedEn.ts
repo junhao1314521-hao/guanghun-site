@@ -1025,7 +1025,6 @@ function buildTemplatesEn(): Page[] {
           type: 'productDetailLayout',
           props: {
             layout: 'toc',
-            showSwitcher: true,
             // §4.22 3-2: primary CTA "Buy now" takes the product buyUrl; secondary "Book a demo" → venues
             primaryLabel: 'Buy now',
             primaryHref: '',
