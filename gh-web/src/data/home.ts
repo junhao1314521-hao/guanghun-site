@@ -11,6 +11,12 @@ export type HeroSlide = {
   id: string
   media: SlideMedia
   mediaTag: string
+  /** 海报图地址（横版，宽屏使用；运营/生成的主视觉） */
+  poster?: string
+  /** 手机竖版海报地址（窄屏 <900px 使用；缺省则回退到横版） */
+  posterMobile?: string
+  /** 文案位置覆盖（百分比 0–100；缺省用首屏统一位置） */
+  position?: { x: number; y: number }
   eyebrow: string
   title: string[]
   desc: string
@@ -39,6 +45,21 @@ export const HERO_SLIDES: HeroSlide[] = [
       { value: '0.03 ms', label: 'GTG 响应' },
       { value: '80 Gbps', label: 'DP 2.1 带宽' },
     ],
+  },
+  {
+    // 21:9 宽屏主视觉：图片由运营提供，文案放左侧空白区，避免压住产品
+    id: 'poster-21x9',
+    media: { kind: 'image' },
+    mediaTag: '21:9 产品海报',
+    poster: '/posters/poster-21x9-v3.png',
+    eyebrow: 'ULTRAWIDE / 21:9',
+    title: ['21:9', '超宽视野'],
+    desc: '光魂超宽屏电竞显示器',
+    primary: '立即购买',
+    secondary: '',
+    primaryTo: '/products',
+    stats: [],
+    position: { x: 7, y: 32 },
   },
   {
     id: 's1',

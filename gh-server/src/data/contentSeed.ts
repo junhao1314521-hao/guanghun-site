@@ -176,7 +176,7 @@ function buildHome(): Page {
             ...posterButtons(detail),
             stats: slide.stats,
             statsEnabled: false,
-            contentPosition: POSTER_POSITION,
+            contentPosition: slide.position ?? POSTER_POSITION,
           }
         }),
         autoplay: true,
