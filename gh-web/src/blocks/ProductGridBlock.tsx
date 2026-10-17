@@ -284,11 +284,11 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           </div>
           {live ? (
             <SafeLink className="btn btn--sm btn--primary pcard__buy" to={`/products/${item.id}`} viewTransition>
-              购买
+              进一步了解
             </SafeLink>
           ) : (
             <span className="btn btn--sm pcard__buy is-disabled" aria-disabled="true">
-              购买
+              进一步了解
             </span>
           )}
         </div>
