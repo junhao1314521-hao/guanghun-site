@@ -183,6 +183,8 @@ function buildHome(): Page {
           }
         }),
         autoplay: true,
+        // 首屏整组统一 21:9：海报按原比例满铺，上传尺寸可预期
+        height: 'r219',
         // 代码动画作为第 1 张（可关闭；关闭后仅展示下面配置的海报）
         motion: true,
       },

@@ -173,6 +173,9 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'motion', label: '代码动画（作为第 1 张）', kind: 'switch' },
       { name: 'slides', label: '幻灯片（后续第 2、3… 张）', kind: 'list' },
       { name: 'autoplay', label: '自动播放', kind: 'switch' },
+      // 整组幻灯片统一高度：r219 = 21:9（上传 21:9 海报按原比例展示，不裁切）
+      { name: 'height', label: '海报高度', kind: 'select', options: POSTER_HEIGHTS },
+      { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
     ],
     listFields: POSTER_FIELDS,
   },

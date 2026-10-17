@@ -116,7 +116,7 @@ export function posterMediaSrc(data: PosterData): string {
   return data.media || data.image
 }
 
-/** 高度档位 → 外壳类名（首屏轮播固定满屏；全宽海报按档位） */
+/** 高度档位 → 外壳类名（全宽海报按档位；首屏轮播由块级 height 决定） */
 export function posterHeightClass(height: PosterData['height']): string {
   return heightClass('blk-hero', height)
 }

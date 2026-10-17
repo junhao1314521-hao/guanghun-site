@@ -17,11 +17,11 @@ import { PosterDownloads } from './PosterDownloads'
 import {
   PosterMedia,
   PosterOverlay,
-  posterHeightClass,
   posterMediaSrc,
   toPoster,
   type PosterData,
 } from './PosterSlide'
+import { heightClass, heightStyle } from './heightUtils'
 
 const DURATION = 6000
 
@@ -57,6 +57,9 @@ const MOTION_FALLBACK: PosterData = toPoster({
 export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
   const slides = asArray(props.slides).map(toPoster)
   const autoplay = asBool(props.autoplay, true)
+  // 高度档位（块级）：默认满屏；设为 r219 时整组幻灯片统一 21:9，上传图不会被裁切或拉伸
+  const height = props.height
+  const heightStyleValue = heightStyle(height, props.heightValue)
   // 代码动画作为「第 1 张」（默认开启）：它不铺媒体、只出动画；其余幻灯片照常渲染。
   // 关闭后不再插入动画张，仅展示配置的海报；一张都没配时则只剩这张动画。
   const motion = asBool(props.motion, true)
@@ -89,7 +92,8 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
 
   return (
     <div
-      className={`blk-hero ${posterHeightClass('full')}${theme === 'light' ? ' blk-hero--light' : ''}${paused ? ' is-paused' : ''}`}
+      className={`blk-hero ${heightClass('blk-hero', height)}${theme === 'light' ? ' blk-hero--light' : ''}${paused ? ' is-paused' : ''}`}
+      style={heightStyleValue}
       tabIndex={0}
       role="group"
       aria-label="首屏轮播，可用左右方向键切换"
