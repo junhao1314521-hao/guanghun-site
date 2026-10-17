@@ -91,9 +91,8 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const showSpecs = props.showSpecs === undefined ? false : asBool(props.showSpecs)
   const showStatus = props.showStatus === undefined ? true : asBool(props.showStatus)
   const showPrice = props.showPrice === undefined ? false : asBool(props.showPrice)
-  const showFlag = props.showFlag === undefined ? true : asBool(props.showFlag)
-  // 卡片底色：auto 跟随主题；light 适配白底图；dark 适配深底图
-  const cardTone = asString(props.cardTone, 'auto')
+  // 卡片底色：默认白卡（对齐参考图）；auto 跟随主题；dark 适配深底图
+  const cardTone = asString(props.cardTone, 'light')
   // 3 列沿用既有自适应产品网格 .p-grid；2 / 4 列用区块网格类固定列数
   const gridClassName = columns === 3 ? 'p-grid' : gridClass(columns)
 
@@ -266,16 +265,11 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           className="pcard__media"
           style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
         >
-          <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
+          <MediaImg src={MEDIA.productWhite[item.id] ?? ''} alt={item.name} variant={item.variant} label={item.name} />
         </div>
         <div className="pcard__foot">
           <div className="pcard__meta">
-            {(showFlag && item.flag) || item.model ? (
-              <span className="pcard__model">
-                {showFlag && item.flag ? `${item.flag} · ` : ''}
-                {item.model}
-              </span>
-            ) : null}
+            <span className="pcard__category">{item.category}</span>
             {showStatus && (
               <span className={`pcard__status pcard__status--${item.status.level}`}>{item.status.text}</span>
             )}

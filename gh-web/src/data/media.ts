@@ -337,6 +337,17 @@ export const MEDIA = {
     'gh-arm01': art('pad', W43, H43, `${DEVICE_DESC.pad}｜产品卡 4:3`),
   } as Record<string, string>,
 
+  /** 产品卡白底图：由主图去底后合成纯白背景（仅产品网格使用，详情/矩阵仍用深色主图） */
+  productWhite: {
+    'gh-54027x1qe': '/media/products/white/gh-54027x1qe.jpg',
+    'gh-28027x1qe': '/media/products/white/gh-28027x1qe.jpg',
+    'gh-32x1ue': '/media/products/white/gh-32x1ue.jpg',
+    'gh-27x1u': '/media/products/white/gh-27x1u.jpg',
+    'gh-27q1f': '/media/products/white/gh-27q1f.jpg',
+    'gh-24h1': '/media/products/white/gh-24h1.jpg',
+    'gh-25s1fp': '/media/products/white/gh-25s1fp.jpg',
+  } as Record<string, string>,
+
   /** 产品详情相册（按设备类型给 4 个机位，1:1） */
   views: {
     monitor: [1, 2, 3, 4].map((i) => `/media/products/views/monitor-${i}.jpg`),

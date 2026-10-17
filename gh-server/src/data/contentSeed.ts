@@ -1013,9 +1013,9 @@ function buildProducts(): Page {
       style: { container: 'full' },
     },
     // 全部产品（带筛选/排序）——productGrid 的范围/呈现/字段全部可配（见后台装修器）
-    { type: 'productGrid', props: { title: '全部产品', subtitle: '按类别、连接方式与价格筛选在售产品。', scope: 'all', limit: 24, columns: 3, cardTone: 'dark' } },
+    { type: 'productGrid', props: { title: '全部产品', subtitle: '按类别、连接方式与价格筛选在售产品。', scope: 'all', limit: 24, columns: 3, cardTone: 'light' } },
     // 样板：按分类——只挑一个品类
-    { type: 'productGrid', props: { title: 'OLED 旗舰', subtitle: '只展示「OLED旗舰」分类的全部型号。', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false, cardTone: 'dark' } },
+    { type: 'productGrid', props: { title: 'OLED 旗舰', subtitle: '只展示「OLED旗舰」分类的全部型号。', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false, cardTone: 'light' } },
   ])
 }
 
@@ -1157,7 +1157,7 @@ function buildTemplates(): Page[] {
           source: 'featured',
           limit: 4,
           columns: 4,
-          cardTone: 'dark',
+          cardTone: 'light',
         },
       },
       {
@@ -1178,7 +1178,7 @@ function buildTemplates(): Page[] {
     ]),
     toPage('template-compare', '/compare', '产品对比模板', '产品对比装修区。', [
       { type: 'text', props: { title: '产品对比', body: '选择最多 4 款同品类产品进行参数对比。', align: 'left' } },
-      { type: 'productGrid', props: { title: '可选产品', source: 'all', limit: 8, columns: 4, cardTone: 'dark' } },
+      { type: 'productGrid', props: { title: '可选产品', source: 'all', limit: 8, columns: 4, cardTone: 'light' } },
     ]),
     toPage('template-article', '/articles/:id', '文章详情模板', '文章详情装修区。', [
       // 文末「相关产品」：导流回产品（区块化，后台可增删）
@@ -1194,7 +1194,7 @@ function buildTemplates(): Page[] {
           limit: 4,
           columns: 4,
           showFilter: false,
-          cardTone: 'dark',
+          cardTone: 'light',
         },
       },
       { type: 'articleList', props: { title: '相关阅读', source: 'all', limit: 3 } },

@@ -2223,7 +2223,7 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .catalog__scene { margin-left: var(--gh-space-3); color: var(--color-accent-text); }
 .catalog__sort { width: 168px; }
 .catalog__chips { display: flex; flex-wrap: wrap; gap: var(--gh-space-2); margin-bottom: var(--gh-space-4); }
-.catalog__grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.p-grid.catalog__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 36px; }
 .catalog__empty { padding: var(--gh-space-7) 0; text-align: center; color: var(--color-text-secondary); }
 .catalog__pager { display: flex; justify-content: center; margin-top: var(--gh-space-7); }
 
@@ -2235,7 +2235,7 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   .catalog__opt { width: auto; padding: 5px 10px; border: 1px solid var(--color-border-subtle); }
 }
 @media (max-width: 599px) {
-  .catalog__grid { grid-template-columns: minmax(0, 1fr); }
+  .p-grid.catalog__grid { grid-template-columns: minmax(0, 1fr); }
   .catalog__toolbar { align-items: stretch; }
   .catalog__sort { width: 100%; }
 }

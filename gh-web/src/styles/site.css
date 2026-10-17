@@ -2388,9 +2388,10 @@ body.drawer-open { overflow: hidden; }
   aspect-ratio: 4 / 5;
   overflow: hidden;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 24px;
-  background: var(--veil-surface);
-  box-shadow: 0 10px 30px rgba(4, 6, 12, .06);
+  border-radius: 32px;
+  background: #fff;
+  color: #17171a;
+  box-shadow: 0 12px 34px rgba(4, 6, 12, .07);
   transition:
     transform .35s var(--gh-ease-accent),
     box-shadow .35s var(--gh-ease-standard),
@@ -2398,14 +2399,14 @@ body.drawer-open { overflow: hidden; }
 }
 .pcard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 18px 44px rgba(4, 6, 12, .14);
+  box-shadow: 0 22px 52px rgba(4, 6, 12, .16);
   border-color: var(--color-border-strong);
 }
 /* 关闭旧的指针聚光，避免叠在白卡上发蓝 */
 .pcard::after { display: none; }
 .pcard--light { background: #fff; color: #17171a; border-color: rgba(17, 17, 20, .08); }
 .pcard--dark { background: #080a12; color: var(--gh-neutral-50); border-color: rgba(255, 255, 255, .10); }
-.pcard__head { position: relative; z-index: 2; padding: 28px 56px 0 28px; min-height: 0; }
+.pcard__head { position: relative; z-index: 2; padding: 38px 68px 0 38px; min-height: 0; }
 .pcard__model {
   font-family: var(--gh-font-mono);
   font-size: 11px;
@@ -2417,8 +2418,8 @@ body.drawer-open { overflow: hidden; }
 .pcard__name-link { color: inherit; text-decoration: none; }
 .pcard__name {
   margin: 0;
-  font-size: clamp(20px, 1.6vw, 26px);
-  line-height: 1.2;
+  font-size: clamp(24px, 1.9vw, 32px);
+  line-height: 1.18;
   font-weight: 700;
   letter-spacing: -.01em;
   display: -webkit-box;
@@ -2463,23 +2464,20 @@ body.drawer-open { overflow: hidden; }
 .pcard__flags { position: absolute; top: 22px; right: 22px; left: auto; z-index: 2; }
 .pcard__media {
   position: absolute;
-  inset: 104px 0 76px;
+  inset: 124px 0 96px;
   z-index: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   background: transparent;
-  /* 图片边缘羽化到卡片底色：白底图 / 深底图都不会出现硬矩形 */
-  -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 58%, transparent 100%);
-  mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 58%, transparent 100%);
 }
 .pcard__media img {
   width: 100%;
   height: 100%;
   max-width: none;
   max-height: none;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 .pcard__media .dev { width: 70%; height: 70%; transition: none; }
@@ -2491,15 +2489,16 @@ body.drawer-open { overflow: hidden; }
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 28px 26px;
+  padding: 0 38px 36px;
   margin-top: 0;
 }
-.pcard__meta { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.pcard__meta { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.pcard__category { font-size: 13px; color: currentColor; opacity: .62; letter-spacing: .01em; }
 .pcard__status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: currentColor;
   opacity: .7;
 }
@@ -2508,30 +2507,31 @@ body.drawer-open { overflow: hidden; }
 .pcard__status--warning::before { background: #d97706; }
 .pcard__buy {
   flex: 0 0 auto;
-  height: 38px;
-  padding: 0 22px;
+  height: 42px;
+  padding: 0 26px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 .pcard__buy.is-disabled { opacity: .4; pointer-events: none; }
 .pcard__specs { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; opacity: .65; }
 .pcard__price { font-family: var(--gh-font-mono); font-size: 15px; font-weight: 600; }
 @media (max-width: 767px) {
-  .pcard { aspect-ratio: 4 / 5; border-radius: 20px; }
-  .pcard__head { padding: 20px 48px 0 20px; }
-  .pcard__media { inset: 94px 0 70px; }
-  .pcard__foot { padding: 0 20px 20px; }
-  .pcard__name { font-size: 20px; }
+  .pcard { aspect-ratio: 4 / 5; border-radius: 26px; }
+  .pcard__head { padding: 26px 56px 0 26px; }
+  .pcard__media { inset: 106px 0 84px; }
+  .pcard__foot { padding: 0 26px 26px; }
+  .pcard__name { font-size: 22px; }
+  .pcard__buy { height: 40px; padding: 0 22px; }
 }
 
-/* 3 列产品网格：与参考一致，桌面固定 3 列（此前 auto-fill 会变 4 列） */
-.p-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* 3 列产品网格：与参考一致，桌面固定 3 列，间距放大减少密集感 */
+.p-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px 40px; }
 @media (max-width: 1023px) {
-  .p-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 28px; }
 }
 @media (max-width: 639px) {
-  .p-grid { grid-template-columns: minmax(0, 1fr); }
+  .p-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
 
 /* 海报 CTA / 顶栏商城：统一胶囊形 */

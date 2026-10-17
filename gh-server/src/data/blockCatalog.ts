@@ -372,7 +372,6 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'showPrice', label: '显示价格', kind: 'switch' },
       { name: 'showSpecs', label: '显示参数', kind: 'switch' },
       { name: 'showStatus', label: '显示状态', kind: 'switch' },
-      { name: 'showFlag', label: '显示角标', kind: 'switch' },
       { name: 'showFilter', label: '显示筛选 / 排序', kind: 'switch' },
       // 卡片底色：跟随主题 / 适配白底图 / 适配深底图
       {
