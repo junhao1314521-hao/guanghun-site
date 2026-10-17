@@ -691,6 +691,18 @@ function buildCenter(): Page {
 /** 商业合作首页：合作方向与权益 → 合作流程 → 案例 → 品牌资料 → 申请 → 联系方式（§4.9：8 块 → 6 块） */
 function buildBusiness(): Page {
   return toPage('business', '/business', '商业合作首页', '商业合作首页装修。', [
+    // 顶部全屏海报（纯图片、无文案）：固定 480px 高，宽屏铺满；图片由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 480,
+        alt: '商业合作顶部横幅（待上传）',
+      },
+      style: { container: 'full' },
+    },
     // ①「合作方向」：6 条单一真源（删除与 COOP_DIRECTIONS 重复的 4 条硬编码）
     {
       type: 'cards',
@@ -988,6 +1000,18 @@ function buildBrandPage(profile: brand.BrandProfile): Page {
 /** 产品列表 */
 function buildProducts(): Page {
   return toPage('products', '/products', '产品列表', '产品列表装修 + 数据源区块。', [
+    // 顶部全屏海报（纯图片、无文案）：固定 480px 高，宽屏铺满；图片由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 480,
+        alt: '全部产品顶部横幅（待上传）',
+      },
+      style: { container: 'full' },
+    },
     // 全部产品（带筛选/排序）——productGrid 的范围/呈现/字段全部可配（见后台装修器）
     { type: 'productGrid', props: { title: '全部产品', subtitle: '按类别、连接方式与价格筛选在售产品。', scope: 'all', limit: 24, columns: 3 } },
     // 样板：按分类——只挑一个品类
@@ -1017,6 +1041,18 @@ function buildArticles(): Page {
 /** 下载中心 */
 function buildDownloads(): Page {
   return toPage('downloads', '/downloads', '下载中心', '下载中心装修 + 数据源区块。', [
+    // 顶部全屏海报（纯图片、无文案）：固定 480px 高，宽屏铺满；图片由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 480,
+        alt: '下载中心顶部横幅（待上传）',
+      },
+      style: { container: 'full' },
+    },
     { type: 'downloadList', props: { title: '全部资料', subtitle: '驱动、固件与说明书；同一份资料可关联到多个型号。', category: 'all', limit: 0, pageSize: 10 } },
   ])
 }
