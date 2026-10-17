@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { BLOCK_TYPES } from '../data/blockCatalog'
-import { getPage, getSiteConfig, listPages } from '../data/contentStore'
+import { getPage, getPageByPath, getSiteConfig, listPages } from '../data/contentStore'
 import { normalizeSocialConfig } from '../data/contentTypes'
 import { readLocale } from '../data/locale'
 
@@ -8,6 +8,7 @@ import { readLocale } from '../data/locale'
  * 内容库公开端点（挂载于 /api/content，契约 §6.1）：
  *   GET /pages              页面列表 { items: PageMeta[], total }（不含 blocks；过滤 __en 变体）
  *   GET /pages/:key         单页 { page: Page }；未命中 404。支持 ?locale=en：取英文变体，未命中回退中文
+ *   GET /page-by-path?path= 按前台 URL 路径反查页面（动态路由 R10.1）；未命中 404
  *   GET /site               站点配置 { nav, footer, enabledBlocks?, theme? }。支持 ?locale=en：返回英文 nav/footer
  *   GET /blocks/types       区块类型目录 { items: BlockTypeMeta[] }（含 enabled 启用状态）
  *
@@ -24,6 +25,16 @@ contentStoreRouter.get('/pages', (_req, res) => {
 contentStoreRouter.get('/pages/:key', (req, res) => {
   const locale = readLocale(req)
   const page = getPage(req.params.key, locale)
+  if (!page) {
+    res.status(404).json({ error: '未找到该页面' })
+    return
+  }
+  res.json({ page })
+})
+
+contentStoreRouter.get('/page-by-path', (req, res) => {
+  const path = typeof req.query.path === 'string' ? req.query.path : ''
+  const page = path ? getPageByPath(path, readLocale(req)) : undefined
   if (!page) {
     res.status(404).json({ error: '未找到该页面' })
     return

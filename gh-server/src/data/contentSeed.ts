@@ -49,7 +49,7 @@ const SITE: SiteConfig = {
     { label: '产品', href: '/products' },
     { label: '光魂 Center', href: '/center', badge: 'new' },
     { label: '天梯榜', href: '/ladder', badge: 'hot' },
-    { label: '服务支持', href: '/support' },
+    { label: '服务与支持', href: '/support' },
     { label: '探索光魂', href: '/about' },
   ],
   footer: [
@@ -62,11 +62,10 @@ const SITE: SiteConfig = {
       ],
     },
     {
-      title: '服务支持',
+      title: '服务与支持',
       links: [
-        { label: '服务支持', href: '/support' },
         { label: '下载中心', href: '/downloads' },
-        { label: '型号支持', href: '/support/models' },
+        { label: '型号与兼容', href: '/support/models' },
         { label: '常见问题', href: '/faq' },
         { label: '提交咨询', href: '/inquiry' },
       ],
@@ -448,7 +447,7 @@ function buildHome(): Page {
         title: '服务与支持',
         icon: 'help',
         subtitle: '从选型到售后，一站直达。',
-        ctaLabel: '进入服务支持',
+        ctaLabel: '进入服务与支持',
         ctaHref: '/support',
         layout: 'spotlight',
         columns: 4,
@@ -835,7 +834,7 @@ function buildBusinessVenues(): Page {
 
 /** 服务支持首页：快速入口 → 下载 → 保修 → 网点 → 联系 → FAQ → 引导 */
 function buildSupport(): Page {
-  return toPage('support', '/support', '服务支持首页', '服务支持首页装修。', [
+  return toPage('support', '/support', '服务与支持首页', '服务与支持首页装修。', [
     {
       type: 'cards',
       props: {
@@ -1038,7 +1037,7 @@ function buildFaq(): Page {
  *  说明：未新建数据源区块类型（避免改动后台区块目录控件），故此处采用需求清单允许的
  *  「复用现有卡片网格」方式；「每页条数」由所列型号数量决定（当前型号较少，无需分页）。 */
 function buildModelSupport(): Page {
-  return toPage('model-support', '/support/models', '型号支持', '型号支持索引装修（卡片网格数据源区块）。', [
+  return toPage('model-support', '/support/models', '型号与兼容', '型号与兼容索引装修（卡片网格数据源区块）。', [
     {
       type: 'cards',
       props: {
@@ -1203,7 +1202,7 @@ function buildTemplates(): Page[] {
         },
       },
     ]),
-    toPage('template-model', '/support/model/:id', '型号支持模板', '型号支持装修区。', [
+    toPage('template-model', '/support/model/:id', '型号与兼容模板', '型号与兼容装修区。', [
       { type: 'faqList', props: { title: '常见问题', source: 'support', limit: 4 } },
       { type: 'downloadList', props: { title: '相关下载', category: 'all', limit: 4 } },
     ]),

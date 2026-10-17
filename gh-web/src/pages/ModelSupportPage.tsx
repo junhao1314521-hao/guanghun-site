@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { TemplateBlocks } from '../blocks/TemplateBlocks'
 import { ApiError } from '../api/client'
-import { fetchModelSupport } from '../api/support-extra'
+import { fetchDownloads, fetchModelSupport } from '../api/support-extra'
 import { IconBook, IconDownload, IconHelp } from '../components/ui/Icon'
 import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
@@ -29,6 +29,14 @@ export function ModelSupportPage() {
   const [reloadKey, setReloadKey] = useState(0)
 
   const { data, loading, error } = useApi((signal) => fetchModelSupport(id, signal), [id, reloadKey])
+  // R4：可下载资料不再内嵌在型号记录里（原 ModelSupport.downloads），改为按型号过滤下载集合 ——
+  // 与下载中心同一数据源：后台改一条下载，两处同时生效；通用资料用「全部支持型号」标记匹配。
+  const { data: downloadsData } = useApi((signal) => fetchDownloads(signal), [])
+  const modelDownloads = data
+    ? (downloadsData?.items ?? []).filter(
+        (item) => item.models.includes(data.model) || item.models.includes('全部支持型号'),
+      )
+    : []
   const notFound = error instanceof ApiError && error.status === 404
 
   // 数据到位后内容才渲染，用 readyKey 触发一次动效重绑
@@ -43,18 +51,18 @@ export function ModelSupportPage() {
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
-          <Link to="/support">服务支持</Link>
+          <Link to="/support">服务与支持</Link>
         </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
-          <div className="empty__title">{notFound ? '未找到该型号的支持资料' : '型号支持加载失败'}</div>
+          <div className="empty__title">{notFound ? '未找到该型号的支持资料' : '型号与兼容加载失败'}</div>
           <p className="empty__desc">
             {notFound
-              ? '该型号可能尚未收录或链接有误，返回服务支持查看其他型号。'
+              ? '该型号可能尚未收录或链接有误，返回服务与支持查看其他型号。'
               : `${error?.message ?? '请求失败'}，请检查网络后重试。`}
           </p>
           <div className="row" style={{ justifyContent: 'center' }}>
             <Link className="btn btn--secondary btn--sm" to="/support">
-              返回服务支持
+              返回服务与支持
             </Link>
             {!notFound && (
               <button className="btn btn--secondary btn--sm" type="button" onClick={() => setReloadKey((key) => key + 1)}>
@@ -73,7 +81,7 @@ export function ModelSupportPage() {
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
-          <Link to="/support">服务支持</Link>
+          <Link to="/support">服务与支持</Link>
           <span>/</span>
           <span>{data.model}</span>
         </nav>
@@ -91,7 +99,7 @@ export function ModelSupportPage() {
               提交咨询
             </Link>
             <Link className="btn btn--secondary" to="/support">
-              返回服务支持
+              返回服务与支持
             </Link>
           </div>
         </div>
@@ -107,7 +115,7 @@ export function ModelSupportPage() {
             前往下载中心 →
           </Link>
         </div>
-        {data.downloads.length > 0 ? (
+        {modelDownloads.length > 0 ? (
           <div className="table-wrap reveal">
             <table className="table">
               <thead>
@@ -123,7 +131,7 @@ export function ModelSupportPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.downloads.map((item) => (
+                {modelDownloads.map((item) => (
                   <tr key={item.id}>
                     <td>{item.name}</td>
                     <td>{DOWNLOAD_TYPE_LABELS[item.type]}</td>
@@ -135,10 +143,10 @@ export function ModelSupportPage() {
                         <Link className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                           查看详情
                         </Link>
-                        {(item as { fileUrl?: string }).fileUrl ? (
+                        {item.fileUrl ? (
                           <a
                             className="btn btn--sm btn--ghost"
-                            href={(item as { fileUrl?: string }).fileUrl}
+                            href={item.fileUrl}
                             download
                             rel="noreferrer"
                             onClick={() => trackDownload(item.id)}

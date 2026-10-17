@@ -31,6 +31,14 @@ export function fetchPages(signal?: AbortSignal): Promise<PageListResult> {
   return transport<PageListResult>({ path: '/api/content/pages', signal }, unavailable)
 }
 
+/** 按前台 URL 路径反查内容库页面（动态路由 R10.1）；未命中后端 404 → 抛 ApiError */
+export function fetchPageByPath(path: string, signal?: AbortSignal): Promise<Page> {
+  return transport<{ page: Page }>(
+    { path: `/api/content/page-by-path?path=${encodeURIComponent(path)}`, signal },
+    unavailable,
+  ).then((res) => res.page)
+}
+
 /** 站点配置：导航与页脚（含扩展字段 enabledBlocks / theme；不改视觉） */
 export function fetchSite(signal?: AbortSignal): Promise<SiteConfig> {
   return transport<SiteConfig>({ path: '/api/content/site', signal }, unavailable)

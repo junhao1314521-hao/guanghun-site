@@ -61,7 +61,10 @@ supportExtraRouter.get('/support/model/:id', (req, res) => {
     res.status(404).json({ error: '未找到该型号的支持资料' })
     return
   }
-  res.json(model)
+  // R4：旧库可能残留型号内嵌的 `downloads` 快照；接口层统一剔除，
+  // 保证型号记录只引用下载集合这一个真源（前台按 `models` 过滤下载集合）。
+  const { downloads: _legacyDownloads, ...payload } = model as typeof model & { downloads?: unknown }
+  res.json(payload)
 })
 
 supportExtraRouter.post('/inquiry', (req, res) => {

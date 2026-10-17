@@ -27,7 +27,7 @@ export const LANG_LABELS: Record<string, string> = {
 
 export const FOOTER_GROUPS = [
   { title: '产品', links: [{ label: '全部产品', to: '/products' }, { label: '产品对比', to: '/compare' }, { label: '天梯榜', to: '/ladder' }] },
-  { title: '服务支持', links: [{ label: '服务支持', to: '/support' }, { label: '下载中心', to: '/downloads' }, { label: '型号支持', to: '/support/models' }, { label: '常见问题', to: '/faq' }, { label: '提交咨询', to: '/inquiry' }] },
+  { title: '服务与支持', links: [{ label: '下载中心', to: '/downloads' }, { label: '型号与兼容', to: '/support/models' }, { label: '常见问题', to: '/faq' }, { label: '提交咨询', to: '/inquiry' }] },
   { title: '探索光魂', links: [{ label: '关于光魂', to: '/about' }, { label: '商业合作', to: '/business' }, { label: '合作案例', to: '/business/cases' }, { label: '电竞合作', to: '/brand/esports' }, { label: '合规与协议', to: '/legal/privacy' }] },
 ]
 

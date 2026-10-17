@@ -86,8 +86,10 @@ main.main--flush + .site-footer { margin-top: 0; }
 @media (min-width: 768px) { .container { padding: 0 var(--gh-space-6); } }
 @media (min-width: 1024px) { .container { padding: 0 var(--gh-space-7); } }
 
-/* 锚点深链：为吸顶顶栏留出偏移，避免分区标题被顶栏遮挡 */
-.container[id], .card[id], section[id] { scroll-margin-top: 80px; }
+/* 锚点深链：为吸顶顶栏留出偏移，避免分区标题被顶栏遮挡（顶栏高 + 16px 呼吸）。
+   `.blk-cap__card` 是「能力网格」布局里带锚点 id 的卡（如 /center#manage），它不是 <section>/<.card>，
+   需显式列入，否则深链落点会被顶栏盖住。 */
+.container[id], .card[id], section[id], .blk-cap__card[id] { scroll-margin-top: calc(var(--gh-header-h) + var(--gh-space-4)); }
 
 /* 顶栏与折叠菜单同处一个 sticky 容器，避免两者 z-index 打架导致无法点击 */
 .top-stack { position: sticky; top: 0; z-index: var(--gh-z-drawer); }
@@ -106,13 +108,14 @@ main.main--flush + .site-footer { margin-top: 0; }
               border-color var(--gh-duration-base) var(--gh-ease-standard),
               box-shadow var(--gh-duration-base) var(--gh-ease-standard);
 }
-/* 顶栏内容高度 64px（按客户要求由 72 收紧到 60–64 区间，取 8pt 网格上的 64）。
-   注意：此值被 5 处派生值引用的「顶栏高」必须同步——首屏顶入、carousel margin-top、
-   blk-hero__grid padding、auth-shell--page 高度、以及 SiteHeader.tsx 的 over-hero 阈值（HEADER_HEIGHT）。
+/* 顶栏内容高度 = 令牌 --gh-header-h（60px，按客户要求由 64 再收紧一档：40px 导航热区 + 上下各 10px）。
+   所有「顶栏高」派生值一律引用该令牌，不再写死数值——首屏顶入、carousel margin-top、
+   blk-hero__grid padding、auth-shell--page 高度、锚点 scroll-margin。
+   注意：SiteHeader.tsx 的 HEADER_HEIGHT 是同一数值的 JS 副本（over-hero 判定阈值），改高度需同步。
    布局为「三段式网格」：左 LOGO ／ 中 导航 ／ 右 actions（1fr auto 1fr）。
    两侧 1fr 等宽 → 中间 auto 段（导航 + 商城）在顶栏里**真正水平居中**（不受左右两侧宽度差异影响）。
    窄屏导航隐藏时中间 auto 列塌缩为 0，LOGO 依旧靠左、actions 靠右，布局不破。 */
-.site-header__inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--gh-space-6); height: 64px; }
+.site-header__inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--gh-space-6); height: var(--gh-header-h); }
 .logo { display: inline-flex; align-items: center; gap: var(--gh-space-3); text-decoration: none; color: var(--color-text-primary); font-weight: var(--gh-weight-semibold); font-size: var(--gh-font-size-body-lg); letter-spacing: -0.01em; }
 .logo__mark { width: 30px; height: 30px; display: block; flex: none; }
 /* 字标：使用官方设计的矢量字形（SVDC.svg），经 CSS 遮罩取 currentColor，随深浅底自动适配 */
@@ -1225,13 +1228,13 @@ main.main--flush + .site-footer { margin-top: 0; }
 .site-header--over-hero .site-search .input::placeholder { color: rgba(255, 255, 255, .55); }
 .site-header--over-hero .site-search .search__icon { color: rgba(255, 255, 255, .60); }
 
-/* —— 首屏向上顶入顶栏区域（顶栏内容高 64px，与 .site-header__inner height 同步）——
+/* —— 首屏向上顶入顶栏区域（顶栏高取令牌 --gh-header-h）——
    旧 .hero 结构（页面稿）已不再使用；现首屏由内容库 carousel 区块渲染，
    故把顶入规则挂到首页首个通栏海报区块上，使磨砂顶栏浮于海报之上、轻微透出海报。 */
-.hero { margin-top: -64px; padding-top: 64px; }
-.mk-page[data-page="home"] [data-block="carousel"] { margin-top: -64px; }
-/* 海报内容避开顶栏：顶部内边距 = 顶栏高 64px + 呼吸间距（桌面与移动端一致） */
-.mk-page[data-page="home"] .blk--full .blk-hero__grid { padding-top: calc(64px + var(--gh-space-6)); }
+.hero { margin-top: calc(var(--gh-header-h) * -1); padding-top: var(--gh-header-h); }
+.mk-page[data-page="home"] [data-block="carousel"] { margin-top: calc(var(--gh-header-h) * -1); }
+/* 海报内容避开顶栏：顶部内边距 = 顶栏高 + 呼吸间距（桌面与移动端一致） */
+.mk-page[data-page="home"] .blk--full .blk-hero__grid { padding-top: calc(var(--gh-header-h) + var(--gh-space-6)); }
 
 /* —— 轮播结构：所有 slide 叠在同一网格单元，容器高度取最高者 —— */
 .hero__slides { position: relative; display: grid; flex: 1 1 auto; width: 100%; }
@@ -1438,9 +1441,9 @@ main.main--flush + .site-footer { margin-top: 0; }
 .auth-shell__form .card { border: none; box-shadow: none; padding: 0; background: transparent; }
 /* 站内登录 / 注册（variant='page'）：整屏铺满的左右分栏，去掉卡片描边与圆角与上下留白 */
 .auth-shell--page {
-  /* 铺满「顶栏以下的整屏」，上下不留空隙（100vh 兜底 + 100dvh 更准）；顶栏内容高 64px */
-  min-height: calc(100vh - 64px);
-  min-height: calc(100dvh - 64px);
+  /* 铺满「顶栏以下的整屏」，上下不留空隙（100vh 兜底 + 100dvh 更准）；顶栏高取 --gh-header-h */
+  min-height: calc(100vh - var(--gh-header-h));
+  min-height: calc(100dvh - var(--gh-header-h));
   border: 0;
   border-radius: 0;
 }
@@ -1457,10 +1460,10 @@ main.main--flush + .site-footer { margin-top: 0; }
   .auth-shell { grid-template-columns: 1fr; }
   .auth-shell--full { min-height: auto; }
   .auth-shell--card { min-height: 0; }
-  /* 手机端同样铺满：顶部背景条 + 表单占满剩余高度（表单垂直居中）；顶栏内容高 64px */
+  /* 手机端同样铺满：顶部背景条 + 表单占满剩余高度（表单垂直居中）；顶栏高取 --gh-header-h */
   .auth-shell--page {
-    min-height: calc(100vh - 64px);
-    min-height: calc(100dvh - 64px);
+    min-height: calc(100vh - var(--gh-header-h));
+    min-height: calc(100dvh - var(--gh-header-h));
     grid-template-rows: auto minmax(0, 1fr);
   }
   .auth-shell__aside { min-height: 240px; }
@@ -1506,15 +1509,15 @@ main.main--flush + .site-footer { margin-top: 0; }
 /* 宽屏下拉面板专用（≥1024px）。<1024px 时整个下拉菜单 display:none，抽屉里复用的
    .mega__eyebrow / .mega__link 走上面的基础规则（紧凑形态），不受本块影响。
    ① 列组整体「居中偏右」：列组先水平居中，再整体右移面板宽度的 16%（锚定关系不变），
-      不贴左、不贴右；列间距随列头放大（18 → 27px，字更宽）由 150 → 180px（3 列面板 120 → 144px），
+      不贴左、不贴右；列间距随列头字号由 150 → 168px（8pt 网格无该档位，直接写 px），
       避免相邻两列因列头变宽而挤到一起；
-   ② 列头 18 → 27px（客户要求再大二分之一倍）只写在**本断点内**；列头放大后，
-      列头 → 首条链接的间距由 16px 放宽到 24px（--gh-space-5），避免显得拥挤。
-      二级链接 14px / 行距≈35px 仍走基础规则，此处不覆写。 */
+   ② 列头 24px 只写在**本断点内**；列头放大后，列头 → 首条链接的间距由 16px 放宽到 24px
+      （--gh-space-5），避免显得拥挤。二级链接 14px / 行距≈35px 仍走基础规则，此处不覆写。 */
 @media (min-width: 1024px) {
   .mega__eyebrow {
     margin-bottom: var(--gh-space-5);
-    font-size: 27px; /* 令牌无 27px 档位；客户明确要求 18px × 1.5 = 27px，直接写 px */
+    /* 令牌无 24px 档位；按 R2 由 27px 下调一档（客户微调要求），直接写 px */
+    font-size: 24px;
   }
   /* 列宽改为「内容自适应」，整组才能先居中再右移（原来的 1fr 会等分铺满整行、无法偏移） */
   .mega__cols {
@@ -1522,12 +1525,12 @@ main.main--flush + .site-footer { margin-top: 0; }
     justify-content: center;
     /* 「居中偏右」：先居中，再整体右移面板宽度的 16% */
     margin-left: 16%;
-    /* 列间距 150 → 180px（8pt 网格无该档位，直接写 px），随列头放大同步放宽 */
-    column-gap: 180px;
+    /* 列间距随列头字号同步微调（27px 时 180 → 24px 时 168） */
+    column-gap: 168px;
   }
   .mega__cols--plain { grid-template-columns: repeat(var(--mega-cols, 3), auto); }
-  /* 3 列面板（如「探索光魂」）适当收紧列间距到 144px，避免整组过宽 */
-  .mega__cols--wide { column-gap: 144px; }
+  /* 3 列面板（如「探索光魂」）适当收紧列间距到 136px，避免整组过宽（随列头 27→24 同步微调） */
+  .mega__cols--wide { column-gap: 136px; }
 }
 .mega__feature {
   display: flex; flex-direction: column; gap: var(--gh-space-2);
@@ -1899,7 +1902,7 @@ body.drawer-open { overflow: hidden; }
 
 /* 3) 语言切换提示条（AC-15③）：无译文时明确告知，不用中文冒充其他语言 */
 .lang-notice {
-  /* 首屏 .hero 以 margin-top:-64px 顶入顶栏区域，其绝对定位图层会盖住普通文档流的提示条；
+  /* 首屏以负 margin 顶入顶栏区域（见 --gh-header-h），其绝对定位图层会盖住普通文档流的提示条；
      此处提升堆叠层级（高于 hero 内部图层、低于 sticky 顶栏 / 抽屉），保证提示可见且可点击 */
   position: relative;
   z-index: var(--gh-z-sticky);

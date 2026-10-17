@@ -15,23 +15,13 @@ export const QUICK_ENTRIES: QuickEntry[] = [
   { id: 'verify', title: '真伪查询', desc: '核对防伪码，确认渠道与产品是否为正品。' },
 ]
 
-export const DOWNLOAD_CATEGORIES = ['全部', '显示器', '调校软件', '周边']
-export const DOWNLOAD_TYPES = ['固件', '说明书', '色彩配置']
-
-export type DownloadRow = {
-  name: string
-  models: string
-  version: string
-  size: string
-  date: string
-}
-
-export const DOWNLOADS: DownloadRow[] = [
-  { name: 'Center 显示器调校软件 · Windows 安装包', models: '54027X1QE-W54 / 32X1UE-W16', version: 'v2.4.1', size: '86.4 MB', date: '2026-09-20' },
-  { name: 'Center 显示器调校软件 · macOS 安装包', models: '全部支持型号', version: 'v2.4.1', size: '92.1 MB', date: '2026-09-20' },
-  { name: '54027X1QE-W54 固件升级包', models: '54027X1QE-W54', version: 'v1.6.3', size: '3.8 MB', date: '2026-09-15' },
-  { name: '32X1UE-W16 使用说明书', models: '32X1UE-W16', version: 'v1.3', size: '5.6 MB', date: '2026-09-05' },
-]
+/*
+ * 已废弃并删除（R4 数据层收口）：
+ *   DOWNLOAD_CATEGORIES / DOWNLOAD_TYPES / DownloadRow / DOWNLOADS
+ * 原因：下载数据已统一由 `downloads` 集合承载（见 data/support-extra.ts 的 DownloadItem 与
+ *       api/support-extra.ts 的 fetchDownloads），本文件不再保留第二份旧口径
+ *       （旧分类为「显示器 / 调校软件」，与现行「软件 / OLED 旗舰 / 双模高刷 / 电竞 IPS / 周边」冲突）。
+ */
 
 export const WARRANTY_POINTS = [
   '整机三年质保，含 OLED 烧屏保护；支架等周边按易损件单独约定',

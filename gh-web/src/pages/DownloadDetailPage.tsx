@@ -52,7 +52,7 @@ export function DownloadDetailPage() {
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
-          <Link to="/support">服务支持</Link>
+          <Link to="/support">服务与支持</Link>
           <span>/</span>
           <Link to="/downloads">下载中心</Link>
         </nav>
@@ -85,7 +85,7 @@ export function DownloadDetailPage() {
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
-          <Link to="/support">服务支持</Link>
+          <Link to="/support">服务与支持</Link>
           <span>/</span>
           <Link to="/downloads">下载中心</Link>
           <span>/</span>

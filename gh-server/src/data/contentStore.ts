@@ -186,6 +186,37 @@ export function isBuiltinPage(key: string): boolean {
   return builtinKeys().includes(key)
 }
 
+/** 规范化前台路径：去查询串 / 锚点 / 末尾斜杠，并补前导斜杠 */
+function normalizeSitePath(input: string): string {
+  const clean = input.split('?')[0].split('#')[0].trim()
+  if (!clean) return ''
+  const withLeading = clean.startsWith('/') ? clean : `/${clean}`
+  return withLeading.length > 1 ? withLeading.replace(/\/+$/, '') : withLeading
+}
+
+/**
+ * 按前台 URL 路径反查页面（R10.1 动态路由）。
+ *
+ * 供前台兜底路由使用：固定路由由前端路由表优先匹配（R10.2），
+ * 只有未命中的路径才会走到这里；本函数只做精确 path 匹配（忽略末尾斜杠 / 查询串），
+ * 不过滤 enabled —— 已下线页面由 PageView 渲染明确的「已下线」空态。
+ */
+export function getPageByPath(path: string, locale?: Locale): Page | undefined {
+  initStore()
+  const target = normalizeSitePath(path)
+  if (!target) return undefined
+  const rows = getDb().prepare('SELECT key, data FROM content_pages ORDER BY rowid ASC').all() as Array<{
+    key: string
+    data: string
+  }>
+  for (const row of rows) {
+    if (isEnKey(row.key)) continue
+    const page = JSON.parse(row.data) as Page
+    if (normalizeSitePath(page.path) === target) return getPage(row.key, locale)
+  }
+  return undefined
+}
+
 /* ---------------- 写入 ---------------- */
 
 /** 保存整页（blocks 全量覆盖）；未命中返回 undefined */

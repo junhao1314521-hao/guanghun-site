@@ -129,6 +129,14 @@
   --gh-control-pad-x:     var(--gh-space-4);
   --gh-table-row-height:  44px;
   --gh-table-header-height: 40px;
+
+  /* 站点顶栏内容高度（`.site-header__inner`）——「顶栏高」的唯一来源。
+     以下派生值全部引用本令牌，改高度只需改这一处：
+       锚点 scroll-margin-top（site.css）／首屏顶入的负 margin／海报文案避让 padding／
+       登录·注册页整屏高度（100vh - 顶栏高）。
+     ⚠️ 另有一处非 CSS 依赖：`components/site/SiteHeader.tsx` 的 HEADER_HEIGHT 常量
+     （over-hero 磨砂判定阈值），必须与本值同步。 */
+  --gh-header-h: 60px;
   --gh-sidebar-width:     240px;
   --gh-sidebar-width-collapsed: 64px;
   --gh-topbar-height:     56px;

@@ -91,7 +91,7 @@ export const PAGE_META: PageMeta[] = [
   },
   {
     path: '/support',
-    title: '服务支持 · 光魂',
+    title: '服务与支持 · 光魂',
     description: '保修政策与要点、服务网点、常见问题与驱动 / 固件下载。',
     indexable: true,
     changefreq: 'monthly',
@@ -251,7 +251,7 @@ export function pageMetaFor(pathname: string): PageMeta {
     return { path: pathname, title: '品牌 · 光魂', description: '光魂品牌理念、里程碑与相关产品。', indexable: true }
   }
   if (/^\/support\/model\/[^/]+$/.test(pathname)) {
-    return { path: pathname, title: '型号支持 · 光魂', description: '按型号查询驱动、固件、说明书与相关问答。', indexable: true }
+    return { path: pathname, title: '型号与兼容 · 光魂', description: '按型号查询驱动、固件、说明书与相关问答。', indexable: true }
   }
   if (/^\/me(\/.*)?$/.test(pathname)) {
     return { path: pathname, title: '个人中心 · 光魂', description: '工单、设备、收藏与订阅通知。', indexable: false }

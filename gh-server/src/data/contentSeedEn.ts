@@ -74,9 +74,8 @@ export const SITE_EN: NonNullable<SiteConfig['en']> = {
     {
       title: 'Support',
       links: [
-        { label: 'Support home', href: '/support' },
         { label: 'Downloads', href: '/downloads' },
-        { label: 'Model support', href: '/support/models' },
+        { label: 'Models & compatibility', href: '/support/models' },
         { label: 'FAQ', href: '/faq' },
         { label: 'Submit a ticket', href: '/inquiry' },
       ],
@@ -795,7 +794,7 @@ function buildBusinessVenuesEn(): Page {
 }
 
 /* ============================================================
-   服务支持
+   服务与支持
    ============================================================ */
 
 function buildSupportEn(): Page {

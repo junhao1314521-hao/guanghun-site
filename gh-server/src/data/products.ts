@@ -23,10 +23,6 @@ export type Product = {
   releasedAt: string
   variant: DeviceVariant
   flag?: string
-  /** 一句话卖点（运营维护，详情页标题下方展示） */
-  tagline?: string
-  /** 库存数量（0 视为缺货；仅用于展示） */
-  stock?: number
   /** 卖点 / 亮点列表 */
   features?: string[]
   /** 结构化参数（面板 / 分辨率 / 刷新率 / 响应时间 / 亮度 / 接口等） */
@@ -52,7 +48,6 @@ export const PRODUCTS: Product[] = [
     id: 'gh-54027x1qe', model: '54027X1QE-W54', name: '闪电 540Hz 电竞OLED显示器', category: 'OLED旗舰', connection: 'DP 2.1',
     specs: ['26.5 英寸', '2K 540Hz', '0.03 ms', 'W-OLED'], status: { level: 'success', text: '在售' },
     price: '¥4,999', priceValue: 4999, releasedAt: '2026-09-20', variant: 'monitor', flag: '旗舰',
-    tagline: '26.5 英寸 2K@540Hz · 第四代 W-OLED · 0.03 ms GTG 响应',
     features: ['第四代 W-OLED 面板，2K 540Hz 满速刷新', '0.03 ms GTG 灰阶响应，告别拖影', '368 万像素级控光，原生 100 万:1 对比度', '满速 DP 2.1（80 Gbps）· 原厂石墨烯散热', 'CNC 阳极氧化铝背板 · AR 光面抗反涂层', '三年质保，含 OLED 烧屏保护'],
     attributes: [
       { label: '面板', value: '第四代 W-OLED' },
@@ -116,7 +111,6 @@ export type ProductDetail = {
   specTable: SpecTableRow[]
   tabs: string[]
   /** 以下为运营可维护的扩展字段（来自产品记录，缺省则不展示） */
-  tagline?: string
   features?: string[]
   attributes?: ProductAttribute[]
   inBox?: string[]
@@ -220,7 +214,6 @@ export const PRODUCT_DETAILS_EN: Record<string, ProductDetail> = {
 /** 从产品记录中取出运营可维护的扩展字段（仅取已定义项，供详情合并） */
 function extendedFields(base: Product): Partial<ProductDetail> {
   const out: Partial<ProductDetail> = {}
-  if (base.tagline !== undefined) out.tagline = base.tagline
   if (base.features !== undefined) out.features = base.features
   if (base.attributes !== undefined) out.attributes = base.attributes
   if (base.inBox !== undefined) out.inBox = base.inBox

@@ -29,10 +29,10 @@ type Props = {
 }
 
 /**
- * 顶栏内容高度（px）：与 `styles/site.css` 中 `.site-header__inner` 的 height 严格保持一致。
- * 首屏「顶入顶栏」偏移与 over-hero（磨砂浮于海报）判定阈值都由它派生，改高度时只改这一处 + CSS。
+ * 顶栏内容高度（px）：与 `styles/tokens.css` 的 `--gh-header-h` 严格保持一致。
+ * 首屏「顶入顶栏」偏移与 over-hero（磨砂浮于海报）判定阈值都由它派生，改高度时只改令牌 + 这一处。
  */
-const HEADER_HEIGHT = 64
+const HEADER_HEIGHT = 60
 
 /**
  * 下拉面板右侧推荐卡的配图（按面板 key 固定）。

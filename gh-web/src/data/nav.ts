@@ -28,7 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: '产品', to: '/products', menu: 'products', nav: 'products' },
   { label: '光魂 Center', to: '/center', menu: '', nav: 'center', badge: 'new', badgeShake: true },
   { label: '天梯榜', to: '/ladder', menu: '', nav: 'ladder', badge: 'hot', badgeShake: true },
-  { label: '服务支持', to: '/support', menu: 'support', nav: 'support' },
+  { label: '服务与支持', to: '/support', menu: 'support', nav: 'support' },
   { label: '探索光魂', to: '/about', menu: 'about', nav: 'about' },
 ]
 
@@ -65,11 +65,11 @@ export const MEGA_PANELS: MegaPanel[] = [
     key: 'support',
     columns: [
       {
-        eyebrow: '支持',
+        eyebrow: '支持与文档',
         links: [
-          { label: '服务支持', to: '/support' },
+          // 「服务与支持」一级项本身即聚合门户，二级不再重复列一次（原自重复项已删除）
           { label: '下载中心', to: '/downloads' },
-          { label: '型号支持', to: '/support/models' },
+          { label: '型号与兼容', to: '/support/models' },
           { label: '常见问题', to: '/faq' },
         ],
       },
@@ -116,6 +116,10 @@ export const PAGE_NAV: Record<string, string | undefined> = {
   ladder: 'ladder',
   center: 'center',
   support: 'support',
+  // 服务与支持下的独立页面（下载中心 / 常见问题 / 提交咨询）同属该一级项，顶栏需保持高亮
+  downloads: 'support',
+  faq: 'support',
+  inquiry: 'support',
   business: 'about',
   about: 'about',
   account: undefined,

@@ -201,12 +201,12 @@ export type AdminRow = Record<string, string | number | boolean>
 
 export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
   products: [
-    { id: 'p-001', name: '闪电 540Hz 电竞OLED显示器', model: '54027X1QE-W54', line: 'OLED旗舰', price: 4999, stock: 320, status: '已上架', updatedAt: '2026-09-20', scene: '电竞对战', featured: true, tagline: '2K@540Hz · 第四代 W-OLED', desc: '面向电竞对战优化的旗舰 OLED 电竞显示器。', cover: '' },
-    { id: 'p-002', name: 'Meta 双模 4K 电竞显示器', model: '32X1UE-W16', line: '双模高刷', price: 5499, stock: 260, status: '已上架', updatedAt: '2026-09-05', scene: '内容创作', featured: true, tagline: '4K@165 / FHD@330 · META OLED', desc: '支持 4K 与高刷一键切换的双模 OLED 显示器。', cover: '' },
-    { id: 'p-003', name: '27 英寸 2K OLED 显示器', model: '27X1U', line: '双模高刷', price: 2199, stock: 180, status: '已上架', updatedAt: '2026-06-18', scene: '内容创作', featured: false, tagline: '2K 240Hz · QD-OLED', desc: '兼顾画质与电竞的 2K OLED 显示器。', cover: '' },
-    { id: 'p-004', name: '27 英寸 2K 电竞显示器', model: '27Q1F', line: '电竞IPS', price: 1299, stock: 540, status: '已上架', updatedAt: '2026-04-10', scene: '商用办公', featured: false, tagline: '2K 200Hz · Fast IPS', desc: '高性价比 2K 高刷电竞显示器。', cover: '' },
-    { id: 'p-005', name: '24 英寸 200Hz 电竞显示器', model: '24H1', line: '电竞IPS', price: 799, stock: 0, status: '已下架', updatedAt: '2026-02-26', scene: '商用办公', featured: false, tagline: 'FHD 200Hz · HDR400', desc: '入门级 200Hz 电竞显示器，已下架。', cover: '' },
-    { id: 'p-006', name: '显示器悬臂支架', model: 'GH-ARM01', line: '周边', price: 299, stock: 90, status: '草稿', updatedAt: '2026-05-20', scene: '移动与差旅', featured: false, tagline: 'VESA 75/100 · 承重 9 kg', desc: '单臂显示器支架，草稿待发布。', cover: '' },
+    { id: 'p-001', name: '闪电 540Hz 电竞OLED显示器', model: '54027X1QE-W54', line: 'OLED旗舰', price: 4999, status: '已上架', updatedAt: '2026-09-20', scene: '电竞对战', featured: true, desc: '面向电竞对战优化的旗舰 OLED 电竞显示器。', cover: '' },
+    { id: 'p-002', name: 'Meta 双模 4K 电竞显示器', model: '32X1UE-W16', line: '双模高刷', price: 5499, status: '已上架', updatedAt: '2026-09-05', scene: '内容创作', featured: true, desc: '支持 4K 与高刷一键切换的双模 OLED 显示器。', cover: '' },
+    { id: 'p-003', name: '27 英寸 2K OLED 显示器', model: '27X1U', line: '双模高刷', price: 2199, status: '已上架', updatedAt: '2026-06-18', scene: '内容创作', featured: false, desc: '兼顾画质与电竞的 2K OLED 显示器。', cover: '' },
+    { id: 'p-004', name: '27 英寸 2K 电竞显示器', model: '27Q1F', line: '电竞IPS', price: 1299, status: '已上架', updatedAt: '2026-04-10', scene: '商用办公', featured: false, desc: '高性价比 2K 高刷电竞显示器。', cover: '' },
+    { id: 'p-005', name: '24 英寸 200Hz 电竞显示器', model: '24H1', line: '电竞IPS', price: 799, status: '已下架', updatedAt: '2026-02-26', scene: '商用办公', featured: false, desc: '入门级 200Hz 电竞显示器，已下架。', cover: '' },
+    { id: 'p-006', name: '显示器悬臂支架', model: 'GH-ARM01', line: '周边', price: 299, status: '草稿', updatedAt: '2026-05-20', scene: '移动与差旅', featured: false, desc: '单臂显示器支架，草稿待发布。', cover: '' },
   ],
   'product-categories': [
     { id: 'c-001', name: 'OLED旗舰', code: 'oled', count: 2, order: 1, status: '启用' },
@@ -274,7 +274,7 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'nv-001', label: '产品', to: '/products', location: '主导航', order: 1, visible: true },
     { id: 'nv-002', label: 'Center', to: '/center', location: '主导航', order: 2, visible: true },
     { id: 'nv-003', label: '天梯榜', to: '/ladder', location: '主导航', order: 3, visible: true },
-    { id: 'nv-004', label: '服务支持', to: '/support', location: '主导航', order: 5, visible: true },
+    { id: 'nv-004', label: '服务与支持', to: '/support', location: '主导航', order: 5, visible: true },
     { id: 'nv-005', label: '隐私政策', to: '/legal/privacy', location: '页脚', order: 1, visible: true },
     { id: 'nv-006', label: '产品入口', to: '/products', location: '移动端', order: 1, visible: true },
   ],

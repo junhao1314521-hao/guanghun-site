@@ -22,7 +22,7 @@ export function InquiryPage() {
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
-          <Link to="/support">服务支持</Link>
+          <Link to="/support">服务与支持</Link>
           <span>/</span>
           <span>提交咨询</span>
         </nav>

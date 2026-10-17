@@ -160,7 +160,8 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
       assert.ok(item.model, '每条型号记录应含 model')
       assert.ok(item.line, '每条型号记录应含 line')
       assert.ok(item.summary, '每条型号记录应含 summary')
-      assert.ok(Array.isArray(item.downloads), '型号记录应含 downloads 数组')
+      // R4 数据层收口：型号记录不再内嵌下载快照，资料统一由 downloads 集合按「适用型号」过滤
+      assert.equal(item.downloads, undefined, '型号记录不应再含 downloads 字段')
       assert.ok(Array.isArray(item.faqs), '型号记录应含 faqs 数组')
       assert.ok(Array.isArray(item.guides), '型号记录应含 guides 数组')
     }

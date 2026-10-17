@@ -257,7 +257,7 @@ export const BRAND_STATS = [
 
 /* ---------- 服务入口 ---------- */
 export const SERVICE_ENTRIES = [
-  { id: 'model', title: '型号支持', desc: '按型号查看结构化参数、实测记录与常见问题。' },
+  { id: 'model', title: '型号与兼容', desc: '按型号查看结构化参数、实测记录与常见问题。' },
   { id: 'download', title: '下载中心', desc: '说明书、调色配置与固件，公开资料无需注册即可下载。' },
   { id: 'faq', title: '常见问题', desc: '安装、连接、HDR 调校与售后相关的高频问答。' },
   { id: 'contact', title: '联系与咨询', desc: '产品服务与商业合作咨询，统一进入同一套工单系统。' },

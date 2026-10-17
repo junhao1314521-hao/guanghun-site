@@ -369,17 +369,13 @@ export type ModelSupport = {
   model: string
   line: string
   summary: string
-  downloads: DownloadItem[]
   faqs: FaqItem[]
   guides: ModelGuide[]
 }
 
-/** 通用资料（适用「全部支持型号」）与型号专属资料一并返回 */
-function downloadsFor(model: string): DownloadItem[] {
-  return DOWNLOAD_ITEMS.filter(
-    (item) => item.models.includes(model) || item.models.includes('全部支持型号'),
-  )
-}
+/* ⚠️ 型号与下载的关联**不再内嵌快照**（原 `ModelSupport.downloads` + `downloadsFor()` 已删除）：
+   型号页改为「按 `model` 过滤 downloads 集合」——后台改一条下载，下载中心与型号页同时生效。
+   过滤口径：`item.models` 含该型号，或含通用标记 `全部支持型号`。 */
 
 function faqsByIds(...ids: string[]): FaqItem[] {
   return FAQ_ITEMS.filter((item) => ids.includes(item.id))
@@ -391,7 +387,6 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
     model: '54027X1QE-W54',
     line: 'OLED旗舰',
     summary: '26.5 英寸 2K@540Hz 旗舰 OLED 电竞显示器，支持 DP 2.1 满速与 Center 调校。',
-    downloads: downloadsFor('54027X1QE-W54'),
     faqs: faqsByIds('faq-driver-install', 'faq-pair-24g', 'faq-fw-check'),
     guides: [
       { title: '快速上手', desc: '开箱、支架安装与 DP 2.1 满速连接的完整流程。' },
@@ -404,7 +399,6 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
     model: '32X1UE-W16',
     line: '双模高刷',
     summary: '31.5 英寸 4K@165 / FHD@330 双模 OLED 电竞显示器，一机兼顾画质与竞技。',
-    downloads: downloadsFor('32X1UE-W16'),
     faqs: faqsByIds('faq-pair-multi', 'faq-pair-notfound', 'faq-fw-fail'),
     guides: [
       { title: '双模切换', desc: '4K@165 与 FHD@330 两种模式的切换与取舍。' },
@@ -417,7 +411,6 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
     model: '27Q1F',
     line: '电竞IPS',
     summary: '27 英寸 2K 200Hz Fast IPS 电竞显示器，兼容 HDMI 2.1，兼顾日常与竞技。',
-    downloads: downloadsFor('27Q1F'),
     faqs: faqsByIds('faq-pair-24g', 'faq-pair-notfound', 'faq-warranty-serial'),
     guides: [
       { title: '快速上手', desc: '开箱、支架安装与 HDMI 2.1 连接的基础操作。' },
@@ -430,7 +423,6 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
     model: 'GH-ARM01',
     line: '周边',
     summary: '显示器悬臂支架，支持 VESA 75/100 与 9 kg 承重，含安装与调节说明。',
-    downloads: downloadsFor('GH-ARM01'),
     faqs: faqsByIds('faq-warranty-serial', 'faq-download-old'),
     guides: [
       { title: '安装与调节', desc: 'VESA 75/100 安装与气压调节说明。' },

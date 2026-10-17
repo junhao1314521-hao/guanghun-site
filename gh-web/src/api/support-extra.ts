@@ -70,13 +70,13 @@ export function fetchFaq(id: string, signal?: AbortSignal): Promise<FaqDetail> {
   })
 }
 
-/** 型号支持：按型号 id 聚合下载、问答与使用指南，未命中抛 404 */
+/** 型号支持：按型号 id 聚合问答与使用指南（可下载资料改由下载集合按型号过滤，见 ModelSupportPage） */
 export function fetchModelSupport(id: string, signal?: AbortSignal): Promise<ModelSupport> {
   return transport({ path: `/api/support/model/${id}`, signal }, () => {
     const model = getModelSupport(id)
     if (!model) throw new ApiError('未找到该型号的支持资料', 404)
     return model
-  }).then((model) => ({ ...model, downloads: model.downloads.map(sanitizeFileUrl) }))
+  })
 }
 
 /** 提交咨询：真实 POST；占位环境仅回执工单号（后端不落库） */

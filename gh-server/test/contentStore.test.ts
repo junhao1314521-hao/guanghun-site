@@ -103,6 +103,23 @@ describe('公开端点（契约 §6.1）', () => {
     assert.ok('error' in ((await res.json()) as object))
   })
 
+  it('GET /api/content/page-by-path → 按前台路径反查页面（R10.1）', async () => {
+    const hit = await get('/api/content/page-by-path?path=%2Fsupport')
+    assert.equal(hit.status, 200)
+    const { page } = (await hit.json()) as { page: { key: string } }
+    assert.equal(page.key, 'support')
+
+    // 末尾斜杠与查询串不影响匹配
+    const slash = await get('/api/content/page-by-path?path=%2Fsupport%2F%3Ffrom%3Dnav')
+    assert.equal(slash.status, 200)
+
+    const miss = await get('/api/content/page-by-path?path=%2Fcampaign%2Fmissing')
+    assert.equal(miss.status, 404)
+
+    const empty = await get('/api/content/page-by-path')
+    assert.equal(empty.status, 404)
+  })
+
   it('GET /api/content/site → { nav, footer }', async () => {
     const res = await get('/api/content/site')
     assert.equal(res.status, 200)

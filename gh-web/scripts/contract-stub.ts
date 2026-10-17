@@ -58,7 +58,6 @@ function resolve(pathname: string, query: URLSearchParams): unknown | null {
     case '/api/support':
       return {
         quickEntries: support.QUICK_ENTRIES,
-        downloads: support.DOWNLOADS,
         warrantyPoints: support.WARRANTY_POINTS,
         spots: support.SUPPORT_SPOTS,
         faqs: support.FAQS,

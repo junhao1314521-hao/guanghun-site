@@ -17,7 +17,7 @@ import { BlockRenderer } from './BlockRenderer'
 import type { Block, BlockType } from './types'
 
 /** 页面骨架：区块到位前的占位，避免布局跳动 */
-function PageSkeleton() {
+export function PageSkeleton() {
   return (
     <div className="container" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="内容加载中">
       <div className="grid-2" style={{ alignItems: 'center' }}>

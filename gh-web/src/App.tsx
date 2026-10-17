@@ -60,6 +60,8 @@ const ComparePage = lazy(() => import('./pages/ComparePage').then((m) => ({ defa
 const LadderMetricPage = lazy(() => import('./pages/LadderMetricPage').then((m) => ({ default: m.LadderMetricPage })))
 const BrandPage = lazy(() => import('./pages/BrandPage').then((m) => ({ default: m.BrandPage })))
 const StatusPage = lazy(() => import('./pages/StatusPage').then((m) => ({ default: m.StatusPage })))
+// 动态页面兜底路由（R10.1）：固定路由全部未命中时，按 URL path 反查内容库页面
+const DynamicPage = lazy(() => import('./components/site/DynamicPage').then((m) => ({ default: m.DynamicPage })))
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ default: m.RegisterPage })))
 const ForgotPage = lazy(() => import('./pages/ForgotPage').then((m) => ({ default: m.ForgotPage })))
@@ -132,7 +134,7 @@ function NotFound() {
             浏览产品
           </Link>
           <Link className="btn btn--secondary btn--sm" to="/support">
-            服务支持
+            服务与支持
           </Link>
           <Link className="btn btn--secondary btn--sm" to="/">
             {t('notFound.back')}
@@ -325,7 +327,8 @@ function AppShell() {
               </Route>
               <Route path="/403" element={<StatusPage code={403} />} />
               <Route path="/500" element={<StatusPage code={500} />} />
-              <Route path="*" element={<NotFound />} />
+              {/* R10.1/10.2：固定路由优先；兜底路由按 path 反查内容库页面，未命中才 404 */}
+              <Route path="*" element={<DynamicPage fallback={<NotFound />} />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>
