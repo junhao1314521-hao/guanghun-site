@@ -84,18 +84,15 @@
 .blk-hero__slide.is-active { display: block; animation: blkFadeUp .6s var(--gh-ease-accent) both; }
 @keyframes blkFadeUp { from { opacity: 0; } to { opacity: 1; } }
 
-/* 背景图：铺满整张海报（宽屏 / 手机竖版由 <picture> 切换） */
+/* 背景图：铺满整张海报（宽屏 / 手机竖版由 <picture> 切换）。
+   不做 Ken Burns 缓慢放大、不做悬停放大：海报构图与上传素材保持 1:1，
+   避免同一张图在不同时间/交互下看起来“被无故拉大”。 */
 .blk-hero__bg {
   position: absolute; inset: 0; overflow: hidden;
-  /* 悬停放大（需求 3.1）：放大「背景层」而非图片本身，避免与图片自身的
-     Ken Burns 环境动效（blkKenburns，作用于 img 的 transform）互相覆盖。 */
-  transition: transform .45s var(--gh-ease-accent);
 }
-.blk-hero:hover .blk-hero__bg { transform: scale(1.04); }
 .blk-hero__bg picture { display: block; width: 100%; height: 100%; }
 .blk-hero__bg img {
   width: 100%; height: 100%; object-fit: cover; display: block;
-  animation: blkKenburns 28s var(--gh-ease-standard) infinite alternate;
 }
 /* 视频海报（自动循环、静音、内联播放） */
 .blk-hero__bg video { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -110,23 +107,12 @@
 }
 /* 单张海报可关闭压暗遮罩：完整呈现原图细节（后台字段 scrim） */
 .blk-hero__bg.has-media.is-no-scrim::after { display: none; }
-/* 图片完整显示：contain 不裁切、不做缓慢放大 / 悬停放大，两侧留出画布底色 */
+/* 图片完整显示：contain 不裁切，两侧留出画布底色 */
 .blk-hero__bg.is-contain { background: var(--gh-neutral-950); }
-.blk-hero__bg.is-contain img {
-  object-fit: contain;
-  animation: none;
-}
-.blk-hero:hover .blk-hero__bg.is-contain { transform: none; }
-/* 手机竖屏：21:9 横版海报若 contain 会缩成一条，窄屏改用 cover 铺满（保持静态，不做缓慢放大） */
+.blk-hero__bg.is-contain img { object-fit: contain; }
+/* 手机竖屏：21:9 横版海报若 contain 会缩成一条，窄屏改用 cover 铺满 */
 @media (max-width: 767px) {
   .blk-hero__bg.is-contain img { object-fit: cover; }
-}
-@keyframes blkKenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
-@media (prefers-reduced-motion: reduce) {
-  .blk-hero__bg img { animation: none; }
-  /* 尊重「减少动态效果」：不放大 */
-  .blk-hero__bg { transition: none; }
-  .blk-hero:hover .blk-hero__bg { transform: none; }
 }
 
 /* 文案浮层：与各板块标题同左边线对齐。
