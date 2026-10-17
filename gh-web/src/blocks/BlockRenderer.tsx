@@ -40,6 +40,7 @@ import { MethodListBlock } from './MethodListBlock'
 import { B2bValueBlock } from './B2bValueBlock'
 import { ProductMatrixBlock } from './ProductMatrixBlock'
 import { ProductDetailRichBlock } from './ProductDetailRichBlock'
+import { ProductDetailLayoutBlock } from './ProductDetailLayoutBlock'
 import { BrandAssetListBlock } from './BrandAssetListBlock'
 import { TrustBarBlock } from './TrustBarBlock'
 import { FullscreenVisualBlock } from './FullscreenVisualBlock'
@@ -115,6 +116,9 @@ function renderBlock(block: Block): ReactNode {
     // 产品详情 · 详情图文（渲染当前产品的 detailHtml；无内容时不渲染）
     case 'productDetailRich':
       return <ProductDetailRichBlock />
+    // 产品详情 · 四套布局（同一数据源，仅切换 UI / 交互）
+    case 'productDetailLayout':
+      return <ProductDetailLayoutBlock props={props} />
     // 品牌资料（B 端，独立集合 brand-assets）
     case 'brandAssetList':
       return <BrandAssetListBlock props={props} />

@@ -131,6 +131,20 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'blocks.pd.point1': '全国联保 · 以官方保修政策为准',
     'blocks.pd.point2': '7 天无理由退换（不影响二次销售）',
     'blocks.pd.point3': '参数公开、方法公开，结论可复现',
+    // 产品详情四套布局（productDetailLayout）
+    'blocks.pd.layoutPreview': '布局预览',
+    'blocks.pd.layoutToc': '目录式',
+    'blocks.pd.layoutTabs': '标签式',
+    'blocks.pd.layoutAccordion': '折叠式',
+    'blocks.pd.layoutLong': '长页式',
+    'blocks.pd.overview': '概览',
+    'blocks.pd.testRecords': '测试记录',
+    'blocks.pd.compatTitle': '兼容与保修',
+    'blocks.pd.supportTitle': '下载与支持',
+    'blocks.pd.richTitle': '图文详情',
+    'blocks.pd.buyTitle': '购买咨询',
+    'blocks.pd.tocLabel': '本页目录',
+    'blocks.pd.readingProgress': '阅读进度',
 
     // —— 区块外壳：通用 ——
     'blocks.reload': '重新加载',
@@ -372,6 +386,20 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'blocks.pd.point1': 'Nationwide warranty per official policy',
     'blocks.pd.point2': '7-day returns (unused, original packaging)',
     'blocks.pd.point3': 'Public params and methods; reproducible results',
+    // Product detail layout variants (productDetailLayout)
+    'blocks.pd.layoutPreview': 'Layout preview',
+    'blocks.pd.layoutToc': 'Sidebar TOC',
+    'blocks.pd.layoutTabs': 'Tabs',
+    'blocks.pd.layoutAccordion': 'Accordion',
+    'blocks.pd.layoutLong': 'Long page',
+    'blocks.pd.overview': 'Overview',
+    'blocks.pd.testRecords': 'Test records',
+    'blocks.pd.compatTitle': 'Compatibility & warranty',
+    'blocks.pd.supportTitle': 'Downloads & support',
+    'blocks.pd.richTitle': 'Details',
+    'blocks.pd.buyTitle': 'Buying & advice',
+    'blocks.pd.tocLabel': 'On this page',
+    'blocks.pd.readingProgress': 'Reading progress',
 
     // —— Block chrome: common ——
     'blocks.reload': 'Reload',

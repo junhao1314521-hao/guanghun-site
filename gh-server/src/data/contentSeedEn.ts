@@ -1021,8 +1021,11 @@ function buildTemplatesEn(): Page[] {
       'Product detail area (one shared template for all products; data comes from the product collection).',
       [
         {
-          type: 'productHero',
+          // Four layouts share the same product data; default TOC, switchable in admin or via ?layout=
+          type: 'productDetailLayout',
           props: {
+            layout: 'toc',
+            showSwitcher: true,
             // §4.22 3-2: primary CTA "Buy now" takes the product buyUrl; secondary "Book a demo" → venues
             primaryLabel: 'Buy now',
             primaryHref: '',
@@ -1032,34 +1035,12 @@ function buildTemplatesEn(): Page[] {
             showBadges: true,
             showPrice: true,
             showSummary: true,
-          },
-        },
-        {
-          type: 'productSpecs',
-          props: {
-            title: 'Specifications',
-            showTabs: true,
-            showGuides: true,
-            guideDownloadLabel: 'Go to downloads',
-            guideContactLabel: 'Submit a ticket',
-          },
-        },
-        // Product detail rich text: renders the current product's detailHtml (no render when empty)
-        { type: 'productDetailRich', props: {} },
-        {
-          type: 'productBuy',
-          props: {
-            title: 'Ready to buy?',
-            subtitle: 'Read the specs first — no rush.',
-            primaryLabel: 'Add to compare',
-            primaryHref: '/compare',
-            secondaryLabel: 'Talk to a specialist',
-            secondaryHref: '/inquiry',
-            points: [
-              'Nationwide warranty per official policy',
-              '7-day returns (unused, original packaging)',
-              'Public params and methods; reproducible results',
-            ],
+            buyTitle: 'Ready to buy?',
+            buySubtitle: 'Read the specs first — no rush.',
+            buyPrimaryLabel: 'Book a demo',
+            buyPrimaryHref: '/business/venues',
+            buySecondaryLabel: 'Talk to a specialist',
+            buySecondaryHref: '/inquiry',
           },
         },
         {

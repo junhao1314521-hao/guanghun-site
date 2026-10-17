@@ -24,6 +24,8 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
 import type { Block, BlockTypeMeta } from '../../api/adminPages'
 import { BlockRenderer } from '../../blocks/BlockRenderer'
+import { ProductDetailContext } from '../../blocks/ProductDetailContext'
+import { getProductDetail } from '../../data/products'
 import { asString, containerClass, shellClass } from '../../blocks/blockUtils'
 import { AdminIcon } from './AdminIcon'
 import {
@@ -56,6 +58,13 @@ const TIERS = [
 ] as const
 
 type PreviewTier = (typeof TIERS)[number]['key']
+
+/**
+ * 后台预览用的样例产品：产品详情区块依赖 `ProductDetailContext` 取当前产品。
+ * 预览器没有真实路由参数，用一款完整型号做「所见即所得」样例；
+ * 非产品页区块不会消费该 context，不受影响。
+ */
+const PREVIEW_PRODUCT = getProductDetail('gh-54027x1qe')
 
 /** 预览交互回调集合（在组件内组装后透传给各层的包裹组件，避免逐层点对点传参） */
 type PreviewApi = {
@@ -465,7 +474,9 @@ export function BuilderPreview({
 
       <div className="builder-preview__frame">
         <div className={canvasClass}>
-          <PreviewList blocks={blocks} parentId={null} column={0} api={api} />
+          <ProductDetailContext.Provider value={PREVIEW_PRODUCT}>
+            <PreviewList blocks={blocks} parentId={null} column={0} api={api} />
+          </ProductDetailContext.Provider>
         </div>
       </div>
     </section>

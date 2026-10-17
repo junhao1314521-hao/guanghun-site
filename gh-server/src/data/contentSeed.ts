@@ -1070,10 +1070,12 @@ function buildTemplates(): Page[] {
   return [
     toPage('template-product', '/products/:id', '产品详情模板', '产品详情装修区（主体区块化：所有产品共用此模板，数据来自产品集合）。', [
       {
-        type: 'productHero',
+        // 四套布局共用同一产品数据与字段逻辑；默认目录式，后台可切换，前台 ?layout= 可临时预览
+        type: 'productDetailLayout',
         props: {
+          layout: 'toc',
+          showSwitcher: true,
           // §4.22 3-2：主 CTA「立即购买」取当前产品的「购买链接」(buyUrl)；次 CTA「预约体验」→ 体验点
-          // primaryFromProduct 开启后「立即购买」优先用产品 buyUrl，未填则回退到 primaryHref
           primaryLabel: '立即购买',
           primaryHref: '',
           secondaryLabel: '预约体验',
@@ -1082,29 +1084,12 @@ function buildTemplates(): Page[] {
           showBadges: true,
           showPrice: true,
           showSummary: true,
-        },
-      },
-      {
-        type: 'productSpecs',
-        props: {
-          title: '参数规格',
-          showTabs: true,
-          showGuides: true,
-          guideDownloadLabel: '前往下载中心',
-          guideContactLabel: '提交咨询',
-        },
-      },
-      // 产品详情图文：渲染**当前产品**的 detailHtml（长图 / 图文混排）；无内容时不渲染、不占位
-      { type: 'productDetailRich', props: {} },
-      {
-        type: 'productBuy',
-        props: {
-          title: '准备入手？',
-          subtitle: '先把参数看明白，再决定也不迟。',
-          primaryLabel: '预约体验',
-          primaryHref: '/business/venues',
-          secondaryLabel: '在线顾问',
-          secondaryHref: '/inquiry',
+          buyTitle: '准备入手？',
+          buySubtitle: '先把参数看明白，再决定也不迟。',
+          buyPrimaryLabel: '预约体验',
+          buyPrimaryHref: '/business/venues',
+          buySecondaryLabel: '在线顾问',
+          buySecondaryHref: '/inquiry',
         },
       },
       {

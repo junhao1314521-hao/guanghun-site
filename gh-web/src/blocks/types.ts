@@ -373,6 +373,37 @@ export type ProductMatrixProps = {
 export type ProductDetailRichProps = Record<string, never>
 
 /**
+ * 产品详情 · 四套布局（productDetailLayout）。
+ * 同一份产品数据与字段逻辑，仅切换 UI / 交互组织方式：
+ * - toc：吸顶目录 + 长内容（推荐）
+ * - tabs：横向标签分面板
+ * - accordion：折叠分组
+ * - long：单页长滚动叙事
+ */
+export type ProductDetailLayoutProps = {
+  /** 默认布局；URL `?layout=` 可临时覆盖，便于对比 */
+  layout?: 'toc' | 'tabs' | 'accordion' | 'long'
+  /** 是否显示页面顶部的「布局预览」切换器 */
+  showSwitcher?: boolean
+  /* —— 首屏展示台（与 productHero 字段一致，复用同一组件）—— */
+  primaryLabel?: string
+  primaryHref?: string
+  primaryFromProduct?: boolean
+  secondaryLabel?: string
+  secondaryHref?: string
+  showBadges?: boolean
+  showPrice?: boolean
+  showSummary?: boolean
+  /* —— 底部购买 / 咨询 —— */
+  buyTitle?: string
+  buySubtitle?: string
+  buyPrimaryLabel?: string
+  buyPrimaryHref?: string
+  buySecondaryLabel?: string
+  buySecondaryHref?: string
+}
+
+/**
  * 29. brandAssetList 品牌资料（B 端数据源区块）。
  * 读取独立集合 brand-assets（后台「品牌资料」维护），与 C 端下载中心数据分开。
  */
@@ -461,6 +492,7 @@ export type BlockPropsMap = {
   b2bValue: B2bValueProps
   productMatrix: ProductMatrixProps
   productDetailRich: ProductDetailRichProps
+  productDetailLayout: ProductDetailLayoutProps
   brandAssetList: BrandAssetListProps
   trustBar: TrustBarProps
   fullscreenVisual: FullscreenVisualProps

@@ -178,12 +178,27 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
   },
 }
 
+/** 把列表条目中的扩展字段并入详情（与后端 extendedFields 同口径） */
+function extendedFields(base: Product): Partial<ProductDetail> {
+  const out: Partial<ProductDetail> = {}
+  if (base.features !== undefined) out.features = base.features
+  if (base.attributes !== undefined) out.attributes = base.attributes
+  if (base.inBox !== undefined) out.inBox = base.inBox
+  if (base.warranty !== undefined) out.warranty = base.warranty
+  if (base.os !== undefined) out.os = base.os
+  if (base.weight !== undefined) out.weight = base.weight
+  if (base.gallery !== undefined) out.gallery = base.gallery
+  if (base.detailHtml !== undefined) out.detailHtml = base.detailHtml
+  if (base.buyUrl !== undefined) out.buyUrl = base.buyUrl
+  return out
+}
+
 /** 兜底：把列表数据补成详情结构，保证任意型号进入详情页都不空白 */
 export function getProductDetail(id: string): ProductDetail | null {
   const base = PRODUCTS.find((item) => item.id === id)
   if (!base) return null
   const detailed = PRODUCT_DETAILS[id]
-  if (detailed) return { ...detailed, buyUrl: base.buyUrl ?? detailed.buyUrl }
+  if (detailed) return { ...detailed, ...extendedFields(base) }
   return {
     id: base.id,
     model: base.model,
@@ -199,6 +214,6 @@ export function getProductDetail(id: string): ProductDetail | null {
       },
     ],
     tabs: ['参数规格', '测试记录'],
-    buyUrl: base.buyUrl,
+    ...extendedFields(base),
   }
 }

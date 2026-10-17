@@ -143,12 +143,12 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
 ]
 
 /**
- * 区块类型目录（共 34 类）：
+ * 区块类型目录（共 35 类）：
  * - 16 类基础区块（契约 §4）+ 3 类自定义模块（richText / html / embed）+ showcase（通栏产品展示）= 20；
  * - 扩展：产品详情主体 3 类（productHero / productSpecs / productBuy）+ 商业合作 2 类（caseList / venueList）
  *   + 测评方法 1 类（methodList）+ 邮件订阅 1 类（subscribe）+ B2B 采购价值 1 类（b2bValue）
- *   + 产品详情图文 1 类（productDetailRich）+ 品牌资料 1 类（brandAssetList）+ 信任条 1 类（trustBar）
- *   + 产品矩阵 1 类（productMatrix）。
+ *   + 产品详情图文 1 类（productDetailRich）+ 产品详情四套布局 1 类（productDetailLayout）
+ *   + 品牌资料 1 类（brandAssetList）+ 信任条 1 类（trustBar）+ 产品矩阵 1 类（productMatrix）。
  * 字段严格对齐契约 §4。
  */
 export const BLOCK_TYPES: BlockTypeMeta[] = [
@@ -720,6 +720,40 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     name: '产品详情图文',
     group: '数据',
     fields: [],
+  },
+  // —— 产品详情 · 四套布局：同一产品数据 / 字段，只切换 UI 与交互组织方式 ——
+  {
+    type: 'productDetailLayout',
+    name: '产品详情（四套布局）',
+    group: '数据',
+    fields: [
+      {
+        name: 'layout',
+        label: '默认布局',
+        kind: 'select',
+        options: [
+          { label: '目录式（吸顶目录，推荐）', value: 'toc' },
+          { label: '标签式（横向 Tab）', value: 'tabs' },
+          { label: '折叠式（分组折叠）', value: 'accordion' },
+          { label: '长页式（单页滚动）', value: 'long' },
+        ],
+      },
+      { name: 'showSwitcher', label: '显示「布局预览」切换器', kind: 'switch' },
+      { name: 'primaryLabel', label: '主按钮文案', kind: 'text', placeholder: '如：立即购买（留空则不显示）' },
+      { name: 'primaryHref', label: '主按钮链接', kind: 'text', placeholder: '如：/inquiry' },
+      { name: 'primaryFromProduct', label: '主按钮取产品购买链接（buyUrl）', kind: 'switch' },
+      { name: 'secondaryLabel', label: '次按钮文案', kind: 'text', placeholder: '如：预约体验' },
+      { name: 'secondaryHref', label: '次按钮链接', kind: 'text', placeholder: '如：/business/venues' },
+      { name: 'showBadges', label: '显示角标 / 状态', kind: 'switch' },
+      { name: 'showPrice', label: '显示参考价', kind: 'switch' },
+      { name: 'showSummary', label: '首屏显示关键指标', kind: 'switch' },
+      { name: 'buyTitle', label: '底部咨询标题', kind: 'text', placeholder: '如：准备入手？' },
+      { name: 'buySubtitle', label: '底部咨询副标题', kind: 'text' },
+      { name: 'buyPrimaryLabel', label: '底部主按钮文案', kind: 'text' },
+      { name: 'buyPrimaryHref', label: '底部主按钮链接', kind: 'text' },
+      { name: 'buySecondaryLabel', label: '底部次按钮文案', kind: 'text' },
+      { name: 'buySecondaryHref', label: '底部次按钮链接', kind: 'text' },
+    ],
   },
   // —— 商业合作数据源区块：从集合挑选，支持「全部 / 手动挑选」——
   {
