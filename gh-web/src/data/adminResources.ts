@@ -1568,11 +1568,6 @@ export const ADMIN_RESOURCES: AdminResource[] = [
 
 export const ADMIN_NAV: AdminNavGroup[] = [
   {
-    key: 'workbench',
-    label: '工作台',
-    items: [{ kind: 'link', to: '/admin', label: '工作台首页', icon: 'grid' }],
-  },
-  {
     key: 'product',
     label: '产品与评测',
     items: [

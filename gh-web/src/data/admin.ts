@@ -41,7 +41,17 @@ export type AdminStat = {
 
 export type AdminOverview = {
   stats: AdminStat[]
-  todos: { id: string; label: string; count: number; to: string; icon?: string }[]
+  todos: {
+    id: string
+    label: string
+    count: number
+    to: string
+    icon?: string
+    /** 一句话说明该待办要处理什么 */
+    desc?: string
+    /** 焦点卡强调色：danger 客户等待 / warning 需跟进 / info 内容维护 */
+    tone?: 'danger' | 'warning' | 'info'
+  }[]
   recent: { id: string; at: string; who: string; action: string; target: string }[]
 }
 

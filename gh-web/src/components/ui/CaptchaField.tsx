@@ -58,7 +58,7 @@ export function CaptchaField({ code, onCodeChange, onTokenChange, error, disable
   if (!enabled) return null
 
   return (
-    <div className="field" style={{ marginTop: 'var(--gh-space-4)' }}>
+    <div className="field" style={{ marginTop: 'var(--gh-space-3)' }}>
       <label className="field__label" htmlFor={inputId}>
         验证码<span className="req">*</span>
       </label>

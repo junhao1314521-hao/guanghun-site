@@ -326,6 +326,20 @@ export function AdminLayout() {
               )}
             </div>
 
+            {/* 工作台是后台首页：直接作为独立入口，不再套一级分组 */}
+            <NavLink
+              to="/admin"
+              end
+              title="工作台"
+              className={({ isActive }) => `admin-nav__link admin-nav__link--home${isActive ? ' is-active' : ''}`}
+              onClick={() => setNavOpen(false)}
+            >
+              <span className="admin-nav__icon">
+                <AdminIcon name="grid" size={18} />
+              </span>
+              <span className="admin-nav__label">工作台</span>
+            </NavLink>
+
             {groups.map((group) => {
               const isCollapsed = !q && collapsed.has(group.key)
               return (

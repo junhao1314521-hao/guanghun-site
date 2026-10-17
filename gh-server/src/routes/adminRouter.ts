@@ -137,7 +137,10 @@ adminRouter.get('/overview', requireSession, (_req, res) => {
 /** 工作台概览（真实统计）：集合计数 + 本月下载埋点 + 审计最近记录 */
 function buildOverview() {
   // 「在售产品」按产品状态文案统计；「已发布文章」只计发布状态为已发布的记录（草稿 / 审核中不计）
-  const onSaleProducts = listCollection('products').filter((item) => item.status.text === '在售').length
+  const products = listCollection('products')
+  const onSaleProducts = products.filter((item) => item.status.text === '在售').length
+  const draftProducts = products.filter((item) => item.status.text === '草稿').length
+  const outOfStockProducts = products.filter((item) => item.status.text === '缺货').length
   const publishedArticles = listCollection('articles').filter((item) => (item.status ?? '已发布') === '已发布').length
   const inquiries = listCollection('inquiries')
   const pendingInquiries = inquiries.filter((item) => item.tag !== '已解决' && item.tag !== '已关闭').length
@@ -160,6 +163,7 @@ function buildOverview() {
     target: entry.target,
   }))
 
+  // 待办按「今天要先处理什么」排序：高优先（对外有客户等待）在前，内容维护在后
   return {
     stats: [
       { key: 'products', label: '在售产品', value: onSaleProducts, delta: '—', trend: 'up' as const },
@@ -168,11 +172,13 @@ function buildOverview() {
       { key: 'downloads', label: '本月下载量', value: monthDownloads, delta: '—', trend: 'up' as const },
     ],
     todos: [
-      { id: 't-inquiry', label: '待处理咨询', count: pendingInquiries, to: '/admin/inquiries', icon: 'chat' },
-      { id: 't-waiting', label: '等待补充材料', count: waitingInquiries, to: '/admin/inquiries', icon: 'chat' },
-      { id: 't-reservation', label: '待确认预约', count: pendingReservations, to: '/admin/reservations', icon: 'clock' },
-      { id: 't-review', label: '待评价处理', count: pendingReviews, to: '/admin/reviews', icon: 'trophy' },
-      { id: 't-requirement', label: '需求池待评审', count: pendingRequirements, to: '/admin/requirements', icon: 'venn' },
+      { id: 't-inquiry', label: '待处理咨询', desc: '客户留言与询价', count: pendingInquiries, to: '/admin/inquiries', icon: 'chat', tone: 'danger' as const },
+      { id: 't-waiting', label: '等待补充材料', desc: '客户资料待回传', count: waitingInquiries, to: '/admin/inquiries', icon: 'chat', tone: 'warning' as const },
+      { id: 't-reservation', label: '待确认预约', desc: '到访 / 试用预约', count: pendingReservations, to: '/admin/reservations', icon: 'clock', tone: 'warning' as const },
+      { id: 't-product-draft', label: '产品草稿待发布', desc: '补齐信息后上架', count: draftProducts, to: '/admin/products', icon: 'cube', tone: 'info' as const },
+      { id: 't-out-of-stock', label: '缺货型号', desc: '检查库存与到货', count: outOfStockProducts, to: '/admin/products', icon: 'cube', tone: 'info' as const },
+      { id: 't-review', label: '待评价处理', desc: '客户服务评价', count: pendingReviews, to: '/admin/reviews', icon: 'trophy', tone: 'info' as const },
+      { id: 't-requirement', label: '需求池待评审', desc: '内部迭代需求', count: pendingRequirements, to: '/admin/requirements', icon: 'venn', tone: 'info' as const },
     ],
     recent,
   }

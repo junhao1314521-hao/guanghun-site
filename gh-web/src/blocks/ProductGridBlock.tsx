@@ -125,7 +125,6 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
     if (resetPage) next.delete('page')
     setParams(next, { replace: true })
   }
-  const [moreOpen, setMoreOpen] = useState(false)
   const [picked, setPicked] = useState<string[]>([])
   /**
    * 共享元素过渡：指针按下的那张卡片临时获得 `view-transition-name`，
@@ -233,6 +232,85 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       : null,
   ].filter((chip): chip is { key: string; label: string; clear: () => void } => chip !== null)
 
+  /** 产品卡（列表页与普通网格共用同一套结构与交互） */
+  const renderCard = (item: Product) => {
+    const isPicked = picked.includes(item.id)
+    return (
+      <article
+        className={`pcard${showFilter && isPicked ? ' is-picked' : ''}`}
+        key={item.id}
+        onPointerDown={() => flushSync(() => setVtId(item.id))}
+      >
+        <div
+          className="pcard__media media-ph"
+          style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
+        >
+          {showFlag && item.flag && (
+            <div className="pcard__flags">
+              <span className="tag tag--accent">{item.flag}</span>
+            </div>
+          )}
+          {showFilter && (
+            <div className="pcard__pick">
+              <span className="check">
+                <input
+                  type="checkbox"
+                  checked={isPicked}
+                  aria-label={`加入对比 ${item.model}`}
+                  onChange={() => togglePick(item.id)}
+                />
+              </span>
+            </div>
+          )}
+          <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
+        </div>
+        <div className="pcard__body">
+          {isHrefLive(`/products/${item.id}`) ? (
+            <Link to={`/products/${item.id}`} viewTransition style={{ color: 'inherit', textDecoration: 'none' }}>
+              <div className="pcard__model">{item.model}</div>
+              <h3 className="pcard__name">{item.name}</h3>
+            </Link>
+          ) : (
+            // 下线级联：详情页已停用时型号 / 名称退化为不可点内容
+            <div>
+              <div className="pcard__model">{item.model}</div>
+              <h3 className="pcard__name">{item.name}</h3>
+            </div>
+          )}
+          {showSpecs && (
+            <div className="pcard__specs">
+              {item.specs.map((spec) => (
+                <span key={spec}>{spec}</span>
+              ))}
+            </div>
+          )}
+          {showStatus && (
+            <div className="row" style={{ marginTop: 'var(--gh-space-1)' }}>
+              <span className={`status status--${item.status.level}`}>{item.status.text}</span>
+            </div>
+          )}
+          <div className="pcard__foot">
+            {showPrice && <span className="pcard__price">{item.price}</span>}
+            {showFilter ? (
+              <button
+                className={`btn btn--sm ${isPicked ? 'btn--primary is-magnetic' : 'btn--secondary'}`}
+                type="button"
+                disabled={item.status.level === 'warning'}
+                onClick={() => togglePick(item.id)}
+              >
+                {isPicked ? '对比中' : '加入对比'}
+              </button>
+            ) : (
+              <SafeLink className="btn btn--sm btn--secondary" to={`/products/${item.id}`} viewTransition>
+                查看详情
+              </SafeLink>
+            )}
+          </div>
+        </div>
+      </article>
+    )
+  }
+
   return (
     <div>
       <SectionHeadFromProps props={props} />
@@ -248,262 +326,169 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
         <GridSkeleton count={limit} />
       ) : (
         <>
-          {/* 筛选工具区（仅列表页开启）：与原产品列表页一致 */}
-          {showFilter && (
-            <div className="card" style={{ padding: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-6)' }}>
-              <div className="row" style={{ gap: 'var(--gh-space-5)' }}>
-                <div className="row">
-                  <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                    类别
-                  </span>
-                  {categoryOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className={`chip${category === option ? ' is-active' : ''}`}
-                      aria-pressed={category === option}
-                      onClick={() => writeParams({ category: option === '全部' ? '' : option })}
-                    >
-                      {option}
+          {/* 列表页：左侧筛选栏 + 右侧大图卡片 */}
+          {showFilter ? (
+            <div className="catalog">
+              <aside className="catalog__aside" aria-label="产品筛选">
+                <div className="catalog__aside-head">
+                  <h2 className="catalog__aside-title">筛选</h2>
+                  {activeChips.length > 0 && (
+                    <button className="catalog__reset" type="button" onClick={clearAll}>
+                      清空
                     </button>
-                  ))}
+                  )}
                 </div>
-                <div className="row">
-                  <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                    连接
-                  </span>
-                  {CONNECTION_FILTERS.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className={`chip${connections.includes(option) ? ' is-active' : ''}`}
-                      aria-pressed={connections.includes(option)}
-                      onClick={() => toggleConnection(option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  className={`btn btn--sm ${moreOpen ? 'btn--primary' : 'btn--secondary'}`}
-                  type="button"
-                  aria-expanded={moreOpen}
-                  onClick={() => setMoreOpen((open) => !open)}
-                >
-                  更多筛选
-                </button>
-              </div>
 
-              {moreOpen && (
-                <div
-                  className="row"
-                  style={{
-                    gap: 'var(--gh-space-5)',
-                    marginTop: 'var(--gh-space-4)',
-                    paddingTop: 'var(--gh-space-4)',
-                    borderTop: '1px solid var(--color-border-subtle)',
-                  }}
-                >
-                  <div className="row">
-                    <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                      价格
-                    </span>
+                <div className="catalog__group">
+                  <span className="catalog__group-title">类别</span>
+                  <div className="catalog__opts">
+                    {categoryOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`catalog__opt${category === option ? ' is-active' : ''}`}
+                        aria-pressed={category === option}
+                        onClick={() => writeParams({ category: option === '全部' ? '' : option })}
+                      >
+                        <span>{option}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="catalog__group">
+                  <span className="catalog__group-title">接口</span>
+                  <div className="catalog__opts">
+                    {CONNECTION_FILTERS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`catalog__opt${connections.includes(option) ? ' is-active' : ''}`}
+                        aria-pressed={connections.includes(option)}
+                        onClick={() => toggleConnection(option)}
+                      >
+                        <span>{option}</span>
+                        <span className="catalog__check" aria-hidden="true">
+                          {connections.includes(option) ? '✓' : ''}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="catalog__group">
+                  <span className="catalog__group-title">价格</span>
+                  <div className="catalog__opts">
                     {PRICE_RANGES.map((option) => (
                       <button
                         key={option.id}
                         type="button"
-                        className={`chip${priceId === option.id ? ' is-active' : ''}`}
+                        className={`catalog__opt${priceId === option.id ? ' is-active' : ''}`}
                         aria-pressed={priceId === option.id}
                         onClick={() => writeParams({ price: option.id === PRICE_RANGES[0].id ? '' : option.id })}
                       >
-                        {option.label}
+                        <span>{option.label}</span>
                       </button>
                     ))}
                   </div>
-                  <div className="row">
-                    <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                      库存
-                    </span>
+                </div>
+
+                <div className="catalog__group">
+                  <span className="catalog__group-title">库存</span>
+                  <div className="catalog__opts">
                     {STATUS_FILTERS.map((option) => (
                       <button
                         key={option}
                         type="button"
-                        className={`chip${status === option ? ' is-active' : ''}`}
+                        className={`catalog__opt${status === option ? ' is-active' : ''}`}
                         aria-pressed={status === option}
                         onClick={() => writeParams({ status: option === '全部' ? '' : option })}
                       >
-                        {option}
+                        <span>{option}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
+              </aside>
 
-              {activeChips.length > 0 && (
-                <div
-                  className="row"
-                  style={{
-                    marginTop: 'var(--gh-space-4)',
-                    paddingTop: 'var(--gh-space-4)',
-                    borderTop: '1px solid var(--color-border-subtle)',
-                  }}
-                >
-                  <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                    已选
-                  </span>
-                  {activeChips.map((chip) => (
-                    <span className="chip chip--removable" key={chip.key}>
-                      {chip.label}
-                      <button aria-label={`移除 ${chip.label}`} type="button" onClick={chip.clear}>
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  <button className="btn btn--ghost btn--sm" type="button" onClick={clearAll}>
-                    清空全部
-                  </button>
+              <div className="catalog__main">
+                <div className="catalog__toolbar">
+                  <p className="catalog__count">
+                    共 <strong>{shown.length}</strong> 款产品
+                    {scene && <span className="catalog__scene">场景：{scene.title}</span>}
+                  </p>
+                  <label className="sr-only" htmlFor="sort-products">
+                    排序方式
+                  </label>
+                  <select
+                    className="select catalog__sort"
+                    id="sort-products"
+                    value={sortBy}
+                    onChange={(event) =>
+                      writeParams({ sort: event.target.value === SORT_OPTIONS[0] ? '' : event.target.value })
+                    }
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option}>{option}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* 排序（仅列表页开启） */}
-          {showFilter && (
-            <div className="row" style={{ justifyContent: 'flex-end', marginBottom: 'var(--gh-space-4)' }}>
-              <label className="sr-only" htmlFor="sort-products">
-                排序方式
-              </label>
-              <select
-                className="select"
-                id="sort-products"
-                style={{ width: 180 }}
-                value={sortBy}
-                onChange={(event) =>
-                  writeParams({ sort: event.target.value === SORT_OPTIONS[0] ? '' : event.target.value })
-                }
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-          )}
+                {activeChips.length > 0 && (
+                  <div className="catalog__chips">
+                    {activeChips.map((chip) => (
+                      <span className="chip chip--removable" key={chip.key}>
+                        {chip.label}
+                        <button aria-label={`移除 ${chip.label}`} type="button" onClick={chip.clear}>
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-          {/* 产品网格 */}
-          {shown.length === 0 ? (
-            <p className="section__desc" style={{ textAlign: showFilter ? 'center' : undefined, padding: 'var(--gh-space-6) 0' }}>
-              {showFilter ? '没有符合当前筛选条件的产品，试试调整筛选。' : '暂无可展示的产品。'}
-            </p>
-          ) : (
-            <div className={layout === 'rail' ? 'p-grid-rail' : gridClassName}>
-              {paged.map((item) => {
-                const isPicked = picked.includes(item.id)
-                return (
-                  <article
-                    className={`pcard${showFilter && isPicked ? ' is-picked' : ''}`}
-                    key={item.id}
-                    onPointerDown={() => flushSync(() => setVtId(item.id))}
-                  >
-                    <div
-                      className="pcard__media media-ph"
-                      style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
-                    >
-                      {showFlag && item.flag && (
-                        <div className="pcard__flags">
-                          <span className="tag tag--accent">{item.flag}</span>
-                        </div>
-                      )}
-                      {showFilter && (
-                        <div className="pcard__pick">
-                          <span className="check">
-                            <input
-                              type="checkbox"
-                              checked={isPicked}
-                              aria-label={`加入对比 ${item.model}`}
-                              onChange={() => togglePick(item.id)}
-                            />
-                          </span>
-                        </div>
-                      )}
-                      <MediaImg src={MEDIA.product[item.id]} alt={item.name} variant={item.variant} label={item.name} />
+                {shown.length === 0 ? (
+                  <p className="catalog__empty">没有符合当前筛选条件的产品，试试调整筛选。</p>
+                ) : (
+                  <div className="p-grid catalog__grid">{paged.map(renderCard)}</div>
+                )}
+
+                {totalPages > 1 && (
+                  <div className="catalog__pager">
+                    <div className="pagination">
+                      <button aria-label="上一页" type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
+                        ‹
+                      </button>
+                      {Array.from({ length: totalPages }, (_, index) => index + 1).map((n) => (
+                        <button
+                          key={n}
+                          className={n === safePage ? 'is-active' : undefined}
+                          type="button"
+                          aria-current={n === safePage ? 'page' : undefined}
+                          onClick={() => setPage(n)}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                      <button
+                        aria-label="下一页"
+                        type="button"
+                        disabled={safePage >= totalPages}
+                        onClick={() => setPage(safePage + 1)}
+                      >
+                        ›
+                      </button>
                     </div>
-                    <div className="pcard__body">
-                      {isHrefLive(`/products/${item.id}`) ? (
-                        <Link to={`/products/${item.id}`} viewTransition style={{ color: 'inherit', textDecoration: 'none' }}>
-                          <div className="pcard__model">{item.model}</div>
-                          <h3 className="pcard__name">{item.name}</h3>
-                        </Link>
-                      ) : (
-                        // 下线级联：详情页已停用时型号 / 名称退化为不可点内容
-                        <div>
-                          <div className="pcard__model">{item.model}</div>
-                          <h3 className="pcard__name">{item.name}</h3>
-                        </div>
-                      )}
-                      {showSpecs && (
-                        <div className="pcard__specs">
-                          {item.specs.map((spec) => (
-                            <span key={spec}>{spec}</span>
-                          ))}
-                        </div>
-                      )}
-                      {showStatus && (
-                        <div className="row" style={{ marginTop: 'var(--gh-space-1)' }}>
-                          <span className={`status status--${item.status.level}`}>{item.status.text}</span>
-                        </div>
-                      )}
-                      <div className="pcard__foot">
-                        {showPrice && <span className="pcard__price">{item.price}</span>}
-                        {showFilter ? (
-                          <button
-                            className={`btn btn--sm ${isPicked ? 'btn--primary is-magnetic' : 'btn--secondary'}`}
-                            type="button"
-                            disabled={item.status.level === 'warning'}
-                            onClick={() => togglePick(item.id)}
-                          >
-                            {isPicked ? '对比中' : '加入对比'}
-                          </button>
-                        ) : (
-                          <SafeLink className="btn btn--sm btn--secondary" to={`/products/${item.id}`} viewTransition>
-                            查看详情
-                          </SafeLink>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          )}
-
-          {/* 分页（仅列表页开启；真实翻页） */}
-          {showFilter && totalPages > 1 && (
-            <div className="row" style={{ justifyContent: 'center', marginTop: 'var(--gh-space-7)' }}>
-              <div className="pagination">
-                <button aria-label="上一页" type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
-                  ‹
-                </button>
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((n) => (
-                  <button
-                    key={n}
-                    className={n === safePage ? 'is-active' : undefined}
-                    type="button"
-                    aria-current={n === safePage ? 'page' : undefined}
-                    onClick={() => setPage(n)}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <button
-                  aria-label="下一页"
-                  type="button"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage(safePage + 1)}
-                >
-                  ›
-                </button>
+                  </div>
+                )}
               </div>
             </div>
+          ) : shown.length === 0 ? (
+            <p className="section__desc" style={{ padding: 'var(--gh-space-6) 0' }}>
+              暂无可展示的产品。
+            </p>
+          ) : (
+            <div className={layout === 'rail' ? 'p-grid-rail' : gridClassName}>{paged.map(renderCard)}</div>
           )}
 
           {/* 对比浮条（仅列表页开启）：数量约束与不兼容提示 */}

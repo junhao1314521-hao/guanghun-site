@@ -146,7 +146,7 @@ export function InquiryForm({ title, desc, points, routingEnabled }: InquiryForm
       <form className="card contact-form reveal" onSubmit={handleSubmit} noValidate>
         {/* 轻量分流：顶部先选咨询类型，下方「咨询主题」随类型联动 */}
         {routingEnabled && (
-          <div className="field" style={{ marginBottom: 'var(--gh-space-4)' }}>
+          <div className="field contact-type-field" style={{ marginBottom: 'var(--gh-space-3)' }}>
             <span className="field__label" id="inq-type-label">
               咨询类型
             </span>
@@ -233,7 +233,7 @@ export function InquiryForm({ title, desc, points, routingEnabled }: InquiryForm
           </div>
         </div>
 
-        <div className="field" style={{ marginTop: 'var(--gh-space-4)' }}>
+        <div className="field" style={{ marginTop: 'var(--gh-space-3)' }}>
           <label className="field__label" htmlFor="inq-message">
             问题描述 <span className="req">*</span>
           </label>
@@ -265,7 +265,7 @@ export function InquiryForm({ title, desc, points, routingEnabled }: InquiryForm
           disabled={submitting}
         />
 
-        <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
+        <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
           <button className={`btn btn--primary${submitting ? ' btn--loading' : ''}`} type="submit" disabled={submitting}>
             {submitting ? '提交中…' : '提交咨询'}
           </button>

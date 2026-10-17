@@ -210,6 +210,18 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 .admin-nav__icon { display: inline-flex; color: inherit; flex-shrink: 0; }
 
+/* 工作台：独立首页入口（不套一级分组），下方用发丝线与业务栏目分隔 */
+.admin-nav__link--home { margin-bottom: var(--gh-space-3); }
+.admin-nav__link--home::after {
+  content: '';
+  position: absolute;
+  left: var(--gh-space-3);
+  right: var(--gh-space-3);
+  bottom: calc(var(--gh-space-2) * -1);
+  height: 1px;
+  background: var(--color-border-subtle);
+}
+
 /* ---------- 主体 ---------- */
 .admin-body { display: flex; flex-direction: column; min-width: 0; }
 
@@ -1755,3 +1767,336 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 .poster-pos__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gh-space-2); }
 .poster-pos__grid .btn { width: 100%; }
+
+/* ============================================================
+   产品列表（专用视图）
+   ============================================================ */
+.admin-products__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--gh-space-3);
+  flex-wrap: wrap;
+  margin: var(--gh-space-4) 0 var(--gh-space-5);
+}
+.admin-products__search { width: 280px; max-width: 100%; }
+.admin-products__spacer { flex: 1; min-width: var(--gh-space-4); }
+.admin-products__count { color: var(--color-text-tertiary); font-size: var(--gh-font-size-body-sm); white-space: nowrap; }
+.admin-products__selected { display: flex; align-items: center; gap: var(--gh-space-3); color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); }
+.admin-products__page { color: var(--color-text-tertiary); font-size: var(--gh-font-size-body-sm); white-space: nowrap; }
+.admin-products__view {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--gh-radius-md);
+  background: var(--color-bg-muted);
+}
+.admin-products__view button {
+  height: 30px;
+  padding: 0 var(--gh-space-3);
+  border: 0;
+  border-radius: calc(var(--gh-radius-md) - 2px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: var(--gh-font-size-body-sm);
+  cursor: pointer;
+}
+.admin-products__view button.is-active {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-products__table { table-layout: fixed; }
+.admin-products__table th:nth-child(1), .admin-products__table td:nth-child(1) { width: 44px; }
+.admin-products__table th:nth-child(2), .admin-products__table td:nth-child(2) { width: auto; }
+.admin-products__table th:nth-child(3), .admin-products__table td:nth-child(3) { width: 104px; }
+.admin-products__table th:nth-child(4), .admin-products__table td:nth-child(4) { width: 92px; }
+.admin-products__table th:nth-child(5), .admin-products__table td:nth-child(5) { width: 110px; }
+.admin-products__table th:nth-child(6), .admin-products__table td:nth-child(6) { width: 112px; }
+.admin-products__table th:nth-child(7), .admin-products__table td:nth-child(7) { width: 132px; }
+.admin-products__table tbody tr { height: 68px; }
+
+.admin-product-cell { display: flex; align-items: center; gap: var(--gh-space-3); min-width: 0; }
+.admin-product-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  overflow: hidden;
+  border-radius: var(--gh-radius-md);
+  background: var(--color-bg-muted);
+  color: var(--color-text-tertiary);
+}
+.admin-product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-product-cell__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.admin-product-cell__name { color: var(--color-text-primary); font-weight: var(--gh-weight-medium); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-product-cell__name:hover { color: var(--color-accent-text); }
+.admin-product-cell__meta { color: var(--color-text-tertiary); font-size: var(--gh-font-size-caption); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.admin-products__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--gh-space-4);
+}
+.admin-product-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-xl);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard), box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.admin-product-card:hover { border-color: var(--color-border-strong); box-shadow: var(--shadow-md); }
+.admin-product-card.is-selected { border-color: var(--color-accent); }
+.admin-product-card__media { position: relative; aspect-ratio: 4 / 3; background: var(--color-bg-muted); }
+.admin-product-card__flag { position: absolute; top: var(--gh-space-3); left: var(--gh-space-3); }
+.admin-product-card__check { position: absolute; top: var(--gh-space-3); right: var(--gh-space-3); display: grid; place-items: center; width: 26px; height: 26px; border-radius: var(--gh-radius-sm); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+.admin-product-card__body { display: flex; flex-direction: column; gap: var(--gh-space-1); padding: var(--gh-space-4); }
+.admin-product-card__model { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.admin-product-card__name { margin: 0; font-size: var(--gh-font-size-body-lg); line-height: var(--gh-line-height-body); font-weight: var(--gh-weight-medium); }
+.admin-product-card__specs { margin: 0; color: var(--color-text-tertiary); font-size: var(--gh-font-size-caption); min-height: 36px; }
+.admin-product-card__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-3); margin-top: var(--gh-space-2); }
+.admin-product-card__price { font-family: var(--gh-font-mono); font-weight: var(--gh-weight-semibold); }
+.admin-product-card__actions { display: flex; gap: var(--gh-space-2); margin-top: var(--gh-space-2); }
+.admin-products__cards-pager { display: flex; align-items: center; justify-content: center; gap: var(--gh-space-3); margin-top: var(--gh-space-5); }
+
+@media (max-width: 1200px) {
+  .admin-products__table th:nth-child(3), .admin-products__table td:nth-child(3),
+  .admin-products__table th:nth-child(6), .admin-products__table td:nth-child(6) { display: none; }
+  .admin-products__table th:nth-child(2), .admin-products__table td:nth-child(2) { width: auto; }
+}
+@media (max-width: 767px) {
+  .admin-products__toolbar { align-items: stretch; }
+  .admin-products__search { width: 100%; }
+  .admin-products__cards { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ============================================================
+   工作台：今日焦点 + 紧凑指标 + 动态/快捷入口
+   ============================================================ */
+
+/* 焦点区：可处理任务一眼看清 */
+.admin-focus {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+  padding: var(--gh-space-4) var(--gh-space-5);
+  margin-bottom: var(--gh-space-4);
+}
+.admin-focus__head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--gh-space-3);
+  margin-bottom: var(--gh-space-3);
+}
+.admin-focus__title { margin: 0; font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); }
+.admin-focus__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+
+.admin-focus__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gh-space-3);
+}
+.admin-focus__card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--gh-space-3);
+  padding: var(--gh-space-3) var(--gh-space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-md);
+  background: var(--color-bg-subtle);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard),
+    background-color var(--gh-duration-fast) var(--gh-ease-standard),
+    transform var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.admin-focus__card:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-surface);
+  transform: translateY(-1px);
+}
+.admin-focus__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: var(--gh-radius-md);
+  background: var(--color-accent-subtle); color: var(--color-accent-text);
+  flex-shrink: 0;
+}
+.admin-focus__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.admin-focus__label {
+  font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-focus__desc {
+  font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-focus__count {
+  font-family: var(--gh-font-mono); font-size: var(--gh-font-size-h3);
+  font-weight: var(--gh-weight-semibold); line-height: 1;
+}
+.admin-focus__go { display: inline-flex; color: var(--color-text-tertiary); }
+.admin-focus__card:hover .admin-focus__go { color: var(--color-accent-text); }
+
+/* 色调：danger 客户等待 / warning 需跟进 / info 内容维护 */
+.admin-focus__card--danger .admin-focus__icon { background: var(--color-danger-bg); color: var(--color-danger); }
+.admin-focus__card--danger .admin-focus__count { color: var(--color-danger); }
+.admin-focus__card--warning .admin-focus__icon { background: var(--color-warning-bg); color: var(--color-warning); }
+.admin-focus__card--warning .admin-focus__count { color: var(--color-warning); }
+.admin-focus__card--info .admin-focus__icon { background: var(--color-info-bg); color: var(--color-info); }
+
+/* 无待办空状态 */
+.admin-focus__clear {
+  display: flex; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-4);
+  border: 1px dashed var(--color-border-default);
+  border-radius: var(--gh-radius-md);
+}
+.admin-focus__clear-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: var(--gh-radius-full);
+  background: var(--color-success-bg); color: var(--color-success);
+  flex-shrink: 0;
+}
+.admin-focus__clear-title { margin: 0; font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+.admin-focus__clear-desc { margin: 2px 0 0; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+
+/* 其余待办：一行 chip，不额外占高度 */
+.admin-focus__rest {
+  display: flex; align-items: center; gap: var(--gh-space-2); flex-wrap: wrap;
+  margin-top: var(--gh-space-3);
+  font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary);
+}
+.admin-focus__rest .admin-chip { text-decoration: none; color: var(--color-text-secondary); }
+.admin-focus__rest-count { margin-left: 4px; font-family: var(--gh-font-mono); font-weight: var(--gh-weight-semibold); }
+
+/* 指标区：横向紧凑 */
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gh-space-3);
+  margin-bottom: var(--gh-space-4);
+}
+.admin-kpi--compact {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gh-space-3);
+  padding: var(--gh-space-3) var(--gh-space-4);
+}
+.admin-kpi--compact .admin-kpi__icon { width: 30px; height: 30px; }
+.admin-kpi__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.admin-kpi--compact .admin-kpi__label { order: 2; font-size: var(--gh-font-size-caption); }
+.admin-kpi--compact .admin-kpi__value { order: 1; font-size: var(--gh-font-size-h3); line-height: 1.1; }
+
+/* 双栏：动态列表 + 快捷入口 */
+.admin-cols--workbench { margin-top: 0; }
+
+.admin-panel__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+
+.admin-activity { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.admin-activity__item {
+  display: flex; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-2) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.admin-activity__item:last-child { border-bottom: 0; padding-bottom: 0; }
+.admin-activity__dot {
+  width: 6px; height: 6px; border-radius: var(--gh-radius-full);
+  background: var(--color-border-strong); flex-shrink: 0;
+}
+.admin-activity__main {
+  display: flex; align-items: center; gap: var(--gh-space-2);
+  min-width: 0; flex: 1;
+  font-size: var(--gh-font-size-body-sm);
+}
+.admin-activity__who { font-weight: var(--gh-weight-medium); }
+.admin-activity__action { color: var(--color-text-secondary); }
+.admin-activity__target {
+  color: var(--color-text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-activity__at { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); flex-shrink: 0; }
+
+.admin-quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-2); }
+.admin-quick__item {
+  display: flex; align-items: center; gap: var(--gh-space-2);
+  padding: var(--gh-space-2) var(--gh-space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-md);
+  text-decoration: none; color: inherit;
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard),
+    background-color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.admin-quick__item:hover { border-color: var(--color-border-strong); background: var(--color-bg-subtle); }
+.admin-quick__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--gh-radius-sm);
+  background: var(--color-accent-subtle); color: var(--color-accent-text);
+  flex-shrink: 0;
+}
+.admin-quick__text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.admin-quick__label { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+.admin-quick__desc {
+  font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-quick__arrow { color: var(--color-text-tertiary); flex-shrink: 0; }
+
+/* 响应式：先收成两列，再收成单列 */
+@media (max-width: 1279px) {
+  .admin-focus__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .admin-focus { padding: var(--gh-space-4); }
+  .admin-focus__grid, .admin-kpis, .admin-quick { grid-template-columns: minmax(0, 1fr); }
+  .admin-activity__main { flex-wrap: wrap; gap: 2px var(--gh-space-2); }
+}
+
+/* ============================================================
+   后台体验收口（P4）
+   —— 只做「一致性 + 呼吸感 + 响应式」，不引入新组件。
+   ============================================================ */
+
+/* 页头：标题区与操作区同一基线；描述行高放宽，减少压迫感 */
+.admin-page:not(.builder-page) .admin-page__head { align-items: center; }
+.admin-page__desc { line-height: var(--gh-line-height-body); }
+.admin-page__actions { align-items: center; }
+
+/* 列表页工具栏：搜索框自适应、筛选控件同高、窄屏纵向铺开 */
+.admin-toolbar { min-height: var(--adm-toolbar-height); }
+.admin-toolbar > .input,
+.admin-toolbar > .select,
+.admin-toolbar > .admin-select { height: var(--adm-control-h-md); }
+.admin-toolbar__search { flex: 1 1 220px; max-width: 340px; }
+@media (max-width: 767px) {
+  .admin-toolbar { align-items: stretch; }
+  .admin-toolbar__search { max-width: none; }
+  .admin-toolbar .admin-filters { width: 100%; }
+  .admin-toolbar__spacer { display: none; }
+}
+
+/* 表格：表头背景固定（吸顶时不透出内容）+ 行悬停更克制 */
+.admin-table thead th { background: var(--color-bg-subtle); }
+.admin-table tbody tr { transition: background-color var(--gh-duration-fast) var(--gh-ease-standard); }
+.admin-table tbody tr:hover { background: var(--color-bg-subtle); }
+.admin-table td.admin-cell--muted { color: var(--color-text-tertiary); }
+
+/* 面板：标题行与右侧操作垂直居中；标题字重统一 */
+.admin-panel__head { align-items: center; }
+.admin-panel__title { line-height: var(--gh-line-height-body); }
+
+/* 表单：分区之间留白一致；分区标题与首行字段拉开一档 */
+.admin-form__section { border-radius: var(--adm-radius-surface); }
+.admin-form__section-title { line-height: var(--gh-line-height-body); }
+
+/* 骨架屏：与表格行高对齐，加载时页面不跳动 */
+.admin-skeleton-row { min-height: var(--adm-row-height); }
+
+/* 焦点与选中：统一使用强调色描边，键盘可达 */
+.admin-root .btn:focus-visible,
+.admin-root .input:focus-visible,
+.admin-root .select:focus-visible,
+.admin-root .textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

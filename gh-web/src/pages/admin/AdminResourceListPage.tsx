@@ -23,6 +23,7 @@ import { AdminBackupsList } from '../../components/admin/AdminBackupsList'
 import { AdminPublishList } from '../../components/admin/AdminPublishList'
 import { AdminRolesView } from '../../components/admin/AdminRolesView'
 import { AdminRequirementsView } from '../../components/admin/AdminRequirementsView'
+import { AdminProductsList } from './AdminProductsList'
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
 import { OverflowMenu, type OverflowMenuItem } from '../../components/admin/OverflowMenu'
 import { Select } from '../../components/admin/Select'
@@ -664,6 +665,8 @@ export function AdminResourceListPage() {
   const { key = '' } = useParams()
   const resource = adminResource(key)
   if (!resource) return <AdminNotFound />
+  // 「产品列表」为专用视觉化视图：缩略图 + 精简列 + 表格/卡片切换
+  if (resource.key === 'products') return <AdminProductsList />
   // 「页面」栏目为内容库自定义视图：由 AdminPagesList 承载（数据源 /api/admin/pages，含装修入口）
   if (resource.view === 'pages') return <AdminPagesList />
   // 「素材库」栏目为真实上传数据视图：由 AdminUploadsList 承载（数据源 /api/admin/uploads）
