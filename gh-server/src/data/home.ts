@@ -59,6 +59,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     media: { kind: 'image' },
     mediaTag: '21:9 产品海报',
     poster: '/posters/poster-21x9-v3.png',
+    posterMobile: '/posters/poster-21x9-v3-mobile.jpg',
     eyebrow: 'ULTRAWIDE / 21:9',
     title: ['21:9 超宽视野'],
     desc: '光魂超宽屏电竞显示器',
