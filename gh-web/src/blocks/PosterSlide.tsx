@@ -54,6 +54,10 @@ export type PosterData = {
   ctaStyle: PosterCtaStyle
   /** 底部悬浮下载条：下载中心条目 ID 列表（顺序即展示顺序）；空 = 不显示 */
   downloadIds: string[]
+  /** 图片完整显示：true 时用 contain（不裁切、不做缓慢放大），false / 缺省用 cover 铺满 */
+  mediaContain: boolean
+  /** 是否显示压暗遮罩（默认 true，保证文案可读）；false 时完整呈现海报细节 */
+  scrim: boolean
 }
 
 /** 把内容库的原始 props 收敛为海报数据（字段缺失 / 类型不符一律回退，渲染期不抛错） */
@@ -96,6 +100,8 @@ export function toPoster(value: unknown): PosterData {
     accentColor: asString(record.accentColor),
     ctaStyle,
     downloadIds: asArray(record.downloadIds).filter((id): id is string => typeof id === 'string' && id.length > 0),
+    mediaContain: asBool(record.mediaContain),
+    scrim: record.scrim === undefined ? true : asBool(record.scrim),
   }
 }
 

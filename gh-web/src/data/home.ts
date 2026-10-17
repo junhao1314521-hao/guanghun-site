@@ -17,6 +17,10 @@ export type HeroSlide = {
   posterMobile?: string
   /** 文案位置覆盖（百分比 0–100；缺省用首屏统一位置） */
   position?: { x: number; y: number }
+  /** 图片完整显示（contain，不裁切）；缺省 cover 铺满 */
+  mediaContain?: boolean
+  /** 压暗遮罩开关；缺省开启，关闭后完整呈现海报细节 */
+  scrim?: boolean
   eyebrow: string
   title: string[]
   desc: string
@@ -53,13 +57,15 @@ export const HERO_SLIDES: HeroSlide[] = [
     mediaTag: '21:9 产品海报',
     poster: '/posters/poster-21x9-v3.png',
     eyebrow: 'ULTRAWIDE / 21:9',
-    title: ['21:9', '超宽视野'],
+    title: ['21:9 超宽视野'],
     desc: '光魂超宽屏电竞显示器',
     primary: '立即购买',
     secondary: '',
     primaryTo: '/products',
     stats: [],
-    position: { x: 7, y: 32 },
+    position: { x: 50, y: 16 },
+    mediaContain: true,
+    scrim: false,
   },
   {
     id: 's1',

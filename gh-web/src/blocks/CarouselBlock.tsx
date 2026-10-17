@@ -115,7 +115,9 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
               className={`blk-hero__slide${active ? ' is-active' : ''}`}
               aria-hidden={!active}
             >
-              <div className={`blk-hero__bg${renderable ? ' has-media' : ''}`}>
+              <div
+                className={`blk-hero__bg${renderable ? ' has-media' : ''}${renderable && slide.mediaContain ? ' is-contain' : ''}${renderable && !slide.scrim ? ' is-no-scrim' : ''}`}
+              >
                 {renderable && <PosterMedia data={slide} src={src} eager={i === 0} />}
               </div>
               {/* 区块内标题统一 h2：页面级唯一 h1 由 PageView 的 sr-only h1 提供（R11 无障碍） */}

@@ -37,7 +37,9 @@ export function HeroBlock({ props }: { props: Record<string, unknown> }) {
       {isCode && <CodeBackdrop className="blk-hero__anim" theme={theme} />}
       <div className="blk-hero__slides">
         <article className="blk-hero__slide is-active">
-          <div className={`blk-hero__bg${!isCode && src ? ' has-media' : ''}`}>
+          <div
+            className={`blk-hero__bg${!isCode && src ? ' has-media' : ''}${!isCode && src && data.mediaContain ? ' is-contain' : ''}${!isCode && src && !data.scrim ? ' is-no-scrim' : ''}`}
+          >
             {!isCode && src && <PosterMedia data={data} src={src} eager />}
           </div>
           <PosterOverlay data={data} titleTag="h2" />

@@ -173,6 +173,8 @@ function buildHome(): Page {
             mediaTag: slide.mediaTag,
             image: slide.poster ?? `/media/home/${slide.id}.svg`,
             ...(slide.posterMobile ? { imageMobile: slide.posterMobile } : {}),
+            ...(slide.mediaContain ? { mediaContain: true } : {}),
+            ...(slide.scrim === false ? { scrim: false } : {}),
             ...posterButtons(detail),
             stats: slide.stats,
             statsEnabled: false,

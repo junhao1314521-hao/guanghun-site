@@ -108,6 +108,19 @@
     linear-gradient(90deg, rgba(7, 10, 22, .9) 0%, rgba(7, 10, 22, .68) 36%, rgba(7, 10, 22, .16) 66%, rgba(7, 10, 22, 0) 100%),
     linear-gradient(0deg, rgba(7, 10, 22, .78) 0%, rgba(7, 10, 22, 0) 52%);
 }
+/* 单张海报可关闭压暗遮罩：完整呈现原图细节（后台字段 scrim） */
+.blk-hero__bg.has-media.is-no-scrim::after { display: none; }
+/* 图片完整显示：contain 不裁切、不做缓慢放大 / 悬停放大，两侧留出画布底色 */
+.blk-hero__bg.is-contain { background: var(--gh-neutral-950); }
+.blk-hero__bg.is-contain img {
+  object-fit: contain;
+  animation: none;
+}
+.blk-hero:hover .blk-hero__bg.is-contain { transform: none; }
+/* 手机竖屏：21:9 横版海报若 contain 会缩成一条，窄屏改用 cover 铺满（保持静态，不做缓慢放大） */
+@media (max-width: 767px) {
+  .blk-hero__bg.is-contain img { object-fit: cover; }
+}
 @keyframes blkKenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
 @media (prefers-reduced-motion: reduce) {
   .blk-hero__bg img { animation: none; }

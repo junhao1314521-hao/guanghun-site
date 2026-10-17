@@ -116,6 +116,10 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
   { name: 'image', label: '图片（旧字段；未填「媒体」时使用）', kind: 'image' },
   { name: 'imageMobile', label: '手机竖版图（可选）', kind: 'image' },
   { name: 'poster', label: '视频封面图（可选）', kind: 'image' },
+  // 图片展示方式：默认 cover 铺满；开启后 contain 完整显示（不裁切、不做缓慢放大）
+  { name: 'mediaContain', label: '图片完整显示（不裁切、不缩放）', kind: 'switch' },
+  // 压暗遮罩：默认开启以保证文案可读；关闭后完整呈现海报细节
+  { name: 'scrim', label: '压暗背景遮罩（默认开启）', kind: 'switch' },
   { name: 'mediaTag', label: '媒体标签（无障碍 / 备用）', kind: 'text' },
   { name: 'title', label: '大标题（每行一句，必填）', kind: 'list', placeholder: '每行一句' },
   { name: 'subtitle', label: '一句话（必填）', kind: 'textarea', placeholder: '一句话说清这张海报' },
