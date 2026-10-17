@@ -248,13 +248,12 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
         key={item.id}
         onPointerDown={() => flushSync(() => setVtId(item.id))}
       >
-        {showFlag && item.flag && (
-          <div className="pcard__flags">
-            <span className="tag tag--accent">{item.flag}</span>
-          </div>
+        {showFilter && (
+          <label className="pcard__pick" aria-label={`加入对比 ${item.model}`}>
+            <input type="checkbox" checked={isPicked} onChange={() => togglePick(item.id)} />
+          </label>
         )}
         <div className="pcard__head">
-          <div className="pcard__model">{item.model}</div>
           {live ? (
             <Link to={`/products/${item.id}`} viewTransition className="pcard__name-link">
               <h3 className="pcard__name">{item.name}</h3>
@@ -271,19 +270,12 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
         </div>
         <div className="pcard__foot">
           <div className="pcard__meta">
-            {showFilter && (
-              <label className="pcard__pick">
-                <span className="check">
-                  <input
-                    type="checkbox"
-                    checked={isPicked}
-                    aria-label={`加入对比 ${item.model}`}
-                    onChange={() => togglePick(item.id)}
-                  />
-                </span>
-                <span>对比</span>
-              </label>
-            )}
+            {(showFlag && item.flag) || item.model ? (
+              <span className="pcard__model">
+                {showFlag && item.flag ? `${item.flag} · ` : ''}
+                {item.model}
+              </span>
+            ) : null}
             {showStatus && (
               <span className={`pcard__status pcard__status--${item.status.level}`}>{item.status.text}</span>
             )}
