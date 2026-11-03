@@ -14,7 +14,7 @@
 | 前台 + 后台 | `gh-web/` · React 19 + Vite，开发端口 `5180`，后台路由 `/admin` |
 | 后端 API | `gh-server/` · Express 5 + SQLite，端口 `8787` |
 | 线上地址（演示） | `https://guanghun-site.onrender.com`（push `main` 后 Render 自动部署，约 60–90s） |
-| **生产目标** | **自建本地服务器 / 云服务器**（Docker + 宿主机持久卷 + Nginx/Caddy HTTPS），Render 仅作客户预览与应急，不是正式环境 |
+| **生产目标** | 阿里云 ECS `8.163.108.144`，第一阶段 `http://8.163.108.144:3002`（systemd `website`，目录 `/opt/website`）；后续切 Nginx + 域名 HTTPS |
 | 仓库 | `https://github.com/junhao1314521-hao/guanghun-site.git` |
 | 数据目录 | `gh-server/data/`（SQLite `gh.sqlite` + `uploads/` + `backups/`），**不入 git** |
 | 后台账号 | 种子 `admin / admin123`（若环境变量设过 `ADMIN_PASSWORD`，以实际设置为准） |
@@ -201,43 +201,62 @@ gh-server/data/backups/
 
 ---
 
-## 十、正式环境上线（自建本地服务器 / 云服务器）
+## 十、正式环境上线（阿里云 ECS / 通用服务器）
 
-> Render 只用于客户预览与应急；正式上线按本节执行。完整细节见
-> `文档/光魂官网_部署Runbook_v1.0.md` 第十一节「路径 B」。
+> Render 只用于客户预览与应急；正式环境按本节执行。
+> 完整细节见 `deploy/README.md` 与 `文档/光魂官网_部署Runbook_v1.0.md` 第十一节。
 
-**架构**：`Dockerfile` 构建前端 → Express 同源托管前端产物 + API，只暴露一个端口；Nginx/Caddy 终止 HTTPS 并反代。
+### 10.1 当前正式环境（阿里云 ECS）
+
+| 项 | 值 |
+|---|---|
+| 服务器 | 阿里云 ECS 华南3（广州），Ubuntu 24.04，2C2G，公网 `8.163.108.144` |
+| 访问地址（第一阶段） | `http://8.163.108.144:3002` |
+| 服务 | systemd `website`（开机自启、异常自动重启），运行用户 `www-data` |
+| 应用目录 | `/opt/website/app` |
+| 数据 | `/opt/website/data/gh.sqlite`；上传 `/opt/website/data/uploads`；备份 `/opt/website/data/backups` |
+| 日志 | `/opt/website/logs/website.log`（logrotate 每日，保留 14 天） |
+| 健康检查 | `/healthz` |
+| 后台 | `/admin` |
+| 隔离要求 | **不得**修改/重启 `guanghun` 服务、**不得**占用 3001、**不得**共用 `/opt/guanghun` 的数据与上传目录 |
+
+**部署 / 升级（服务器不构建前端）**
 
 ```bash
-# 1) 取代码（或解压代码总包后进入目录）
-git clone https://github.com/junhao1314521-hao/guanghun-site.git && cd guanghun-site
+# 本地：构建前端 + 打部署包
+bash deploy/build-package.sh          # 产物在 交付包/website-<时间戳>.tar.gz
 
-# 2) 构建镜像（默认已关闭后台免登录）
-docker build -t guanghun-site .
-
-# 3) 宿主机持久卷（库 / 素材 / 备份三件套）
-mkdir -p /srv/guanghun/{data,uploads,backups}
-
-# 4) 启动（口令务必改为强口令，仅首次建库生效）
-docker run -d --name guanghun \
-  -p 127.0.0.1:3000:3000 \
-  -e TRUST_PROXY=1 -e COOKIE_SECURE=1 \
-  -e SITE_ORIGIN=https://www.<正式域名> \
-  -e ADMIN_PASSWORD='<强口令>' \
-  -e ADMIN_OPERATOR_PASSWORD='<强口令>' \
-  -e DB_PATH=/data/gh.sqlite \
-  -e UPLOAD_DIR=/data/uploads \
-  -e BACKUP_DIR=/data/backups \
-  -v /srv/guanghun/data:/data \
-  -v /srv/guanghun/uploads:/data/uploads \
-  -v /srv/guanghun/backups:/data/backups \
-  --restart unless-stopped \
-  guanghun-site
+# 上传后在服务器执行（root）
+tar -xzf website-*.tar.gz -C /tmp
+bash /tmp/website/deploy/install.sh
 ```
+
+`install.sh` 可重复执行：自动备份旧代码（保留最近 3 份）、保留 `.env` 与数据、仅在 lock 变化时 `npm ci`、注册 systemd 与日志轮转、健康检查。
+
+**SSH**：部署密钥在 `~/.ssh/guanghun_deploy`（不入库）；本沙箱需经 HTTP 代理：
+`ssh -i ~/.ssh/guanghun_deploy -o ProxyCommand='nc -X connect -x 127.0.0.1:18080 %h %p' root@8.163.108.144`
+
+**环境变量**：`/opt/website/app/.env`（模板见 `deploy/.env.example`）
+- HTTP 阶段：`COOKIE_SECURE=0`、`TRUST_PROXY=0`
+- 切 Nginx + HTTPS 后：`COOKIE_SECURE=1`、`TRUST_PROXY=1`，并更新 `SITE_ORIGIN`
+- 后台口令仅首次建库生效；已有库需后台改密或清库重建
+
+**回滚**：
+
+```bash
+ls -lt /opt/website/backups/
+bash /opt/website/app/deploy/rollback.sh /opt/website/backups/app-YYYYmmdd-HHMMSS.tar.gz
+```
+
+**后续切域名**：应用继续监听 3002；Nginx 反代到 `127.0.0.1:3002`，配置 HTTPS 后再改 `.env` 并重启 `website`。安全组、Nginx、全局配置变更需先与负责人确认。
+
+### 10.2 通用 Docker 方式（备选）
+
+`Dockerfile` 已支持同源构建与运行；数据卷仍须挂 `DB_PATH` / `UPLOAD_DIR` / `BACKUP_DIR`。当前阿里云服务器不使用 Docker，避免与商城运行方式混用。
 
 **上线前必改**
 
-1. `ADMIN_PASSWORD` / `ADMIN_OPERATOR_PASSWORD` 强口令（已有库需手动改库或清库重建）
+1. `ADMIN_PASSWORD` / `ADMIN_OPERATOR_PASSWORD` 强口令
 2. HTTPS 证书 + `COOKIE_SECURE=1` + `TRUST_PROXY=1`
 3. `SITE_ORIGIN` 为正式域名；同步 `data/meta.ts` 的 `SITE_URL` 占位
 4. ICP / 公安备案 / 主办单位 / 核验联系方式、法务正文与占位素材
@@ -245,16 +264,10 @@ docker run -d --name guanghun \
 
 **数据迁移（演示 → 生产）**
 
-先停服务或执行 `PRAGMA wal_checkpoint(TRUNCATE)`，把演示环境的
-`gh.sqlite`（含 `-wal` / `-shm`）与 `uploads/` 拷到宿主机持久卷；
+先停服务或执行 `PRAGMA wal_checkpoint(TRUNCATE)`，把源环境的
+`gh.sqlite`（含 `-wal` / `-shm`）与 `uploads/` 拷到 `/opt/website/data`；
 或保留空库，让服务用 seed 初始化后重新录入。
 
-**升级与回滚**
-
-- 升级：`git pull` → 重新 `docker build` → 停旧容器 → 起新容器（数据卷不变）
-- 内容回滚：后台「发布」版本记录 / 备份快照
-- 代码回滚：切回上一个 tag/commit 重新构建
-- 禁止多副本：会话、限流、SQLite 都是单进程模型
-
+**禁止多副本**：会话、限流、SQLite 都是单进程模型。
 **备份**：定期备份 `gh.sqlite` + `uploads/` + `backups/`，并异地留存。
 

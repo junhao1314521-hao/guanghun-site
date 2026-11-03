@@ -91,7 +91,7 @@ export function AdminLoginPage() {
           <p className="card__desc">
             {autoLogin
               ? '演示环境：已自动填充演示账号并自动登录，稍候即进入工作台。'
-              : '请使用后台账号登录。此为本地上线的占位鉴权，账号存于服务端内存。'}
+              : '请使用后台账号登录。'}
           </p>
 
           <form style={{ marginTop: 'var(--gh-space-5)' }} onSubmit={submit} noValidate>
@@ -147,9 +147,11 @@ export function AdminLoginPage() {
             </button>
           </form>
 
-          <div className="admin-login__hint">
-            演示账号：<code>admin / admin123</code>（超级管理员）、<code>operator / oper123</code>（内容运营）
-          </div>
+          {AUTO_LOGIN_ENABLED && (
+            <div className="admin-login__hint">
+              演示账号：<code>admin / admin123</code>（超级管理员）、<code>operator / oper123</code>（内容运营）
+            </div>
+          )}
 
           {AUTO_LOGIN_ENABLED && (
             <div className="admin-login__hint">

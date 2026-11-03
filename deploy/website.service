@@ -1,0 +1,22 @@
+[Unit]
+Description=Guanghun Website (SPA + API)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/website/app/gh-server
+EnvironmentFile=/opt/website/app/.env
+ExecStart=/usr/bin/node /opt/website/app/gh-server/node_modules/tsx/dist/cli.mjs src/index.ts
+Restart=always
+RestartSec=3
+StandardOutput=append:/opt/website/logs/website.log
+StandardError=append:/opt/website/logs/website.log
+LimitNOFILE=65535
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
