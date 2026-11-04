@@ -1842,8 +1842,9 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 
 /* 缩略图行：内容溢出时两端出现圆形左右按钮（京东 / 淘宝详情页同款） */
-.pd-thumbs { position: relative; }
+.pd-thumbs { position: relative; min-width: 0; }
 .pd-thumbs__track {
+  min-width: 0;
   display: flex;
   gap: var(--gh-space-3);
   margin-top: var(--gh-space-3);

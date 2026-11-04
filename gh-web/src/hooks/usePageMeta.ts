@@ -79,7 +79,7 @@ export function usePageMeta(pathname: string, lang: string = 'zh-CN'): void {
     upsertMeta('property', 'og:url', canonical)
     upsertMeta('property', 'og:image', defaultOgImage())
     upsertMeta('property', 'og:locale', lang === 'en' ? 'en_US' : 'zh_CN')
-    upsertMeta('name', 'twitter:card', 'summary')
+    upsertMeta('name', 'twitter:card', 'summary_large_image')
     upsertMeta('name', 'twitter:title', meta.title)
     upsertMeta('name', 'twitter:description', meta.description)
     upsertMeta('name', 'twitter:image', defaultOgImage())

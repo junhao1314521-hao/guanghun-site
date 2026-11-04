@@ -968,7 +968,9 @@ main.main--flush + .site-footer { margin-top: 0; }
 }
 
 /* 产品详情 */
+/* min-width:0：缩略图横滑轨（nowrap）不参与网格最小内容宽度计算，避免 320px 下把页面撑出横向滚动 */
 .detail-top { display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--gh-space-8); align-items: start; }
+.detail-top > * { min-width: 0; }
 @media (max-width: 1023px) { .detail-top { grid-template-columns: 1fr; gap: var(--gh-space-6); } }
 .detail-media { border-radius: var(--gh-radius-xl); overflow: hidden; aspect-ratio: 1/1; }
 .detail-thumbs { display: flex; gap: var(--gh-space-3); margin-top: var(--gh-space-3); flex-wrap: wrap; }
@@ -979,6 +981,12 @@ main.main--flush + .site-footer { margin-top: 0; }
 /* h1 内含「型号眉标 + 品类名」两行，用弹性列布局还原原有视觉层级 */
 .detail-info__title { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gh-space-2); }
 .detail-info h1 { font-size: var(--gh-font-size-h2); font-weight: var(--gh-weight-semibold); letter-spacing: -0.01em; margin: var(--gh-space-2) 0 var(--gh-space-3); }
+/* 品类名按对应字号的专用行高，避免长标题在小屏两行相压 */
+.detail-info__name { line-height: var(--gh-line-height-h2); }
+@media (max-width: 480px) {
+  .detail-info h1 { font-size: var(--gh-font-size-h3); }
+  .detail-info__name { line-height: var(--gh-line-height-h3); }
+}
 .detail-price { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-h3); font-weight: var(--gh-weight-semibold); }
 
 /* SKU 规格选择（颜色 / 版本等） */

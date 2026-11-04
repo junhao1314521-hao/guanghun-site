@@ -22,7 +22,6 @@ export type DetailSeo = {
 export function useDetailSeo({ title, description, image, ogType }: DetailSeo): void {
   useEffect(() => {
     const url = ogImageUrl(image)
-    const hasImage = url.startsWith('http')
 
     if (title) {
       document.title = title
@@ -36,13 +35,13 @@ export function useDetailSeo({ title, description, image, ogType }: DetailSeo): 
     }
     upsertMeta('property', 'og:type', ogType ?? 'website')
     upsertMeta('property', 'og:image', url)
-    upsertMeta('name', 'twitter:card', hasImage ? 'summary_large_image' : 'summary')
+    upsertMeta('name', 'twitter:card', 'summary_large_image')
     upsertMeta('name', 'twitter:image', url)
 
     return () => {
       upsertMeta('property', 'og:type', 'website')
       upsertMeta('property', 'og:image', defaultOgImage())
-      upsertMeta('name', 'twitter:card', 'summary')
+      upsertMeta('name', 'twitter:card', 'summary_large_image')
       upsertMeta('name', 'twitter:image', defaultOgImage())
     }
   }, [title, description, image, ogType])

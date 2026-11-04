@@ -26,15 +26,14 @@ export const DEFAULT_DESCRIPTION = '以实测数据定义电竞装备性能。�
 /**
  * 默认分享图（Open Graph / Twitter 卡片）。
  *
- * 边界说明：正式 OG 大图（1200×630）需由上传 / 设计管线产出并托管到站点，
- * 当前素材位均为内联 SVG 占位（非 http 外链），无法直接作为分享图，故回退到站点自带
- * 静态图 `favicon.svg`。上线替换正式域名与 OG 大图后，本常量同步更新即可。
+ * `public/og-cover.jpg` 由品牌海报裁切为 1200×630，随代码一起部署；
+ * 详情页会用各自的真实主图覆盖它（见 `useDetailSeo`）。
  */
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/favicon.svg`
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-cover.jpg`
 
 /** 运行时默认分享图：跟随当前访问域名，避免分享卡片指向占位域 */
 export function defaultOgImage(): string {
-  return `${siteOrigin()}/favicon.png`
+  return `${siteOrigin()}/og-cover.jpg`
 }
 
 /**
