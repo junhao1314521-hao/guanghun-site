@@ -31,3 +31,6 @@ gh-server/*.sqlite-*
 # 本地临时凭据（切勿提交）
 .gh-token
 .git-credentials
+
+# 部署私钥（持久工作区；仅本机使用，切勿提交）
+.ssh/

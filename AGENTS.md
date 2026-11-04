@@ -233,8 +233,10 @@ bash /tmp/website/deploy/install.sh
 
 `install.sh` 可重复执行：自动备份旧代码（保留最近 3 份）、保留 `.env` 与数据、仅在 lock 变化时 `npm ci`、注册 systemd 与日志轮转、健康检查。
 
-**SSH**：部署密钥在 `~/.ssh/guanghun_deploy`（不入库）；本沙箱需经 HTTP 代理：
-`ssh -i ~/.ssh/guanghun_deploy -o ProxyCommand='nc -X connect -x 127.0.0.1:18080 %h %p' root@8.163.108.144`
+**SSH**：部署私钥保存在**工作区** `/workspace/.ssh/guanghun_deploy`（已 gitignore，避免会话重置后丢失）；本沙箱需经 HTTP 代理：
+`ssh -i /workspace/.ssh/guanghun_deploy -o ProxyCommand='nc -X connect -x 127.0.0.1:18080 %h %p' root@8.163.108.144`
+
+> 若工作区本身被重建，私钥仍会丢失，需要重新生成公钥并在服务器 `authorized_keys` 追加一次。
 
 **环境变量**：`/opt/website/app/.env`（模板见 `deploy/.env.example`）
 - HTTP 阶段：`COOKIE_SECURE=0`、`TRUST_PROXY=0`
