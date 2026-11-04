@@ -252,7 +252,6 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
   downloads: [
     { id: 'd-001', name: 'Center 显示器调校软件 3.2.1（Windows）', type: '工具', version: '3.2.1', platform: 'Windows', size: '48.2 MB', downloads: 3240, status: '已发布', updatedAt: '2026-09-18', url: '', changelog: '支持新增显示器型号识别。' },
     { id: 'd-002', name: '54027X1QE-W54 固件 1.6.3', type: '固件', version: '1.6.3', platform: '通用', size: '6.4 MB', downloads: 5120, status: '已发布', updatedAt: '2026-09-15', url: '', changelog: '修复 DP 2.1 满速握手偶发降速。' },
-    { id: 'd-003', name: 'Center 显示器调校软件 3.2.1（macOS）', type: '工具', version: '3.2.1', platform: 'macOS', size: '46.8 MB', downloads: 1180, status: '已发布', updatedAt: '2026-09-18', url: '', changelog: '' },
     { id: 'd-004', name: '32X1UE-W16 说明书', type: '说明书', version: 'v1.3', platform: '通用', size: '5.6 MB', downloads: 860, status: '已发布', updatedAt: '2026-09-05', url: '', changelog: '' },
     { id: 'd-005', name: '显示器固件刷新工具', type: '工具', version: '2.0.4', platform: 'Windows', size: '9.7 MB', downloads: 640, status: '草稿', updatedAt: '2026-10-01', url: '', changelog: '待验证后发布。' },
   ],

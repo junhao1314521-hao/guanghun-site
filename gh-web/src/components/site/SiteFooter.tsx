@@ -82,7 +82,7 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
   if (!item.qr && !item.account) {
     if (!item.href) {
       return (
-        <span className="site-footer__social-item is-placeholder" aria-label={`${item.label}（待配置）`}>
+        <span className="site-footer__social-item is-placeholder" title={`${item.label}（待配置）`}>
           {icon}
         </span>
       )
@@ -179,7 +179,7 @@ function FooterSocial({ items, label }: { items: SiteSocialItem[]; label: string
   }, [openKey])
 
   return (
-    <div className="site-footer__social" ref={rootRef} aria-label={label}>
+    <div className="site-footer__social" ref={rootRef} role="group" aria-label={label}>
       {items.map((item, index) => {
         const key = `${item.label}-${index}`
         return (

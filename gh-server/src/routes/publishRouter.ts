@@ -2,6 +2,7 @@ import { Router, type Response } from 'express'
 import type { AdminUser } from '../data/admin'
 import { createRelease, deleteRelease, listReleases, restoreRelease } from '../data/releaseStore'
 import { cancelSchedule, createSchedule, listSchedules } from '../data/publishScheduleStore'
+import { publishAllDrafts } from '../data/contentStore'
 import { readParam, requireSession } from '../middleware/adminAuth'
 import { requireScope } from '../middleware/rbac'
 import { auditWrite } from '../middleware/audit'
@@ -43,8 +44,10 @@ publishRouter.post(
   (req, res) => {
     const body = (req.body ?? {}) as Record<string, unknown>
     const note = readString(body.note)
+    // R-06：发布 = 先把所有草稿覆盖到线上，再生成版本快照（快照即「本次发布后的内容」）
+    const published = publishAllDrafts()
     const item = createRelease({ actor: actorOf(res), note: note || undefined })
-    res.status(201).json({ item })
+    res.status(201).json({ item, publishedPages: published.keys.length })
   },
 )
 

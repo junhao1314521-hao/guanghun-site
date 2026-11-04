@@ -21,15 +21,15 @@ import type { Block, BlockStyle, BlockType, Page, SiteConfig } from './contentTy
 /** seed 生成的固定时间戳：保证重复构建结果一致（保存操作会写入真实时间） */
 const SEED_TIMESTAMP = '2026-10-12T00:00:00.000Z'
 
-/** 区块草稿：type + props（+ 可选 style / enabled），id 由 toPage 按序号确定性生成 */
-type Draft = { type: BlockType; props: Record<string, unknown>; style?: BlockStyle; enabled?: boolean }
+/** 区块草稿：type + props（+ 可选 style / enabled / 固定 id），id 缺省由 toPage 按序号确定性生成 */
+type Draft = { id?: string; type: BlockType; props: Record<string, unknown>; style?: BlockStyle; enabled?: boolean }
 
 /** 将区块草稿组装为页面；区块 id 形如 `home-b1`，稳定且可读（enabled 缺省为 true）。
  *  `pageEnabled` 缺省为 true；传 false 可令页面默认下线（后台仍可开启）。 */
 function toPage(key: string, path: string, title: string, description: string, drafts: Draft[], pageEnabled = true): Page {
   const blocks: Block[] = drafts.map((draft, index) => {
     const block: Block = {
-      id: `${key}-b${index + 1}`,
+      id: draft.id ?? `${key}-b${index + 1}`,
       type: draft.type,
       enabled: draft.enabled !== false,
       props: draft.props,
@@ -126,7 +126,7 @@ const SHOWCASE_COPY: Record<string, string> = {
   'gh-54027x1qe': '闪电序列旗舰：26.5 英寸 2K@540Hz，第四代 W-OLED 面板与 0.03 ms 灰阶响应。',
   'gh-32x1ue': 'Meta 双模切换：4K@165Hz 与 FHD@330Hz 一机两用，进口 LG META OLED 面板。',
   'gh-28027x1qe': '26.5 英寸 2K@280Hz，1500 nit 峰值亮度与 368 万像素级控光，平民超跑。',
-  'gh-27q1f': '27 英寸 2K 200Hz Fast IPS，HDR 与广色域兼得的高性价比电竞之选。',
+  'gh-27x1qe-500': '26.5 英寸 2K@500Hz QD-OLED，满速 DP 2.1 与 0.03 ms 灰阶响应。',
 }
 
 /** 首页：首屏轮播 → 场景 → 重点产品（通栏展示） → 天梯榜 → 评测 → 品牌 → 服务 → 合作 → 新闻 */
@@ -248,42 +248,6 @@ function buildHome(): Page {
       },
       style: { container: 'full' },
     },
-    {
-      type: 'hero',
-      props: {
-        eyebrow: 'ESPORTS IPS / 27" 2K@200Hz',
-        eyebrowEnabled: false,
-        statsEnabled: false,
-        title: ['27Q1F 电竞款'],
-        subtitle: '27 英寸 2K 200Hz Fast IPS，HDR 与广色域兼得',
-        media: '/media/products/gh-27q1f.jpg',
-        mediaType: 'image',
-        mediaTag: '27Q1F 主视觉',
-        ...posterButtons('/products/gh-27q1f'),
-        contentPosition: POSTER_POSITION,
-        height: 'r219',
-        theme: 'dark',
-      },
-      style: { container: 'full' },
-    },
-    {
-      type: 'hero',
-      props: {
-        eyebrow: 'ENTRY / 23.8" FHD@200Hz',
-        eyebrowEnabled: false,
-        statsEnabled: false,
-        title: ['24H1 入门款'],
-        subtitle: '23.8 英寸 FHD 200Hz 电竞显示器，HDR400',
-        media: '/media/products/gh-24h1.jpg',
-        mediaType: 'image',
-        mediaTag: '24H1 主视觉',
-        ...posterButtons('/products/gh-24h1'),
-        contentPosition: POSTER_POSITION,
-        height: 'r219',
-        theme: 'dark',
-      },
-      style: { container: 'full' },
-    },
     // —— 2×2 产品矩阵（§1.4）：图片铺满卡面，型号 + 一句话 + 按钮悬浮右下 ——
     {
       type: 'productMatrix',
@@ -317,10 +281,10 @@ function buildHome(): Page {
             ],
           },
           {
-            productId: 'gh-27q1f',
-            desc: '27 英寸 2K 200Hz Fast IPS 高性价比之选',
+            productId: 'gh-27x1ue-qd',
+            desc: '26.5 英寸 4K@240Hz QD-OLED，满速 DP 2.1',
             buttons: [
-              { label: '进一步了解', href: '/products/gh-27q1f' },
+              { label: '进一步了解', href: '/products/gh-27x1ue-qd' },
             ],
           },
         ],
@@ -632,11 +596,11 @@ function buildCenter(): Page {
         statsEnabled: false,
         title: ['光魂 Center'],
         subtitle: '一套软件，管理全部光魂显示器。',
-        mediaTag: '软件界面',
-        image: '/media/center/hero.svg',
+        mediaTag: 'Center 软件',
+        image: '/media/center/hero-space.jpg',
         contentPosition: POSTER_POSITION,
-        // 底部悬浮下载条：从下载中心勾选 Windows / macOS 两个安装包（版本与大小自动取真实值）
-        downloadIds: ['center-win', 'center-mac'],
+        // 底部悬浮下载条：从下载中心勾选 Windows 安装包（版本与大小自动取真实值）
+        downloadIds: ['center-win'],
       },
       // hero 海报同样通栏，与首页 carousel 保持一致
       style: { theme: 'dark', container: 'full' },
@@ -646,6 +610,7 @@ function buildCenter(): Page {
       type: 'cards',
       props: {
         title: '核心能力',
+        subtitle: '显示调校、电竞增强、设备与固件，三类能力集中在一个窗口里。',
         layout: 'capability',
         columns: 3,
         items: center.CAPABILITIES.map((item) => ({
@@ -657,9 +622,26 @@ function buildCenter(): Page {
       },
     },
     {
+      // 支持的设备：机型（等宽换行）+ 支持状态标签；锚点 #devices
+      id: 'center-devices',
+      type: 'cards',
+      props: {
+        title: '支持的设备',
+        subtitle: '连接后自动识别型号，并按面板能力展示对应的调校项。',
+        layout: 'grid',
+        columns: 2,
+        items: center.DEVICE_SUPPORT.map((device) => ({
+          tag: device.statusText,
+          title: device.title,
+          desc: device.models,
+        })),
+      },
+      style: { anchor: 'devices' },
+    },
+    {
       type: 'imageText',
       props: {
-        image: '/media/center/feature1.svg',
+        image: '/media/center/poster-1.jpg',
         title: center.FEATURES[0].title,
         body: `${center.FEATURES[0].desc}\n${center.FEATURES[0].points.join('\n')}`,
         side: 'right',
@@ -668,19 +650,46 @@ function buildCenter(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/feature2.svg',
+        image: '/media/center/poster-2.jpg',
         title: center.FEATURES[1].title,
         body: `${center.FEATURES[1].desc}\n${center.FEATURES[1].points.join('\n')}`,
         side: 'left',
       },
     },
     {
+      // 下载与安装：三步编号流程（数据源 center.INSTALL_STEPS）；锚点 #install
+      id: 'center-install',
+      type: 'cards',
+      props: {
+        title: '下载与安装',
+        subtitle: '下载 Windows 安装包后，三步完成初始配置。',
+        layout: 'steps',
+        items: center.INSTALL_STEPS.map((step) => ({ title: step, desc: '' })),
+      },
+      style: { anchor: 'install' },
+    },
+    {
+      // 运行要求：等分横排（系统 / 最低 / 推荐）；锚点 #requirements
+      id: 'center-req',
+      type: 'cards',
+      props: {
+        title: '运行要求',
+        layout: 'trust',
+        items: [
+          { tag: '系统', title: 'Windows 10 / 11', desc: '64 位，暂不提供 macOS 版本' },
+          ...center.REQUIREMENTS.map((req) => ({ tag: '配置', title: req.k, desc: req.v })),
+        ],
+      },
+      style: { anchor: 'requirements' },
+    },
+    {
+      id: 'center-b5',
       type: 'timeline',
       props: { title: '更新日志', items: center.CHANGELOG.map((item) => ({ time: item.version, title: item.title, desc: item.date })) },
       // 锚点 #changelog：供站内 / 站外深链直达本区块
       style: { anchor: 'changelog' },
     },
-    { type: 'faqList', props: { title: '常见问题', source: 'center', limit: 10 } },
+    { id: 'center-b6', type: 'faqList', props: { title: '常见问题', source: 'center', limit: 10 } },
   ])
 }
 

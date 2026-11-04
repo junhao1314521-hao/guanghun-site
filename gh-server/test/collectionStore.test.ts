@@ -79,7 +79,7 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
     const products = listCollection('products')
     assert.ok(products.length > 0, '产品集合应非空')
     assert.equal(products.length, seed.products.length, '产品数量应与 seed 一致')
-    assert.equal(products.length, 8, 'seed 产品应为 8 条')
+    assert.equal(products.length, 9, 'seed 产品应为 9 条')
     // 每个集合都应有记录且均带稳定 id
     for (const key of ['products', 'rankings', 'articles', 'downloads', 'faqs', 'biz-content', 'biz-cases', 'biz-venues', 'inquiries'] as const) {
       const items = listCollection(key)

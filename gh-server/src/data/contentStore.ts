@@ -100,7 +100,7 @@ function ensureEnVariants(): void {
 }
 
 /** 页面 → 列表项（不含 blocks）；`enabled` 缺省兜底为 true */
-function toMeta(page: Page): PageMeta {
+function toMeta(page: Page, draftAt?: string | null): PageMeta {
   return {
     key: page.key,
     path: page.path,
@@ -111,6 +111,7 @@ function toMeta(page: Page): PageMeta {
     blockCount: page.blocks.length,
     updatedAt: page.updatedAt,
     enabled: page.enabled !== false,
+    ...(draftAt ? { hasDraft: true, draftUpdatedAt: draftAt } : { hasDraft: false }),
   }
 }
 
@@ -162,11 +163,17 @@ export function getSiteConfig(locale?: Locale): SiteConfig {
 /** 页面列表（不含 blocks；按插入顺序）。**过滤掉 `__en` 英文变体**——变体由 locale 通道取用，不作为独立路由暴露。 */
 export function listPages(): PageMeta[] {
   initStore()
-  const rows = getDb().prepare('SELECT key, data FROM content_pages ORDER BY rowid ASC').all() as Array<{ key: string; data: string }>
+  const db = getDb()
+  const rows = db.prepare('SELECT key, data FROM content_pages ORDER BY rowid ASC').all() as Array<{ key: string; data: string }>
+  const drafts = new Map(
+    (db.prepare('SELECT key, updated_at FROM content_drafts').all() as Array<{ key: string; updated_at: string | null }>).map(
+      (row) => [row.key, row.updated_at] as const,
+    ),
+  )
   const out: PageMeta[] = []
   for (const row of rows) {
     if (isEnKey(row.key)) continue
-    out.push(toMeta(JSON.parse(row.data) as Page))
+    out.push(toMeta(JSON.parse(row.data) as Page, drafts.get(row.key) ?? null))
   }
   return out
 }
@@ -241,28 +248,117 @@ export function getPageByPath(path: string, locale?: Locale): Page | undefined {
 
 /* ---------------- 写入 ---------------- */
 
-/** 保存整页（blocks 全量覆盖）；未命中返回 undefined */
+/** 把入参合并到页面对象（草稿与发布共用；blocks 全量覆盖） */
+function mergePage(current: Page, input: PageInput, updatedAt: string): Page {
+  const next: Page = {
+    ...current,
+    path: input.path?.trim() || current.path,
+    title: input.title?.trim() || current.title,
+    blocks: Array.isArray(input.blocks) ? input.blocks : current.blocks,
+    updatedAt,
+  }
+  if (input.description !== undefined) next.description = input.description
+  if (input.seoTitle !== undefined) next.seoTitle = input.seoTitle
+  if (input.seoDescription !== undefined) next.seoDescription = input.seoDescription
+  if (input.enabled !== undefined) next.enabled = input.enabled
+  return next
+}
+
+/**
+ * 保存整页到**线上**（blocks 全量覆盖）；未命中返回 undefined。
+ * 后台日常保存请用 `savePageDraft`（R-06：草稿隔离），本函数供发布 / 恢复流程调用。
+ */
 export function savePage(key: string, input: PageInput): Page | undefined {
   initStore()
   // 读取原始记录（含 `en` 内部覆盖层），避免保存时把英文变体写丢
   const row = getDb().prepare('SELECT data FROM content_pages WHERE key = ?').get(key) as { data: string } | undefined
   if (!row) return undefined
   const current = normalizePage(JSON.parse(row.data) as Page)
-  const next: Page = {
-    ...current,
-    path: input.path?.trim() || current.path,
-    title: input.title?.trim() || current.title,
-    blocks: Array.isArray(input.blocks) ? input.blocks : current.blocks,
-    updatedAt: new Date().toISOString(),
-  }
-  if (input.description !== undefined) next.description = input.description
-  if (input.seoTitle !== undefined) next.seoTitle = input.seoTitle
-  if (input.seoDescription !== undefined) next.seoDescription = input.seoDescription
-  if (input.enabled !== undefined) next.enabled = input.enabled
+  const next = mergePage(current, input, new Date().toISOString())
   runInTransaction((db) => {
     db.prepare('UPDATE content_pages SET data = ?, updated_at = ? WHERE key = ?').run(JSON.stringify(next), next.updatedAt, key)
   })
   return next
+}
+
+/* ---------------- 草稿（R-06：保存写草稿，发布才上线） ---------------- */
+
+/** 读取草稿（未发布的编辑内容）；无草稿返回 undefined */
+export function getPageDraft(key: string): Page | undefined {
+  initStore()
+  const row = getDb().prepare('SELECT data FROM content_drafts WHERE key = ?').get(baseKeyOfKey(key)) as
+    | { data: string }
+    | undefined
+  if (!row) return undefined
+  return normalizePage(JSON.parse(row.data) as Page)
+}
+
+/** 是否有未发布草稿 */
+export function hasPageDraft(key: string): boolean {
+  initStore()
+  return Boolean(getDb().prepare('SELECT 1 AS x FROM content_drafts WHERE key = ?').get(baseKeyOfKey(key)))
+}
+
+/**
+ * 保存**草稿**：在已发布内容之上合并入参，写入 `content_drafts`；前台不受影响。
+ * 页面不存在返回 undefined。
+ */
+export function savePageDraft(key: string, input: PageInput): Page | undefined {
+  initStore()
+  const baseKey = baseKeyOfKey(key)
+  const live = getPage(baseKey)
+  if (!live) return undefined
+  const current = getPageDraft(baseKey) ?? live
+  const next = mergePage(current, input, new Date().toISOString())
+  runInTransaction((db) => {
+    db.prepare('INSERT INTO content_drafts(key, data, updated_at) VALUES(?, ?, ?) ON CONFLICT(key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at').run(
+      baseKey,
+      JSON.stringify(next),
+      next.updatedAt,
+    )
+  })
+  return next
+}
+
+/** 放弃草稿（不影响线上）；无草稿返回 false */
+export function discardPageDraft(key: string): boolean {
+  initStore()
+  const result = runInTransaction((db) => db.prepare('DELETE FROM content_drafts WHERE key = ?').run(baseKeyOfKey(key)))
+  return Number(result.changes) > 0
+}
+
+/**
+ * 发布单页：把草稿覆盖到线上并删除草稿；无草稿视为「已是最新」，直接返回线上页面。
+ * 页面不存在返回 undefined。
+ */
+export function publishPage(key: string): Page | undefined {
+  initStore()
+  const baseKey = baseKeyOfKey(key)
+  const live = getPage(baseKey)
+  if (!live) return undefined
+  const draft = getPageDraft(baseKey)
+  if (!draft) return live
+  const published: Page = { ...draft, updatedAt: new Date().toISOString() }
+  runInTransaction((db) => {
+    db.prepare('UPDATE content_pages SET data = ?, updated_at = ? WHERE key = ?').run(
+      JSON.stringify(published),
+      published.updatedAt,
+      baseKey,
+    )
+    db.prepare('DELETE FROM content_drafts WHERE key = ?').run(baseKey)
+  })
+  return published
+}
+
+/** 发布全部草稿；返回实际发布的页面 key */
+export function publishAllDrafts(): { keys: string[] } {
+  initStore()
+  const rows = getDb().prepare('SELECT key FROM content_drafts').all() as Array<{ key: string }>
+  const keys: string[] = []
+  for (const row of rows) {
+    if (publishPage(row.key)) keys.push(row.key)
+  }
+  return { keys }
 }
 
 /** 新建页面；key 冲突时返回 undefined */
@@ -302,7 +398,10 @@ export function createPage(input: Required<Pick<PageInput, 'path' | 'title'>> & 
 export function deletePage(key: string): { ok: boolean; error?: string } {
   if (builtinKeys().includes(key)) return { ok: false, error: '内置页面不可删除' }
   initStore()
-  const result = runInTransaction((db) => db.prepare('DELETE FROM content_pages WHERE key = ?').run(key))
+  const result = runInTransaction((db) => {
+    db.prepare('DELETE FROM content_drafts WHERE key = ?').run(baseKeyOfKey(key))
+    return db.prepare('DELETE FROM content_pages WHERE key = ?').run(key)
+  })
   if (Number(result.changes) === 0) return { ok: false, error: '未找到该页面' }
   return { ok: true }
 }
@@ -316,6 +415,7 @@ export function resetPage(key: string): Page | undefined {
   const next: Page = { ...seedPage, updatedAt: new Date().toISOString() }
   const exists = Boolean(getPage(key))
   runInTransaction((db) => {
+    db.prepare('DELETE FROM content_drafts WHERE key = ?').run(key)
     if (exists) db.prepare('UPDATE content_pages SET data = ?, updated_at = ? WHERE key = ?').run(JSON.stringify(next), next.updatedAt, key)
     else db.prepare('INSERT INTO content_pages(key, data, updated_at) VALUES(?, ?, ?)').run(key, JSON.stringify(next), next.updatedAt)
   })
@@ -345,6 +445,7 @@ export function resetContentToSeed(): void {
   const seed = buildSeed()
   runInTransaction((db) => {
     db.prepare('DELETE FROM content_pages').run()
+    db.prepare('DELETE FROM content_drafts').run()
     db.prepare('DELETE FROM site_config').run()
     const insertPage = db.prepare('INSERT OR REPLACE INTO content_pages(key, data, updated_at) VALUES(?, ?, ?)')
     for (const page of seed.pages) insertPage.run(page.key, JSON.stringify(page), page.updatedAt)

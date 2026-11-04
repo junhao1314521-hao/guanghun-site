@@ -1,3 +1,5 @@
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import path from 'node:path'
 import { Router, type Response } from 'express'
 import {
   getSessionUser,
@@ -33,6 +35,10 @@ import { requireResourceScope, requireScope } from '../middleware/rbac'
 import { createRole, deleteRole, listRoles, updateRole } from '../data/roleStore'
 import { ALL_SCOPES } from '../data/roles'
 import { isSupportedLegalFile, parseLegalDoc } from '../data/legalImport'
+import { listBackups } from '../data/backupStore'
+import { resolveDbPath } from '../data/db'
+import { listPages } from '../data/contentStore'
+import { resolveUploadDir } from '../data/uploadStore'
 
 /**
  * 后台管理系统端点（挂载于 /api/admin）。
@@ -163,6 +169,41 @@ function buildOverview() {
     target: entry.target,
   }))
 
+  // 内容状态：未发布草稿 / 缺文件的资料 / 缺购买链接的产品（运营每天要清的「内容债」）
+  const draftPages = listPages().filter((page) => page.hasDraft).length
+  const downloads = listCollection('downloads')
+  const pendingDownloads = downloads.filter((item) => !item.fileUrl).length
+  const missingBuyUrl = products.filter((item) => !item.buyUrl).length
+
+  // 站点健康：数据库 / 素材目录 / 最近备份（只读统计，任一失败返回 0，不影响概览）
+  const fileBytes = (file: string): number => {
+    try {
+      return existsSync(file) ? statSync(file).size : 0
+    } catch {
+      return 0
+    }
+  }
+  const dirStats = (dir: string): { bytes: number; count: number } => {
+    if (!existsSync(dir)) return { bytes: 0, count: 0 }
+    let bytes = 0
+    let count = 0
+    for (const name of readdirSync(dir)) {
+      if (name.startsWith('.')) continue
+      try {
+        const stat = statSync(path.join(dir, name))
+        if (stat.isFile()) {
+          bytes += stat.size
+          count += 1
+        }
+      } catch {
+        // 单个文件读失败忽略，继续统计
+      }
+    }
+    return { bytes, count }
+  }
+  const uploads = dirStats(resolveUploadDir())
+  const backups = [...listBackups()].sort((a, b) => (a.at < b.at ? 1 : -1))
+
   // 待办按「今天要先处理什么」排序：高优先（对外有客户等待）在前，内容维护在后
   return {
     stats: [
@@ -179,7 +220,18 @@ function buildOverview() {
       { id: 't-out-of-stock', label: '缺货型号', desc: '检查库存与到货', count: outOfStockProducts, to: '/admin/products', icon: 'cube', tone: 'info' as const },
       { id: 't-review', label: '待评价处理', desc: '客户服务评价', count: pendingReviews, to: '/admin/reviews', icon: 'trophy', tone: 'info' as const },
       { id: 't-requirement', label: '需求池待评审', desc: '内部迭代需求', count: pendingRequirements, to: '/admin/requirements', icon: 'venn', tone: 'info' as const },
+      { id: 't-drafts', label: '未发布草稿', desc: '页面已改但未发布', count: draftPages, to: '/admin/pages', icon: 'sliders', tone: 'info' as const },
+      { id: 't-downloads', label: '资料待上传', desc: '下载中心缺少文件', count: pendingDownloads, to: '/admin/downloads', icon: 'download', tone: 'info' as const },
+      { id: 't-buyurl', label: '产品缺购买链接', desc: '详情页会回退到咨询', count: missingBuyUrl, to: '/admin/products', icon: 'cube', tone: 'info' as const },
     ],
+    content: { draftPages, pendingDownloads, missingBuyUrl },
+    health: {
+      uptimeSec: Math.floor(process.uptime()),
+      dbBytes: fileBytes(resolveDbPath()),
+      uploadBytes: uploads.bytes,
+      uploadCount: uploads.count,
+      lastBackupAt: backups[0]?.at ?? '',
+    },
     recent,
   }
 }

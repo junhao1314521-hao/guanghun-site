@@ -270,7 +270,19 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           className="pcard__media"
           style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
         >
-          <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
+          {/* 缩略图整块可点：直接进详情，不必再找按钮 */}
+          {live ? (
+            <Link
+              to={`/products/${item.id}`}
+              viewTransition
+              className="pcard__media-link"
+              aria-label={`查看 ${item.model} ${item.name} 详情`}
+            >
+              <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
+            </Link>
+          ) : (
+            <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
+          )}
         </div>
         <div className="pcard__foot">
           <div className="pcard__meta">

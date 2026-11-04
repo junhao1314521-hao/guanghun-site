@@ -38,7 +38,7 @@ export const BRAND_PROFILES: BrandProfile[] = [
     products: [
       { id: 'gh-54027x1qe', name: '闪电 540Hz 电竞OLED显示器' },
       { id: 'gh-32x1ue', name: 'Meta 双模 4K 电竞显示器' },
-      { id: 'gh-27q1f', name: '27 英寸 2K 电竞显示器' },
+      { id: 'gh-27x1qe-500', name: '闪电 500 电竞OLED显示器' },
     ],
     cover: '/media/brand/guanghun.svg',
   },
@@ -87,7 +87,7 @@ export const BRAND_PROFILES: BrandProfile[] = [
     products: [
       { id: 'gh-54027x1qe', name: '闪电 540Hz 电竞OLED显示器' },
       { id: 'gh-32x1ue', name: 'Meta 双模 4K 电竞显示器' },
-      { id: 'gh-arm01', name: '显示器悬臂支架' },
+      { id: 'gh-g27k180', name: '画圣 5K 双模电竞显示器' },
     ],
     cover: '/media/brand/esports.svg',
   },

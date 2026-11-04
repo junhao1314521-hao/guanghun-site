@@ -131,6 +131,10 @@ export type PageMeta = {
   updatedAt: string
   /** 页面启用状态（扩展字段；缺省 / true = 上线，false = 已下线） */
   enabled?: boolean
+  /** 是否有未发布的草稿（R-06：后台保存写草稿，发布后才上线） */
+  hasDraft?: boolean
+  /** 草稿最近保存时间（仅有草稿时存在） */
+  draftUpdatedAt?: string
 }
 
 /** 区块字段元信息（契约 §6.3） */

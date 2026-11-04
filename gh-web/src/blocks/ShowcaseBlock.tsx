@@ -87,7 +87,8 @@ export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
               {item.mediaType === 'video' && src ? (
                 <video src={src} autoPlay muted loop playsInline aria-label={item.title} />
               ) : (
-                <MediaImg src={src} alt={item.title} />
+                // 重点产品区在首屏之外：低优先级加载，避免和首屏海报抢带宽
+                <MediaImg src={src} alt={item.title} fetchPriority="low" />
               )}
             </div>
           </div>

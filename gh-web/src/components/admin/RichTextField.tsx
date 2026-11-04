@@ -10,8 +10,13 @@
  *   在编辑区聚焦时更新，避免弹窗内输入框的选区覆盖它；
  * - 工具栏为**图标按钮**（SVG，见 `ui/Icon.tsx`），按「历史 / 行内 / 段落 / 列表 /
  *   块 / 插入 / 格式」分组并以分隔线区隔，带 `title` / `aria-label` / 激活态；
- * - 快捷键：Ctrl/Cmd+B、I、U、K；粘贴统一转纯文本（去外部样式）；
- * - 底部实时显示字数（去空白字符数）；编辑区可纵向调高，聚焦有焦点环。
+ * - 快捷键：Ctrl/Cmd+B、I、U、K；粘贴走白名单：带格式的 HTML 保留基础排版（加粗 / 列表 /
+ *   链接 / 表格等），剪贴板里的图片文件自动上传后插入，纯文本保留换行；
+ * - 图片支持本地文件上传（复用素材库上传接口，带进度）或直接填地址；
+ * - 表格：按行列插入（首行表头，最多 10×8），前后台共享同一套白名单与表格样式；
+ * - 撤销 / 重做走浏览器原生历史（工具栏 + Ctrl+Z / Ctrl+Y）；
+ * - 底部实时显示字数（去空白字符数）；编辑区可纵向调高，聚焦有焦点环；
+ * - 移动端：工具栏自动换行，插入弹窗改为文档流内展开，编辑区加高。
  *
  * 从 `BlockEditor.tsx` 抽出，供「区块字段（richText）」与「文章正文（articles.body）」
  * 两处复用，避免复制实现。
@@ -31,9 +36,12 @@ import {
   IconQuote,
   IconRedo,
   IconStrikethrough,
+  IconTable,
   IconUnderline,
   IconUndo,
 } from '../ui/Icon'
+import { uploadFile } from '../../api/adminUploads'
+import { sanitizeRichText } from '../../blocks/sanitize'
 import { Select } from './Select'
 
 export type RichTextFieldProps = {
@@ -47,8 +55,8 @@ export type RichTextFieldProps = {
   onChange: (value: string) => void
 }
 
-/** 插入弹窗类型：链接（文字 + 地址）/ 图片（地址） */
-type InsertMode = 'link' | 'image'
+/** 插入弹窗类型：链接（文字 + 地址）/ 图片（地址或上传）/ 表格（行列） */
+type InsertMode = 'link' | 'image' | 'table'
 
 /** 段落格式下拉项 */
 const PARAGRAPH_OPTIONS = [
@@ -106,6 +114,14 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
   const [insert, setInsert] = useState<InsertMode | null>(null)
   const [linkText, setLinkText] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
+  /** 表格行列（含表头行） */
+  const [tableRows, setTableRows] = useState(3)
+  const [tableCols, setTableCols] = useState(3)
+  /** 图片上传状态 */
+  const [uploading, setUploading] = useState(false)
+  const [uploadPercent, setUploadPercent] = useState(0)
+  const [insertError, setInsertError] = useState('')
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
   // 外部值变化时同步到编辑区（正在输入——即元素保持聚焦——时不打断光标）
   useEffect(() => {
@@ -216,6 +232,31 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
     }
   }
 
+  /** 在选区插入 HTML 片段（粘贴保留格式 / 插入表格共用） */
+  const insertHtmlAtSelection = (html: string) => {
+    const el = ref.current
+    if (el) el.focus()
+    const template = document.createElement('template')
+    template.innerHTML = html
+    const fragment = template.content
+    const range = savedRange.current
+    if (range && el && el.contains(range.startContainer)) {
+      range.deleteContents()
+      range.insertNode(fragment)
+    } else if (el) {
+      el.appendChild(fragment)
+    }
+    const selection = window.getSelection()
+    if (selection && el) {
+      const caret = document.createRange()
+      caret.selectNodeContents(el)
+      caret.collapse(false)
+      selection.removeAllRanges()
+      selection.addRange(caret)
+      savedRange.current = caret.cloneRange()
+    }
+  }
+
   /** 段落格式（正文 / h2 / h3） */
   const setParagraph = (tag: string) => {
     restoreSelection()
@@ -237,12 +278,58 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
     const selection = window.getSelection()
     if (selection && selection.rangeCount > 0) savedRange.current = selection.getRangeAt(0).cloneRange()
     if (mode === 'link') setLinkText(selection?.toString() ?? '')
-    setLinkUrl('https://')
+    setLinkUrl(mode === 'image' ? '' : 'https://')
+    setInsertError('')
+    setUploadPercent(0)
     setInsert(mode)
   }
 
-  /** 提交插入（链接 / 图片） */
+  /** 上传本地图片并插入到当前选区（复用素材库上传接口） */
+  const uploadAndInsertImage = async (file: File) => {
+    setUploading(true)
+    setInsertError('')
+    try {
+      const item = await uploadFile(file, undefined, setUploadPercent)
+      const img = document.createElement('img')
+      img.setAttribute('src', item.url)
+      img.setAttribute('alt', file.name.replace(/\.[^.]+$/, ''))
+      insertNodeAtSelection(img)
+      notify()
+      syncActive()
+      setInsert(null)
+    } catch (error) {
+      setInsertError(error instanceof Error ? error.message : '图片上传失败')
+    } finally {
+      setUploading(false)
+      setUploadPercent(0)
+    }
+  }
+
+  /** 插入表格：首行为表头，其余为空单元格（可在编辑区内继续输入） */
+  const insertTable = () => {
+    const rows = Math.max(2, Math.min(10, Math.round(tableRows) || 3))
+    const cols = Math.max(1, Math.min(8, Math.round(tableCols) || 3))
+    let html = '<table><thead><tr>'
+    for (let c = 0; c < cols; c += 1) html += `<th>列 ${c + 1}</th>`
+    html += '</tr></thead><tbody>'
+    for (let r = 0; r < rows - 1; r += 1) {
+      html += '<tr>'
+      for (let c = 0; c < cols; c += 1) html += '<td><br></td>'
+      html += '</tr>'
+    }
+    html += '</tbody></table><p><br></p>'
+    insertHtmlAtSelection(html)
+    notify()
+    syncActive()
+    setInsert(null)
+  }
+
+  /** 提交插入（链接 / 图片地址 / 表格） */
   const applyInsert = () => {
+    if (insert === 'table') {
+      insertTable()
+      return
+    }
     const url = linkUrl.trim()
     if (!url) {
       setInsert(null)
@@ -270,8 +357,30 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
     setInsert(null)
   }
 
-  /** 粘贴：统一转纯文本，去除外部样式 */
+  /**
+   * 粘贴：
+   * 1. 剪贴板里是图片文件（截图 / 复制图片）→ 上传后插入；
+   * 2. 带 HTML → 过白名单净化后保留基础排版（加粗 / 列表 / 链接 / 表格等）；
+   * 3. 纯文本 → 按纯文本插入并保留换行。
+   */
   const onPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const imageFile = Array.from(event.clipboardData.files ?? []).find((file) => file.type.startsWith('image/'))
+    if (imageFile) {
+      event.preventDefault()
+      void uploadAndInsertImage(imageFile)
+      return
+    }
+    const html = event.clipboardData.getData('text/html')
+    if (html) {
+      event.preventDefault()
+      const clean = sanitizeRichText(html)
+      if (clean) {
+        insertHtmlAtSelection(clean)
+        notify()
+        syncActive()
+      }
+      return
+    }
     event.preventDefault()
     const text = event.clipboardData.getData('text/plain')
     if (text) {
@@ -304,6 +413,8 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
   }
 
   const isLinkMode = insert === 'link'
+  const isImageMode = insert === 'image'
+  const isTableMode = insert === 'table'
 
   return (
     <div className="builder-rich">
@@ -382,8 +493,11 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
           <ToolButton label="插入链接" shortcut="Ctrl+K" onClick={() => openInsert('link')}>
             <IconLink />
           </ToolButton>
-          <ToolButton label="插入图片地址" onClick={() => openInsert('image')}>
+          <ToolButton label="插入图片" onClick={() => openInsert('image')}>
             <IconImage />
+          </ToolButton>
+          <ToolButton label="插入表格" onClick={() => openInsert('table')}>
+            <IconTable />
           </ToolButton>
         </div>
         <span className="builder-rich__sep" aria-hidden="true" />
@@ -403,40 +517,111 @@ export function RichTextField({ fieldId, value, placeholder, onChange }: RichTex
       </div>
 
       {insert && (
-        <div className="builder-rich__popover" role="dialog" aria-label={isLinkMode ? '插入链接' : '插入图片'}>
-          {isLinkMode && (
-            <input
-              className="input builder-rich__popover-input"
-              type="text"
-              placeholder="显示文字（留空则用地址）"
-              aria-label="链接显示文字"
-              value={linkText}
-              onChange={(event) => setLinkText(event.target.value)}
-            />
+        <div
+          className="builder-rich__popover"
+          role="dialog"
+          aria-label={isTableMode ? '插入表格' : isLinkMode ? '插入链接' : '插入图片'}
+        >
+          {isTableMode ? (
+            <>
+              <div className="builder-rich__row">
+                <label className="builder-rich__field">
+                  <span>行数</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min={2}
+                    max={10}
+                    value={tableRows}
+                    autoFocus
+                    onChange={(event) => setTableRows(Number(event.target.value))}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        applyInsert()
+                      } else if (event.key === 'Escape') {
+                        event.preventDefault()
+                        setInsert(null)
+                      }
+                    }}
+                  />
+                </label>
+                <label className="builder-rich__field">
+                  <span>列数</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    max={8}
+                    value={tableCols}
+                    onChange={(event) => setTableCols(Number(event.target.value))}
+                  />
+                </label>
+              </div>
+              <p className="builder-rich__hint">首行为表头，最多 10 行 × 8 列，插入后可直接在编辑区填写。</p>
+            </>
+          ) : (
+            <>
+              {isLinkMode && (
+                <input
+                  className="input builder-rich__popover-input"
+                  type="text"
+                  placeholder="显示文字（留空则用地址）"
+                  aria-label="链接显示文字"
+                  value={linkText}
+                  onChange={(event) => setLinkText(event.target.value)}
+                />
+              )}
+              <input
+                className="input builder-rich__popover-input"
+                type="text"
+                placeholder={isLinkMode ? '链接地址（https:// 或 /路径）' : '图片地址（https:// 或 /media/...）'}
+                aria-label={isLinkMode ? '链接地址' : '图片地址'}
+                value={linkUrl}
+                autoFocus
+                onChange={(event) => setLinkUrl(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    applyInsert()
+                  } else if (event.key === 'Escape') {
+                    event.preventDefault()
+                    setInsert(null)
+                  }
+                }}
+              />
+              {isImageMode && (
+                <>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    className="image-field__file"
+                    aria-label="上传本地图片"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      event.target.value = ''
+                      if (file) void uploadAndInsertImage(file)
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    disabled={uploading}
+                    onClick={() => imageInputRef.current?.click()}
+                  >
+                    {uploading ? `上传中 ${uploadPercent}%` : '上传本地图片'}
+                  </button>
+                </>
+              )}
+              {insertError && <p className="builder-rich__error">{insertError}</p>}
+            </>
           )}
-          <input
-            className="input builder-rich__popover-input"
-            type="text"
-            placeholder={isLinkMode ? '链接地址（https:// 或 /路径）' : '图片地址（https:// 或 /media/...）'}
-            aria-label={isLinkMode ? '链接地址' : '图片地址'}
-            value={linkUrl}
-            autoFocus
-            onChange={(event) => setLinkUrl(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                applyInsert()
-              } else if (event.key === 'Escape') {
-                event.preventDefault()
-                setInsert(null)
-              }
-            }}
-          />
           <div className="builder-rich__popover-actions">
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => setInsert(null)}>
               取消
             </button>
-            <button type="button" className="btn btn--primary btn--sm" onClick={applyInsert}>
+            <button type="button" className="btn btn--primary btn--sm" onClick={applyInsert} disabled={uploading}>
               插入
             </button>
           </div>

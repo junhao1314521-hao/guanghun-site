@@ -1,11 +1,14 @@
 import { Router, type Response } from 'express'
 import {
   createPage,
+  discardPageDraft,
   getPage,
+  getPageDraft,
   isBuiltinPage,
   listPages,
+  publishPage,
   resetPage,
-  savePage,
+  savePageDraft,
   saveSiteConfig,
   setDefaultTheme,
   setEnabledBlocks,
@@ -290,12 +293,14 @@ adminPagesRouter.get('/pages/:key/references', requireSession, requireScope('con
 })
 
 adminPagesRouter.get('/pages/:key', requireSession, requireScope('content'), (req, res) => {
-  const page = getPage(readParam(req, 'key'))
+  const key = readParam(req, 'key')
+  const page = getPage(key)
   if (!page) {
     res.status(404).json({ error: '未找到该页面' })
     return
   }
-  res.json({ page })
+  // R-06：同时回传草稿（若有），编辑器据此区分「线上版本 / 未发布版本」
+  res.json({ page, draft: getPageDraft(key) })
 })
 
 adminPagesRouter.put('/pages/:key', requireSession, requireScope('content'), auditWrite('save-page', (req) => readParam(req, 'key')), (req, res) => {
@@ -314,15 +319,43 @@ adminPagesRouter.put('/pages/:key', requireSession, requireScope('content'), aud
     }
     blocks = parsed
   }
-  const page = savePage(key, {
+  const page = savePageDraft(key, {
     path: body.path !== undefined ? readString(body.path) : undefined,
     title: body.title !== undefined ? readString(body.title) : undefined,
     description: body.description !== undefined ? readString(body.description) : undefined,
     blocks,
     enabled: typeof body.enabled === 'boolean' ? body.enabled : undefined,
   })
-  res.json({ page })
+  res.json({ page, draft: true })
 })
+
+/** R-06：发布草稿 → 覆盖线上并删除草稿；无草稿时视为已是最新 */
+adminPagesRouter.post(
+  '/pages/:key/publish',
+  requireSession,
+  requireScope('content'),
+  auditWrite('publish-page', (req) => readParam(req, 'key')),
+  (req, res) => {
+    const page = publishPage(readParam(req, 'key'))
+    if (!page) {
+      res.status(404).json({ error: '未找到该页面' })
+      return
+    }
+    res.json({ page })
+  },
+)
+
+/** R-06：丢弃草稿（线上不受影响） */
+adminPagesRouter.delete(
+  '/pages/:key/draft',
+  requireSession,
+  requireScope('content'),
+  auditWrite('discard-draft', (req) => readParam(req, 'key')),
+  (req, res) => {
+    const removed = discardPageDraft(readParam(req, 'key'))
+    res.json({ ok: true, removed })
+  },
+)
 
 adminPagesRouter.post(
   '/pages',

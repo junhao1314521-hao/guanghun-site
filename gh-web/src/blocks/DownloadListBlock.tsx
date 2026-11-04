@@ -12,13 +12,18 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
 import { fetchDownloads } from '../api/support-extra'
-import { ALL_MODELS, DOWNLOAD_TYPE_LABELS, isDownloadable } from '../data/support-extra'
+import { ALL_MODELS, DOWNLOAD_TYPES, DOWNLOAD_TYPE_LABELS, isDownloadable } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockPager, useBlockPager } from './BlockPager'
 import { useI18n } from '../i18n'
 import { asBool, asNumber, asString, asStringArray, pickByIds } from './blockUtils'
+
+/** PDF 资料：浏览器内直接打开预览（不强制下载） */
+function pdfFile(url: string | undefined): boolean {
+  return Boolean(url && /\.pdf(\?|#|$)/i.test(url))
+}
 
 /** 契约类别 → 下载资料分类（all 不筛选） */
 const CATEGORY_LABEL: Record<string, string> = {
@@ -79,63 +84,77 @@ const ENTRY_TABS = [
 function DownloadGrid({ items }: { items: DownloadItem[] }) {
   return (
     <div className="dl-cards">
-      {items.map((item) => (
-        <article className="dl-card reveal" key={item.id}>
-          <div className="dl-card__top">
-            <span className="tag">{DOWNLOAD_TYPE_LABELS[item.type]}</span>
-            {item.isLatest && <span className="tag tag--accent">最新</span>}
-            <span className="dl-card__ver mono">{item.version}</span>
-          </div>
-          <h3 className="dl-card__title">{item.name}</h3>
-          <p className="dl-card__note">{item.note}</p>
-          <dl className="dl-card__meta">
-            <div>
-              <dt>适用型号</dt>
-              <dd className="mono">{item.modelNames?.join(' / ') ?? item.models.join(' / ')}</dd>
+      {items.map((item) => {
+        const pdf = pdfFile(item.fileUrl)
+        const downloadable = isDownloadable(item)
+        return (
+          <article className={`dl-card dl-card--${item.type} reveal`} key={item.id}>
+            <div className="dl-card__top">
+              <span className={`dl-chip dl-chip--${item.type}`}>{DOWNLOAD_TYPE_LABELS[item.type]}</span>
+              {item.isLatest && <span className="tag tag--accent">最新</span>}
+              <span className="dl-card__ver mono">{item.version}</span>
             </div>
-            <div>
-              <dt>适用系统</dt>
-              <dd>{item.os ?? item.platform ?? '全平台'}</dd>
-            </div>
-            <div>
-              <dt>大小</dt>
-              <dd className="mono">{item.size}</dd>
-            </div>
-            <div>
-              <dt>更新</dt>
-              <dd className="mono">{item.releasedAt ?? item.date}</dd>
-            </div>
-          </dl>
-          <div className="dl-card__foot">
-            <span className="dl-card__sum">{item.checksumType ?? 'SHA-256'} 校验</span>
-            <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
-              <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
-                详情
-              </SafeLink>
-              {isDownloadable(item) ? (
-                <a
-                  className="btn btn--sm btn--primary"
-                  href={item.fileUrl}
-                  download
-                  rel="noreferrer"
-                  onClick={() => trackDownload(item.id)}
-                >
-                  下载
+            <h3 className="dl-card__title">
+              {/* PDF 直接打开原文；其它资料进详情页 */}
+              {downloadable && pdf ? (
+                <a href={item.fileUrl} target="_blank" rel="noreferrer" onClick={() => trackDownload(item.id)}>
+                  {item.name}
                 </a>
               ) : (
-                <span
-                  className="btn btn--sm btn--ghost"
-                  role="note"
-                  title="该资料正在整理中，可联系客服获取"
-                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
-                >
-                  整理中
-                </span>
+                <SafeLink to={`/downloads/${item.id}`}>{item.name}</SafeLink>
               )}
+            </h3>
+            <p className="dl-card__note">{item.note}</p>
+            <div className="dl-card__meta">
+              <div className="dl-kv">
+                <span className="dl-kv__k">适用型号</span>
+                <span className="dl-kv__v mono">{item.modelNames?.join(' / ') ?? item.models.join(' / ')}</span>
+              </div>
+              <div className="dl-kv">
+                <span className="dl-kv__k">适用系统</span>
+                <span className="dl-kv__v">{item.os ?? item.platform ?? '全平台'}</span>
+              </div>
+              <div className="dl-kv">
+                <span className="dl-kv__k">大小</span>
+                <span className="dl-kv__v mono">{item.size}</span>
+              </div>
+              <div className="dl-kv">
+                <span className="dl-kv__k">更新</span>
+                <span className="dl-kv__v mono">{item.releasedAt ?? item.date}</span>
+              </div>
             </div>
-          </div>
-        </article>
-      ))}
+            <div className="dl-card__foot">
+              <span className="dl-card__sum">{item.checksumType ?? 'SHA-256'} 校验</span>
+              <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
+                <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
+                  详情
+                </SafeLink>
+                {downloadable ? (
+                  <a
+                    className="btn btn--sm btn--primary"
+                    href={item.fileUrl}
+                    download={pdf ? undefined : true}
+                    target={pdf ? '_blank' : undefined}
+                    rel="noreferrer"
+                    onClick={() => trackDownload(item.id)}
+                  >
+                    {pdf ? '在线阅读' : '下载'}
+                  </a>
+                ) : (
+                  <span
+                    className="btn btn--sm btn--ghost"
+                    role="note"
+                    title="该资料正在整理中，可联系客服获取"
+                    style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                  >
+                    整理中
+                  </span>
+                )}
+              </div>
+            </div>
+          </article>
+        )
+      })}
     </div>
   )
 }
@@ -165,7 +184,8 @@ function DownloadCards({ items, showFilter }: { items: DownloadItem[]; showFilte
                 <a
                   className="btn btn--sm btn--ghost"
                   href={item.fileUrl}
-                  download
+                  download={pdfFile(item.fileUrl) ? undefined : true}
+                  target={pdfFile(item.fileUrl) ? '_blank' : undefined}
                   rel="noreferrer"
                   onClick={() => trackDownload(item.id)}
                 >
@@ -263,6 +283,10 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
       (!showFilter || type === '全部' || DOWNLOAD_TYPE_LABELS[item.type] === type) &&
       (!showFilter || matchesQuery(item)),
   )
+  // 各资料类型数量（概览条 + 一键筛选；空类型不展示）
+  const typeCounts = DOWNLOAD_TYPES.slice(1)
+    .map((label) => ({ label, n: filtered.filter((item) => DOWNLOAD_TYPE_LABELS[item.type] === label).length }))
+    .filter((entry) => entry.n > 0)
   const capped = limit > 0 ? filtered.slice(0, limit) : filtered
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
@@ -429,6 +453,33 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
             </>
           )}
 
+          {/* 概览条：先给「有多少、都是什么类型」，再进入列表 */}
+          {showFilter && filtered.length > 0 && (
+            <div className="dl-overview">
+              <div className="dl-overview__total">
+                <strong>{filtered.length}</strong>
+                <span>份资料</span>
+              </div>
+              <div className="dl-overview__chips">
+                {typeCounts.map((entry) => (
+                  <button
+                    key={entry.label}
+                    type="button"
+                    className={`dl-overview__chip${type === entry.label ? ' is-active' : ''}`}
+                    onClick={() => {
+                      setEntry('type')
+                      setType(type === entry.label ? '全部' : entry.label)
+                    }}
+                  >
+                    {entry.label}
+                    <b>{entry.n}</b>
+                  </button>
+                ))}
+              </div>
+              <span className="dl-overview__hint">点类型快速筛选</span>
+            </div>
+          )}
+
           {shown.length === 0 ? (
             showFilter ? (
               <div className="empty">
@@ -466,7 +517,20 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                 <tbody>
                   {shown.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.name}</td>
+                      <td>
+                        {isDownloadable(item) && pdfFile(item.fileUrl) ? (
+                          <a
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => trackDownload(item.id)}
+                          >
+                            {item.name}
+                          </a>
+                        ) : (
+                          item.name
+                        )}
+                      </td>
                       <td className="mono">{item.modelNames?.join(' / ') ?? item.models.join(' / ')}</td>
                       <td>{DOWNLOAD_TYPE_LABELS[item.type]}</td>
                       <td className="mono">{item.version}</td>
@@ -482,7 +546,8 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                               <a
                                 className="btn btn--sm btn--ghost"
                                 href={item.fileUrl}
-                                download
+                                download={pdfFile(item.fileUrl) ? undefined : true}
+                                target={pdfFile(item.fileUrl) ? '_blank' : undefined}
                                 rel="noreferrer"
                                 onClick={() => trackDownload(item.id)}
                               >

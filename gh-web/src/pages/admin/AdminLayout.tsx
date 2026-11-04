@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent as
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_NAV, ANALYTICS_SCOPES, adminResource, type AdminNavItem } from '../../data/adminResources'
 // 「栏目 key → 所需 scope」的单一映射源（与后端 rbac.ts / roles.ts 对照，见该文件头注释）
-import { hasScope, requiredScope } from '../../data/adminScopes'
+import { hasScope, requiredScope, scopeText } from '../../data/adminScopes'
 import { AdminIcon } from '../../components/admin/AdminIcon'
 import { BrandMark } from '../../components/site/BrandMark'
 import { useAdminAuth } from '../../components/admin/AdminAuth'
@@ -54,12 +54,28 @@ function adminTrail(pathname: string): { label: string; to?: string }[] {
 
   const res = adminResource(first)
   const trail: { label: string; to?: string }[] = [{ label: '工作台', to: '/admin' }]
-  if (!res) return [...trail, { label: '未知栏目' }]
+  if (!res) return [...trail, { label: '页面不存在' }]
 
   trail.push({ label: res.label, to: second ? `/admin/${first}` : undefined })
   if (second === 'new') trail.push({ label: '新建' })
+  else if (second === 'builder') trail.push({ label: '页面装修' })
   else if (second) trail.push({ label: '编辑' })
   return trail
+}
+
+/**
+ * 标签页标题：比面包屑末级更明确（「编辑」单独出现无法分辨在编辑什么）。
+ * 面包屑仍保留层级，标题统一为「栏目 · 动作」。
+ */
+function adminTitle(pathname: string): string {
+  const rest = pathname.split('/').filter(Boolean).slice(1)
+  if (rest.length === 0) return '工作台'
+  const [first, second] = rest
+  if (first === 'analytics') return SCOPE_LABEL[second ?? ''] ?? '数据分析'
+  const res = adminResource(first)
+  if (!res) return '页面不存在'
+  if (!second) return res.label
+  return `${res.label} · ${second === 'new' ? '新建' : '编辑'}`
 }
 
 /** 导航项展示标签（用于搜索过滤） */
@@ -149,7 +165,7 @@ export function AdminLayout() {
   const [sideWidth, setSideWidth] = useState<number>(() => readSideWidth())
 
   const trail = adminTrail(pathname)
-  const title = trail[trail.length - 1]?.label ?? '工作台'
+  const title = adminTitle(pathname)
   // 装修器页面放宽内容轨道
   const isWide = pathname.endsWith('/builder')
 
@@ -259,6 +275,10 @@ export function AdminLayout() {
   const q = query.trim().toLowerCase()
   // 会话未就绪（loading）→ 乐观全显（null），待 /auth/me 返回后再按 scopes 收敛，避免误隐藏
   const scopes = loading ? null : profile?.scopes ?? null
+  // 当前路由所需权限：直接输 URL 也不能越过菜单裁剪；未就绪时乐观放行，待 /auth/me 返回再收敛
+  const routeKey = pathname.split('/').filter(Boolean)[1] ?? ''
+  const routeScope = routeKey && routeKey !== 'analytics' && adminResource(routeKey) ? requiredScope(routeKey) : null
+  const routeAllowed = !routeScope || !scopes ? true : hasScope(scopes, routeScope)
   // 先按权限裁剪（隐藏无权栏目；组内子项全隐藏 → 整组标题一并隐藏），再按搜索词过滤
   const groups = useMemo(() => {
     const allowed = ADMIN_NAV.map((group) => ({
@@ -480,7 +500,21 @@ export function AdminLayout() {
                 </div>
               )}
             >
-              <Outlet />
+              {routeAllowed ? (
+                <Outlet />
+              ) : (
+                <div className="admin-page">
+                  <div className="empty">
+                    <div className="empty__title">没有访问该栏目的权限</div>
+                    <p className="empty__desc">
+                      当前账号缺少「{scopeText(routeScope ?? 'system')}」权限，请联系管理员分配角色后再访问。
+                    </p>
+                    <Link className="btn btn--secondary btn--sm" to="/admin">
+                      返回工作台
+                    </Link>
+                  </div>
+                </div>
+              )}
             </ErrorBoundary>
           </main>
         </div>

@@ -9,7 +9,7 @@
  * - 元数据（大小 / 类型 / 上传时间）直接从磁盘派生，无需额外索引文件；空目录天然返回空列表。
  */
 import { randomBytes } from 'node:crypto'
-import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -86,9 +86,14 @@ const EXT_MIME: Record<string, string[]> = {
   rar: ['application/vnd.rar', 'application/x-rar-compressed', 'application/x-rar', OCTET],
   '7z': ['application/x-7z-compressed', OCTET],
   // 二进制 · 固件包（显示器固件升级包，如 54027X1QE 的 .bin）。
-  // 浏览器不会执行 .bin（非「可内联执行」类，与 zip / rar 同档风险），故与压缩包一并放行；
-  // 安装包 exe / dmg / msi 仍**不放行** —— 体积大且属于可执行文件，统一走对象存储外链。
+  // 浏览器不会执行 .bin（非「可内联执行」类，与 zip / rar 同档风险），故与压缩包一并放行。
   bin: [OCTET, 'application/x-binary', 'application/macbinary'],
+  // 安装包（站内托管）：客户端安装包需支持官网直接下载，故纳入白名单。
+  // 这些文件仅以 attachment 语义提供下载（前台链接不使用内联预览），不会被浏览器当作页面执行。
+  exe: [OCTET, 'application/x-msdownload', 'application/vnd.microsoft.portable-executable'],
+  msi: [OCTET, 'application/x-msi', 'application/x-ms-installer', 'application/vnd.microsoft.portable-executable'],
+  dmg: [OCTET, 'application/x-apple-diskimage', 'application/octet-stream'],
+  pkg: [OCTET, 'application/x-newton-compatible-pkg', 'application/vnd.apple.installer+zip'],
 }
 
 /** 各扩展名的默认 MIME（请求未带 Content-Type 时回退） */
@@ -116,30 +121,41 @@ const EXT_DEFAULT_MIME: Record<string, string> = {
   rar: 'application/vnd.rar',
   '7z': 'application/x-7z-compressed',
   bin: 'application/octet-stream',
+  exe: 'application/x-msdownload',
+  msi: 'application/x-msi',
+  dmg: 'application/x-apple-diskimage',
+  pkg: 'application/vnd.apple.installer+zip',
 }
 
 /**
- * 上传大小分档（字节）与类型标签。图片 10MB / 文档 50MB / 视频 200MB。
- * - 环境变量覆盖：`UPLOAD_MAX_SIZE_IMAGE` / `UPLOAD_MAX_SIZE_DOC` / `UPLOAD_MAX_SIZE_VIDEO`；
- * - 旧变量 `UPLOAD_MAX_SIZE`（不区分类型）作为**兜底**：当分档变量缺失时对三类同时生效。
+ * 上传大小分档（字节）与类型标签。图片 10MB / 文档 50MB / 视频 200MB / 安装包 300MB。
+ * - 环境变量覆盖：`UPLOAD_MAX_SIZE_IMAGE` / `UPLOAD_MAX_SIZE_DOC` / `UPLOAD_MAX_SIZE_VIDEO` /
+ *   `UPLOAD_MAX_SIZE_INSTALLER`；
+ * - 旧变量 `UPLOAD_MAX_SIZE`（不区分类型）作为**兜底**：当分档变量缺失时对所有类型生效。
  */
 const MB = 1024 * 1024
 
-/** 尺寸分类：图片 / 视频 / 文档（其余归文档） */
-export type SizeKind = 'image' | 'video' | 'doc'
+/** 尺寸分类：图片 / 视频 / 文档 / 安装包（其余归文档） */
+export type SizeKind = 'image' | 'video' | 'doc' | 'installer'
 
 /** 各分类默认限额（字节） */
-const DEFAULT_LIMITS: Record<SizeKind, number> = { image: 10 * MB, doc: 50 * MB, video: 200 * MB }
+const DEFAULT_LIMITS: Record<SizeKind, number> = {
+  image: 10 * MB,
+  doc: 50 * MB,
+  video: 200 * MB,
+  installer: 300 * MB,
+}
 
 /** 分档限额对应的环境变量名 */
 const LIMIT_ENV: Record<SizeKind, string> = {
   image: 'UPLOAD_MAX_SIZE_IMAGE',
   doc: 'UPLOAD_MAX_SIZE_DOC',
   video: 'UPLOAD_MAX_SIZE_VIDEO',
+  installer: 'UPLOAD_MAX_SIZE_INSTALLER',
 }
 
 /** 分类中文标签（错误提示用） */
-const LIMIT_LABEL: Record<SizeKind, string> = { image: '图片', doc: '文档', video: '视频' }
+const LIMIT_LABEL: Record<SizeKind, string> = { image: '图片', doc: '文档', video: '视频', installer: '安装包' }
 
 /** 解析尺寸串（如 '10mb' / '1kb' / '2097152'）为字节数；无法解析返回 null */
 function parseSize(raw: string | undefined): number | null {
@@ -157,6 +173,7 @@ function parseSize(raw: string | undefined): number | null {
 export function sizeKindOf(ext: string): SizeKind {
   if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext)) return 'image'
   if (['mp4', 'webm', 'mov'].includes(ext)) return 'video'
+  if (['exe', 'msi', 'dmg', 'pkg'].includes(ext)) return 'installer'
   return 'doc'
 }
 
@@ -165,9 +182,9 @@ export function limitForKind(kind: SizeKind): number {
   return parseSize(process.env[LIMIT_ENV[kind]]) ?? parseSize(process.env.UPLOAD_MAX_SIZE) ?? DEFAULT_LIMITS[kind]
 }
 
-/** 三档中的最大限额（字节）；供上传解析器设置整体上限，使各类型都能到达按类型校验 */
+/** 各档中的最大限额（字节）；供上传解析器设置整体上限，使各类型都能到达按类型校验 */
 export function maxUploadLimit(): number {
-  return Math.max(limitForKind('image'), limitForKind('doc'), limitForKind('video'))
+  return Math.max(limitForKind('image'), limitForKind('doc'), limitForKind('video'), limitForKind('installer'))
 }
 
 /** 字节数 → 可读限额（< 1MB 用 KB，否则用 MB；保留 1 位小数） */
@@ -259,6 +276,66 @@ export function saveUpload(
       id: filename,
       name: safeName,
       url: publicUrl(filename),
+      size: stat.size,
+      type: mime || EXT_DEFAULT_MIME[ext],
+      uploadedAt: new Date(stat.mtimeMs).toISOString(),
+    },
+  }
+}
+
+/**
+ * 原地替换文件内容（**保持文件名与公开地址不变**，用于换新版说明书 / 安装包 / 图片）。
+ *
+ * - 扩展名沿用原文件名，不允许换类型（URL 后缀决定浏览器如何打开，换了会前后不一致）；
+ * - 类型 / 大小校验与 `saveUpload` 同规格；
+ * - 先写临时文件再 `rename`，避免替换中途失败把原文件写坏。
+ */
+export function replaceUpload(id: string, bytes: Buffer, contentType: string | undefined): SaveUploadResult {
+  if (!id || id !== path.basename(id) || id.startsWith('.')) {
+    return { ok: false, status: 400, error: '素材 id 不合法' }
+  }
+  const dir = resolveUploadDir()
+  const file = path.join(dir, id)
+  if (!existsSync(file) || !statSync(file).isFile()) {
+    return { ok: false, status: 404, error: '未找到该素材' }
+  }
+  const ext = extOf(id)
+  const allowed = ext ? EXT_MIME[ext] : undefined
+  if (!allowed) {
+    return { ok: false, status: 415, error: `不支持的文件类型：${ext ? `.${ext}` : '未知扩展名'}` }
+  }
+  const mime = normalizeMime(contentType)
+  if (mime && !allowed.includes(mime)) {
+    return { ok: false, status: 415, error: `文件内容类型不被允许：${mime}` }
+  }
+  const kind = sizeKindOf(ext)
+  const limit = limitForKind(kind)
+  if (bytes.length > limit) {
+    return {
+      ok: false,
+      status: 413,
+      error: `${LIMIT_LABEL[kind]}超过大小限制：最大 ${formatLimit(limit)}（当前 ${formatLimit(bytes.length)}）`,
+    }
+  }
+  const temp = path.join(dir, `.replace-${randomBytes(4).toString('hex')}.tmp`)
+  try {
+    writeFileSync(temp, bytes)
+    renameSync(temp, file)
+  } catch {
+    try {
+      if (existsSync(temp)) unlinkSync(temp)
+    } catch {
+      // 清理失败可忽略，临时文件以点开头且不会进入素材列表
+    }
+    return { ok: false, status: 500, error: '文件写入失败，请重试' }
+  }
+  const stat = statSync(file)
+  return {
+    ok: true,
+    item: {
+      id,
+      name: nameFromFile(id),
+      url: publicUrl(id),
       size: stat.size,
       type: mime || EXT_DEFAULT_MIME[ext],
       uploadedAt: new Date(stat.mtimeMs).toISOString(),

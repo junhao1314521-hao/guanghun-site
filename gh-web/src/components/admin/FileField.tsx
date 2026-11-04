@@ -71,6 +71,8 @@ export function FileField({
 }: FileFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  // 上传进度（0–100）；用于大文件时给出百分比反馈
+  const [uploadPercent, setUploadPercent] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const url = value.trim()
@@ -93,9 +95,10 @@ export function FileField({
       return
     }
     setUploading(true)
+    setUploadPercent(0)
     try {
       // 图片会附带多尺寸变体（位图），其余文件等同普通上传
-      const item = await uploadImage(file)
+      const item = await uploadImage(file, null, setUploadPercent)
       onChange(item.url)
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : '上传失败，请稍后重试')
@@ -129,7 +132,7 @@ export function FileField({
           {uploading ? (
             <>
               <span className="spinner" aria-hidden="true" />
-              上传中…
+              上传中 {uploadPercent}%
             </>
           ) : (
             '上传'

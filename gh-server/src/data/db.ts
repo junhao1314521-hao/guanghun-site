@@ -28,8 +28,9 @@ import { logger } from '../lib/logger'
  *     user_account_data 按用户隔离的个人中心数据）。与后台 admin_users 完全独立。
  * v7：新增 publish_schedules（定时发布：到点自动应用创建时捕获的内容快照，支持取消）。
  * v8：新增 admin_roles（后台角色可新建 / 编辑 / 删除；取代代码内固定两角色）。
+ * v9：新增 content_drafts（页面草稿：后台保存写草稿，发布时才覆盖线上）。
  */
-export const SCHEMA_VERSION = '8'
+export const SCHEMA_VERSION = '9'
 
 /** meta 键：是否已完成「旧 JSON → SQLite」一次性迁移 */
 const META_MIGRATED = 'migrated_json'
@@ -201,6 +202,12 @@ CREATE TABLE IF NOT EXISTS admin_roles (
   builtin    INTEGER NOT NULL DEFAULT 0,
   sort       INTEGER,
   created_at TEXT
+);
+-- 页面草稿：后台保存写这里，前台只读 content_pages；发布时才把草稿覆盖到线上并删草稿
+CREATE TABLE IF NOT EXISTS content_drafts (
+  key        TEXT PRIMARY KEY,
+  data       TEXT NOT NULL,
+  updated_at TEXT
 );
 `
 
@@ -387,6 +394,8 @@ export function getDb(): DatabaseSync {
     db.exec('PRAGMA foreign_keys = ON')
     db.exec(DDL)
     migrateFromLegacyJson(db)
+    // 每次打开都把 meta 的 schema 版本同步为当前版本（建表为幂等 DDL；版本号用于排障与未来迁移判断）
+    if (getMeta(db, META_SCHEMA) !== SCHEMA_VERSION) setMeta(db, META_SCHEMA, SCHEMA_VERSION)
     conn = db
     connPath = target
     return db

@@ -104,8 +104,8 @@ const SHOWCASE_COPY_EN: Record<string, string> = {
     'Dual-mode switching: 4K@165Hz and FHD@330Hz in one, with an imported LG META OLED panel.',
   'gh-28027x1qe':
     '26.5" 2K@280Hz, 1500 nit peak brightness and 3.68M-pixel light control — a value flagship.',
-  'gh-27q1f':
-    '27" 2K 200Hz Fast IPS; HDR and wide gamut at an accessible price.',
+  'gh-27x1qe-500':
+    '26.5" 2K@500Hz QD-OLED with full-speed DP 2.1 and 0.03 ms GTG response.',
 }
 
 function buildHomeEn(): Page {
@@ -194,38 +194,6 @@ function buildHomeEn(): Page {
         theme: 'dark',
       },
     },
-    {
-      type: 'hero',
-      props: {
-        eyebrow: 'ESPORTS IPS / 27" 2K@200Hz',
-        eyebrowEnabled: false,
-        title: ['27Q1F Esports'],
-        subtitle: '27" 2K 200Hz Fast IPS with HDR and wide gamut',
-        media: '/media/products/gh-27q1f.jpg',
-        mediaType: 'image',
-        mediaTag: '27Q1F key visual',
-        primary: { label: 'Buy now', href: '/products/gh-27q1f' },
-        contentPosition: { x: 50, y: 16 },
-        height: 'r219',
-        theme: 'dark',
-      },
-    },
-    {
-      type: 'hero',
-      props: {
-        eyebrow: 'ENTRY / 23.8" FHD@200Hz',
-        eyebrowEnabled: false,
-        title: ['24H1 Entry'],
-        subtitle: '23.8" FHD 200Hz esports monitor with HDR400',
-        media: '/media/products/gh-24h1.jpg',
-        mediaType: 'image',
-        mediaTag: '24H1 key visual',
-        primary: { label: 'Buy now', href: '/products/gh-24h1' },
-        contentPosition: { x: 50, y: 16 },
-        height: 'r219',
-        theme: 'dark',
-      },
-    },
     // —— 2×2 product matrix ——
     {
       type: 'productMatrix',
@@ -240,7 +208,7 @@ function buildHomeEn(): Page {
           { productId: 'gh-54027x1qe', desc: '26.5" 2K@540Hz 4th-gen W-OLED flagship', buttons: [{ label: 'Learn more', href: '/products/gh-54027x1qe' }] },
           { productId: 'gh-32x1ue', desc: 'Dual-mode OLED: 4K@165 / FHD@330 in one', buttons: [{ label: 'Learn more', href: '/products/gh-32x1ue' }] },
           { productId: 'gh-28027x1qe', desc: '2K@280Hz with 1500 nit peak brightness', buttons: [{ label: 'Learn more', href: '/products/gh-28027x1qe' }] },
-          { productId: 'gh-27q1f', desc: '27" 2K 200Hz Fast IPS, best value', buttons: [{ label: 'Learn more', href: '/products/gh-27q1f' }] },
+          { productId: 'gh-27x1ue-qd', desc: '26.5" 4K@240Hz QD-OLED with full-speed DP 2.1', buttons: [{ label: 'Learn more', href: '/products/gh-27x1ue-qd' }] },
         ],
       },
       // Full-bleed: cards span the viewport width (flush with the posters above / blocks below)
@@ -583,7 +551,7 @@ function buildCenterEn(): Page {
         image: '/media/center/hero.svg',
         contentPosition: { x: 50, y: 16 },
         // Floating download bar at the poster bottom (pick entries from the download center)
-        downloadIds: ['center-win', 'center-mac'],
+        downloadIds: ['center-win'],
       },
       style: { theme: 'dark', container: 'full' },
     },
@@ -923,7 +891,7 @@ function buildProductsEn(): Page {
     { type: 'text', props: { title: 'Products', body: 'Filter in-stock products by category, connection and price.', align: 'left' } },
     { type: 'productGrid', props: { title: 'All products', source: 'all', limit: 24, columns: 3 } },
     // Sample: hand-picked (order is the display order)
-    { type: 'productGrid', props: { title: 'Editor picks', subtitle: 'Hand-picked models; the order is adjustable.', scope: 'manual', ids: ['gh-54027x1qe', 'gh-32x1ue', 'gh-28027x1qe', 'gh-27q1f'], limit: 8, columns: 4, showFilter: false } },
+    { type: 'productGrid', props: { title: 'Editor picks', subtitle: 'Hand-picked models; the order is adjustable.', scope: 'manual', ids: ['gh-54027x1qe', 'gh-32x1ue', 'gh-28027x1qe', 'gh-27x1qe-500'], limit: 8, columns: 4, showFilter: false } },
     // Sample: by category (OLED flagship only)
     { type: 'productGrid', props: { title: 'OLED flagship', subtitle: 'Every model in the "OLED flagship" category.', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false } },
   ])
@@ -983,9 +951,9 @@ function buildModelSupportEn(): Page {
         items: [
           { tag: 'OLED flagship', title: '54027X1QE-W54', desc: '26.5" 2K@540Hz flagship OLED with DP 2.1 full speed and Center tuning.', href: '/support/model/gh-54027x1qe' },
           { tag: 'Dual-mode', title: '32X1UE-W16', desc: '31.5" 4K@165 / FHD@330 dual-mode OLED esports display.', href: '/support/model/gh-32x1ue' },
-          { tag: 'Esports IPS', title: '27Q1F', desc: '27" 2K 200Hz Fast IPS esports display with HDMI 2.1.', href: '/support/model/gh-27q1f' },
-          { tag: 'Esports IPS', title: '24H1', desc: '23.8" FHD 200Hz gaming monitor with HDR400 for entry-level and daily use.', href: '/support/model/gh-24h1' },
-          { tag: 'Accessory', title: 'GH-ARM01', desc: 'Monitor arm with VESA 75/100 and 9 kg load capacity.', href: '/support/model/gh-arm01' },
+          { tag: 'OLED Flagship', title: '27X1QE-Q32', desc: '26.5" 2K@320Hz QD-OLED esports display.', href: '/support/model/gh-27x1qe-q32' },
+          { tag: 'OLED Flagship', title: '27X1QE-500', desc: '26.5" 2K@500Hz QD-OLED with full-speed DP 2.1.', href: '/support/model/gh-27x1qe-500' },
+          { tag: 'Dual-mode', title: 'G27K-180', desc: '27" Fast IPS dual-mode: 5K@180Hz and 2K@330Hz.', href: '/support/model/gh-g27k180' },
         ],
       },
     },

@@ -78,6 +78,9 @@ export function DownloadDetailPage() {
     )
   }
 
+  /** PDF 资料：浏览器内直接预览，同时保留下载入口 */
+  const pdfPreview = Boolean(detail.fileUrl && /\.pdf(\?|#|$)/i.test(detail.fileUrl))
+
   return (
     <div ref={rootRef}>
       <JsonLdNode node={downloadJsonLd(detail)} />
@@ -99,15 +102,28 @@ export function DownloadDetailPage() {
           </div>
           <div className="row">
             {isDownloadable(detail) ? (
-              <a
-                className="btn btn--primary"
-                href={detail.fileUrl}
-                download
-                rel="noreferrer"
-                onClick={() => trackDownload(detail.id)}
-              >
-                下载
-              </a>
+              <>
+                {pdfPreview && (
+                  <a
+                    className="btn btn--primary"
+                    href={detail.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => trackDownload(detail.id)}
+                  >
+                    在线查看
+                  </a>
+                )}
+                <a
+                  className={`btn ${pdfPreview ? 'btn--secondary' : 'btn--primary'}`}
+                  href={detail.fileUrl}
+                  download
+                  rel="noreferrer"
+                  onClick={() => trackDownload(detail.id)}
+                >
+                  下载
+                </a>
+              </>
             ) : (
               <span
                 className="btn btn--primary"
@@ -123,6 +139,24 @@ export function DownloadDetailPage() {
             </Link>
           </div>
         </div>
+
+        {/* 说明书：直接在详情页内嵌预览，不用再点一次「在线查看」 */}
+        {pdfPreview && (
+          <section className="pdf-viewer" aria-label={`${detail.name} 在线预览`}>
+            <div className="pdf-viewer__head">
+              <span className="pdf-viewer__title">在线预览</span>
+              <a className="pdf-viewer__open" href={detail.fileUrl} target="_blank" rel="noreferrer">
+                新窗口打开 ↗
+              </a>
+            </div>
+            <iframe
+              className="pdf-viewer__frame"
+              src={detail.fileUrl}
+              title={`${detail.name} PDF 预览`}
+              loading="lazy"
+            />
+          </section>
+        )}
 
         <div className="card reveal">
           <div className="dl-meta">

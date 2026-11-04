@@ -87,6 +87,29 @@ export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, 
     }
   }, [])
 
+  /**
+   * 高德地图会动态生成瓦片 <img> 与内部 iframe，它们没有 alt / title：
+   * 瓦片是装饰性图片 → alt="" + aria-hidden；iframe 补标题。
+   * 用 MutationObserver 持续覆盖地图后续生成的节点，避免无障碍审计报错。
+   */
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || state !== 'ready') return
+    const patch = () => {
+      container.querySelectorAll<HTMLImageElement>('img:not([alt])').forEach((img) => {
+        img.setAttribute('alt', '')
+        img.setAttribute('aria-hidden', 'true')
+      })
+      container.querySelectorAll<HTMLIFrameElement>('iframe:not([title])').forEach((frame) => {
+        frame.setAttribute('title', '体验点地图')
+      })
+    }
+    patch()
+    const observer = new MutationObserver(patch)
+    observer.observe(container, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [state])
+
   const pointsKey = points.map((venue) => `${venue.id}:${venue.lat},${venue.lng}`).join('|')
 
   useEffect(() => {

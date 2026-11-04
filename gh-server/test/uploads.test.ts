@@ -216,6 +216,8 @@ describe('种子资源的站内文件地址必须能通过上传白名单', () =
   const CT_BY_EXT: Record<string, string> = {
     bin: 'application/octet-stream',
     zip: 'application/zip',
+    rar: 'application/vnd.rar',
+    exe: 'application/octet-stream',
     pdf: 'application/pdf',
   }
 
@@ -250,5 +252,80 @@ describe('种子资源的站内文件地址必须能通过上传白名单', () =
         `种子站内文件 .${ext}（${name}）无法通过上传白名单 → 前台引用该地址必是死链`,
       )
     }
+  })
+})
+
+describe('素材引用保护（R-22）', () => {
+  it('被产品记录引用：返回引用明细；不带 force 删除 409，带 force 才成功', async () => {
+    const created = await fetch(`${base}/api/admin/resources/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...auth() },
+      body: JSON.stringify({ id: 'gh-ref-probe', name: '引用测试产品', model: 'REF-PROBE' }),
+    })
+    assert.equal(created.status, 201, '应能创建测试产品')
+
+    const up = await upload(PNG_BYTES, 'ref-probe.png', 'image/png')
+    assert.equal(up.status, 201)
+    const { item } = (await up.json()) as { item: { id: string; url: string } }
+
+    const put = await fetch(`${base}/api/admin/resources/products/gh-ref-probe`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...auth() },
+      body: JSON.stringify({ gallery: [item.url] }),
+    })
+    assert.equal(put.status, 200, '应能把素材地址写进产品相册')
+
+    const refs = await fetch(`${base}/api/admin/uploads/${item.id}/references`, { headers: auth() })
+    const report = (await refs.json()) as {
+      count: number
+      refs: Array<{ location: string; to?: string }>
+    }
+    assert.ok(report.count >= 1, '应统计到集合记录里的引用')
+    assert.ok(
+      report.refs.some((ref) => ref.location.includes('引用测试产品')),
+      `引用位置应包含记录名，实际：${report.refs.map((ref) => ref.location).join(' / ')}`,
+    )
+    assert.ok(
+      report.refs.some((ref) => ref.to === '/admin/products/gh-ref-probe'),
+      `引用应带可跳转的后台地址，实际：${report.refs.map((ref) => ref.to ?? '-').join(' / ')}`,
+    )
+
+    const blocked = await fetch(`${base}/api/admin/uploads/${item.id}`, { method: 'DELETE', headers: auth() })
+    assert.equal(blocked.status, 409, '仍被引用时删除应被拒绝')
+
+    const forced = await fetch(`${base}/api/admin/uploads/${item.id}?force=1`, { method: 'DELETE', headers: auth() })
+    assert.equal(forced.status, 200, '显式 force 后应允许删除')
+
+    await fetch(`${base}/api/admin/resources/products/gh-ref-probe`, { method: 'DELETE', headers: auth() })
+  })
+})
+
+describe('素材原地替换（R-22）', () => {
+  it('替换后地址不变、内容更新；Content-Type 与原扩展名不符 → 415', async () => {
+    const up = await upload(PNG_BYTES, 'replace-me.png', 'image/png')
+    assert.equal(up.status, 201)
+    const { item } = (await up.json()) as { item: { id: string; url: string } }
+
+    const nextBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3])
+    const rep = await fetch(`${base}/api/admin/uploads/${encodeURIComponent(item.id)}/replace`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'image/png', ...auth() },
+      body: new Uint8Array(nextBytes),
+    })
+    assert.equal(rep.status, 200)
+    const body = (await rep.json()) as { item: { url: string; size: number } }
+    assert.equal(body.item.url, item.url, '替换后公开地址应保持不变')
+    assert.equal(body.item.size, nextBytes.length, '替换后大小应更新')
+
+    const pub = await fetch(`${base}${item.url}`)
+    assert.equal(pub.status, 200)
+    assert.deepEqual(Buffer.from(await pub.arrayBuffer()), nextBytes, '公开地址应返回新内容')
+
+    const bad = await fetch(`${base}/api/admin/uploads/${encodeURIComponent(item.id)}/replace`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/pdf', ...auth() },
+      body: new Uint8Array(nextBytes),
+    })
+    assert.equal(bad.status, 415, '内容类型与原扩展名不符时应拒绝')
   })
 })

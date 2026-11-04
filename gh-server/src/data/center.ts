@@ -37,9 +37,13 @@ export const FEATURES: Feature[] = [
 export type DeviceSupport = { title: string; models: string; status: 'success' | 'muted'; statusText: string }
 
 export const DEVICE_SUPPORT: DeviceSupport[] = [
-  { title: 'OLED 旗舰显示器', models: '54027X1QE-W54 / 28027X1QE-W28', status: 'success', statusText: '全面支持' },
-  { title: '双模高刷显示器', models: '32X1UE-W16 / 27X1U', status: 'success', statusText: '全面支持' },
-  { title: '电竞 IPS 显示器', models: '27Q1F / 24H1 / 25S1FP', status: 'muted', statusText: '基础支持' },
+  {
+    title: 'OLED 旗舰显示器',
+    models: '27X1QE-W54 / 27X1QE-W28 / 27X1QE-Q32 / 27X1QE-500 / 27X1UE-Q16 / 27X1UE-QD / 32X1UE-Q24',
+    status: 'success',
+    statusText: '全面支持',
+  },
+  { title: '双模高刷显示器', models: '32X1UE-W16 / G27K-180', status: 'success', statusText: '全面支持' },
 ]
 
 /** 下载与安装 */
@@ -47,10 +51,9 @@ export type DownloadItem = { os: string; version: string; size: string; date: st
 
 export const DOWNLOADS: DownloadItem[] = [
   { os: 'Windows 10 / 11（64 位）', version: CENTER_VERSION, size: '86.4 MB', date: '2026-09-20' },
-  { os: 'macOS 12 及以上', version: CENTER_VERSION, size: '92.1 MB', date: '2026-09-20' },
 ]
 
-export const INSTALL_STEPS = ['下载对应系统的安装包并完成安装', '用 DP / USB-C 线连接显示器', 'Center 自动识别显示器，进入对应调校页']
+export const INSTALL_STEPS = ['下载 Windows 安装包并完成安装', '用 DP / USB-C 线连接显示器', 'Center 自动识别显示器，进入对应调校页']
 
 export const REQUIREMENTS = [
   { k: '最低配置', v: '4 GB 内存 · 1 GB 可用空间' },
@@ -76,6 +79,6 @@ export const CENTER_FAQS: Faq[] = [
     a: '请用 DP 或 USB-C 直连（不要经转接坞），确认显示器处于对应输入源；若仍无反应，可在「服务支持 → 下载中心」获取最新调校软件。',
   },
   { q: '云同步会覆盖我本地的配置吗？', a: '不会静默覆盖。当本地与云端不一致时会明确提示，由你选择保留哪一份，并保留修改记录。' },
-  { q: '支持哪些操作系统版本？', a: 'Windows 10 及以上（64 位）与 macOS 12 及以上。更早的系统版本不保证可用，具体见「支持的设备」与系统要求。' },
+  { q: '支持哪些操作系统版本？', a: 'Windows 10 及以上（64 位）。当前暂不提供 macOS 版本，更早的 Windows 版本不保证可用，具体见「支持的设备」与系统要求。' },
   { q: '固件更新失败后显示器还能用吗？', a: '可以。更新中断不会清空原固件，显示器仍可正常使用；重新连接后 Center 会提示重试。更新过程中请保持连接与供电。' },
 ]

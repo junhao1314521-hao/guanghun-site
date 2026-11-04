@@ -164,11 +164,11 @@ export function PosterMedia({ data, src, eager }: { data: PosterData; src: strin
     return (
       <picture>
         <source media="(max-width: 900px)" srcSet={data.imageMobile} />
-        <MediaImg src={src} alt={data.mediaTag} loading={eager ? 'eager' : 'lazy'} />
+        <MediaImg src={src} alt={data.mediaTag} loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : undefined} />
       </picture>
     )
   }
-  return <MediaImg src={src} alt={data.mediaTag} loading={eager ? 'eager' : 'lazy'} />
+  return <MediaImg src={src} alt={data.mediaTag} loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : undefined} />
 }
 
 /**

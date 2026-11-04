@@ -139,9 +139,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   /* ---------- 产品与评测 ---------- */
   {
     key: 'products',
-    label: '产品列表',
+    label: '产品',
     icon: 'cube',
-    title: '产品列表',
+    title: '产品',
     desc: '管理在售与草稿产品的基础信息、定价与库存状态。',
     creatable: true,
     editable: true,
@@ -359,9 +359,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'rankings',
-    label: '榜单配置',
+    label: '天梯榜',
     icon: 'grid',
-    title: '榜单配置',
+    title: '天梯榜',
     desc: '配置天梯榜的范围、指标与条目上限，控制前台榜单呈现。',
     creatable: true,
     editable: true,
@@ -444,9 +444,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   /* ---------- 内容与资源 ---------- */
   {
     key: 'articles',
-    label: '文章列表',
+    label: '文章',
     icon: 'book',
-    title: '文章列表',
+    title: '文章',
     desc: '管理评测、教程、技术与资讯文章的发布状态。',
     creatable: true,
     editable: true,
@@ -522,9 +522,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'downloads',
-    label: '下载资源',
+    label: '下载中心',
     icon: 'download',
-    title: '下载资源列表',
+    title: '下载中心',
     desc: '管理驱动、固件、说明书与工具的版本与下载数据。',
     creatable: true,
     editable: true,
@@ -556,7 +556,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'version', label: '版本', type: 'text' },
           { key: 'size', label: '文件大小', type: 'text' },
           { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows / macOS', hint: '约定字段：填「Windows」或「macOS」。前台软件下载按钮据此显示系统图标与「下载 Windows 版 / 下载 macOS 版」文案；留空时回退按资源名称识别，识别不到则退化为通用文件按钮' },
-          { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '固件升级包与适配器／说明书（pdf / zip / bin / 图片 / txt / md）可上传或从素材库选择；安装包（exe / dmg / msi）不在素材库白名单内，请直接填对象存储 / CDN 的外链地址；前台下载按钮指向该地址' },
+          { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '全部资料统一存本机素材库：说明书 PDF、固件包、驱动、安装包（exe / dmg / msi / pkg）均可直接上传或从素材库选择；前台 PDF 支持在线预览，其余类型点击下载。文件保存在 /opt/website/data/uploads，与商城及其他项目完全隔离' },
           { key: 'date', label: '更新时间', type: 'date' },
           { key: 'releasedAt', label: '发布时间', type: 'date', hint: '用于按发布时间排序；留空沿用「更新时间」' },
           { key: 'os', label: '适用系统', type: 'text', placeholder: 'Windows 11 / macOS 14', hint: '比「适用平台」更细，前台卡片优先展示该值' },
@@ -656,9 +656,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   /* ---------- 网站与装修 ---------- */
   {
     key: 'pages',
-    label: '页面列表',
+    label: '页面装修',
     icon: 'doc',
-    title: '页面列表',
+    title: '页面装修',
     desc: '管理站点页面与发布状态，进入装修器可视化编辑区块。',
     // 自定义视图：由 AdminPagesList 承载（数据源为内容库 /api/admin/pages，非通用资源接口）
     view: 'pages',
@@ -791,9 +791,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'publish',
-    label: '预览与发布',
+    label: '发布管理',
     icon: 'cloud',
-    title: '预览与发布',
+    title: '发布管理',
     desc: '查看站点的发布记录（内容版本快照），可立即发布、按版本回滚内容或删除记录。',
     // 自定义视图：由 AdminPublishList 承载（数据源 /api/admin/publish，需 publish 权限）
     view: 'publish',
@@ -813,9 +813,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   /* ---------- 客户与服务 ---------- */
   {
     key: 'customers',
-    label: '客户列表',
+    label: '客户',
     icon: 'account',
-    title: '客户列表',
+    title: '客户',
     desc: '查看注册客户、名下设备与工单概况。',
     editable: true,
     searchKeys: ['name', 'account'],
@@ -991,10 +991,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'faqs',
-    label: '问答管理',
+    label: '常见问题',
     icon: 'doc',
-    title: '问答管理',
-    desc: '维护常见问题条目，供服务与支持页与型号与兼容页引用。',
+    title: '常见问题',
+    desc: '维护常见问题条目，供服务与支持页与型号支持页引用。',
     creatable: true,
     editable: true,
     deletable: true,
@@ -1057,10 +1057,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'models',
-    label: '型号与兼容',
+    label: '型号支持',
     icon: 'keyboard',
-    title: '型号与兼容',
-    desc: '维护各型号的支持信息：常见问答与使用指南。该型号的可下载资料统一在「下载资源」里按「适用型号」维护，避免两处重复。',
+    title: '型号支持',
+    desc: '维护各型号的支持信息：常见问答与使用指南。该型号的可下载资料统一在「下载中心」里按「适用型号」维护，避免两处重复。',
     creatable: true,
     editable: true,
     deletable: true,
@@ -1620,13 +1620,20 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   },
   {
     key: 'service',
-    label: '客户与服务',
+    label: '客户与售后',
     items: [
       { kind: 'resource', key: 'customers' },
       { kind: 'resource', key: 'inquiries' },
       { kind: 'resource', key: 'reservations' },
       { kind: 'resource', key: 'devices' },
       { kind: 'resource', key: 'subscribers' },
+      { kind: 'resource', key: 'reviews' },
+    ],
+  },
+  {
+    key: 'service-content',
+    label: '服务内容',
+    items: [
       { kind: 'resource', key: 'faqs' },
       { kind: 'resource', key: 'service-info' },
       { kind: 'resource', key: 'models' },
@@ -1657,7 +1664,6 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     key: 'system',
     label: '系统设置',
     items: [
-      { kind: 'resource', key: 'reviews' },
       { kind: 'resource', key: 'requirements' },
       { kind: 'resource', key: 'staff' },
       { kind: 'resource', key: 'roles' },

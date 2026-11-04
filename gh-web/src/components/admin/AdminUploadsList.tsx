@@ -11,6 +11,7 @@
  * 缩略图复用 MediaImg（加载失败不出现破图）；沿用 admin.css 的令牌与宫格样式。
  */
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   CATEGORY_LABELS,
   createFolder,
@@ -18,6 +19,7 @@ import {
   deleteUpload,
   fetchUploadReferences,
   listFolders,
+  replaceUpload,
   MEDIA_CATEGORIES,
   moveUploads,
   queryMedia,
@@ -26,6 +28,7 @@ import {
   type FolderItem,
   type MediaCategory,
   type UploadItem,
+  type UploadReference,
 } from '../../api/adminUploads'
 import { uploadImage } from '../../lib/uploadImage'
 import { useApi } from '../../hooks/useApi'
@@ -144,6 +147,8 @@ export function AdminUploadsList() {
   // 上传目标文件夹（'' = 未分类）
   const [uploadTargetId, setUploadTargetId] = useState<string>('')
   const [uploading, setUploading] = useState(false)
+  // 大文件上传进度：{ 当前文件名, 百分比 }；非上传中为 null
+  const [uploadProgress, setUploadProgress] = useState<{ name: string; percent: number } | null>(null)
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set())
   const [moveTarget, setMoveTarget] = useState<string>('')
 
@@ -154,6 +159,19 @@ export function AdminUploadsList() {
   const [renameValue, setRenameValue] = useState('')
 
   const fileRef = useRef<HTMLInputElement>(null)
+  // 替换文件：目标素材 + 上传进度（保持 URL 不变）
+  const replaceTargetRef = useRef<UploadItem | null>(null)
+  const replaceRef = useRef<HTMLInputElement>(null)
+  const [replacing, setReplacing] = useState<{ id: string; percent: number } | null>(null)
+  /** 大图 / PDF 预览 */
+  const [preview, setPreview] = useState<UploadItem | null>(null)
+  /** 引用位置弹窗 */
+  const [refsDialog, setRefsDialog] = useState<{
+    name: string
+    count: number
+    refs: UploadReference[]
+    loading: boolean
+  } | null>(null)
 
   // 关键词输入防抖（300ms）后再触发请求
   useEffect(() => {
@@ -215,12 +233,17 @@ export function AdminUploadsList() {
     let lastError = ''
     for (const file of files) {
       try {
+        setUploadProgress({ name: file.name, percent: 0 })
         // 图片会附带多尺寸变体（位图），其余文件等同普通上传
-        await uploadImage(file, uploadTargetId || null)
+        await uploadImage(file, uploadTargetId || null, (percent) =>
+          setUploadProgress({ name: file.name, percent }),
+        )
         ok += 1
       } catch (ex) {
         failed += 1
         lastError = ex instanceof Error ? ex.message : '上传失败'
+      } finally {
+        setUploadProgress(null)
       }
     }
     setUploading(false)
@@ -231,29 +254,118 @@ export function AdminUploadsList() {
   }
 
   /* ---------- 素材操作 ---------- */
-  const onDelete = async (item: UploadItem) => {
-    // 删除前查询引用数（被 N 处引用提示）；查询失败则回退到通用文案，不阻断删除
-    let refCount: number | null = null
+  /** 打开引用位置弹窗：列出页面 / 站点配置 / 集合记录，并可跳到对应编辑页 */
+  const openReferences = async (item: UploadItem) => {
+    setRefsDialog({ name: item.name, count: 0, refs: [], loading: true })
     try {
-      refCount = (await fetchUploadReferences(item.id)).count
+      const report = await fetchUploadReferences(item.id)
+      setRefsDialog({ name: item.name, count: report.count, refs: report.refs, loading: false })
+    } catch {
+      setRefsDialog({ name: item.name, count: 0, refs: [], loading: false })
+    }
+  }
+
+  // 预览 / 引用弹窗：Esc 关闭
+  useEffect(() => {
+    if (!preview && !refsDialog) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setPreview(null)
+      setRefsDialog(null)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [preview, refsDialog])
+
+  /** 打开替换文件选择框（accept 限定为原扩展名，避免换类型导致 URL 语义不一致） */
+  const onPickReplace = (item: UploadItem) => {
+    const ext = item.name.includes('.') ? item.name.slice(item.name.lastIndexOf('.') + 1) : ''
+    replaceTargetRef.current = item
+    if (!replaceRef.current) return
+    replaceRef.current.accept = ext ? `.${ext}` : ''
+    replaceRef.current.value = ''
+    replaceRef.current.click()
+  }
+
+  const onReplaceFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    const target = replaceTargetRef.current
+    if (!file || !target) return
+    const extOf = (name: string) => (name.includes('.') ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : '')
+    const targetExt = extOf(target.name)
+    if (targetExt && extOf(file.name) && targetExt !== extOf(file.name)) {
+      toast.error(`新文件需保持 .${targetExt} 扩展名：链接地址不变，换类型会导致前台打开方式出错`)
+      return
+    }
+    const ok = await confirm({
+      title: '替换文件',
+      message: (
+        <div>
+          <p style={{ margin: 0 }}>{`用「${file.name}」替换「${target.name}」？`}</p>
+          <p style={{ margin: '10px 0 0', opacity: 0.75 }}>
+            文件名与公开地址保持不变，引用它的页面 / 产品 / 下载记录都会自动指向新文件。
+          </p>
+        </div>
+      ),
+      confirmText: '替换',
+    })
+    if (!ok) return
+    setReplacing({ id: target.id, percent: 0 })
+    try {
+      await replaceUpload(target.id, file, (percent) =>
+        setReplacing((current) => (current && current.id === target.id ? { ...current, percent } : current)),
+      )
+      refresh()
+      toast.success(`已替换「${target.name}」`)
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '替换失败')
+    } finally {
+      setReplacing(null)
+      replaceTargetRef.current = null
+    }
+  }
+
+  const onDelete = async (item: UploadItem) => {
+    // 删除前查询引用明细（页面 / 草稿 / 站点配置 / 集合记录）；查询失败则回退到通用文案，不阻断删除
+    let refCount: number | null = null
+    let refs: UploadReference[] = []
+    try {
+      const report = await fetchUploadReferences(item.id)
+      refCount = report.count
+      refs = report.refs
     } catch {
       refCount = null
     }
     const refNote =
       refCount === null
-        ? '删除后引用该素材的页面将无法显示。'
+        ? '删除后引用该素材的位置将无法显示。'
         : refCount > 0
           ? `该素材当前被 ${refCount} 处引用，删除后这些位置将无法显示。`
-          : '该素材当前未被页面引用。'
+          : '该素材当前未被引用。'
     const ok = await confirm({
       title: '删除素材',
-      message: `确认删除「${item.name}」？${refNote}此操作不可撤销。`,
+      message: (
+        <div>
+          <p style={{ margin: 0 }}>{`确认删除「${item.name}」？${refNote}`}</p>
+          {refs.length > 0 && (
+            <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
+              {refs.slice(0, 6).map((ref) => (
+                <li key={ref.location}>{ref.location}</li>
+              ))}
+              {refCount !== null && refCount > 6 && <li>…等共 {refCount} 处</li>}
+            </ul>
+          )}
+          <p style={{ margin: '10px 0 0', opacity: 0.75 }}>删除后可在「回收站」恢复。</p>
+        </div>
+      ),
       confirmText: '删除',
       danger: true,
     })
     if (!ok) return
     try {
-      await deleteUpload(item.id)
+      // 仍被引用时带 force，避免后端 409 二次拦截
+      await deleteUpload(item.id, refs.length > 0)
       refresh()
       toast.success(`已删除「${item.name}」`)
     } catch (ex) {
@@ -264,18 +376,50 @@ export function AdminUploadsList() {
   const onBulkDelete = async () => {
     const ids = Array.from(selected)
     if (ids.length === 0) return
+    // 先批量查引用，确认框里直接列出「哪些素材还被用、用在哪」
+    const reports = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          return await fetchUploadReferences(id)
+        } catch {
+          return null
+        }
+      }),
+    )
+    const referenced = reports.filter((report): report is NonNullable<typeof report> => Boolean(report && report.count > 0))
+    const refTotal = referenced.reduce((sum, report) => sum + report.count, 0)
+    const samples = referenced.slice(0, 4).flatMap((report) => report.refs.slice(0, 2).map((ref) => ref.location))
     const ok = await confirm({
       title: '批量删除素材',
-      message: `确认删除选中的 ${ids.length} 个素材？此操作不可撤销。`,
+      message: (
+        <div>
+          <p style={{ margin: 0 }}>
+            {`确认删除选中的 ${ids.length} 个素材？`}
+            {referenced.length > 0
+              ? `其中 ${referenced.length} 个仍被引用（共 ${refTotal} 处），删除后对应位置将无法显示。`
+              : '这些素材当前未被引用。'}
+          </p>
+          {samples.length > 0 && (
+            <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
+              {samples.map((location) => (
+                <li key={location}>{location}</li>
+              ))}
+              {refTotal > samples.length && <li>…等共 {refTotal} 处</li>}
+            </ul>
+          )}
+          <p style={{ margin: '10px 0 0', opacity: 0.75 }}>删除后可在「回收站」恢复。</p>
+        </div>
+      ),
       confirmText: '删除',
       danger: true,
     })
     if (!ok) return
     let failed = 0
     let done = 0
-    for (const id of ids) {
+    for (const [index, id] of ids.entries()) {
       try {
-        await deleteUpload(id)
+        const refCount = reports[index]?.count ?? 0
+        await deleteUpload(id, refCount > 0)
         done += 1
       } catch {
         failed += 1
@@ -414,7 +558,7 @@ export function AdminUploadsList() {
             {uploading ? (
               <>
                 <span className="spinner" aria-hidden="true" />
-                上传中…
+                上传中{uploadProgress ? ` ${uploadProgress.percent}%` : '…'}
               </>
             ) : (
               '上传素材'
@@ -431,6 +575,15 @@ export function AdminUploadsList() {
         className="image-field__file"
         aria-label="上传素材"
         onChange={onPickFiles}
+      />
+
+      {/* 替换文件：单文件，accept 由点击时按原扩展名设置 */}
+      <input
+        ref={replaceRef}
+        type="file"
+        className="image-field__file"
+        aria-label="替换素材文件"
+        onChange={onReplaceFile}
       />
 
       <div className="admin-media__layout">
@@ -684,6 +837,19 @@ export function AdminUploadsList() {
                       </span>
                     </button>
                     <div className="admin-upload-tile__actions">
+                      {item.refCount ? (
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          title="查看被哪些页面 / 记录引用"
+                          onClick={() => void openReferences(item)}
+                        >
+                          引用 {item.refCount}
+                        </button>
+                      ) : null}
+                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPreview(item)}>
+                        预览
+                      </button>
                       <Select
                         className="admin-upload-tile__cat"
                         value={item.category}
@@ -692,6 +858,15 @@ export function AdminUploadsList() {
                         onChange={(next) => void onCategory(item, next as MediaCategory)}
                         options={MEDIA_CATEGORIES.map((key) => ({ value: key, label: CATEGORY_LABELS[key] }))}
                       />
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        title="保持链接不变，用新文件替换"
+                        disabled={replacing !== null}
+                        onClick={() => onPickReplace(item)}
+                      >
+                        {replacing?.id === item.id ? `替换中 ${replacing.percent}%` : '替换'}
+                      </button>
                       <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => void onDelete(item)}>
                         删除
                       </button>
@@ -703,6 +878,93 @@ export function AdminUploadsList() {
           )}
         </div>
       </div>
+
+      {/* 预览弹窗：图片 / PDF / 视频内嵌，其它类型给公开地址 */}
+      {preview && (
+        <div className="admin-dialog-overlay" role="presentation" onClick={() => setPreview(null)}>
+          <div
+            className="admin-dialog admin-dialog--preview"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`预览 ${preview.name}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 className="admin-dialog__title">{preview.name}</h2>
+            <div className="admin-dialog__body admin-preview__body">
+              {preview.type.startsWith('image/') ? (
+                <img className="admin-preview__img" src={preview.url} alt={preview.name} />
+              ) : preview.type === 'application/pdf' || /\.pdf$/i.test(preview.name) ? (
+                <iframe className="admin-preview__frame" src={preview.url} title={preview.name} />
+              ) : preview.type.startsWith('video/') ? (
+                <video className="admin-preview__video" src={preview.url} controls />
+              ) : (
+                <p style={{ margin: 0 }}>
+                  该类型不支持内嵌预览，可
+                  <a href={preview.url} target="_blank" rel="noreferrer">
+                    在新窗口打开
+                  </a>
+                  （{formatSize(preview.size)}）。
+                </p>
+              )}
+            </div>
+            <div className="admin-dialog__foot">
+              <a className="btn btn--ghost btn--sm" href={preview.url} target="_blank" rel="noreferrer">
+                新窗口打开
+              </a>
+              <button className="btn btn--secondary btn--sm" type="button" onClick={() => setPreview(null)}>
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 引用位置弹窗：点位置可跳到对应编辑页 */}
+      {refsDialog && (
+        <div className="admin-dialog-overlay" role="presentation" onClick={() => setRefsDialog(null)}>
+          <div
+            className="admin-dialog admin-dialog--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label="素材引用位置"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 className="admin-dialog__title">「{refsDialog.name}」的引用位置</h2>
+            <div className="admin-dialog__body">
+              {refsDialog.loading ? (
+                <p style={{ margin: 0 }}>正在统计…</p>
+              ) : refsDialog.count === 0 ? (
+                <p style={{ margin: 0 }}>当前没有页面或记录引用该素材。</p>
+              ) : (
+                <>
+                  <p style={{ margin: '0 0 8px' }}>
+                    共 {refsDialog.count} 处
+                    {refsDialog.count > refsDialog.refs.length ? `（列出前 ${refsDialog.refs.length} 处）` : ''}：
+                  </p>
+                  <ul className="admin-refs">
+                    {refsDialog.refs.map((ref) => (
+                      <li key={ref.location}>
+                        {ref.to ? (
+                          <Link to={ref.to} onClick={() => setRefsDialog(null)}>
+                            {ref.location}
+                          </Link>
+                        ) : (
+                          ref.location
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+            <div className="admin-dialog__foot">
+              <button className="btn btn--secondary btn--sm" type="button" onClick={() => setRefsDialog(null)}>
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

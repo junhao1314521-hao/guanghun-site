@@ -14,6 +14,7 @@
  */
 import { useState } from 'react'
 import { fetchAdminSite, saveAdminSite } from '../../api/adminPages'
+import { invalidateSiteCache } from '../../api/content'
 import type {
   SiteAnnouncement,
   SiteAuthConfig,
@@ -376,6 +377,8 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setSaving(true)
     try {
       const saved = await saveAdminSite(site)
+      // 前台站点配置有 60s 缓存，保存后立即失效，切到前台即可看到新导航 / 页脚
+      invalidateSiteCache()
       setSite(saved)
       setDirty(false)
       toast.success('已保存站点配置，前台刷新即可生效。')

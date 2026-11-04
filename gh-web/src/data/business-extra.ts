@@ -31,7 +31,7 @@ export const BIZ_SCENES: SceneItem[] = [
     products: [
       { id: 'gh-54027x1qe', name: '闪电 540Hz 电竞OLED显示器' },
       { id: 'gh-32x1ue', name: 'Meta 双模 4K 电竞显示器' },
-      { id: 'gh-27q1f', name: '27 英寸 2K 电竞显示器' },
+      { id: 'gh-27x1qe-q32', name: 'Q32 26.5 英寸 2K 320Hz QD-OLED' },
     ],
     cover: MEDIA.scene['scene-01'],
   },
@@ -49,7 +49,7 @@ export const BIZ_SCENES: SceneItem[] = [
     products: [
       { id: 'gh-32x1ue', name: 'Meta 双模 4K 电竞显示器' },
       { id: 'gh-54027x1qe', name: '闪电 540Hz 电竞OLED显示器' },
-      { id: 'gh-arm01', name: '显示器悬臂支架' },
+      { id: 'gh-27x1ue-q16', name: 'Q16 26.5 英寸 4K QD-OLED' },
     ],
     cover: MEDIA.scene['scene-02'],
   },
@@ -65,9 +65,9 @@ export const BIZ_SCENES: SceneItem[] = [
       '提供批量固件下发与设备清单模板',
     ],
     products: [
-      { id: 'gh-27q1f', name: '27 英寸 2K 电竞显示器' },
-      { id: 'gh-24h1', name: '24 英寸 200Hz 电竞显示器' },
-      { id: 'gh-arm01', name: '显示器悬臂支架' },
+      { id: 'gh-g27k180', name: '画圣 5K 双模电竞显示器' },
+      { id: 'gh-27x1qe-500', name: '闪电 500 电竞OLED显示器' },
+      { id: 'gh-27x1ue-qd', name: 'QD 26.5 英寸 4K 240Hz QD-OLED' },
     ],
     cover: MEDIA.scene['scene-03'],
   },

@@ -119,14 +119,14 @@ describe('数据分析：公开埋点 → 真实统计（traffic / downloads）'
     assert.equal(summaryValue(downloads, 'total'), 2)
     assert.equal(summaryValue(downloads, 'today'), 2)
     assert.equal(summaryValue(downloads, 'items'), 1, '仅 1 个不同资料被点击')
-    const row = downloads.rows.find((r) => r[0] === '54027X1QE-W54 固件升级包')
+    const row = downloads.rows.find((r) => r[0] === '27X1QE-W54 固件升级包')
     assert.ok(row, '下载明细应把 id 映射为资料名称')
     assert.equal(row[1], 2)
   })
 
   it('products / content 为集合真实计数（非写死）', async () => {
     const products = await analytics('products')
-    assert.equal(summaryValue(products, 'products'), 8, 'seed 产品应为 8 条')
+    assert.equal(summaryValue(products, 'products'), 9, 'seed 产品应为 9 条')
     assert.ok(summaryValue(products, 'reviews') > 0, '评测文章数应 > 0')
     assert.ok(summaryValue(products, 'views') >= 3, '产品页浏览应包含上面上报的 3 次')
 
@@ -232,7 +232,7 @@ describe('回收站：软删除 / 恢复 / 彻底删除（集合记录 + 前台�
   })
 
   it('软删除 / 恢复 / 彻底删除均写审计', async () => {
-    const targetId = 'gh-27x1u'
+    const targetId = 'gh-27x1qe-q32'
     await get(`/api/admin/resources/products/${targetId}`, { method: 'DELETE', headers: auth(adminToken) })
     let trash = (await (await get('/api/admin/resources/trash', { headers: auth(adminToken) })).json()) as TrashList
     const entry = trash.items.find((item) => item.key === 'products' && item.recordId === targetId)

@@ -178,9 +178,9 @@ describe('后台页面读写与持久化（契约 §6.2 / §7）', () => {
     assert.equal(miss.status, 404)
   })
 
-  it('PUT /api/admin/pages/:key 全量覆盖 blocks → { page } 并落盘', async () => {
+  it('PUT /api/admin/pages/:key 只写草稿（前台不变），发布后才上线', async () => {
     const current = (await (await get('/api/admin/pages/home', { headers: auth() })).json()) as {
-      page: { blocks: Array<Record<string, unknown>> }
+      page: { blocks: Array<Record<string, unknown>>; title: string }
     }
     const blocks = current.page.blocks.slice(0, 1).map((block) => ({ ...block, enabled: false }))
     const res = await get('/api/admin/pages/home', {
@@ -194,16 +194,47 @@ describe('后台页面读写与持久化（契约 §6.2 / §7）', () => {
     assert.equal(page.blocks.length, 1)
     assert.ok(!Number.isNaN(Date.parse(page.updatedAt)), 'updatedAt 应为 ISO 时间')
 
-    // 公开端即时反映
-    const pub = (await (await get('/api/content/pages/home')).json()) as { page: { title: string; blocks: unknown[] } }
-    assert.equal(pub.page.title, '首页 · 已改')
-    assert.equal(pub.page.blocks.length, 1)
+    // R-06：草稿尚未发布 → 前台仍是旧内容
+    const before = (await (await get('/api/content/pages/home')).json()) as { page: { title: string } }
+    assert.notEqual(before.page.title, '首页 · 已改')
 
-    // 已事务落库
+    // 列表标记「有未发布草稿」
+    const list = (await (await get('/api/admin/pages', { headers: auth() })).json()) as {
+      items: Array<{ key: string; hasDraft?: boolean }>
+    }
+    assert.equal(list.items.find((item) => item.key === 'home')?.hasDraft, true)
+
+    // 发布 → 前台立即反映，草稿清空
+    const pub = await get('/api/admin/pages/home/publish', { method: 'POST', headers: auth() })
+    assert.equal(pub.status, 200)
+    const after = (await (await get('/api/content/pages/home')).json()) as { page: { title: string; blocks: unknown[] } }
+    assert.equal(after.page.title, '首页 · 已改')
+    assert.equal(after.page.blocks.length, 1)
+
     const homeOnDisk = diskPages().find((p) => p.key === 'home')
     assert.ok(homeOnDisk)
     assert.equal(homeOnDisk.title, '首页 · 已改')
     assert.equal(homeOnDisk.blocks.length, 1)
+
+    const listAfter = (await (await get('/api/admin/pages', { headers: auth() })).json()) as {
+      items: Array<{ key: string; hasDraft?: boolean }>
+    }
+    assert.equal(listAfter.items.find((item) => item.key === 'home')?.hasDraft, false)
+  })
+
+  it('DELETE /api/admin/pages/:key/draft 放弃草稿且不影响线上', async () => {
+    const live = (await (await get('/api/content/pages/home')).json()) as { page: { title: string } }
+    await get('/api/admin/pages/home', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...auth() },
+      body: JSON.stringify({ title: '草稿标题' }),
+    })
+    const discard = await get('/api/admin/pages/home/draft', { method: 'DELETE', headers: auth() })
+    assert.equal(discard.status, 200)
+    const published = (await (await get('/api/content/pages/home')).json()) as { page: { title: string } }
+    assert.equal(published.page.title, live.page.title)
+    const detail = (await (await get('/api/admin/pages/home', { headers: auth() })).json()) as { draft?: unknown }
+    assert.equal(detail.draft, undefined)
   })
 
   it('PUT 非法 blocks → 400', async () => {

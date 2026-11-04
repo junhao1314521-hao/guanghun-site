@@ -26,13 +26,14 @@ import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode, t
 import { Link, useParams } from 'react-router-dom'
 import {
   createBlock,
-  fetchAdminPage,
+  discardAdminPageDraft,
+  fetchAdminPageDraft,
   fetchBlockTypeCatalog,
+  publishAdminPage,
   resetAdminPage,
   saveAdminPage,
 } from '../../api/adminPages'
 import type { Block, BlockStyle, BlockType, BlockTypeMeta, Page } from '../../api/adminPages'
-import { createRelease } from '../../api/adminPublish'
 import { ApiError } from '../../api/client'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
@@ -474,27 +475,9 @@ function AddBlocksDrawer({
 }
 
 /* ============================================================
-   发布状态与自动保存（本地记忆）
+   发布状态与自动保存
    ============================================================ */
-/** 发布签名 storage key（按页面）：用于区分「已发布 / 有未发布变更」 */
-const publishedSigKey = (pageKey: string) => `gh-builder-published:${pageKey}`
 const AUTOSAVE_KEY = 'gh-builder-autosave'
-
-function readPublishedSig(pageKey: string): string {
-  try {
-    return window.localStorage.getItem(publishedSigKey(pageKey)) ?? ''
-  } catch {
-    return ''
-  }
-}
-
-function writePublishedSig(pageKey: string, sig: string): void {
-  try {
-    window.localStorage.setItem(publishedSigKey(pageKey), sig)
-  } catch {
-    // 忽略隐私模式等写入失败
-  }
-}
 
 /** 自动保存开关（默认开启） */
 function readAutoSave(): boolean {
@@ -531,7 +514,7 @@ function pushRecentType(type: BlockType): BlockType[] {
 /* ============================================================
    装修器主体
    ============================================================ */
-function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
+function Builder({ pageKey, initial, hasDraftOnLoad }: { pageKey: string; initial: Page; hasDraftOnLoad: boolean }) {
   const [page, setPage] = useState<Page>(initial)
   // 区块树 + 撤销/重做历史（单一状态源）
   const hist = useBlockHistory(initial.blocks)
@@ -562,8 +545,8 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
   const [tab, setTab] = useState<'library' | 'props' | 'style'>('props')
   const [typeQuery, setTypeQuery] = useState('')
   const [publishing, setPublishing] = useState(false)
-  // 发布状态（本地记忆）：已发布 / 有未发布变更；草稿自动保存
-  const [publishedSig, setPublishedSig] = useState(() => readPublishedSig(pageKey))
+  // 发布状态（服务端草稿）：已保存 = 有未发布草稿；发布后清空
+  const [hasDraft, setHasDraft] = useState(hasDraftOnLoad)
   const [autoSave, setAutoSave] = useState(() => readAutoSave())
   const [recentTypes, setRecentTypes] = useState<BlockType[]>(() => readRecentTypes())
   const [autoSaving, setAutoSaving] = useState(false)
@@ -575,14 +558,12 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
 
   const dirty = draftSig !== savedSig
 
-  /** 顶栏状态：有未保存修改 > 有未发布变更 > 已发布 / 已保存 */
+  /** 顶栏状态：有未保存修改 > 有未发布草稿 > 已发布 */
   const publishState = dirty
     ? { tone: 'dirty', label: '有未保存修改' }
-    : publishedSig && publishedSig === savedSig
-      ? { tone: 'published', label: '已发布' }
-      : publishedSig
-        ? { tone: 'unpublished', label: '有未发布变更' }
-        : { tone: 'saved', label: '已保存' }
+    : hasDraft
+      ? { tone: 'unpublished', label: '有未发布变更' }
+      : { tone: 'published', label: '已发布' }
 
   // 未保存修改：刷新 / 关闭标签页、以及站内路由离开均拦截（useUnsavedGuard）
   useUnsavedGuard(dirty)
@@ -702,7 +683,8 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
       setPage(saved)
       hist.reset(saved.blocks)
       setSavedSig(JSON.stringify(normalizeLayouts(saved.blocks)))
-      toast.success('已保存，前台刷新即可生效。')
+      setHasDraft(true)
+      toast.success('已保存为草稿，前台尚未变化；点「发布」后生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '保存失败，请稍后重试')
     } finally {
@@ -710,21 +692,46 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
     }
   }
 
-  /** 发布闭环：先保存草稿（如有未保存修改），再生成发布记录（快照当前内容），前台立即生效 */
+  /** 发布闭环：先保存草稿（如有未保存修改），再把草稿覆盖到线上，前台立即生效 */
   const onPublish = async () => {
     setPublishing(true)
     try {
       if (dirty) await onSave()
-      await createRelease('后台装修器 · 页面发布')
-      const sig = JSON.stringify(normalizeLayouts(blocks))
-      setSavedSig(sig)
-      setPublishedSig(sig)
-      writePublishedSig(pageKey, sig)
+      const published = await publishAdminPage(pageKey)
+      setPage(published)
+      hist.reset(published.blocks)
+      setSavedSig(JSON.stringify(normalizeLayouts(published.blocks)))
+      setHasDraft(false)
       toast.success('已发布，前台立即生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '发布失败，请稍后重试')
     } finally {
       setPublishing(false)
+    }
+  }
+
+  /** 放弃草稿：丢弃未发布的编辑，页面回到线上版本 */
+  const onDiscardDraft = async () => {
+    const ok = await confirm({
+      title: '放弃未发布的修改',
+      message: '草稿将被丢弃，编辑器会回到线上版本。此操作不可撤销。',
+      confirmText: '放弃修改',
+      danger: true,
+    })
+    if (!ok) return
+    setSaving(true)
+    try {
+      await discardAdminPageDraft(pageKey)
+      const reloaded = await fetchAdminPageDraft(pageKey)
+      setPage(reloaded.page)
+      hist.reset(reloaded.page.blocks)
+      setSavedSig(JSON.stringify(normalizeLayouts(reloaded.page.blocks)))
+      setHasDraft(false)
+      toast.success('已放弃草稿，编辑器已回到线上版本。')
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '放弃草稿失败，请稍后重试')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -743,7 +750,8 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
       hist.reset(reset.blocks, true)
       setSavedSig(JSON.stringify(reset.blocks))
       setSelectedId(reset.blocks[0]?.id ?? null)
-      toast.success('已重置为初始版本。')
+      setHasDraft(false)
+      toast.success('已重置为初始版本，前台立即生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '重置失败')
     } finally {
@@ -950,6 +958,11 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
               <button type="button" className="btn btn--secondary btn--sm" onClick={onReset} disabled={saving}>
                 重置为初始
               </button>
+              {hasDraft && (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={onDiscardDraft} disabled={saving || publishing}>
+                  放弃草稿
+                </button>
+              )}
               <a className="btn btn--secondary btn--sm" href={previewHref} target="_blank" rel="noreferrer">
                 打开前台
               </a>
@@ -988,7 +1001,7 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
                 type="button"
                 onClick={onPublish}
                 disabled={publishing || saving}
-                title="保存草稿并发布：快照当前内容，前台立即生效"
+                title="发布：把草稿覆盖到线上，前台立即生效"
               >
                 {publishing ? (
                   <>
@@ -1309,7 +1322,8 @@ function Builder({ pageKey, initial }: { pageKey: string; initial: Page }) {
    ============================================================ */
 export function AdminPageBuilderPage() {
   const { key = '' } = useParams()
-  const state = useApi<Page>((signal) => fetchAdminPage(key, signal), [key])
+  // R-06：同时取线上版本与未发布草稿；有草稿时编辑器载入草稿
+  const state = useApi<{ page: Page; draft?: Page }>((signal) => fetchAdminPageDraft(key, signal), [key])
 
   if (!key) return <AdminNotFound />
 
@@ -1347,5 +1361,12 @@ export function AdminPageBuilderPage() {
   }
 
   if (!state.data) return null
-  return <Builder key={key} pageKey={key} initial={state.data} />
+  return (
+    <Builder
+      key={key}
+      pageKey={key}
+      initial={state.data.draft ?? state.data.page}
+      hasDraftOnLoad={Boolean(state.data.draft)}
+    />
+  )
 }

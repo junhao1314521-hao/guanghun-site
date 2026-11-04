@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict'
 import { existsSync, rmSync } from 'node:fs'
-import type { Server } from 'node:http'
+import { createServer, type Server } from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
@@ -325,5 +325,62 @@ describe('前台账号体系 · 个人中心写操作', () => {
     assert.equal(res.status, 200)
     assert.equal((await get('/api/auth/me', cookie)).status, 401)
     assert.equal((await post('/api/auth/login', { username: 'writer', password: 'pass1234' })).status, 401)
+  })
+})
+
+describe('找回密码 · 通知通道预留', () => {
+  it('生产环境且未配置通道：不回传令牌，回执与已发送一致', async () => {
+    const prevNodeEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    delete process.env.NOTIFY_CHANNEL
+    delete process.env.NOTIFY_WEBHOOK_URL
+    try {
+      const res = await post('/api/auth/forgot', { email: 'alice@example.com' })
+      assert.equal(res.status, 200)
+      const body = (await res.json()) as { ok: boolean; sentTo?: string; devToken?: string }
+      assert.equal(body.ok, true)
+      assert.equal(body.sentTo, 'alice@example.com')
+      assert.equal(body.devToken, undefined, '生产环境不得直出令牌')
+    } finally {
+      if (prevNodeEnv === undefined) delete process.env.NODE_ENV
+      else process.env.NODE_ENV = prevNodeEnv
+    }
+  })
+
+  it('配置 webhook 后：真实投递（含 Bearer），响应不含令牌', async () => {
+    const received: Array<{ auth?: string; body: Record<string, unknown> }> = []
+    const hook = createServer((req, res) => {
+      let raw = ''
+      req.on('data', (chunk) => {
+        raw += chunk
+      })
+      req.on('end', () => {
+        received.push({ auth: req.headers.authorization, body: JSON.parse(raw) as Record<string, unknown> })
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end('{"ok":true}')
+      })
+    })
+    await new Promise<void>((resolve) => hook.listen(0, '127.0.0.1', () => resolve()))
+    const addr = hook.address()
+    assert.ok(addr && typeof addr === 'object')
+    process.env.NOTIFY_CHANNEL = 'webhook'
+    process.env.NOTIFY_WEBHOOK_URL = `http://127.0.0.1:${addr.port}/notify`
+    process.env.NOTIFY_WEBHOOK_TOKEN = 'test-token'
+    try {
+      const res = await post('/api/auth/forgot', { email: 'alice@example.com' })
+      assert.equal(res.status, 200)
+      const body = (await res.json()) as { devToken?: string }
+      assert.equal(body.devToken, undefined, '已接入通道时不得回传令牌')
+      assert.equal(received.length, 1, '网关应收到一条通知')
+      assert.equal(received[0].auth, 'Bearer test-token')
+      assert.equal(received[0].body.purpose, 'password-reset')
+      assert.equal(received[0].body.to, 'alice@example.com')
+      assert.match(String(received[0].body.text), /[0-9a-f]{48}/, '通知正文应包含 48 位令牌')
+    } finally {
+      delete process.env.NOTIFY_CHANNEL
+      delete process.env.NOTIFY_WEBHOOK_URL
+      delete process.env.NOTIFY_WEBHOOK_TOKEN
+      await new Promise<void>((resolve) => hook.close(() => resolve()))
+    }
   })
 })

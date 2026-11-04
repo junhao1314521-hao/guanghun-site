@@ -1,7 +1,7 @@
 import express, { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express'
-import { deleteUpload, listUploads, maxUploadLimit, saveUpload } from '../data/uploadStore'
+import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload } from '../data/uploadStore'
 import { generateImageVariants } from '../data/imageVariants'
-import { countReferencesToUrl } from '../data/pageRefs'
+import { mediaReferenceCounts, referencesToUrl } from '../data/pageRefs'
 import {
   createFolder,
   deleteFolder,
@@ -156,7 +156,48 @@ uploadsRouter.post('/uploads/:id/variants', requireSession, requireScope('conten
   res.json({ item: mediaItem(item) })
 })
 
-/** 素材引用数：扫描页面区块 props 中引用该素材 URL 的位置数（删除前二次确认用） */
+/**
+ * 原地替换素材文件：**保持文件名与 `/uploads` 地址不变**，引用它的页面 / 产品 / 下载记录无需改动。
+ * 请求体同样是原始字节流（Content-Type 即新文件 MIME），扩展名必须与原文件一致。
+ */
+uploadsRouter.post(
+  '/uploads/:id/replace',
+  requireSession,
+  requireScope('content'),
+  auditWrite('replace-upload', (req) => readParam(req, 'id')),
+  rawBody,
+  async (req, res) => {
+    const id = readParam(req, 'id')
+    const existing = listUploads().find((entry) => entry.id === id)
+    if (!existing || hiddenUploadIds().has(id)) {
+      res.status(404).json({ error: '未找到该素材' })
+      return
+    }
+    const body = req.body
+    if (!Buffer.isBuffer(body) || body.length === 0) {
+      res.status(400).json({ error: '文件内容为空' })
+      return
+    }
+    // 记录旧变体：换图后只清理不再被新变体引用的文件，避免磁盘残留孤儿
+    const staleVariants = variantFileIds(id)
+    const result = replaceUpload(id, body, req.headers['content-type'])
+    if (!result.ok) {
+      res.status(result.status).json({ error: result.error })
+      return
+    }
+    await generateImageVariants(result.item)
+    const fresh = new Set(variantFileIds(id))
+    for (const variantId of staleVariants) {
+      if (!fresh.has(variantId)) deleteUpload(variantId)
+    }
+    res.json({ item: mediaItem(result.item) })
+  },
+)
+
+/**
+ * 素材引用明细：扫描页面 / 页面草稿 / 站点配置 / 全部集合记录中引用该素材 URL 的位置。
+ * 删除前二次确认用，同时给运营「到底哪里在用」的答案。
+ */
 uploadsRouter.get('/uploads/:id/references', requireSession, requireScope('content'), (req, res) => {
   const id = readParam(req, 'id')
   const item = listUploads().find((entry) => entry.id === id)
@@ -164,7 +205,8 @@ uploadsRouter.get('/uploads/:id/references', requireSession, requireScope('conte
     res.status(404).json({ error: '未找到该素材' })
     return
   }
-  res.json({ url: item.url, count: countReferencesToUrl(item.url) })
+  const report = referencesToUrl(item.url)
+  res.json({ url: item.url, count: report.count, refs: report.refs.slice(0, 20) })
 })
 
 uploadsRouter.post('/uploads/move', requireSession, requireScope('content'), auditWrite('move-upload', (req) => {
@@ -200,7 +242,10 @@ uploadsRouter.get('/uploads', requireSession, requireScope('content'), (req, res
     page: Number.isFinite(page) ? page : undefined,
     pageSize: Number.isFinite(pageSize) ? pageSize : undefined,
   })
-  res.json({ items: result.items, total: result.total })
+  // 引用数一次扫描全量数据后下发，避免前端逐条请求（N+1）
+  const refCounts = mediaReferenceCounts()
+  const items = result.items.map((item) => ({ ...item, refCount: refCounts[item.url] ?? 0 }))
+  res.json({ items, total: result.total })
 })
 
 uploadsRouter.patch('/uploads/:id', requireSession, requireScope('content'), auditWrite('update-upload', (req) => readParam(req, 'id')), (req, res) => {
@@ -236,6 +281,18 @@ uploadsRouter.delete('/uploads/:id', requireSession, requireScope('content'), au
   // 已软删除（回收站中）的素材不再视为可删除对象
   if (!item || hiddenUploadIds().has(id)) {
     res.status(404).json({ error: '未找到该素材' })
+    return
+  }
+  // 引用保护：仍被页面 / 集合记录引用时拒绝直接删除，需显式带 force=1 二次确认，
+  // 避免误删导致前台图片、下载地址静默失效。
+  const refs = referencesToUrl(item.url)
+  const force = queryString(req, 'force') === '1'
+  if (refs.count > 0 && !force) {
+    res.status(409).json({
+      error: `该素材仍被 ${refs.count} 处引用，确认删除请带 force=1 重试`,
+      count: refs.count,
+      refs: refs.refs.slice(0, 20),
+    })
     return
   }
   // 软删除：把主图元数据（含变体清单）写入回收站（key='uploads'），**磁盘文件保留**（含变体文件）；

@@ -705,7 +705,8 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .blk-figure__caption { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
 
 .blk-imagetext__media {
-  aspect-ratio: 4 / 3; border-radius: var(--gh-radius-lg); overflow: hidden;
+  /* 16:9 更贴合横版产品 / 海报素材，避免 4:3 裁掉两侧机身 */
+  aspect-ratio: 16 / 9; border-radius: var(--gh-radius-lg); overflow: hidden;
   background: var(--gh-neutral-900); border: 1px solid var(--color-border-default);
 }
 .blk-imagetext__media img, .blk-imagetext__media svg { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -749,6 +750,24 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .blk-html a:hover { color: var(--color-accent); }
 .blk-rich hr,
 .blk-html hr { border: 0; border-top: 1px solid var(--color-border-default); margin: var(--gh-space-5) 0; }
+
+/* 表格（后台富文本可插入规格 / 对比表） */
+.blk-rich table,
+.blk-html table,
+.pd-detail-rich table {
+  width: 100%; border-collapse: collapse; margin: var(--gh-space-4) 0;
+  font-size: var(--gh-font-size-body-sm);
+}
+.blk-rich th, .blk-rich td,
+.blk-html th, .blk-html td,
+.pd-detail-rich th, .pd-detail-rich td {
+  border: 1px solid var(--color-border-default);
+  padding: var(--gh-space-2) var(--gh-space-3);
+  text-align: left; vertical-align: top;
+}
+.blk-rich th,
+.blk-html th,
+.pd-detail-rich th { background: var(--color-bg-muted); font-weight: var(--gh-weight-semibold); }
 
 /* 列表 */
 .blk-rich ul, .blk-rich ol,
@@ -1825,20 +1844,30 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   outline-offset: 2px;
   border-radius: var(--gh-radius-lg);
 }
-/* 展台大图：悬停放大镜（跟随光标、图片本身不位移），点击进入灯箱 */
+/* 展台大图：淘宝式悬停放大（取景框跟随光标 + 右侧大图预览面板），点击进入灯箱 */
 .stage__content { position: relative; }
-.pd-lens {
+.pd-zoom-box {
   position: absolute;
   z-index: 3;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background-color: var(--gh-neutral-950);
-  background-repeat: no-repeat;
-  box-shadow: 0 18px 48px -18px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
   pointer-events: none;
 }
+.pd-zoom-panel {
+  position: fixed;
+  z-index: 60;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background-color: #0a0a0d;
+  background-repeat: no-repeat;
+  box-shadow: 0 32px 80px -24px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  overflow: hidden;
+}
 @media (hover: none), (pointer: coarse) {
-  .pd-lens { display: none; }
+  .pd-zoom-box, .pd-zoom-panel { display: none; }
 }
 
 /* 缩略图行：内容溢出时两端出现圆形左右按钮（京东 / 淘宝详情页同款） */
@@ -2171,30 +2200,92 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 .dl-tab:hover { color: var(--color-text-primary); }
 .dl-tab.is-active { background: var(--color-bg-elevated); color: var(--color-text-primary); box-shadow: var(--shadow-sm); }
+/* 概览条：先告诉用户「有多少份、都是什么类型」 */
+.dl-overview {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-3) var(--gh-space-4);
+  margin-bottom: var(--gh-space-5); padding: var(--gh-space-3) var(--gh-space-4);
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-xl);
+  background: var(--color-bg-muted);
+}
+.dl-overview__total { display: flex; align-items: baseline; gap: 6px; }
+.dl-overview__total strong { font-family: var(--gh-font-mono); font-size: 26px; line-height: 1; color: var(--color-text-primary); }
+.dl-overview__total span { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+.dl-overview__chips { display: flex; flex-wrap: wrap; gap: var(--gh-space-2); }
+.dl-overview__chip {
+  appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--gh-radius-full);
+  border: 1px solid var(--color-border-default); background: var(--color-bg-surface);
+  color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm);
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard), color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.dl-overview__chip b { font-family: var(--gh-font-mono); color: var(--color-text-primary); font-weight: var(--gh-weight-semibold); }
+.dl-overview__chip:hover { border-color: var(--color-border-strong); color: var(--color-text-primary); }
+.dl-overview__chip.is-active { border-color: var(--color-accent); color: var(--color-accent-text); background: color-mix(in srgb, var(--color-accent-solid) 10%, transparent); }
+.dl-overview__hint { margin-left: auto; font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+
 .dl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--gh-space-5); }
 .dl-card {
   display: flex; flex-direction: column; gap: var(--gh-space-3);
   padding: var(--gh-space-5); border: 1px solid var(--color-border-default);
+  border-top: 3px solid var(--color-border-strong);
   border-radius: var(--gh-radius-xl); background: var(--color-bg-surface);
   transition: border-color var(--gh-duration-base) var(--gh-ease-standard),
     box-shadow var(--gh-duration-base) var(--gh-ease-standard),
     transform var(--gh-duration-base) var(--gh-ease-standard);
 }
+/* 资料类型色调：卡片顶边 + 类型签，扫一眼就能区分说明书 / 软件 / 固件 */
+.dl-card--manual { border-top-color: #3b6fd8; }
+.dl-card--software { border-top-color: var(--color-accent-solid); }
+.dl-card--firmware { border-top-color: #d98324; }
+.dl-card--driver { border-top-color: #2f9e8f; }
+.dl-card--calibration { border-top-color: #8a6be0; }
 .dl-card:hover { border-color: var(--color-border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .dl-card__top { display: flex; align-items: center; gap: var(--gh-space-2); }
+.dl-chip {
+  display: inline-flex; align-items: center; padding: 3px 10px;
+  border-radius: var(--gh-radius-full); font-size: var(--gh-font-size-caption);
+  font-weight: var(--gh-weight-semibold); letter-spacing: .02em;
+}
+.dl-chip--manual { color: #2f5cb8; background: color-mix(in srgb, #3b6fd8 14%, transparent); }
+.dl-chip--software { color: var(--color-accent-text); background: color-mix(in srgb, var(--color-accent-solid) 14%, transparent); }
+.dl-chip--firmware { color: #a8621a; background: color-mix(in srgb, #d98324 16%, transparent); }
+.dl-chip--driver { color: #24776b; background: color-mix(in srgb, #2f9e8f 14%, transparent); }
+.dl-chip--calibration { color: #6b4fc4; background: color-mix(in srgb, #8a6be0 14%, transparent); }
 .dl-card__ver { margin-left: auto; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
-.dl-card__title { margin: 0; font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); line-height: 1.35; }
+.dl-card__title { margin: 0; font-size: 19px; font-weight: var(--gh-weight-semibold); line-height: 1.35; }
+.dl-card__title a { color: inherit; text-decoration: none; }
+.dl-card__title a:hover { color: var(--color-accent-text); }
 .dl-card__note { margin: 0; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.6; }
 .dl-card__meta {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gh-space-2) var(--gh-space-3); margin: 0;
+  gap: var(--gh-space-3) var(--gh-space-4); margin: 0;
   padding-top: var(--gh-space-3); border-top: 1px solid var(--color-border-subtle);
 }
-.dl-card__meta dt { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
-.dl-card__meta dd { margin: 2px 0 0; font-size: var(--gh-font-size-body-sm); color: var(--color-text-primary); overflow-wrap: anywhere; }
+.dl-kv { min-width: 0; }
+.dl-kv__k { display: block; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.dl-kv__v { display: block; margin-top: 3px; font-size: var(--gh-font-size-body-sm); color: var(--color-text-primary); overflow-wrap: anywhere; }
 .dl-card__foot {
   margin-top: auto; display: flex; align-items: center; justify-content: space-between;
   gap: var(--gh-space-3); padding-top: var(--gh-space-3); border-top: 1px solid var(--color-border-subtle);
+}
+
+/* 资料详情 · PDF 内嵌预览（说明书不用再跳一次） */
+.pdf-viewer {
+  margin-bottom: var(--gh-space-5); overflow: hidden;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-xl);
+  background: var(--color-bg-muted);
+}
+.pdf-viewer__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--gh-space-3); padding: 10px var(--gh-space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.pdf-viewer__title { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-semibold); color: var(--color-text-primary); }
+.pdf-viewer__open { font-size: var(--gh-font-size-body-sm); color: var(--color-accent-text); text-decoration: none; }
+.pdf-viewer__open:hover { text-decoration: underline; }
+.pdf-viewer__frame { display: block; width: 100%; height: min(78vh, 900px); border: 0; background: #fff; }
+@media (max-width: 767px) {
+  .pdf-viewer__frame { height: 62vh; }
 }
 .dl-card__sum { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); white-space: nowrap; }
 @media (max-width: 767px) {

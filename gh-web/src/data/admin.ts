@@ -53,6 +53,10 @@ export type AdminOverview = {
     tone?: 'danger' | 'warning' | 'info'
   }[]
   recent: { id: string; at: string; who: string; action: string; target: string }[]
+  /** 内容状态（未发布草稿 / 缺文件资料 / 缺购买链接产品） */
+  content?: { draftPages: number; pendingDownloads: number; missingBuyUrl: number }
+  /** 站点健康（进程运行时长 / 数据库与素材体积 / 最近备份时间） */
+  health?: { uptimeSec: number; dbBytes: number; uploadBytes: number; uploadCount: number; lastBackupAt: string }
 }
 
 /** 数据分析：KPI + 序列（柱状）+ 明细表 */

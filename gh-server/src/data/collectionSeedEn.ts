@@ -36,13 +36,14 @@ export function buildCollectionEnOverlays(): Partial<Record<CollectionKey, Recor
 
 const PRODUCTS_EN: Record<string, Overlay> = {
   'gh-54027x1qe': { name: 'Lightning 540Hz OLED Gaming Monitor', specs: ['2K 540Hz', 'W-OLED'], flag: 'Flagship' },
-  'gh-28027x1qe': { name: 'Lightning 280Hz OLED Gaming Monitor', specs: ['2K 280Hz', '1500 nit'] },
-  'gh-32x1ue': { name: 'Meta Dual-mode 4K Gaming Monitor', specs: ['4K@165 / FHD@330', 'META OLED'] },
-  'gh-27x1u': { name: '27" 2K OLED Monitor', specs: ['2K 240Hz', 'QD-OLED'] },
-  'gh-27q1f': { name: '27" 2K Gaming Monitor', specs: ['2K 200Hz', 'Fast IPS'] },
-  'gh-24h1': { name: '24" 200Hz Gaming Monitor', specs: ['FHD 200Hz', 'HDR400'] },
-  'gh-25s1fp': { name: '24.5" High-refresh Gaming Monitor', specs: ['FHD 240Hz', 'IPS'] },
-  'gh-arm01': { name: 'Monitor Arm', specs: ['VESA 75/100', '9 kg'] },
+  'gh-28027x1qe': { name: 'Lightning 280Hz OLED Gaming Monitor', specs: ['2K 280Hz', '1500 nit'], flag: 'Best seller' },
+  'gh-32x1ue': { name: 'Meta Dual-mode 4K Gaming Monitor', specs: ['4K@165 / FHD@330', 'META OLED'], flag: 'Dual-mode' },
+  'gh-27x1ue-q16': { name: 'Q16 4K QD-OLED Gaming Monitor', specs: ['4K 165Hz', 'QD-OLED'], flag: '4K' },
+  'gh-32x1ue-q24': { name: 'Q24 31.5" 4K 240Hz QD-OLED Monitor', specs: ['4K 240Hz', 'QD-OLED'], flag: 'Large' },
+  'gh-27x1qe-q32': { name: 'Q32 2K 320Hz QD-OLED Monitor', specs: ['2K 320Hz', 'QD-OLED'], flag: 'High refresh' },
+  'gh-27x1qe-500': { name: 'Lightning 500Hz OLED Gaming Monitor', specs: ['2K 500Hz', 'QD-OLED'], flag: '500Hz' },
+  'gh-27x1ue-qd': { name: 'QD 4K 240Hz QD-OLED Monitor', specs: ['4K 240Hz', 'QD-OLED'], flag: '4K' },
+  'gh-g27k180': { name: 'Huashang 5K Dual-mode Gaming Monitor', specs: ['5K@180 / 2K@330', 'Fast IPS'], flag: 'Jichuang' },
 }
 
 /* ---------------- 天梯榜（仅译指标名与行内产品名；unit/分数保持原样） ---------------- */
@@ -51,47 +52,49 @@ const RANKINGS_EN: Record<string, Overlay> = {
   overall: {
     label: 'Overall',
     rows: [
-      { rank: '01', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 96.8 },
-      { rank: '02', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 94.2 },
-      { rank: '03', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 92.5 },
-      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 89.6 },
-      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 85.1 },
-      { rank: '06', model: '25S1FP', name: '24.5" FHD 240Hz IPS', score: 82.4 },
-      { rank: '07', model: '24H1', name: '24" FHD 200Hz IPS', score: 79.8 },
+      { rank: '01', model: '27X1QE-W54', name: 'Lightning 540Hz OLED', score: 96.8 },
+      { rank: '02', model: '27X1QE-500', name: 'Lightning 500Hz OLED', score: 96.1 },
+      { rank: '03', model: '32X1UE-Q24', name: 'Q24 31.5" 4K240 QD-OLED', score: 94.6 },
+      { rank: '04', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 94.2 },
+      { rank: '05', model: '27X1UE-QD', name: 'QD 26.5" 4K240 QD-OLED', score: 93.4 },
+      { rank: '06', model: '27X1UE-Q16', name: 'Q16 26.5" 4K QD-OLED', score: 92.8 },
+      { rank: '07', model: '27X1QE-W28', name: 'Lightning 280Hz OLED', score: 92.5 },
     ],
   },
   sensor: {
     label: 'Color accuracy',
     rows: [
       { rank: '01', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 0.9 },
-      { rank: '02', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 1.1 },
-      { rank: '03', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 1.3 },
-      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 1.6 },
-      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 2.1 },
-      { rank: '06', model: '24H1', name: '24" FHD 200Hz IPS', score: 2.8 },
+      { rank: '02', model: '27X1QE-W54', name: 'Lightning 540Hz OLED', score: 1.1 },
+      { rank: '03', model: '27X1QE-500', name: 'Lightning 500Hz OLED', score: 1.2 },
+      { rank: '04', model: '27X1QE-W28', name: 'Lightning 280Hz OLED', score: 1.3 },
+      { rank: '05', model: '27X1UE-QD', name: 'QD 26.5" 4K240 QD-OLED', score: 1.4 },
+      { rank: '06', model: '32X1UE-Q24', name: 'Q24 31.5" 4K240 QD-OLED', score: 1.5 },
+      { rank: '07', model: 'G27K-180', name: 'Huashang 5K Dual-mode IPS', score: 2.1 },
     ],
   },
   battery: {
     label: 'Peak brightness',
     rows: [
-      { rank: '01', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 1320 },
-      { rank: '02', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 1180 },
-      { rank: '03', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 1050 },
-      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 960 },
-      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 480 },
-      { rank: '06', model: '24H1', name: '24" FHD 200Hz IPS', score: 430 },
+      { rank: '01', model: '27X1QE-W54', name: 'Lightning 540Hz OLED', score: 1320 },
+      { rank: '02', model: '27X1QE-500', name: 'Lightning 500Hz OLED', score: 1240 },
+      { rank: '03', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 1180 },
+      { rank: '04', model: '27X1QE-W28', name: 'Lightning 280Hz OLED', score: 1050 },
+      { rank: '05', model: '27X1UE-QD', name: 'QD 26.5" 4K240 QD-OLED', score: 960 },
+      { rank: '06', model: '32X1UE-Q24', name: 'Q24 31.5" 4K240 QD-OLED', score: 940 },
+      { rank: '07', model: 'G27K-180', name: 'Huashang 5K Dual-mode IPS', score: 480 },
     ],
   },
   latency: {
     label: 'Response time',
     rows: [
-      { rank: '01', model: '54027X1QE-W54', name: 'Lightning 540Hz OLED', score: 0.04 },
-      { rank: '02', model: '28027X1QE-W28', name: 'Lightning 280Hz OLED', score: 0.05 },
-      { rank: '03', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 0.06 },
-      { rank: '04', model: '27X1U', name: '27" 2K OLED', score: 0.08 },
-      { rank: '05', model: '27Q1F', name: '27" 2K Gaming IPS', score: 1.2 },
-      { rank: '06', model: '25S1FP', name: '24.5" FHD 240Hz IPS', score: 1.8 },
-      { rank: '07', model: '24H1', name: '24" FHD 200Hz IPS', score: 2.4 },
+      { rank: '01', model: '27X1QE-W54', name: 'Lightning 540Hz OLED', score: 0.04 },
+      { rank: '02', model: '27X1QE-500', name: 'Lightning 500Hz OLED', score: 0.04 },
+      { rank: '03', model: '27X1QE-W28', name: 'Lightning 280Hz OLED', score: 0.05 },
+      { rank: '04', model: '32X1UE-W16', name: 'Meta Dual-mode 4K OLED', score: 0.06 },
+      { rank: '05', model: '27X1UE-QD', name: 'QD 26.5" 4K240 QD-OLED', score: 0.07 },
+      { rank: '06', model: '32X1UE-Q24', name: 'Q24 31.5" 4K240 QD-OLED', score: 0.07 },
+      { rank: '07', model: 'G27K-180', name: 'Huashang 5K Dual-mode IPS', score: 1.2 },
     ],
   },
 }
@@ -190,15 +193,10 @@ const ARTICLES_EN: Record<string, Overlay> = {
 
 const DOWNLOADS_EN: Record<string, Overlay> = {
   'center-win': { name: 'Center monitor tuning software · Windows installer', note: 'Supports Windows 10 / 11 (64-bit)' },
-  'center-mac': { name: 'Center monitor tuning software · macOS installer', note: 'Supports macOS 12 and later' },
   'gh-54027x1qe-firmware': { name: '54027X1QE-W54 firmware update', note: 'Improves full-speed DP 2.1 handshake and HDR tuning' },
   'gh-54027x1qe-icc': { name: '54027X1QE-W54 color profile (ICC)', note: 'Includes sRGB / DCI-P3 profiles' },
   'gh-32x1ue-driver': { name: '32X1UE-W16 driver (INF)', note: 'Includes dual-mode switching and color profile registration' },
   'gh-32x1ue-manual': { name: '32X1UE-W16 user manual', note: 'Covers dual-mode switching and the OSD menu' },
-  'gh-27q1f-driver': { name: '27Q1F driver (INF)', note: 'Model recognition and gamut mapping on Windows' },
-  'gh-27q1f-manual': { name: '27Q1F user manual', note: 'Covers OSD tuning and HDR setup' },
-  'gh-24h1-icc': { name: '24H1 color profile (ICC)', note: 'Includes the factory-calibrated sRGB profile' },
-  'gh-arm01-manual': { name: 'GH-ARM01 installation manual', note: 'Covers VESA 75/100 mounting and load limits' },
 }
 
 /* ---------------- 常见问题 ---------------- */
@@ -273,26 +271,26 @@ const MODELS_EN: Record<string, Overlay> = {
       { title: 'Firmware update', desc: 'Firmware upgrade via Center, including retry after failure.' },
     ],
   },
-  'gh-27q1f': {
-    summary: '27" 2K 200Hz Fast IPS gaming monitor with HDMI 2.1 for daily use and competition.',
+  'gh-27x1qe-q32': {
+    summary: '26.5" 2K@320Hz QD-OLED gaming monitor with 0.03 ms GTG response.',
     guides: [
       { title: 'Quick start', desc: 'Unboxing, stand mounting and HDMI 2.1 connection basics.' },
       { title: 'Color & eye care', desc: 'Gamut, brightness and low blue light settings.' },
       { title: 'Port troubleshooting', desc: 'Path for no signal, low refresh rate and not detected.' },
     ],
   },
-  'gh-24h1': {
-    summary: '23.8" FHD 200Hz gaming monitor with HDR400 for entry-level and daily use.',
+  'gh-27x1qe-500': {
+    summary: '26.5" 2K@500Hz QD-OLED gaming monitor with full-speed DP 2.1.',
     guides: [
-      { title: 'Quick start', desc: 'Unboxing, stand mounting and HDMI connection basics.' },
+      { title: 'Quick start', desc: 'Unboxing, stand mounting and DP 2.1 connection basics.' },
       { title: 'Color & eye care', desc: 'Gamut, brightness and low blue light settings.' },
     ],
   },
-  'gh-arm01': {
-    summary: 'Monitor arm supporting VESA 75/100 and 9 kg, with mounting and adjustment guidance.',
+  'gh-g27k180': {
+    summary: '27" Fast IPS dual-mode: 5K@180Hz and 2K@330Hz switching.',
     guides: [
-      { title: 'Mounting & adjustment', desc: 'VESA 75/100 mounting and gas-spring adjustment.' },
-      { title: 'Load & fit', desc: 'Load range and common size pairings.' },
+      { title: 'Dual-mode switching', desc: 'Switching and trade-offs between 5K@180 and 2K@330.' },
+      { title: 'OSD & HDR', desc: 'Using HDR tuning and brightness settings.' },
     ],
   },
 }
@@ -312,7 +310,7 @@ const BIZ_SCENES_EN: Record<string, Overlay> = {
     products: [
       { id: 'gh-54027x1qe', name: 'Lightning 540Hz OLED Gaming Monitor' },
       { id: 'gh-32x1ue', name: 'Meta Dual-mode 4K Gaming Monitor' },
-      { id: 'gh-27q1f', name: '27" 2K Gaming Monitor' },
+      { id: 'gh-27x1qe-500', name: 'Lightning 500Hz OLED Gaming Monitor' },
     ],
   },
   'creator-desk': {
@@ -327,7 +325,7 @@ const BIZ_SCENES_EN: Record<string, Overlay> = {
     products: [
       { id: 'gh-32x1ue', name: 'Meta Dual-mode 4K Gaming Monitor' },
       { id: 'gh-54027x1qe', name: 'Lightning 540Hz OLED Gaming Monitor' },
-      { id: 'gh-arm01', name: 'Monitor Arm' },
+      { id: 'gh-g27k180', name: 'Huashang 5K Dual-mode Gaming Monitor' },
     ],
   },
   'office-desk': {
@@ -340,9 +338,9 @@ const BIZ_SCENES_EN: Record<string, Overlay> = {
       'Bulk firmware delivery and device-list templates',
     ],
     products: [
-      { id: 'gh-27q1f', name: '27" 2K Gaming Monitor' },
-      { id: 'gh-24h1', name: '24" 200Hz Gaming Monitor' },
-      { id: 'gh-arm01', name: 'Monitor Arm' },
+      { id: 'gh-g27k180', name: 'Huashang 5K Dual-mode Gaming Monitor' },
+      { id: 'gh-27x1qe-500', name: 'Lightning 500Hz OLED Gaming Monitor' },
+      { id: 'gh-27x1ue-qd', name: 'QD 4K 240Hz QD-OLED Monitor' },
     ],
   },
 }

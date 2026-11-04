@@ -113,7 +113,7 @@ export function fetchAdminPages(signal?: AbortSignal): Promise<AdminPageList> {
 
 /** 单页：GET /api/admin/pages/:key（未命中 → 404） */
 export function fetchAdminPage(key: string, signal?: AbortSignal): Promise<Page> {
-  return transport<{ page: Page }>(
+  return transport<{ page: Page; draft?: Page }>(
     { path: `/api/admin/pages/${encodeURIComponent(key)}`, signal, token: adminToken() },
     () => {
       throw new ApiError('未找到该页面', 404)
@@ -121,7 +121,20 @@ export function fetchAdminPage(key: string, signal?: AbortSignal): Promise<Page>
   ).then((res) => res.page)
 }
 
-/** 保存整页：PUT /api/admin/pages/:key（blocks 全量覆盖） */
+/** 单页 + 未发布草稿：GET /api/admin/pages/:key（R-06） */
+export function fetchAdminPageDraft(
+  key: string,
+  signal?: AbortSignal,
+): Promise<{ page: Page; draft?: Page }> {
+  return transport<{ page: Page; draft?: Page }>(
+    { path: `/api/admin/pages/${encodeURIComponent(key)}`, signal, token: adminToken() },
+    () => {
+      throw new ApiError('未找到该页面', 404)
+    },
+  )
+}
+
+/** 保存整页草稿：PUT /api/admin/pages/:key（blocks 全量覆盖，前台不受影响，需发布后生效） */
 export function saveAdminPage(key: string, body: SavePageBody): Promise<Page> {
   return transport<{ page: Page }>(
     { path: `/api/admin/pages/${encodeURIComponent(key)}`, method: 'PUT', body, token: adminToken() },
@@ -129,6 +142,24 @@ export function saveAdminPage(key: string, body: SavePageBody): Promise<Page> {
       throw new ApiError('保存接口不可用', 503)
     },
   ).then((res) => res.page)
+}
+
+/** 发布草稿：POST /api/admin/pages/:key/publish（草稿覆盖线上） */
+export function publishAdminPage(key: string): Promise<Page> {
+  return transport<{ page: Page }>(
+    { path: `/api/admin/pages/${encodeURIComponent(key)}/publish`, method: 'POST', token: adminToken() },
+    () => {
+      throw new ApiError('发布接口不可用', 503)
+    },
+  ).then((res) => res.page)
+}
+
+/** 丢弃草稿：DELETE /api/admin/pages/:key/draft（线上不受影响） */
+export function discardAdminPageDraft(key: string): Promise<{ ok: boolean; removed: boolean }> {
+  return transport<{ ok: boolean; removed: boolean }>(
+    { path: `/api/admin/pages/${encodeURIComponent(key)}/draft`, method: 'DELETE', token: adminToken() },
+    () => ({ ok: true, removed: false }),
+  )
 }
 
 /** 新建页面：POST /api/admin/pages（key 重复 → 409） */

@@ -330,22 +330,24 @@ export const MEDIA = {
     'gh-54027x1qe': '/media/products/gh-54027x1qe.jpg',
     'gh-28027x1qe': '/media/products/gh-28027x1qe.jpg',
     'gh-32x1ue': '/media/products/gh-32x1ue.jpg',
-    'gh-27x1u': '/media/products/gh-27x1u.jpg',
-    'gh-27q1f': '/media/products/gh-27q1f.jpg',
-    'gh-24h1': '/media/products/gh-24h1.jpg',
-    'gh-25s1fp': '/media/products/gh-25s1fp.jpg',
-    'gh-arm01': art('pad', W43, H43, `${DEVICE_DESC.pad}｜产品卡 4:3`),
+    'gh-27x1ue-q16': '/media/products/white/gh-27x1ue-q16.jpg',
+    // 白底图待补：先用统一占位，避免产品卡破图
+    'gh-32x1ue-q24': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜Q24 占位｜产品卡 4:3`),
+    'gh-27x1qe-q32': art('monitor', W43, H43, `${DEVICE_DESC.monitor}｜Q32 占位｜产品卡 4:3`),
+    'gh-27x1qe-500': '/media/products/white/gh-27x1qe-500.jpg',
+    'gh-27x1ue-qd': '/media/products/white/gh-27x1ue-qd.jpg',
+    'gh-g27k180': '/media/products/white/gh-g27k180.jpg',
   } as Record<string, string>,
 
-  /** 产品卡白底图：由主图去底后合成纯白背景（仅产品网格使用，详情/矩阵仍用深色主图） */
+  /** 产品卡白底图（仅产品网格使用；缺图的型号回退 DeviceArt 占位） */
   productWhite: {
     'gh-54027x1qe': '/media/products/white/gh-54027x1qe.jpg',
     'gh-28027x1qe': '/media/products/white/gh-28027x1qe.jpg',
     'gh-32x1ue': '/media/products/white/gh-32x1ue.jpg',
-    'gh-27x1u': '/media/products/white/gh-27x1u.jpg',
-    'gh-27q1f': '/media/products/white/gh-27q1f.jpg',
-    'gh-24h1': '/media/products/white/gh-24h1.jpg',
-    'gh-25s1fp': '/media/products/white/gh-25s1fp.jpg',
+    'gh-27x1ue-q16': '/media/products/white/gh-27x1ue-q16.jpg',
+    'gh-27x1ue-qd': '/media/products/white/gh-27x1ue-qd.jpg',
+    'gh-27x1qe-500': '/media/products/white/gh-27x1qe-500.jpg',
+    'gh-g27k180': '/media/products/white/gh-g27k180.jpg',
   } as Record<string, string>,
 
   /** 产品详情相册（按设备类型给 4 个机位，1:1） */

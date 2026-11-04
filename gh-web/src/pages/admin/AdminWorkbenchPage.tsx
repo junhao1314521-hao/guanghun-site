@@ -31,6 +31,24 @@ const QUICK_LINKS = [
   { to: '/admin/analytics/traffic', label: '访问分析', desc: '流量与转化趋势', icon: 'monitor' },
 ]
 
+/** 字节数 → 可读体积（后台健康展示用） */
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${bytes} B`
+}
+
+/** 秒数 → 「X天Y小时 / X小时Y分 / X分钟」 */
+function formatUptime(sec: number): string {
+  const days = Math.floor(sec / 86400)
+  const hours = Math.floor((sec % 86400) / 3600)
+  const minutes = Math.floor((sec % 3600) / 60)
+  if (days > 0) return `${days} 天 ${hours} 小时`
+  if (hours > 0) return `${hours} 小时 ${minutes} 分`
+  return `${minutes} 分钟`
+}
+
 export function AdminWorkbenchPage() {
   const state = useApi((signal) => fetchAdminOverview(signal), [])
   const overview = state.data
@@ -136,6 +154,28 @@ export function AdminWorkbenchPage() {
               </div>
             ))}
           </div>
+
+          {/* 内容状态 + 站点健康：一眼看到「哪里还欠着」和「服务是否正常」 */}
+          {overview.content && (
+            <div className="admin-statusbar" aria-label="内容状态与站点健康">
+              <Link to="/admin/pages" className="admin-statusbar__item">
+                未发布草稿 <b>{overview.content.draftPages}</b>
+              </Link>
+              <Link to="/admin/downloads" className="admin-statusbar__item">
+                资料缺文件 <b>{overview.content.pendingDownloads}</b>
+              </Link>
+              <Link to="/admin/products" className="admin-statusbar__item">
+                产品缺购买链接 <b>{overview.content.missingBuyUrl}</b>
+              </Link>
+              {overview.health && (
+                <span className="admin-statusbar__health">
+                  服务运行 {formatUptime(overview.health.uptimeSec)} · 数据库 {formatBytes(overview.health.dbBytes)} · 素材{' '}
+                  {formatBytes(overview.health.uploadBytes)}（{overview.health.uploadCount} 个）· 最近备份{' '}
+                  {overview.health.lastBackupAt ? overview.health.lastBackupAt.slice(0, 10) : '暂无'}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* 内容与动态：左动态，右快捷入口 */}
           <div className="admin-cols admin-cols--workbench">

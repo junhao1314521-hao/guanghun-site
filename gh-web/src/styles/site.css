@@ -519,6 +519,7 @@ main.main--flush + .site-footer { margin-top: 0; }
 .hero-media-img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: var(--gh-radius-xl); }
 /* 产品列表卡片媒体区 */
 .pcard__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pcard__media-link { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 /* 详情页主图与缩略图 */
 .detail-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .detail-thumbs .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }

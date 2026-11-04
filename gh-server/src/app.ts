@@ -11,6 +11,7 @@ import { syncMediaMeta } from './data/mediaStore'
 import { hiddenUploadIds } from './data/trashStore'
 import { startScheduler } from './data/publishScheduler'
 import { getCollectionItem } from './data/collectionStore'
+import { renderIndexHtml } from './lib/seoHead'
 import { registerRoutes } from './routes'
 
 /** 详情页路由 → 集合 key：用于 SPA 回退前判定实体是否存在，不存在时返回真实 404 状态 */
@@ -177,7 +178,12 @@ export function createApp(): Express {
           break
         }
         res.setHeader('Cache-Control', 'no-cache')
-        res.sendFile(indexFile)
+        // 服务端注入真实 title / description / canonical / OG / JSON-LD：
+        // 不执行 JS 的抓取器也能拿到与页面一致的元信息（浏览器端仍会再写一遍，值相同）。
+        const origin =
+          (process.env.SITE_ORIGIN ?? '').trim().replace(/\/+$/, '') ||
+          `${req.protocol}://${req.get('host') ?? ''}`
+        res.type('html').send(renderIndexHtml(indexFile, cleanPath, origin))
       },
     )
     logger.info('已启用前端静态托管', { staticDir })

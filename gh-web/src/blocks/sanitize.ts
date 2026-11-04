@@ -23,6 +23,8 @@ const RICH_TAGS = [
   'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'a',
   'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre',
   'img', 'figure', 'figcaption', 'span', 'hr',
+  // 表格：后台富文本可直接插入规格 / 对比表（属性白名单见 TAG_ATTRS）
+  'table', 'thead', 'tbody', 'tr', 'th', 'td',
 ]
 
 /** html 允许的标签（richText 之上追加：表格 / 分块 / 样式） */

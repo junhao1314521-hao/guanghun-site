@@ -69,7 +69,12 @@ export type UploadItem = {
   category: MediaCategory
   /** 该主图的尺寸变体列表（无变体时为空数组，字段只增不改） */
   variants: MediaVariant[]
+  /** 被多少处页面 / 草稿 / 站点配置 / 集合记录引用（列表接口下发；旧接口可能缺省） */
+  refCount?: number
 }
+
+/** 一条素材引用位置（`to` 为后台可跳转地址，如装修器 / 记录编辑页） */
+export type UploadReference = { location: string; href: string; to?: string }
 
 /** 文件夹条目（与后端 FolderItem 逐字一致） */
 export type FolderItem = {
@@ -100,41 +105,59 @@ function endpoint(path: string): string {
   return API_BASE ? new URL(path, API_BASE).toString() : path
 }
 
-/** 非 2xx 响应 → ApiError（优先采用后端 { error } 文案，否则回退状态码文案） */
-async function toApiError(res: Response): Promise<ApiError> {
-  let message = `请求失败（${res.status}）`
-  try {
-    const payload = (await res.json()) as { error?: unknown }
-    if (typeof payload?.error === 'string' && payload.error.trim()) message = payload.error
-  } catch {
-    // 响应非 JSON：保留状态码文案
-  }
-  return new ApiError(message, res.status)
+/** 以原始字节流 POST 文件（XHR：只有它能拿到上传进度）；返回素材条目或抛 ApiError */
+function postFile(path: string, file: File, onProgress?: (percent: number) => void): Promise<UploadItem> {
+  const token = getAdminToken()
+  return new Promise<UploadItem>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpoint(path))
+    xhr.withCredentials = true
+    xhr.setRequestHeader('X-File-Name', encodeURIComponent(file.name))
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) onProgress(Math.round((event.loaded / event.total) * 100))
+    }
+    xhr.onload = () => {
+      let payload: { item?: UploadItem; error?: string } | null = null
+      try {
+        payload = JSON.parse(xhr.responseText) as { item?: UploadItem; error?: string }
+      } catch {
+        payload = null
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && payload?.item) {
+        resolve(payload.item)
+        return
+      }
+      reject(new ApiError(payload?.error || `上传失败（HTTP ${xhr.status}）`, xhr.status))
+    }
+    xhr.onerror = () => reject(new ApiError('网络连接失败，请稍后重试', 0))
+    xhr.onabort = () => reject(new ApiError('上传已取消', 0))
+    xhr.send(file)
+  })
 }
 
 /**
  * 上传单个文件：POST /api/admin/uploads（原始字节流）。
  * 成功返回素材条目（含公开地址 url / 归属文件夹 / 分类）。
  * `folderId` 省略表示上传到「未分类」。
+ * `onProgress` 回调上传百分比（0–100），用于大文件进度显示。
  */
-export async function uploadFile(file: File, folderId?: string | null): Promise<UploadItem> {
-  const token = getAdminToken()
-  const headers: Record<string, string> = {
-    'X-File-Name': encodeURIComponent(file.name),
-    'Content-Type': file.type || 'application/octet-stream',
-  }
-  if (token) headers['Authorization'] = `Bearer ${token}`
+export function uploadFile(
+  file: File,
+  folderId?: string | null,
+  onProgress?: (percent: number) => void,
+): Promise<UploadItem> {
   const query = folderId ? `?folderId=${encodeURIComponent(folderId)}` : ''
+  return postFile(`/api/admin/uploads${query}`, file, onProgress)
+}
 
-  let res: Response
-  try {
-    res = await fetch(endpoint(`/api/admin/uploads${query}`), { method: 'POST', headers, body: file, credentials: 'include' })
-  } catch {
-    throw new ApiError('网络连接失败，请稍后重试', 0)
-  }
-  if (!res.ok) throw await toApiError(res)
-  const payload = (await res.json()) as { item: UploadItem }
-  return payload.item
+/**
+ * 原地替换素材文件：POST /api/admin/uploads/:id/replace。
+ * **文件名与公开地址保持不变**，所有引用位置自动生效；新文件扩展名须与原文件一致。
+ */
+export function replaceUpload(id: string, file: File, onProgress?: (percent: number) => void): Promise<UploadItem> {
+  return postFile(`/api/admin/uploads/${encodeURIComponent(id)}/replace`, file, onProgress)
 }
 
 /**
@@ -207,18 +230,28 @@ export function moveUploads(ids: string[], folderId: string | null): Promise<{ o
   )
 }
 
-/** 素材引用数：GET /api/admin/uploads/:id/references（删除前二次确认用） */
-export function fetchUploadReferences(id: string, signal?: AbortSignal): Promise<{ url: string; count: number }> {
-  return transport<{ url: string; count: number }>(
+/** 素材引用明细：GET /api/admin/uploads/:id/references（删除前二次确认用） */
+export function fetchUploadReferences(
+  id: string,
+  signal?: AbortSignal,
+): Promise<{ url: string; count: number; refs: UploadReference[] }> {
+  return transport<{ url: string; count: number; refs: UploadReference[] }>(
     { path: `/api/admin/uploads/${encodeURIComponent(id)}/references`, signal, token: getAdminToken() ?? undefined },
-    () => ({ url: '', count: 0 }),
+    () => ({ url: '', count: 0, refs: [] }),
   )
 }
 
-/** 删除素材：DELETE /api/admin/uploads/:id（未命中 → 404） */
-export function deleteUpload(id: string): Promise<{ ok: boolean }> {
+/**
+ * 删除素材：DELETE /api/admin/uploads/:id（未命中 → 404）。
+ * 仍被引用时后端返回 409；确认无误后传 force=true 强制删除。
+ */
+export function deleteUpload(id: string, force = false): Promise<{ ok: boolean }> {
   return transport<{ ok: boolean }>(
-    { path: `/api/admin/uploads/${encodeURIComponent(id)}`, method: 'DELETE', token: getAdminToken() ?? undefined },
+    {
+      path: `/api/admin/uploads/${encodeURIComponent(id)}${force ? '?force=1' : ''}`,
+      method: 'DELETE',
+      token: getAdminToken() ?? undefined,
+    },
     () => ({ ok: true }),
   )
 }

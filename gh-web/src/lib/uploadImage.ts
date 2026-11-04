@@ -16,9 +16,14 @@ import { generateImageVariants, isBitmapImage, variantFileName } from './imageVa
 /**
  * 上传一个文件：图片会附带多尺寸变体（位图），其余文件等同 `uploadFile`。
  * 返回**主图**的素材条目（含登记后的 `variants`）。
+ * `onProgress` 仅上报主图的上传进度（变体为后台补传，不计入）。
  */
-export async function uploadImage(file: File, folderId?: string | null): Promise<UploadItem> {
-  const master = await uploadFile(file, folderId)
+export async function uploadImage(
+  file: File,
+  folderId?: string | null,
+  onProgress?: (percent: number) => void,
+): Promise<UploadItem> {
+  const master = await uploadFile(file, folderId, onProgress)
 
   // 服务端已在上传时自动生成多尺寸变体（见 gh-server/src/data/imageVariants.ts），
   // 变体清单随主图一起返回；此处只需做本地 srcset 预登记，避免浏览器端再生成一套档位互相覆盖。

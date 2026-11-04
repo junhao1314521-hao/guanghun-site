@@ -846,6 +846,17 @@ export function IconImage({ size = 16, className }: IconProps) {
   )
 }
 
+/** 插入表格（田字格） */
+export function IconTable({ size = 16, className }: IconProps) {
+  const s = size
+  return (
+    <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
+      <rect x={s * 0.16} y={s * 0.2} width={s * 0.68} height={s * 0.6} rx={s * 0.06} stroke="currentColor" strokeWidth="1.5" />
+      <path d={`M${s * 0.16} ${s * 0.4}h${s * 0.68}M${s * 0.16} ${s * 0.6}h${s * 0.68}M${s * 0.39} ${s * 0.2}v${s * 0.6}M${s * 0.61} ${s * 0.2}v${s * 0.6}`} stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  )
+}
+
 /** 清除格式（橡皮擦 + 基线） */
 export function IconClearFormat({ size = 16, className }: IconProps) {
   const s = size

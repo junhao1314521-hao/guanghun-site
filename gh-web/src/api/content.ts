@@ -39,9 +39,36 @@ export function fetchPageByPath(path: string, signal?: AbortSignal): Promise<Pag
   ).then((res) => res.page)
 }
 
+/**
+ * 站点配置缓存：`useSiteConfig` 被 13 个组件同时调用（导航 / 页脚 / 公告 / 社交 / 店铺…），
+ * 不做缓存时首屏会对 `/api/content/site` 并发十几次。这里做「短期缓存 + 在途合并」：
+ * - TTL 内直接返回同一份数据；
+ * - 同时发起的请求共用同一个 Promise（只发一次网络）。
+ * 后台保存站点配置后调用 `invalidateSiteCache()`，避免前台看到旧值。
+ */
+const SITE_CACHE_TTL_MS = 60_000
+let siteCache: { at: number; data: SiteConfig } | null = null
+let siteInflight: Promise<SiteConfig> | null = null
+
+/** 失效站点配置缓存（后台保存后调用） */
+export function invalidateSiteCache(): void {
+  siteCache = null
+  siteInflight = null
+}
+
 /** 站点配置：导航与页脚（含扩展字段 enabledBlocks / theme；不改视觉） */
-export function fetchSite(signal?: AbortSignal): Promise<SiteConfig> {
-  return transport<SiteConfig>({ path: '/api/content/site', signal }, unavailable)
+export function fetchSite(_signal?: AbortSignal): Promise<SiteConfig> {
+  if (siteCache && Date.now() - siteCache.at < SITE_CACHE_TTL_MS) return Promise.resolve(siteCache.data)
+  if (siteInflight) return siteInflight
+  siteInflight = transport<SiteConfig>({ path: '/api/content/site' }, unavailable)
+    .then((data) => {
+      siteCache = { at: Date.now(), data }
+      return data
+    })
+    .finally(() => {
+      siteInflight = null
+    })
+  return siteInflight
 }
 
 /** 区块类型目录：供后台表单渲染（前台暂不使用，接口对齐契约保留） */

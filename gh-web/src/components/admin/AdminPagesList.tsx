@@ -368,7 +368,14 @@ export function AdminPagesList() {
                             <span>{enabled ? '已上线' : '已下线'}</span>
                           </label>
                         </td>
-                        <td data-label="更新时间">{formatTime(item.updatedAt)}</td>
+                        <td data-label="更新时间">
+                          {formatTime(item.updatedAt)}
+                          {item.hasDraft && (
+                            <span className="tag tag--accent" title="有未发布的草稿，前台仍是旧内容" style={{ marginLeft: 8 }}>
+                              有草稿
+                            </span>
+                          )}
+                        </td>
                         <td style={{ textAlign: 'right' }}>
                           <div className="admin-table__actions" style={{ justifyContent: 'flex-end' }}>
                             <Link className="btn btn--primary btn--sm" to={`/admin/pages/${encodeURIComponent(item.key)}/builder`}>

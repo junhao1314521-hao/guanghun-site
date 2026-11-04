@@ -966,6 +966,12 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 .builder-rich__popover-input { width: 100%; }
 .builder-rich__popover-actions { display: flex; justify-content: flex-end; gap: var(--gh-space-2); }
+/* 表格插入：行列输入 */
+.builder-rich__row { display: flex; gap: var(--gh-space-3); }
+.builder-rich__field { display: flex; flex-direction: column; gap: 4px; flex: 1; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.builder-rich__field .input { height: 34px; }
+.builder-rich__hint { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); line-height: 1.5; }
+.builder-rich__error { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-danger-text, #d14343); }
 @keyframes builder-rich-pop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 /* 编辑区：可纵向调高；滚动条由后台全局隐藏规则处理（不出现难看的滚动条） */
 .builder-rich__area {
@@ -974,6 +980,11 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   font-size: var(--gh-font-size-body); line-height: var(--gh-line-height-body);
 }
 .builder-rich__area:empty::before { content: attr(data-placeholder); color: var(--color-text-tertiary); }
+.builder-rich__area img { max-width: 100%; height: auto; border-radius: var(--gh-radius-sm); }
+.builder-rich__area table { width: 100%; border-collapse: collapse; margin: var(--gh-space-3) 0; }
+.builder-rich__area th,
+.builder-rich__area td { border: 1px solid var(--color-border-default); padding: 6px 8px; vertical-align: top; }
+.builder-rich__area th { background: var(--color-bg-muted); text-align: left; font-weight: var(--gh-weight-semibold); }
 /* 底部：字数统计 */
 .builder-rich__foot {
   display: flex; justify-content: flex-end; align-items: center;
@@ -985,6 +996,11 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 @media (prefers-reduced-motion: reduce) {
   .builder-rich__popover { animation: none; }
   .builder-rich__btn { transition: none; }
+}
+/* 移动端：工具栏自动换行，弹窗改为文档流内展开，避免遮住编辑区 */
+@media (max-width: 767px) {
+  .builder-rich__popover { position: static; width: auto; margin: var(--gh-space-2); box-shadow: none; }
+  .builder-rich__area { min-height: 220px; }
 }
 
 /* 代码编辑（html / embed） */
@@ -1449,6 +1465,16 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-dialog__foot { display: flex; justify-content: flex-end; gap: var(--gh-space-3); margin-top: var(--gh-space-5); }
 /* 宽版对话框（装修器「插入模块」类型选择器） */
 .admin-dialog--wide { max-width: var(--gh-modal-width-md, 640px); }
+/* 素材预览（图片 / PDF / 视频） */
+.admin-dialog--preview { max-width: min(960px, 92vw); }
+.admin-preview__body { margin-top: var(--gh-space-3); }
+.admin-preview__img { display: block; max-width: 100%; max-height: 68vh; margin: 0 auto; border-radius: var(--gh-radius-md); }
+.admin-preview__frame { display: block; width: 100%; height: 68vh; border: 0; background: #fff; border-radius: var(--gh-radius-md); }
+.admin-preview__video { display: block; width: 100%; max-height: 68vh; border-radius: var(--gh-radius-md); }
+/* 引用位置列表 */
+.admin-refs { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.admin-refs a { color: var(--color-accent-text); }
+.admin-refs a:hover { text-decoration: underline; }
 
 /* ---------- 后台错误兜底 ---------- */
 .admin-error { max-width: var(--gh-admin-content-max); margin: 0 auto; }
@@ -1981,6 +2007,33 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   align-items: center;
   gap: var(--gh-space-3);
   padding: var(--gh-space-3) var(--gh-space-4);
+}
+
+/* 内容状态 + 站点健康条 */
+.admin-statusbar {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--gh-space-2) var(--gh-space-3);
+  margin-bottom: var(--gh-space-5);
+}
+.admin-statusbar__item {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 14px; border-radius: var(--gh-radius-full);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm);
+  text-decoration: none;
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.admin-statusbar__item:hover { border-color: var(--color-border-strong); color: var(--color-text-primary); }
+.admin-statusbar__item b { font-family: var(--gh-font-mono); color: var(--color-text-primary); }
+.admin-statusbar__health {
+  margin-left: auto;
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+}
+@media (max-width: 767px) {
+  .admin-statusbar__health { margin-left: 0; }
 }
 .admin-kpi--compact .admin-kpi__icon { width: 30px; height: 30px; }
 .admin-kpi__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

@@ -6,7 +6,8 @@
  *
  * 相册（§5.2）：优先读取**当前产品的 `gallery`**（按产品单独上传、可排序）；
  * 未配置时回退内置 4 视角图（`MEDIA.views[variant]`，行为与观感不变）。
- * 交互（对齐京东 / 淘宝详情页）：主图悬停显示跟随光标的放大镜（图片本身不位移）；
+ * 交互（对齐淘宝详情页）：主图悬停时出现取景框，并在图片右侧弹出固定的大图预览面板
+ * （右侧空间不足时自动改到左侧，图片本身不位移）；
  * 缩略图行内容溢出时两端出现圆形左右按钮；点击大图打开灯箱
  * （灯箱内「＋/－」稳定放大并原生滚动查看细节，左右切换 / Esc 关闭 / 键盘可达）。
  *
@@ -69,15 +70,25 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const lightboxStageRef = useRef<HTMLDivElement>(null)
   /** 放大态拖拽平移（鼠标拖住图片移动视野） */
   const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null)
-  /** 悬停放大镜：跟随光标、图片本身不动（京东 / 淘宝同款交互） */
-  const [lens, setLens] = useState<{
-    left: number
-    top: number
-    size: number
-    imgW: number
-    imgH: number
+  /**
+   * 悬停放大（淘宝同款）：光标处出现取景框，右侧固定一块大图预览面板；
+   * 图片本身不位移，面板位置按视口空间自动左右切换。
+   */
+  const [zoom, setZoom] = useState<{
+    /** 取景框（相对宿主） */
+    boxLeft: number
+    boxTop: number
+    boxW: number
+    boxH: number
+    /** 预览面板（视口坐标） */
+    panelLeft: number
+    panelTop: number
+    panelW: number
+    panelH: number
     bgX: number
     bgY: number
+    bgW: number
+    bgH: number
   } | null>(null)
   /** 缩略图横滑 */
   const stripRef = useRef<HTMLDivElement>(null)
@@ -89,11 +100,15 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const active = Math.min(thumb, Math.max(0, gallery.length - 1))
   const activeSrc = gallery[active]
 
-  /** 悬停放大镜：只在「有精确指针」的设备开启，且素材必须是真实位图 */
+  /** 悬停放大：只在「有精确指针」的设备开启，且素材必须是真实位图 */
   const canLens =
     typeof window !== 'undefined' &&
     window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
     !isPlaceholderMedia(activeSrc)
+
+  /** 放大倍率与面板间距（淘宝详情页观感：约 2.4 倍） */
+  const ZOOM_SCALE = 2.4
+  const PANEL_GAP = 16
 
   const onZoomMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
     if (!canLens) return
@@ -108,33 +123,67 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
     const contentH = img.naturalHeight * ratio
     const contentLeft = box.left + (box.width - contentW) / 2
     const contentTop = box.top + (box.height - contentH) / 2
-    const size = 180
-    if (contentW < size + 24 || contentH < size + 24) {
-      setLens(null)
+
+    // 面板尺寸：宽度优先 420，按图片比例算高度，且不超过视口
+    const panelW = Math.min(420, Math.round(contentW * 0.95))
+    const panelH = Math.min(Math.round(window.innerHeight - 96), Math.round((panelW * contentH) / contentW))
+    const viewW = panelW / ZOOM_SCALE
+    const viewH = panelH / ZOOM_SCALE
+    if (contentW < viewW + 16 || contentH < viewH + 16) {
+      setZoom(null)
       return
     }
+
     const x = event.clientX - contentLeft
     const y = event.clientY - contentTop
     if (x < 0 || y < 0 || x > contentW || y > contentH) {
-      setLens(null)
+      setZoom(null)
       return
     }
-    // 镜头中心限制在画面内，边缘处不越界
-    const clampedX = Math.min(Math.max(x, size / 2), contentW - size / 2)
-    const clampedY = Math.min(Math.max(y, size / 2), contentH - size / 2)
-    setLens({
-      size,
-      left: contentLeft - hostRect.left + clampedX,
-      top: contentTop - hostRect.top + clampedY,
-      imgW: contentW,
-      imgH: contentH,
-      bgX: -(clampedX * 2 - size / 2),
-      bgY: -(clampedY * 2 - size / 2),
+
+    // 取景框跟着光标，但不越出图片边界
+    const viewX = Math.min(Math.max(x - viewW / 2, 0), contentW - viewW)
+    const viewY = Math.min(Math.max(y - viewH / 2, 0), contentH - viewH)
+
+    // 面板优先放图片右侧；右侧放不下改放左侧；两侧都放不下则不显示（保留灯箱）
+    let panelLeft = contentLeft + contentW + PANEL_GAP
+    if (panelLeft + panelW > window.innerWidth - 12) {
+      panelLeft = contentLeft - panelW - PANEL_GAP
+    }
+    if (panelLeft < 8) {
+      setZoom(null)
+      return
+    }
+    const panelTop = Math.min(Math.max(contentTop, 12), Math.max(12, window.innerHeight - panelH - 12))
+
+    setZoom({
+      boxLeft: contentLeft - hostRect.left + viewX,
+      boxTop: contentTop - hostRect.top + viewY,
+      boxW: viewW,
+      boxH: viewH,
+      panelLeft,
+      panelTop,
+      panelW,
+      panelH,
+      bgX: -(viewX * ZOOM_SCALE),
+      bgY: -(viewY * ZOOM_SCALE),
+      bgW: contentW * ZOOM_SCALE,
+      bgH: contentH * ZOOM_SCALE,
     })
   }
 
-  // 切换主图 / 打开灯箱时收起镜头
-  useEffect(() => setLens(null), [active, lightbox])
+  // 切换主图 / 打开灯箱 / 窗口尺寸变化时收起预览，避免面板悬空错位
+  useEffect(() => setZoom(null), [active, lightbox])
+  useEffect(() => {
+    if (!zoom) return
+    const hide = () => setZoom(null)
+    window.addEventListener('scroll', hide, true)
+    window.addEventListener('resize', hide)
+    return () => {
+      window.removeEventListener('scroll', hide, true)
+      window.removeEventListener('resize', hide)
+    }
+  }, [zoom])
 
   /** 缩略图横滑：内容溢出才显示两端圆钮（京东 / 淘宝同款） */
   const measureStrip = () => {
@@ -344,8 +393,8 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                 className="pd-zoom-host"
                 aria-label="查看大图"
                 onPointerMove={onZoomMove}
-                onPointerLeave={() => setLens(null)}
-                onBlur={() => setLens(null)}
+                onPointerLeave={() => setZoom(null)}
+                onBlur={() => setZoom(null)}
                 onClick={() => {
                   setLightboxZoom(false)
                   setLightbox(active)
@@ -359,18 +408,15 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                   label={`${detail.model} 产品图`}
                   loading="eager"
                 />
-                {lens && (
+                {zoom && (
                   <span
-                    className="pd-lens"
+                    className="pd-zoom-box"
                     aria-hidden="true"
                     style={{
-                      width: lens.size,
-                      height: lens.size,
-                      left: lens.left - lens.size / 2,
-                      top: lens.top - lens.size / 2,
-                      backgroundImage: `url("${activeSrc}")`,
-                      backgroundSize: `${lens.imgW * 2}px ${lens.imgH * 2}px`,
-                      backgroundPosition: `${lens.bgX}px ${lens.bgY}px`,
+                      left: zoom.boxLeft,
+                      top: zoom.boxTop,
+                      width: zoom.boxW,
+                      height: zoom.boxH,
                     }}
                   />
                 )}
@@ -531,11 +577,13 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
 
           {showSummary && (
             <>
-              {/* 首屏只放 3 条关键指标（实测优先）；完整摘要与规格在下方产品规格区块 */}
-              <dl className="summary">
-                {detail.summary.slice(0, 1).map((group) => (
-                  <div key={group.title}>
-                    <div className="summary__group-title">{t('blocks.pd.keyMetrics')}</div>
+              {/* 首屏只放 3 条关键指标（实测优先）；完整摘要与规格在下方产品规格区块。
+                  dl 结构遵循 HTML 规范：dl 的直接子元素是 div，div 内是 dt + dd；
+                  分组标题放在 dl 外层，避免出现「只有 dt 没有 dd」的无效结构。 */}
+              {detail.summary.slice(0, 1).map((group) => (
+                <div className="summary-block" key={group.title}>
+                  <div className="summary__group-title">{t('blocks.pd.keyMetrics')}</div>
+                  <dl className="summary">
                     {group.rows.slice(0, 3).map((row) => (
                       <div className="summary__row" key={row.label}>
                         <dt>{row.label}</dt>
@@ -544,9 +592,9 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                         </dd>
                       </div>
                     ))}
-                  </div>
-                ))}
-              </dl>
+                  </dl>
+                </div>
+              ))}
               <p
                 className="field__hint"
                 style={{
@@ -561,6 +609,25 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
           )}
         </div>
       </div>
+
+      {/* 悬停放大预览面板：固定在图片右侧（放不下时自动换到左侧） */}
+      {zoom &&
+        createPortal(
+          <div
+            className="pd-zoom-panel"
+            aria-hidden="true"
+            style={{
+              left: zoom.panelLeft,
+              top: zoom.panelTop,
+              width: zoom.panelW,
+              height: zoom.panelH,
+              backgroundImage: `url("${activeSrc}")`,
+              backgroundSize: `${zoom.bgW}px ${zoom.bgH}px`,
+              backgroundPosition: `${zoom.bgX}px ${zoom.bgY}px`,
+            }}
+          />,
+          document.body,
+        )}
 
       {/* 灯箱：左右切换 / Esc 关闭 / 点遮罩关闭（键盘可达） */}
       {lightbox !== null &&

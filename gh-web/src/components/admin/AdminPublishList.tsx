@@ -72,7 +72,7 @@ export function AdminPublishList() {
     setBusy(true)
     try {
       const item = await createRelease(note.trim() || undefined)
-      toast.success(`已发布：${item.contentVersion}`)
+      toast.success(`已发布：${item.contentVersion}（含未发布草稿）`)
       setDialogOpen(false)
       setNote('')
       setReloadKey((key) => key + 1)

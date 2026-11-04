@@ -31,6 +31,7 @@ import {
 import { readCookie, readParam } from '../middleware/adminAuth'
 import { checkCaptcha } from '../lib/formGuard'
 import { logger } from '../lib/logger'
+import { isNotifyConfigured, sendNotify } from '../lib/notify'
 
 /**
  * 前台会员账号体系端点（挂载于 /api）。
@@ -188,8 +189,14 @@ authRouter.get('/auth/me', requireUser, (_req, res) => {
   res.json({ user: currentUser(res) })
 })
 
-/** 找回密码：按邮箱生成重置令牌。无邮件服务 —— 开发环境直出令牌并写日志，生产环境不返回。 */
-authRouter.post('/auth/forgot', (req, res) => {
+/**
+ * 找回密码：按邮箱生成重置令牌并投递。
+ * 通道由 `NOTIFY_CHANNEL` 决定（见 lib/notify.ts）：
+ * - 已配置 → 通过 webhook 投递（邮件 / 短信网关），响应体不含令牌；
+ * - 未配置且非生产 → 直出 `devToken`，便于自测；
+ * - 未配置且生产 → 只记告警日志，响应与「已发送」一致，不泄露邮箱是否注册。
+ */
+authRouter.post('/auth/forgot', async (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
   const email = readString(body.email)
   if (!email) {
@@ -203,13 +210,23 @@ authRouter.post('/auth/forgot', (req, res) => {
     return
   }
   const token = createResetToken(user.id)
-  const isDev = process.env.NODE_ENV !== 'production'
-  if (isDev) {
+  if (isNotifyConfigured()) {
+    const result = await sendNotify({
+      to: user.email,
+      subject: '【光魂 SDC】重置登录密码',
+      text: `你的密码重置令牌：${token}，30 分钟内有效。如非本人操作请忽略。`,
+      purpose: 'password-reset',
+    })
+    if (result.delivered) logger.info('找回密码令牌已投递', { email: user.email, channel: result.channel })
+    res.json({ ok: true, sentTo: user.email })
+    return
+  }
+  if (process.env.NODE_ENV !== 'production') {
     logger.info('找回密码重置令牌已生成（开发态直出，仅非生产环境）', { email: user.email, token })
     res.json({ ok: true, sentTo: user.email, devToken: token })
     return
   }
-  // 生产：真正投递依赖邮件服务（当前未接入），故不返回令牌
+  logger.warn('找回密码令牌已生成但未投递：未配置 NOTIFY_CHANNEL，用户收不到令牌', { email: user.email })
   res.json({ ok: true, sentTo: user.email })
 })
 

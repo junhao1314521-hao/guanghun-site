@@ -60,7 +60,7 @@ export const SEARCH_RESULTS: SearchResult[] = [
     id: 'r4',
     kind: '支持资料',
     title: ['54027X1QE-W54 固件与色彩配置下载'],
-    desc: '最新固件 v1.6.3 与 ICC 色彩配置，含变更说明与安装要求；支持 Windows 与 macOS。',
+    desc: '固件升级包与 ICC 色彩配置，含变更说明与安装要求；适用于 Windows。',
     source: '下载中心 · 固件',
     date: '2026-09-15',
     to: '/downloads',
