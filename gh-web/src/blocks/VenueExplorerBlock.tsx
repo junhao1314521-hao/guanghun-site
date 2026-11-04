@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { fetchBizVenues } from '../api/business-extra'
 import { useApi } from '../hooks/useApi'
 import type { VenueSummary } from '../data/business-extra'
@@ -54,6 +54,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   const [province, setProvince] = useState('全部')
   const [city, setCity] = useState('全部')
   const [model, setModel] = useState('全部')
+  const [searchParams] = useSearchParams()
   const [nearby, setNearby] = useState(false)
   const [userPoint, setUserPoint] = useState<GeoPoint | null>(null)
   const [locating, setLocating] = useState(false)
@@ -66,6 +67,17 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   const [isMobile, setIsMobile] = useState(() =>
     typeof window === 'undefined' ? false : window.matchMedia('(max-width: 767px)').matches,
   )
+
+  // 产品详情「预约体验」带 ?model=闪电 进入时，直接按该机型筛选
+  useEffect(() => {
+    const requested = searchParams.get('model')
+    if (!requested) return
+    setModel(requested)
+    setProvince('全部')
+    setCity('全部')
+    setNearby(false)
+    setQuery('')
+  }, [searchParams])
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 767px)')

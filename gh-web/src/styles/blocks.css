@@ -1825,15 +1825,36 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   outline-offset: 2px;
   border-radius: var(--gh-radius-lg);
 }
-/* 跟随光标局部放大：缩放原点由 --pd-zoom-x / --pd-zoom-y 决定 */
-.pd-zoom-target {
-  transform-origin: var(--pd-zoom-x, 50%) var(--pd-zoom-y, 50%);
-  transition: transform .18s ease;
-  will-change: transform;
+/* 展台大图：稳定展示，点击进入灯箱；左右圆形按钮切换 */
+.stage__content { position: relative; }
+.pd-stage-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  color: #1d1d1f;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.35);
+  transition: background .2s ease, transform .2s ease;
 }
-.pd-zoom-host.is-zooming .pd-zoom-target {
-  transform: scale(1.6);
-  transition: transform .05s linear;
+.pd-stage-nav:hover { background: #fff; transform: translateY(-50%) scale(1.05); }
+.pd-stage-nav--prev { left: 16px; }
+.pd-stage-nav--next { right: 16px; }
+@media (max-width: 767px) {
+  .pd-stage-nav { width: 36px; height: 36px; font-size: 22px; }
+  .pd-stage-nav--prev { left: 10px; }
+  .pd-stage-nav--next { right: 10px; }
 }
 
 /* 缩略图多于一行（>4 张）：该行横向滑动；少量时保持现状（换行） */
@@ -1960,8 +1981,15 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   to { opacity: 1; }
 }
 .pd-lightbox__stage {
-  max-width: min(1100px, 92vw);
+  width: min(1100px, 92vw);
+  height: 88vh;
+  max-width: 92vw;
   max-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .pd-lightbox__img {
   max-width: 100%;
@@ -1972,6 +2000,23 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   display: block;
   border-radius: var(--gh-radius-lg);
 }
+/* 放大态：图片按 170% 撑开并保留自身尺寸（flex 下不被压缩），可滚动 / 可拖拽平移 */
+.pd-lightbox__stage.is-zoomed {
+  align-items: flex-start;
+  justify-content: flex-start;
+  cursor: grab;
+  touch-action: none;
+}
+.pd-lightbox__stage.is-zoomed .pd-lightbox__img {
+  flex: 0 0 auto;
+  width: 170%;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.pd-lightbox__stage.is-grabbing { cursor: grabbing; }
 .pd-lightbox__close {
   position: absolute;
   top: var(--gh-space-4);
@@ -1987,6 +2032,21 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   cursor: pointer;
 }
 .pd-lightbox__close:hover { background: rgba(255, 255, 255, .16); }
+.pd-lightbox__zoom {
+  position: absolute;
+  top: var(--gh-space-4);
+  right: calc(var(--gh-space-4) + 52px);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--gh-radius-full);
+  border: 1px solid var(--color-border-default);
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.pd-lightbox__zoom:hover { background: rgba(255, 255, 255, .16); }
 .pd-lightbox__nav {
   position: absolute;
   top: 50%;
@@ -2006,7 +2066,6 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .pd-lightbox__nav--next { right: var(--gh-space-4); }
 @media (prefers-reduced-motion: reduce) {
   .pd-lightbox { animation: none; }
-  .pd-zoom-target { transition: none; }
 }
 
 /* ============================================================

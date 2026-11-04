@@ -6,12 +6,13 @@
  *
  * 相册（§5.2）：优先读取**当前产品的 `gallery`**（按产品单独上传、可排序）；
  * 未配置时回退内置 4 视角图（`MEDIA.views[variant]`，行为与观感不变）。
- * 交互：缩略图切换 + 鼠标悬停跟随光标局部放大（仅 `hover: hover / pointer: fine`）+
- * 点击大图打开灯箱（左右切换 / Esc 关闭 / 点遮罩关闭 / 键盘可达）。
+ * 交互：缩略图切换 + 主图左右圆形按钮翻页 + 点击大图打开灯箱
+ * （灯箱内「＋/－」稳定放大并原生滚动查看细节，左右切换 / Esc 关闭 / 键盘可达）。
  *
  * 数据来自 `ProductDetailContext`（当前产品）；装修配置来自区块 props（模板级，统一生效）。
  */
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
 import { IconHeart } from '../components/ui/Icon'
@@ -61,29 +62,20 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   /** 收藏状态（登录后与个人中心同源） */
   const [saved, setSaved] = useState(false)
   const [favBusy, setFavBusy] = useState(false)
-  /** 悬停放大：跟随光标的缩放原点（%）；null = 未放大 */
-  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null)
   /** 灯箱当前索引；null = 关闭 */
   const [lightbox, setLightbox] = useState<number | null>(null)
-  /** 是否支持悬停（触屏 / 粗指针不启用悬停放大，仅保留点击灯箱） */
-  const [hoverCapable, setHoverCapable] = useState(false)
-  const zoomRef = useRef<HTMLButtonElement>(null)
+  /** 灯箱放大：原生滚动查看细节，避免跟随光标的漂移感 */
+  const [lightboxZoom, setLightboxZoom] = useState(false)
   const lightboxCloseRef = useRef<HTMLButtonElement>(null)
+  const lightboxStageRef = useRef<HTMLDivElement>(null)
+  /** 放大态拖拽平移（鼠标拖住图片移动视野） */
+  const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null)
 
   const variant = PRODUCTS.find((item) => item.id === detail?.id)?.variant ?? 'mouse'
   const fallbackViews = MEDIA.views[variant] ?? MEDIA.views.mouse
   const gallery = detail?.gallery && detail.gallery.length > 0 ? detail.gallery : fallbackViews
   const active = Math.min(thumb, Math.max(0, gallery.length - 1))
-
-  // 悬停能力检测（触屏 / 触控笔不启用悬停放大）
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
-    const update = () => setHoverCapable(mq.matches)
-    update()
-    mq.addEventListener?.('change', update)
-    return () => mq.removeEventListener?.('change', update)
-  }, [])
+  const stepThumb = (offset: number) => setThumb((index) => (index + offset + gallery.length) % gallery.length)
 
   // 灯箱键盘操作：左右切换、Esc 关闭；打开时聚焦关闭按钮
   useEffect(() => {
@@ -97,6 +89,41 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [lightbox, gallery.length])
+
+  // 灯箱放大后把滚动位置放到图片中心，便于继续查看细节
+  useEffect(() => {
+    if (!lightboxZoom || lightbox === null) return
+    const stage = lightboxStageRef.current
+    if (!stage) return
+    requestAnimationFrame(() => {
+      stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) / 2
+      stage.scrollTop = (stage.scrollHeight - stage.clientHeight) / 2
+    })
+  }, [lightboxZoom, lightbox])
+
+  // 放大态拖拽平移：按下记录起点，移动时反向滚动容器
+  const onStagePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!lightboxZoom) return
+    const stage = event.currentTarget
+    dragRef.current = { x: event.clientX, y: event.clientY, left: stage.scrollLeft, top: stage.scrollTop }
+    stage.setPointerCapture(event.pointerId)
+    stage.classList.add('is-grabbing')
+  }
+  const onStagePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag) return
+    const stage = event.currentTarget
+    stage.scrollLeft = drag.left - (event.clientX - drag.x)
+    stage.scrollTop = drag.top - (event.clientY - drag.y)
+  }
+  const endStageDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current) return
+    dragRef.current = null
+    event.currentTarget.classList.remove('is-grabbing')
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
 
   // 登录后回查收藏状态（R8.5：收藏能力保留）
   const productName = detail?.name
@@ -176,21 +203,20 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const productBuyUrl = primaryFromProduct ? detail.buyUrl ?? '' : ''
   // 未填购买链接时主按钮回退到 props 配置的链接（留空则回到 /inquiry）
   const primaryHref = productBuyUrl || asString(props.primaryHref) || '/inquiry'
-  const secondaryHref = asString(props.secondaryHref) || '/business/venues'
+  const secondaryHref =
+    (() => {
+      const configured = asString(props.secondaryHref)
+      if (configured && configured !== '/business/venues') return configured
+      const family = ['闪电', '枪神', '鹰眼', '极创', '光魂', '超凡剑圣'].find(
+        (name) => detail?.name?.includes(name) || detail?.model?.includes(name),
+      )
+      return family ? `/business/venues?model=${encodeURIComponent(family)}` : '/business/venues'
+    })()
 
-  const onZoomMove = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    if (!hoverCapable) return
-    const el = zoomRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    if (!rect.width || !rect.height) return
-    const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100))
-    const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100))
-    setZoom({ x, y })
-  }
-
-  const stepLightbox = (offset: number) =>
+  const stepLightbox = (offset: number) => {
+    setLightboxZoom(false)
     setLightbox((i) => (i === null ? i : (i + offset + gallery.length) % gallery.length))
+  }
 
   // 收藏切换：未登录引导登录；已登录调用真实接口（与个人中心「收藏」同源）
   const toggleFavorite = async () => {
@@ -229,23 +255,15 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
             >
               <button
                 type="button"
-                ref={zoomRef}
-                className={`pd-zoom-host${zoom ? ' is-zooming' : ''}`}
+                className="pd-zoom-host"
                 aria-label="查看大图"
-                onClick={() => setLightbox(active)}
-                onMouseEnter={() => {
-                  if (hoverCapable) setZoom({ x: 50, y: 50 })
+                onClick={() => {
+                  setLightboxZoom(false)
+                  setLightbox(active)
                 }}
-                onMouseMove={onZoomMove}
-                onMouseLeave={() => setZoom(null)}
-                style={
-                  zoom
-                    ? ({ '--pd-zoom-x': `${zoom.x}%`, '--pd-zoom-y': `${zoom.y}%` } as CSSProperties)
-                    : undefined
-                }
               >
                 <MediaImg
-                  className="detail-img pd-zoom-target"
+                  className="detail-img"
                   src={gallery[active]}
                   alt={`${detail.model} ${detail.name}`}
                   variant={variant}
@@ -253,6 +271,32 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                   loading="eager"
                 />
               </button>
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className="pd-stage-nav pd-stage-nav--prev"
+                    aria-label="上一张"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      stepThumb(-1)
+                    }}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="pd-stage-nav pd-stage-nav--next"
+                    aria-label="下一张"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      stepThumb(1)
+                    }}
+                  >
+                    ›
+                  </button>
+                </>
+              )}
             </div>
           </div>
           <div className={`detail-thumbs${gallery.length > THUMB_SCROLL_THRESHOLD ? ' pd-gallery__thumbs--scroll' : ''}`}>
@@ -412,22 +456,41 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
       </div>
 
       {/* 灯箱：左右切换 / Esc 关闭 / 点遮罩关闭（键盘可达） */}
-      {lightbox !== null && (
-        <div
-          className="pd-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${detail.model} 产品图`}
-          onClick={() => setLightbox(null)}
-        >
+      {lightbox !== null &&
+        createPortal(
+          <div
+            className="pd-lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${detail.model} 产品图`}
+            onClick={() => {
+              setLightbox(null)
+              setLightboxZoom(false)
+            }}
+          >
           <button
             type="button"
             ref={lightboxCloseRef}
             className="pd-lightbox__close"
             aria-label="关闭"
-            onClick={() => setLightbox(null)}
+            onClick={() => {
+              setLightbox(null)
+              setLightboxZoom(false)
+            }}
           >
             ✕
+          </button>
+          <button
+            type="button"
+            className="pd-lightbox__zoom"
+            aria-label={lightboxZoom ? '适应屏幕' : '放大查看'}
+            aria-pressed={lightboxZoom}
+            onClick={(event) => {
+              event.stopPropagation()
+              setLightboxZoom((value) => !value)
+            }}
+          >
+            {lightboxZoom ? '－' : '＋'}
           </button>
           {gallery.length > 1 && (
             <button
@@ -442,7 +505,15 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
               ‹
             </button>
           )}
-          <div className="pd-lightbox__stage" onClick={(event) => event.stopPropagation()}>
+          <div
+            className={`pd-lightbox__stage${lightboxZoom ? ' is-zoomed' : ''}`}
+            ref={lightboxStageRef}
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={onStagePointerDown}
+            onPointerMove={onStagePointerMove}
+            onPointerUp={endStageDrag}
+            onPointerCancel={endStageDrag}
+          >
             <MediaImg
               className="pd-lightbox__img"
               src={gallery[lightbox]}
@@ -465,8 +536,9 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
               ›
             </button>
           )}
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   )
 }
