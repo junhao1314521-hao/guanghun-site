@@ -202,7 +202,7 @@ function buildHome(): Page {
         statsEnabled: false,
         title: ['54027X1QE 标准款'],
         subtitle: '八面出锋 大巧不工',
-        media: '/media/home/showcase/gh-54027x1qe.jpg',
+        media: '/media/home/showcase/poster-1.jpg',
         mediaType: 'image',
         mediaTag: '54027X1QE 主视觉',
         ...posterButtons('/products/gh-54027x1qe'),
@@ -220,7 +220,7 @@ function buildHome(): Page {
         statsEnabled: false,
         title: ['32X1UE 双模款'],
         subtitle: '一机两用 高分辨与高刷兼得',
-        media: '/media/home/showcase/gh-32x1ue.jpg',
+        media: '/media/home/showcase/poster-2.jpg',
         mediaType: 'image',
         mediaTag: '32X1UE 主视觉',
         ...posterButtons('/products/gh-32x1ue'),
@@ -641,7 +641,7 @@ function buildCenter(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/poster-1.jpg',
+        image: '/media/center/feature1.svg',
         title: center.FEATURES[0].title,
         body: `${center.FEATURES[0].desc}\n${center.FEATURES[0].points.join('\n')}`,
         side: 'right',
@@ -650,7 +650,7 @@ function buildCenter(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/poster-2.jpg',
+        image: '/media/center/feature2.svg',
         title: center.FEATURES[1].title,
         body: `${center.FEATURES[1].desc}\n${center.FEATURES[1].points.join('\n')}`,
         side: 'left',
