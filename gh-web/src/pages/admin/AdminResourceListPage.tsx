@@ -437,36 +437,41 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
         </div>
       )}
 
-      {resource.filters?.map((filter) => (
-        <div className="admin-filters" key={filter.key}>
-          <span className="admin-filters__label">{filter.label}</span>
-          <div className="admin-chipbar">
-            <button
-              type="button"
-              className={`admin-chip${!filters[filter.key] ? ' is-active' : ''}`}
-              onClick={() => {
-                setFilters((prev) => ({ ...prev, [filter.key]: '' }))
-                setPage(1)
-              }}
-            >
-              全部
-            </button>
-            {filter.options.map((option) => (
+      {resource.filters?.map((filter) => {
+        const options = filter.dynamic
+          ? Array.from(new Set(rows.map((row) => String(row[filter.key] ?? '')).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+          : filter.options
+        return (
+          <div className="admin-filters" key={filter.key}>
+            <span className="admin-filters__label">{filter.label}</span>
+            <div className="admin-chipbar">
               <button
                 type="button"
-                key={option}
-                className={`admin-chip${filters[filter.key] === option ? ' is-active' : ''}`}
+                className={`admin-chip${!filters[filter.key] ? ' is-active' : ''}`}
                 onClick={() => {
-                  setFilters((prev) => ({ ...prev, [filter.key]: option }))
+                  setFilters((prev) => ({ ...prev, [filter.key]: '' }))
                   setPage(1)
                 }}
               >
-                {option}
+                全部
               </button>
-            ))}
+              {options.map((option) => (
+                <button
+                  type="button"
+                  key={option}
+                  className={`admin-chip${filters[filter.key] === option ? ' is-active' : ''}`}
+                  onClick={() => {
+                    setFilters((prev) => ({ ...prev, [filter.key]: option }))
+                    setPage(1)
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
 
       <span className="admin-toolbar__spacer" />
 

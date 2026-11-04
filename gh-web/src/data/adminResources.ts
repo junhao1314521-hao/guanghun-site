@@ -43,7 +43,7 @@ export type AdminColumn = {
   options?: string[]
 }
 
-export type AdminFilter = { key: string; label: string; options: string[] }
+export type AdminFilter = { key: string; label: string; options: string[]; /** 从当前记录动态生成选项（用于省市等会增长的字段） */ dynamic?: boolean }
 
 export type AdminFieldType =
   | 'text'
@@ -1254,10 +1254,12 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'status', label: '状态', type: 'status' },
       { key: 'ok', label: '正常营业', type: 'bool' },
       { key: 'address', label: '地址' },
+      { key: 'phone', label: '电话' },
+      { key: 'hours', label: '营业时间' },
     ],
     filters: [
-      { key: 'province', label: '省份', options: ['广东', '上海', '北京', '四川'] },
-      { key: 'city', label: '城市', options: ['深圳', '上海', '北京', '成都', '广州'] },
+      { key: 'province', label: '省份', options: [], dynamic: true },
+      { key: 'city', label: '城市', options: [], dynamic: true },
       { key: 'type', label: '类型', options: ['flagship', 'experience', 'service'] },
       { key: 'status', label: '状态', options: ['营业中', '调整中', '筹备中'] },
     ],
@@ -1276,9 +1278,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'address', label: '地址', type: 'text', span: 2 },
           { key: 'lat', label: '纬度', type: 'number', placeholder: '22.5405', hint: '用于高德地图打点，如 22.5405' },
           { key: 'lng', label: '经度', type: 'number', placeholder: '113.9345', hint: '用于高德地图打点，如 113.9345' },
-          { key: 'cover', label: '封面地址', type: 'image', span: 2 },
-          { key: 'hours', label: '营业时间', type: 'text', placeholder: '每日 10:00–21:00' },
-          { key: 'phone', label: '门店电话', type: 'text', placeholder: '0755-0000-0000' },
+          { key: 'cover', label: '封面图', type: 'image', span: 2, hint: '列表卡片与分享封面；留空则显示默认插画' },
+          { key: 'gallery', label: '门店图片', type: 'images', span: 2, hint: '支持上传 / 素材库多选；第一张也会作为封面' },
+          { key: 'hours', label: '营业时间', type: 'text', placeholder: '每日 10:00–21:00', hint: '缺失时前台显示「以门店公告为准」' },
+          { key: 'phone', label: '门店电话', type: 'text', placeholder: '0755-0000-0000', hint: '缺失时前台显示「电话待补充」' },
           { key: 'transport', label: '交通指引', type: 'text', span: 2 },
           { key: 'products', label: '在售型号', type: 'list', span: 2, hint: '每行一项，门店可体验的型号' },
           { key: 'services', label: '服务项目', type: 'list', span: 2, hint: '每行一项，如：现场调参' },

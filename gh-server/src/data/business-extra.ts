@@ -201,6 +201,8 @@ export type VenueSummary = {
   ok: boolean
   address: string
   cover: string
+  /** 门店图片（后台可上传；第一张同时作为封面） */
+  gallery?: string[]
   /** 地图坐标（后台「体验点管理」维护；缺省时不在地图上打点） */
   lat?: number
   lng?: number
@@ -224,6 +226,7 @@ export type VenueDetail = VenueSummary & {
   services: string[]
   transport: string
   note: string
+  gallery: string[]
 }
 
 export const BIZ_VENUES: VenueSummary[] = XXRSM_VENUES
@@ -257,5 +260,6 @@ export function getBizVenueDetail(venues: VenueSummary[], id: string): VenueDeta
     services: summary.services ?? ['到店实机体验'],
     transport: summary.transport ?? '',
     note: summary.note ?? '到店体验请以门店现场安排为准。',
+    gallery: summary.gallery ?? (summary.cover ? [summary.cover] : []),
   }
 }

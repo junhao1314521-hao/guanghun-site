@@ -11,6 +11,7 @@ import { submitReservation } from '../../api/support-extra'
 import { trackEvent } from '../../lib/track'
 import { copyText, venueNavigationUrl } from '../../lib/venue'
 import type { VenueDetail } from '../../data/business-extra'
+import { MediaImg } from '../ui/MediaImg'
 import { IconCopy, IconNavigate } from '../ui/Icon'
 
 type Props = {
@@ -30,6 +31,7 @@ export function VenueDetailContent({ detail, variant }: Props) {
   const [reserveId, setReserveId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [hero, setHero] = useState(() => detail.cover || detail.gallery?.[0] || '')
 
   const handleCopy = async () => {
     const ok = await copyText(detail.address || `${detail.province}${detail.city}${detail.name}`)
@@ -70,6 +72,27 @@ export function VenueDetailContent({ detail, variant }: Props) {
 
   return (
     <div className={`venue-detail venue-detail--${variant}`}>
+      {!isDialog && detail.gallery && detail.gallery.length > 0 && (
+        <div className="venue-detail__gallery">
+          <div className="venue-detail__gallery-main">
+            <MediaImg src={hero} alt={detail.name} />
+          </div>
+          {detail.gallery.length > 1 && (
+            <div className="venue-detail__thumbs">
+              {detail.gallery.map((src) => (
+                <button
+                  className={`venue-detail__thumb${src === hero ? ' is-active' : ''}`}
+                  type="button"
+                  key={src}
+                  onClick={() => setHero(src)}
+                >
+                  <MediaImg src={src} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       {/* 门市信息 + 到店预约 */}
       <div className={isDialog ? 'venue-detail__pair venue-detail__pair--stack' : 'venue-detail__pair grid-2'}>
         <div className="card reveal">
