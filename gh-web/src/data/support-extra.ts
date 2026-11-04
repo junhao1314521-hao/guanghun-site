@@ -40,9 +40,17 @@ export type DownloadItem = {
   supersedes?: string
   /** 可下载文件地址（来自后台 downloads.fileUrl；缺省则前台回退到下载详情页） */
   fileUrl?: string
+  /** 服务端核验的文件状态：ok 可下载；missing 文件缺失；placeholder 占位域名；external 真实外链；unknown 未识别 */
+  fileStatus?: 'ok' | 'missing' | 'placeholder' | 'external' | 'unknown'
+  /** 服务端核验到的实际字节数（仅本地上传文件） */
+  actualSizeBytes?: number
 }
 
-/** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
+/** 前台是否允许点击下载：优先以服务端核验状态为准，旧接口无状态时回退到 fileUrl 是否存在 */
+export function isDownloadable(item: { fileUrl?: string; fileStatus?: string }): boolean {
+  if (item.fileStatus) return item.fileStatus === 'ok' || item.fileStatus === 'external'
+  return Boolean(item.fileUrl)
+}
 export const ALL_MODELS = 'all'
 export const DOWNLOAD_CATEGORIES = ['全部', '软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边']
 export const DOWNLOAD_TYPES = ['全部', '说明书', '固件', '驱动', '软件', '调校配置']

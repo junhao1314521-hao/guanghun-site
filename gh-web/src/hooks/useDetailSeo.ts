@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { DEFAULT_OG_IMAGE, ogImageUrl } from '../data/meta'
+import { defaultOgImage, ogImageUrl } from '../data/meta'
 import { upsertMeta } from './usePageMeta'
 
 export type DetailSeo = {
@@ -22,7 +22,7 @@ export type DetailSeo = {
 export function useDetailSeo({ title, description, image, ogType }: DetailSeo): void {
   useEffect(() => {
     const url = ogImageUrl(image)
-    const hasImage = /^https?:\/\//.test(image ?? '')
+    const hasImage = url.startsWith('http')
 
     if (title) {
       document.title = title
@@ -41,9 +41,9 @@ export function useDetailSeo({ title, description, image, ogType }: DetailSeo): 
 
     return () => {
       upsertMeta('property', 'og:type', 'website')
-      upsertMeta('property', 'og:image', DEFAULT_OG_IMAGE)
+      upsertMeta('property', 'og:image', defaultOgImage())
       upsertMeta('name', 'twitter:card', 'summary')
-      upsertMeta('name', 'twitter:image', DEFAULT_OG_IMAGE)
+      upsertMeta('name', 'twitter:image', defaultOgImage())
     }
   }, [title, description, image, ogType])
 }

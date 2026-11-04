@@ -149,12 +149,16 @@ export function createApp(): Express {
         },
       }),
     )
-    // SPA 回退：非 /api、非 /healthz 的 GET(接受 html) 请求一律回退到 index.html，支持深链直达
-    app.get(/^\/(?!api(\/|$)|healthz(\/|$)).*/, (req: Request, res: Response, next: NextFunction) => {
-      if (!req.accepts('html')) return next()
-      res.setHeader('Cache-Control', 'no-cache')
-      res.sendFile(indexFile)
-    })
+    // SPA 回退：仅业务页面回退到 index.html；静态资源前缀未命中时直接 404，
+    // 避免 /uploads、/media 等缺失文件被误判为 200 HTML（会让下载看起来成功）。
+    app.get(
+      /^\/(?!api(\/|$)|healthz(\/|$)|uploads(\/|$)|assets(\/|$)|media(\/|$)|posters(\/|$)|brand(\/|$)|fonts(\/|$)|shots(\/|$)|favicon\.png$|icons\.svg$|robots\.txt$|sitemap\.xml$).*/,
+      (req: Request, res: Response, next: NextFunction) => {
+        if (!req.accepts('html')) return next()
+        res.setHeader('Cache-Control', 'no-cache')
+        res.sendFile(indexFile)
+      },
+    )
     logger.info('已启用前端静态托管', { staticDir })
   } else if (staticDir) {
     logger.warn('STATIC_DIR 不存在，已跳过静态托管', { staticDir })

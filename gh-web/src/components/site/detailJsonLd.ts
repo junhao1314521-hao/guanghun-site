@@ -6,7 +6,7 @@
  * 字段全部来自页面既有数据，不臆造评分 / 库存等未确认信息；可选字段缺省时自动省略。
  */
 import type { ArticleDetail } from '../../data/articles'
-import { BRAND, SITE_URL, canonicalUrl, ogImageUrl } from '../../data/meta'
+import { BRAND, canonicalUrl, ogImageUrl, siteOrigin } from '../../data/meta'
 import type { ProductDetail } from '../../data/products'
 import type { DownloadDetail, DownloadType, FaqDetail } from '../../data/support-extra'
 
@@ -45,7 +45,7 @@ export function articleJsonLd(article: ArticleDetail, image?: string): Record<st
     description: article.desc,
     datePublished: article.date,
     author: { '@type': 'Organization', name: article.author },
-    publisher: { '@type': 'Organization', name: BRAND, url: SITE_URL },
+    publisher: { '@type': 'Organization', name: BRAND, url: siteOrigin() },
     mainEntityOfPage: url,
     url,
     image: [ogImageUrl(image)],

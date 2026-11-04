@@ -8,6 +8,9 @@ export type BrandAssetItem = {
   desc: string
   category: string
   fileUrl: string
+  /** 服务端核验的文件状态（接口返回） */
+  fileStatus?: 'ok' | 'missing' | 'placeholder' | 'external' | 'unknown'
+  actualSizeBytes?: number
   format: string
   size: string
   date: string

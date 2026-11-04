@@ -5,7 +5,7 @@ import { ApiError } from '../api/client'
 import { fetchDownload } from '../api/support-extra'
 import { JsonLdNode } from '../components/site/JsonLd'
 import { downloadJsonLd } from '../components/site/detailJsonLd'
-import { DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
+import { DOWNLOAD_TYPE_LABELS, isDownloadable } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { useDetailSeo } from '../hooks/useDetailSeo'
@@ -98,7 +98,7 @@ export function DownloadDetailPage() {
             <p className="section__desc">{detail.note}</p>
           </div>
           <div className="row">
-            {detail.fileUrl ? (
+            {isDownloadable(detail) ? (
               <a
                 className="btn btn--primary"
                 href={detail.fileUrl}

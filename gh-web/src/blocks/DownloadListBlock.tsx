@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
 import { fetchDownloads } from '../api/support-extra'
-import { ALL_MODELS, DOWNLOAD_TYPE_LABELS } from '../data/support-extra'
+import { ALL_MODELS, DOWNLOAD_TYPE_LABELS, isDownloadable } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
@@ -112,7 +112,7 @@ function DownloadGrid({ items }: { items: DownloadItem[] }) {
               <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                 详情
               </SafeLink>
-              {item.fileUrl ? (
+              {isDownloadable(item) ? (
                 <a
                   className="btn btn--sm btn--primary"
                   href={item.fileUrl}
@@ -161,7 +161,7 @@ function DownloadCards({ items, showFilter }: { items: DownloadItem[]; showFilte
               查看详情
             </SafeLink>
             {showFilter &&
-              (item.fileUrl ? (
+              (isDownloadable(item) ? (
                 <a
                   className="btn btn--sm btn--ghost"
                   href={item.fileUrl}
@@ -478,7 +478,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                             <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                               查看详情
                             </SafeLink>
-                            {item.fileUrl ? (
+                            {isDownloadable(item) ? (
                               <a
                                 className="btn btn--sm btn--ghost"
                                 href={item.fileUrl}

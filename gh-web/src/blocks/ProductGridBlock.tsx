@@ -241,6 +241,9 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
     const isPicked = picked.includes(item.id)
     const live = isHrefLive(`/products/${item.id}`)
     const tone = cardTone === 'light' || cardTone === 'dark' ? cardTone : 'auto'
+    // 卡片图优先用后台维护的相册首图；老产品回退到预置白底图 / 主图，
+    // 避免新增产品因缺少 productWhite 映射而显示空占位。
+    const cardImage = item.gallery?.[0] ?? MEDIA.productWhite[item.id] ?? MEDIA.product[item.id] ?? ''
     return (
       <article
         className={`pcard pcard--${tone}${showFilter && isPicked ? ' is-picked' : ''}`}
@@ -265,7 +268,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           className="pcard__media"
           style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
         >
-          <MediaImg src={MEDIA.productWhite[item.id] ?? ''} alt={item.name} variant={item.variant} label={item.name} />
+          <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
         </div>
         <div className="pcard__foot">
           <div className="pcard__meta">

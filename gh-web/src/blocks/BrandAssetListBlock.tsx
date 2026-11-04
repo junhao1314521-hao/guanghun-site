@@ -14,6 +14,7 @@ import { fetchBrandAssets } from '../api/business-extra'
 import { useApi } from '../hooks/useApi'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asNumber, asString } from './blockUtils'
+import { isDownloadable } from '../data/support-extra'
 
 export function BrandAssetListBlock({ props }: { props: Record<string, unknown> }) {
   const category = asString(props.category, 'all')
@@ -70,7 +71,7 @@ export function BrandAssetListBlock({ props }: { props: Record<string, unknown> 
                   <SafeLink className="btn btn--sm btn--secondary" to="/inquiry" title="该资料需留资 / 授权后提供">
                     申请下载
                   </SafeLink>
-                ) : item.fileUrl ? (
+                ) : isDownloadable(item) ? (
                   <a className="btn btn--sm btn--primary" href={item.fileUrl} download rel="noreferrer">
                     下载
                   </a>

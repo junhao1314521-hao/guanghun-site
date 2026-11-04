@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react'
-import { BRAND, DEFAULT_OG_IMAGE, LANG_QUERY_KEY, hreflangLinks, pageMetaFor } from '../data/meta'
+import { BRAND, LANG_QUERY_KEY, defaultOgImage, hreflangLinks, pageMetaFor } from '../data/meta'
 
 /** 写入 / 更新 <head> 中的 meta（name / property 二选一） */
 export function upsertMeta(attr: 'name' | 'property', key: string, content: string): void {
@@ -77,11 +77,11 @@ export function usePageMeta(pathname: string, lang: string = 'zh-CN'): void {
     upsertMeta('property', 'og:title', meta.title)
     upsertMeta('property', 'og:description', meta.description)
     upsertMeta('property', 'og:url', canonical)
-    upsertMeta('property', 'og:image', DEFAULT_OG_IMAGE)
+    upsertMeta('property', 'og:image', defaultOgImage())
     upsertMeta('property', 'og:locale', lang === 'en' ? 'en_US' : 'zh_CN')
     upsertMeta('name', 'twitter:card', 'summary')
     upsertMeta('name', 'twitter:title', meta.title)
     upsertMeta('name', 'twitter:description', meta.description)
-    upsertMeta('name', 'twitter:image', DEFAULT_OG_IMAGE)
+    upsertMeta('name', 'twitter:image', defaultOgImage())
   }, [pathname, lang])
 }

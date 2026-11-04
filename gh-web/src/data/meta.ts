@@ -6,8 +6,16 @@
  * - `SITE_URL` 为占位域名，上线前替换为正式域名（同时替换 robots / sitemap）。
  */
 
-/** 站点根地址（占位，上线前替换为正式域名，须与 robots.txt / sitemap.xml 一致） */
+/** 站点根地址（占位；浏览器运行时优先使用当前访问域名，避免 IP / 正式域名下 canonical 指向占位域） */
 export const SITE_URL = 'https://www.guanghun.example'
+
+/** 当前运行时站点源：浏览器用 location.origin，构建/测试环境回退 SITE_URL */
+export function siteOrigin(): string {
+  // 单测在 jsdom 下运行，location.origin 是 localhost；保持测试与 sitemap 真源一致。
+  if (import.meta.env?.MODE === 'test') return SITE_URL
+  if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin
+  return SITE_URL
+}
 
 /** 品牌名（用于标题后缀与结构化数据） */
 export const BRAND = '光魂'
@@ -24,13 +32,19 @@ export const DEFAULT_DESCRIPTION = '以实测数据定义电竞装备性能。�
  */
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/favicon.svg`
 
+/** 运行时默认分享图：跟随当前访问域名，避免分享卡片指向占位域 */
+export function defaultOgImage(): string {
+  return `${siteOrigin()}/favicon.png`
+}
+
 /**
  * 解析页面的分享图地址：仅接受可公开抓取的 http(s) 绝对地址；
  * 内联 data URI、相对路径、空值一律回退到 `DEFAULT_OG_IMAGE`（不臆造外链）。
  */
 export function ogImageUrl(src?: string): string {
   if (src && /^https?:\/\//.test(src)) return src
-  return DEFAULT_OG_IMAGE
+  if (src && src.startsWith('/')) return `${siteOrigin()}${src}`
+  return defaultOgImage()
 }
 
 export type PageMeta = {
@@ -184,7 +198,7 @@ export const INDEXABLE_PATHS = PAGE_META.filter((m) => m.indexable).map((m) => m
 /** 规范链接：去掉尾部斜杠（根路径除外），避免同一页面多 URL */
 export function canonicalUrl(pathname: string): string {
   const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : '/'
-  return new URL(clean, SITE_URL).toString()
+  return new URL(clean, siteOrigin()).toString()
 }
 
 /** 语言在 URL 上的查询键（英文以 `?lang=en` 表示；中文为默认、不带参数） */
@@ -280,25 +294,26 @@ function breadcrumbItems(pathname: string): Array<{ name: string; url: string }>
 export function buildJsonLd(pathname: string): Record<string, unknown>[] {
   const meta = pageMetaFor(pathname)
   const url = canonicalUrl(pathname)
+  const origin = siteOrigin()
 
   const organization = {
     '@type': 'Organization',
-    '@id': `${SITE_URL}/#organization`,
+    '@id': `${origin}/#organization`,
     name: BRAND,
-    url: SITE_URL,
+    url: origin,
     slogan: DEFAULT_DESCRIPTION,
   }
 
   const website = {
     '@type': 'WebSite',
-    '@id': `${SITE_URL}/#website`,
+    '@id': `${origin}/#website`,
     name: BRAND,
-    url: SITE_URL,
+    url: origin,
     inLanguage: 'zh-CN',
-    publisher: { '@id': `${SITE_URL}/#organization` },
+    publisher: { '@id': `${origin}/#organization` },
     potentialAction: {
       '@type': 'SearchAction',
-      target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/search?q={search_term_string}` },
+      target: { '@type': 'EntryPoint', urlTemplate: `${origin}/search?q={search_term_string}` },
       'query-input': 'required name=search_term_string',
     },
   }
@@ -309,7 +324,7 @@ export function buildJsonLd(pathname: string): Record<string, unknown>[] {
     url,
     name: meta.title,
     description: meta.description,
-    isPartOf: { '@id': `${SITE_URL}/#website` },
+    isPartOf: { '@id': `${origin}/#website` },
   }
 
   const breadcrumb = {

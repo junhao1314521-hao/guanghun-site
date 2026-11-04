@@ -14,6 +14,7 @@ import { readLocale } from '../data/locale'
 import { checkCaptcha, honeypotHit } from '../lib/formGuard'
 import { recordMetric } from '../data/metricsStore'
 import { readCookie } from '../middleware/adminAuth'
+import { fileStatusOf } from '../lib/fileStatus'
 
 /**
  * 服务支持深度线端点（挂载于 /api）：
@@ -32,7 +33,10 @@ export const supportExtraRouter = Router()
 
 /** 下载列表 + 型号显示名（models 存型号 id，前台展示 modelNames） */
 function downloadItems(locale: ReturnType<typeof readLocale>) {
-  return withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale)
+  return withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale).map((item) => ({
+    ...item,
+    ...fileStatusOf(item.fileUrl),
+  }))
 }
 
 supportExtraRouter.get('/downloads', (req, res) => {

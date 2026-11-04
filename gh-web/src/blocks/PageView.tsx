@@ -78,11 +78,12 @@ export function PageView({ pageKey, blockDefaults }: Props) {
   // R10.3：语言切换时重新取页（英文 locale 走 `__en` / en 覆盖层）
   const { data: page, loading, error } = useApi((signal) => fetchPage(pageKey, signal), [pageKey, reloadKey, lang])
 
-  // R10.4：后台为页面配置了 SEO 标题 / 描述时覆盖默认 meta（未配置则沿用站点默认）
+  // R10.4：后台为页面配置了 SEO 标题 / 描述时覆盖默认 meta（未配置则沿用站点默认；
+  // 不再回退 page.description，那是装修用的内部说明，不能作为搜索摘要）
   useLayoutEffect(() => {
     if (!page) return
     const title = page.seoTitle?.trim()
-    const description = page.seoDescription?.trim() || page.description?.trim()
+    const description = page.seoDescription?.trim()
     if (!title && !description) return
     if (title) {
       document.title = title

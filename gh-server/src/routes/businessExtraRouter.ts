@@ -3,6 +3,7 @@ import { getBizCaseDetail, getBizVenueDetail } from '../data/business-extra'
 import { BRAND_ASSET_CATEGORIES } from '../data/brandAssets'
 import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
+import { fileStatusOf } from '../lib/fileStatus'
 
 /**
  * 商业合作深度线端点（挂载于 /api）：
@@ -52,5 +53,9 @@ businessExtraRouter.get('/business/venues/:id', (req, res) => {
 
 // 品牌资料（B 端）：独立集合 brand-assets，与 C 端下载中心数据分开
 businessExtraRouter.get('/business/brand-assets', (req, res) => {
-  res.json({ items: listCollection('brand-assets', readLocale(req)), categories: BRAND_ASSET_CATEGORIES })
+  const items = listCollection('brand-assets', readLocale(req)).map((item) => ({
+    ...item,
+    ...fileStatusOf(item.fileUrl),
+  }))
+  res.json({ items, categories: BRAND_ASSET_CATEGORIES })
 })
