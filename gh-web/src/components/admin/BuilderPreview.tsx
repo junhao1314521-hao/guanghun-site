@@ -302,6 +302,7 @@ function PreviewList({
   )
 }
 
+/** 组件：渲染装修器预览区，按草稿区块展示并处理选中、排序与增删操作。 */
 export function BuilderPreview({
   blocks,
   typeMeta,

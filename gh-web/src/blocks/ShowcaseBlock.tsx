@@ -33,6 +33,7 @@ type ShowcaseItem = {
   cta: { label: string; href: string } | null
 }
 
+/** 把后台原始条目规范化为展示台数据（媒体类型仅保留 image / video / gif） */
 function toItem(value: unknown): ShowcaseItem {
   const record = asRecord(value)
   const rawType = asString(record.mediaType, 'image')
@@ -61,6 +62,7 @@ function itemMedia(item: ShowcaseItem): string {
 /** 规格条的图标：按顺序轮换（尺寸 / 刷新率 / 响应），保持视觉节奏 */
 const SPEC_ICONS = ['monitor', 'clock', 'sliders', 'chip']
 
+/** 产品展示台区块：左侧大图 + 右侧产品信息，支持前后切换与规格轮换图标 */
 export function ShowcaseBlock({ props }: { props: Record<string, unknown> }) {
   const items = asArray(props.items).map(toItem)
   const [active, setActive] = useState(0)

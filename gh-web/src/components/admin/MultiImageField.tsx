@@ -16,6 +16,7 @@ export type MultiImageFieldProps = {
   label?: string
 }
 
+/** 组件：多图相册字段，支持逐张编辑、增删与排序。 */
 export function MultiImageField({ value, onChange, label }: MultiImageFieldProps) {
   const items = Array.isArray(value) ? value : []
 

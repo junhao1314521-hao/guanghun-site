@@ -130,6 +130,7 @@ export function posterHeightStyle(data: PosterData): CSSProperties | undefined {
 export function posterShowEyebrow(data: PosterData): boolean {
   return data.eyebrowEnabled === undefined ? Boolean(data.eyebrow) : data.eyebrowEnabled && Boolean(data.eyebrow)
 }
+/** 是否渲染卖点数据：显式开关优先，缺省按「有数据即显示」兜底 */
 export function posterShowStats(data: PosterData): boolean {
   return data.statsEnabled === undefined ? data.stats.length > 0 : data.statsEnabled && data.stats.length > 0
 }

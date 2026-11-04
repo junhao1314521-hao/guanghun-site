@@ -8,6 +8,7 @@
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asArray, asRecord, asString } from './blockUtils'
 
+/** 时间轴区块：按 layout 渲染纵向列表或横向流程，条目含时间、标题与描述 */
 export function TimelineBlock({ props }: { props: Record<string, unknown> }) {
   const items = asArray(props.items).map((value) => {
     const record = asRecord(value)

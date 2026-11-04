@@ -21,6 +21,7 @@ type Props = {
   points?: string[]
 }
 
+/** 组件：渲染登录/注册页左右分栏外壳，承载表单与品牌信息。 */
 export function AuthShell({
   children,
   variant = 'card',

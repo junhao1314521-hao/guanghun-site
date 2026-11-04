@@ -55,6 +55,7 @@ export type SitePagesApi = {
   isHrefLive: (href: string | undefined) => boolean
 }
 
+// 订阅页面停用集合，返回 pages 与 isPathLive、isKeyLive、isHrefLive 等死链判断方法
 export function useSitePages(): SitePagesApi {
   const version = useSyncExternalStore(subscribeSitePages, sitePagesVersion, sitePagesVersion)
 

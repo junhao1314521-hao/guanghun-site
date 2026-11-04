@@ -35,6 +35,7 @@ function endpoint(path: string): string {
   return API_BASE ? new URL(path, API_BASE).toString() : path
 }
 
+// 读取后台令牌，未登录时返回 undefined
 function adminToken(): string | undefined {
   return getAdminToken() ?? undefined
 }

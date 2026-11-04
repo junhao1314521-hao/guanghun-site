@@ -188,6 +188,7 @@ function NewsMarquee({ items }: { items: NewsItem[] }) {
   )
 }
 
+/** 文章 / 资讯列表区块：按来源、分类与手动挑选取数，支持网格或横滑布局、筛选与分页 */
 export function ArticleListBlock({ props }: { props: Record<string, unknown> }) {
   const source = asString(props.source, 'all')
   const scope = asString(props.scope, 'all') // all | manual（手动挑选具体几篇）

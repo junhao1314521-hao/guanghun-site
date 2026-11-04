@@ -570,6 +570,7 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
   },
 ]
 
+/** 按型号 id 查支持信息（手册 / 固件 / 指南 / FAQ 入口）；未命中返回 undefined */
 export function getModelSupport(id: string): ModelSupport | undefined {
   return MODEL_SUPPORTS.find((entry) => entry.id === id)
 }

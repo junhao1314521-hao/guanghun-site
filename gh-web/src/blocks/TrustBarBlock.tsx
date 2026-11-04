@@ -16,6 +16,7 @@ import { asArray, asNumber, asRecord, asString } from './blockUtils'
 
 type TrustItem = { icon: string; text: string; href: string }
 
+/** 把后台原始条目规范化为信任条数据，缺省图标回退为 check */
 function toItem(value: unknown): TrustItem {
   const record = asRecord(value)
   return {
@@ -41,6 +42,7 @@ function TrustIcon({ name }: { name: string }): ReactNode {
   }
 }
 
+/** 信任条区块：按列数渲染图标 + 文案条目，链接下线时退化为纯文本 */
 export function TrustBarBlock({ props }: { props: Record<string, unknown> }) {
   const { isHrefLive } = useSitePages()
   const rawColumns = asNumber(props.columns, 4)

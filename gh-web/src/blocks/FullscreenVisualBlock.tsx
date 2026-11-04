@@ -8,6 +8,7 @@
 import { asString } from './blockUtils'
 import { heightClass, heightStyle } from './heightUtils'
 
+/** 全屏视觉区块：按高度档位渲染图片 / GIF / 视频，移动端可切换竖版图 */
 export function FullscreenVisualBlock({ props }: { props: Record<string, unknown> }) {
   const media = asString(props.media)
   const mediaType = asString(props.mediaType, 'image')

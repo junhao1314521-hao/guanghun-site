@@ -6,6 +6,7 @@
  */
 import { asString, splitBody } from './blockUtils'
 
+/** 标题正文区块：渲染眉题、标题与按换行拆分的正文段落 */
 export function TextBlock({ props }: { props: Record<string, unknown> }) {
   const eyebrow = asString(props.eyebrow)
   const title = asString(props.title)

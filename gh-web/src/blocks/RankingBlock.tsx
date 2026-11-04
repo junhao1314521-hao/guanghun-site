@@ -41,6 +41,7 @@ const TYPE_KEYWORDS: Record<string, string> = {
   ips: 'IPS',
 }
 
+/** 判断榜单行名称是否包含关键词；关键词为空时视为命中 */
 function matchesType(row: LadderRow, keyword?: string): boolean {
   if (!keyword) return true
   return row.name.includes(keyword)
@@ -102,6 +103,7 @@ function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
   )
 }
 
+/** 榜单行列表：渲染名次、型号与分数，支持高亮命中项与试读态 */
 function LadderRows({
   metric,
   rows,
@@ -202,6 +204,7 @@ function LadderRows({
   )
 }
 
+/** 榜单区块：渲染领奖台与完整排行，支持指标切换、范围筛选与关键词搜索 */
 export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const metricId = METRIC_ALIAS[asString(props.metric, 'overall')] ?? 'overall'

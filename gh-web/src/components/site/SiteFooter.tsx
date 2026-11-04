@@ -201,6 +201,7 @@ function FooterSocial({ items, label }: { items: SiteSocialItem[]; label: string
   )
 }
 
+/** 组件：渲染全站页脚，包含导航分组、社交入口与备案信息。 */
 export function SiteFooter() {
   const { t } = useI18n()
   // 页脚动画随主题切换深浅（深色底 / 浅色底两套配色，与首屏海报一致）

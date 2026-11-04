@@ -52,6 +52,7 @@ export function pickVariantWidths(naturalWidth: number): number[] {
 
 /** 浏览器是否支持 Canvas 编码 WebP（惰性检测，只测一次） */
 let webpSupport: boolean | null = null
+// 检测浏览器是否支持 WebP 编码，结果做模块级缓存
 function supportsWebp(): boolean {
   if (webpSupport !== null) return webpSupport
   let result = false

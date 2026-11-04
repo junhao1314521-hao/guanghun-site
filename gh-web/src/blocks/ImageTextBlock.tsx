@@ -9,6 +9,7 @@ import { SafeLink } from '../components/ui/SafeLink'
 import { MediaImg } from '../components/ui/MediaImg'
 import { asLink, asString, splitBody } from './blockUtils'
 
+/** 图文区块：按 side 决定图片左右位置，正文首行作导语、其余作要点列表 */
 export function ImageTextBlock({ props }: { props: Record<string, unknown> }) {
   const image = asString(props.image)
   const title = asString(props.title)

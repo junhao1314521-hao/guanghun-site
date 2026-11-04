@@ -60,6 +60,7 @@ export type FileFieldProps = {
   variant?: 'image' | 'media' | 'file'
 }
 
+/** 组件：通用文件/图片字段，支持地址输入、上传进度、素材库选择与预览。 */
 export function FileField({
   value,
   onChange,

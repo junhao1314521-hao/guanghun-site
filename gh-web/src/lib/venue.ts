@@ -12,6 +12,7 @@ export type NavVenue = {
   lng?: number
 }
 
+// 类型守卫：判断门店是否带有有效的经纬度坐标
 export function hasCoords<T extends { lat?: number; lng?: number }>(venue: T): venue is T & { lat: number; lng: number } {
   return typeof venue.lat === 'number' && typeof venue.lng === 'number' && Number.isFinite(venue.lat) && Number.isFinite(venue.lng)
 }
@@ -56,6 +57,7 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
+// 计算两点间球面距离（公里），门店无坐标时返回 null
 export function distanceKm(from: { lat: number; lng: number }, venue: VenueSummary): number | null {
   if (!hasCoords(venue)) return null
   const R = 6371
@@ -67,6 +69,7 @@ export function distanceKm(from: { lat: number; lng: number }, venue: VenueSumma
   return 2 * R * Math.asin(Math.sqrt(a))
 }
 
+// 距离文案格式化：不足 10km 保留一位小数，不足 1000km 取整，更大按「千 km」展示
 export function formatDistance(km: number): string {
   if (km < 10) return `${km.toFixed(1)} km`
   if (km < 1000) return `${Math.round(km)} km`
@@ -76,6 +79,7 @@ export function formatDistance(km: number): string {
 /** 机型筛选族：门店 products 里包含关键词即命中 */
 export const VENUE_MODEL_FAMILIES = ['全部', '闪电', '枪神', '鹰眼', '极创', '光魂', '超凡剑圣', '全系'] as const
 
+// 机型族筛选：选择全部直接命中，否则判断门店机型是否包含该族关键词
 export function venueModelMatch(venue: VenueSummary, family: string): boolean {
   if (family === '全部') return true
   return (venue.products ?? []).some((model) => model.includes(family))
@@ -102,6 +106,7 @@ export const PROVINCE_SHORT: Record<string, string> = {
   吉林省: '吉林',
 }
 
+// 省份名称转简称，无映射时原样返回
 export function provinceShort(province: string): string {
   return PROVINCE_SHORT[province] ?? province
 }
@@ -116,10 +121,12 @@ export const VENUE_REGIONS: { name: string; provinces: string[] }[] = [
   { name: '西北', provinces: ['新疆维吾尔自治区'] },
 ]
 
+// 由省份反查所属大区名称，未匹配返回空串
 export function venueRegionName(province: string): string {
   return VENUE_REGIONS.find((region) => region.provinces.includes(province))?.name ?? ''
 }
 
+// 拼接门店位置文案（城市 · 区县），缺失时回退省份简称
 export function venueLocation(venue: VenueSummary): string {
   return [venue.city, venue.area].filter(Boolean).join(' · ') || provinceShort(venue.province)
 }
@@ -133,6 +140,7 @@ export function venueTypeLabel(type?: string): string {
 
 const VENUE_TYPE_RANK: Record<string, number> = { flagship: 0, experience: 1, service: 2 }
 
+// 返回门店类型的排序权重，未知类型取默认值
 export function venueTypeRank(type?: string): number {
   return VENUE_TYPE_RANK[type ?? ''] ?? 1
 }

@@ -76,6 +76,7 @@ function GridSkeleton({ count }: { count: number }) {
   )
 }
 
+/** 产品网格区块：按范围 / 分类 / 手动挑选取数，支持筛选、排序、分页与网格 / 横滑布局 */
 export function ProductGridBlock({ props }: { props: Record<string, unknown> }) {
   // 范围 scope：all | featured | series | category | manual（旧 source 字段作回退）
   const source = asString(props.source, 'all')

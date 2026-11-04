@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { asString } from './blockUtils'
 import { sanitizeRichText } from './sanitize'
 
+/** 富文本区块：白名单净化 props.html 后以 dangerouslySetInnerHTML 渲染 */
 export function RichTextBlock({ props }: { props: Record<string, unknown> }) {
   const html = asString(props.html)
   const safeHtml = useMemo(() => sanitizeRichText(html), [html])

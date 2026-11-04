@@ -12,6 +12,7 @@ import { useApi } from '../hooks/useApi'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asNumber } from './blockUtils'
 
+/** 测评方法列表区块：拉取并过滤已发布方法，按 limit 截断后渲染卡片 */
 export function MethodListBlock({ props }: { props: Record<string, unknown> }) {
   const limit = Math.max(0, asNumber(props.limit, 0))
   const [reloadKey, setReloadKey] = useState(0)

@@ -96,6 +96,7 @@ function NewTemplateForm({ pages, onCreated }: { pages: PageMeta[]; onCreated: (
   )
 }
 
+/** 组件：渲染后台模板列表，支持新建、预览与删除模板。 */
 export function AdminTemplatesList() {
   const [reloadKey, setReloadKey] = useState(0)
   const state = useApi<TemplateList>((signal) => fetchTemplates(signal), [reloadKey])

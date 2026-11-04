@@ -51,6 +51,7 @@ type Palette = {
   hot: string[]
 }
 
+/** 生成明/暗主题下 Canvas 能量方块所用的调色板。 */
 function buildPalette(dark: boolean): Palette {
   const normal: string[] = []
   const hot: string[] = []

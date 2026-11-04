@@ -12,6 +12,7 @@
 import { Link, type LinkProps } from 'react-router-dom'
 import { useSitePages } from '../../hooks/useSitePages'
 
+/** 组件：渲染站内 Link，目标页面已下线时不渲染任何内容。 */
 export function SafeLink({ to, children, ...rest }: LinkProps) {
   const { isHrefLive } = useSitePages()
   // 仅对字符串 to 做存活判断；对象形式（LocationDescriptor）一律放行

@@ -40,6 +40,7 @@ const SEED: AdminRole[] = [
 
 type RoleRow = { key: string; name: string; desc: string | null; scopes: string; builtin: number }
 
+/** 角色行转领域对象：解析 JSON 权限集（损坏回退空数组），builtin 由 0/1 转布尔 */
 function rowToRole(row: RoleRow): AdminRole {
   let scopes: string[] = []
   try {

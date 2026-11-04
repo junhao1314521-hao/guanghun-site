@@ -16,6 +16,7 @@ import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asNumber, asString } from './blockUtils'
 import { isDownloadable } from '../data/support-extra'
 
+/** 品牌资料列表区块：拉取 brand-assets 数据，按分类与数量过滤，渲染卡片与下载 / 留资入口 */
 export function BrandAssetListBlock({ props }: { props: Record<string, unknown> }) {
   const category = asString(props.category, 'all')
   const limit = Math.max(0, asNumber(props.limit, 0))

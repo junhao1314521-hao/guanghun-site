@@ -46,6 +46,7 @@ function groupAttributes(attributes: ProductDetail['attributes']) {
   })
 }
 
+/** 判断产品是否含系统、重量、保修或包装清单等可用于兼容性区块的信息 */
 export function hasCompatibility(detail: ProductDetail): boolean {
   return Boolean(
     detail.os?.length || detail.weight !== undefined || detail.warranty || detail.inBox?.length,

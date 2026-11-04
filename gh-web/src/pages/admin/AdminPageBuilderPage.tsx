@@ -324,6 +324,7 @@ const STYLE_FIELDS: Array<{ key: keyof BlockStyle; label: string; options: Array
   },
 ]
 
+// 区块样式面板：按字段下拉修改样式，空值即删除该属性，变更后回传新样式
 function StylePanel({ style, onChange }: { style: BlockStyle | undefined; onChange: (style: BlockStyle) => void }) {
   const current = style ?? {}
   const set = (key: keyof BlockStyle, value: string) => {
@@ -491,6 +492,7 @@ function readAutoSave(): boolean {
 /** 区块库「最近使用」：记录最近新增的区块类型（最多 5 个，最近在前） */
 const RECENT_TYPES_KEY = 'gh-builder-recent-types'
 
+// 读取最近使用的区块类型（localStorage，最多 5 个），异常时返回空数组
 function readRecentTypes(): BlockType[] {
   try {
     const raw = window.localStorage.getItem(RECENT_TYPES_KEY)
@@ -501,6 +503,7 @@ function readRecentTypes(): BlockType[] {
   }
 }
 
+// 记录最近使用的区块类型：置顶去重后截取 5 个写入 localStorage，并返回新列表
 function pushRecentType(type: BlockType): BlockType[] {
   const next = [type, ...readRecentTypes().filter((item) => item !== type)].slice(0, 5)
   try {

@@ -8,6 +8,7 @@ import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asString } from './blockUtils'
 
+/** 视频区块：有 url 时渲染播放器，否则仅展示封面占位 */
 export function VideoBlock({ props }: { props: Record<string, unknown> }) {
   const title = asString(props.title)
   const url = asString(props.url)

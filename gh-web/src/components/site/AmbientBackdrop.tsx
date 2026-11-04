@@ -11,6 +11,7 @@
 import { useEffect, useRef } from 'react'
 import { prefersReducedMotion } from '../../lib/motion'
 
+/** 组件：渲染全站固定环境背景（网格、光晕、噪点与光标柔光）。 */
 export function AmbientBackdrop() {
   const layerRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)

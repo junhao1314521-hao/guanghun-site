@@ -14,10 +14,12 @@ let cache: AuthUser | null | undefined
 let inflight: Promise<AuthUser | null> | null = null
 const listeners = new Set<() => void>()
 
+// 依次通知会话订阅者，登录态变化后触发其重渲染
 function notify(): void {
   for (const listener of listeners) listener()
 }
 
+// 加载当前登录用户：命中缓存直接返回，否则复用进行中的请求
 function load(): Promise<AuthUser | null> {
   if (cache !== undefined) return Promise.resolve(cache)
   if (!inflight) {

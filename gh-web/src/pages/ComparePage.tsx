@@ -14,6 +14,7 @@ type CompareRow = { name: string; values: string[] }
 /** 缺失值的统一呈现：标称 / 实测均以「—」表示，与零值区分 */
 const MISSING = '—'
 
+// 规格值展示归一化：空值、「—」「未测量」统一替换为缺省占位符
 function display(value: string | undefined): string {
   if (!value || value === '—' || value === '未测量') return MISSING
   return value

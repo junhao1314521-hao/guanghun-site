@@ -33,6 +33,7 @@ export type CreateTemplateBody = {
   blocks?: Block[]
 }
 
+// 读取后台令牌，未登录时返回 undefined
 function adminToken(): string | undefined {
   return getAdminToken() ?? undefined
 }

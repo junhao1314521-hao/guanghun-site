@@ -470,6 +470,7 @@ const FAQ_STEPS: Record<string, string[]> = {
   'faq-warranty-repair': ['提交咨询并说明型号与现象', '附上购买凭证与故障照片', '按回复指引寄出并保留物流单号'],
 }
 
+// 按 id 取常见问题详情：附带操作步骤与同分类的相关问答
 export function getFaqDetail(id: string): FaqDetail | undefined {
   const item = FAQ_ITEMS.find((entry) => entry.id === id)
   if (!item) return undefined
@@ -559,6 +560,7 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
   },
 ]
 
+// 按 id 查找型号支持信息
 export function getModelSupport(id: string): ModelSupport | undefined {
   return MODEL_SUPPORTS.find((entry) => entry.id === id)
 }

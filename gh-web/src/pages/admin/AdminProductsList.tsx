@@ -31,14 +31,17 @@ const STATUS_TONE: Record<string, StatusTone> = {
   草稿: 'muted',
 }
 
+// 未知值安全转字符串：字符串 / 数字直接转换，其余返回空串
 function text(value: unknown): string {
   return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : ''
 }
 
+// 提取产品规格列表：非数组时返回空数组，过滤空项
 function specsOf(row: ProductRow): string[] {
   return Array.isArray(row.specs) ? row.specs.map(String).filter(Boolean) : []
 }
 
+// 归一化产品状态：兼容对象与字符串两种数据，输出状态级别与展示文案
 function statusOf(row: ProductRow): { level: StatusTone; text: string } {
   const raw = row.status
   if (raw && typeof raw === 'object') {
@@ -55,6 +58,7 @@ function statusOf(row: ProductRow): { level: StatusTone; text: string } {
   return { level: STATUS_TONE[label] ?? 'muted', text: label }
 }
 
+// 取产品首图：优先图库第一张，其次按 id 命中内置图片映射
 function imageOf(row: ProductRow): string {
   const gallery = Array.isArray(row.gallery) ? row.gallery.map(String).filter(Boolean) : []
   if (gallery[0]) return gallery[0]
@@ -62,12 +66,14 @@ function imageOf(row: ProductRow): string {
   return (MEDIA.product as Record<string, string | undefined>)[id] ?? ''
 }
 
+// 取产品价格数值：非法或缺失时回退 0
 function priceValue(row: ProductRow): number {
   const value = Number(row.priceValue)
   if (Number.isFinite(value)) return value
   return 0
 }
 
+// 产品缩略图：有图渲染图片，无图回退立方体图标，支持固定尺寸或撑满容器
 function ProductThumb({ row, size = 48, fluid = false }: { row: ProductRow; size?: number; fluid?: boolean }) {
   const src = imageOf(row)
   const alt = text(row.name) || text(row.model)
@@ -81,6 +87,7 @@ function ProductThumb({ row, size = 48, fluid = false }: { row: ProductRow; size
   )
 }
 
+// 产品列表专用视图：客户端筛选 / 排序 / 分页，支持表格与卡片布局及删除操作
 export function AdminProductsList() {
   const state = useApi((signal) => fetchAdminResource('products', signal), [])
   const confirm = useConfirm()

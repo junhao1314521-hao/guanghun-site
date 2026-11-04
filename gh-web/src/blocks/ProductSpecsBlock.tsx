@@ -18,6 +18,7 @@ import { asBool, asString } from './blockUtils'
 /** 完整规格分组展示顺序（未列出的分组排在最后） */
 const GROUP_ORDER = ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证']
 
+/** 产品规格区块：按分组渲染参数表，并提供测试记录、导购与下载相关信息 */
 export function ProductSpecsBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const detail = useProductDetail()

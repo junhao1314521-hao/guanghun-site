@@ -49,6 +49,7 @@ const MAP: Record<string, ComponentType<IconProps>> = {
   refresh: IconRefresh,
 }
 
+/** 组件：按图标键渲染对应线性 SVG，未知键回退为网格图标。 */
 export function AdminIcon({ name, size = 18, className }: { name: string } & IconProps) {
   const Cmp = MAP[name] ?? IconGrid
   return <Cmp size={size} className={className} />

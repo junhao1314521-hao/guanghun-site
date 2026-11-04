@@ -35,6 +35,7 @@ export function useHScroll<T extends HTMLElement>(auto = false) {
       disposers.push(() => target.removeEventListener(type as string, handler, options))
     }
 
+    /** 计算一次翻页的卡位宽度（卡片宽 + 轨道间距），用于按卡翻页 */
     function cardStep() {
       // 卡位宽度：优先区块标记 data-rail-card（cards 区块），回退旧版 .vcard（首页海报卡）
       const card = rail!.querySelector('[data-rail-card], .vcard')
@@ -42,6 +43,7 @@ export function useHScroll<T extends HTMLElement>(auto = false) {
       return (card ? card.getBoundingClientRect().width : 300) + gap
     }
 
+    /** 根据当前滚动位置同步左右箭头的可用状态 */
     function update() {
       if (!prev || !next || !rail) return
       const max = rail.scrollWidth - rail.clientWidth
@@ -49,6 +51,7 @@ export function useHScroll<T extends HTMLElement>(auto = false) {
       next.disabled = rail.scrollLeft >= max - 4
     }
 
+    /** 按方向翻页：按卡位取整滚动，保证翻页后卡片边缘对齐 */
     function goCards(dir: number) {
       if (!rail) return
       const step = cardStep()

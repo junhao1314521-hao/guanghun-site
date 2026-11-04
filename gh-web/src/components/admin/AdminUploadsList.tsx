@@ -131,6 +131,7 @@ function flattenFolders(folders: FolderItem[]): Array<{ folder: FolderItem; dept
   return out
 }
 
+/** 组件：渲染素材库，支持文件夹管理、上传、筛选、移动与删除素材。 */
 export function AdminUploadsList() {
   const [reloadKey, setReloadKey] = useState(0)
   const [foldersKey, setFoldersKey] = useState(0)

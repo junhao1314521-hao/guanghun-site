@@ -25,6 +25,7 @@ type DefaultTheme = 'auto' | 'light' | 'dark'
 const COLOR_FALLBACK = '#2040ED'
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
+/** 组件：渲染站点级设计令牌表单，保存主题令牌与默认明暗主题。 */
 function StylesEditor({ initial }: { initial: SiteConfig }) {
   const [theme, setTheme] = useState<Record<string, string>>(initial.theme ?? {})
   const [saving, setSaving] = useState(false)
@@ -201,6 +202,7 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
   )
 }
 
+/** 组件：加载站点配置并渲染样式编辑页（含加载与错误态）。 */
 export function AdminStylesPage() {
   const state = useApi<SiteConfig>((signal) => fetchAdminSite(signal), [])
 

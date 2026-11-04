@@ -10,6 +10,7 @@ export interface Spring {
 const jobs: Spring[] = []
 let running = false
 
+// 全局动画帧循环：逐个推进弹簧任务，全部收敛后停止
 function tick(): void {
   let alive = false
   for (const job of jobs) alive = job.update() || alive
@@ -17,6 +18,7 @@ function tick(): void {
   if (alive) requestAnimationFrame(tick)
 }
 
+// 创建弹簧动画任务：按刚度 / 阻尼趋近目标值并回传当前值，返回可 update 的对象
 export function makeSpring(
   render: (value: number) => void,
   stiffness: number,
@@ -40,6 +42,7 @@ export function makeSpring(
   }
 }
 
+// 设置弹簧目标值，循环未启动时启动 requestAnimationFrame
 export function springTo(job: Spring, target: number): void {
   job.state.target = target
   if (!running) {

@@ -208,6 +208,7 @@ function DownloadCards({ items, showFilter }: { items: DownloadItem[]; showFilte
   )
 }
 
+/** 下载中心列表区块：拉取下载资料，支持分类 / 类型 / 型号筛选、搜索、URL 同步与表格 / 卡片视图 */
 export function DownloadListBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const propCategory = CATEGORY_LABEL[asString(props.category, 'all')] ?? ''

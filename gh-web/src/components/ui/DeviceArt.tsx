@@ -6,6 +6,7 @@ export type DeviceVariant = 'monitor' | 'mouse' | 'keyboard' | 'headset' | 'pad'
 
 type Props = { variant: DeviceVariant; className?: string; label?: string }
 
+/** 组件：按 variant 渲染产品/场景矢量占位图。 */
 export function DeviceArt({ variant, className = 'dev', label = '产品图' }: Props) {
   return (
     <svg className={className} viewBox="0 0 120 90" role="img" aria-label={label}>

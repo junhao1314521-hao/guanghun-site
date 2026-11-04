@@ -6,6 +6,7 @@ import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { asArray, asRecord, asString, gridClass } from './blockUtils'
 
+/** 图片组区块：按列数渲染图片与图注网格 */
 export function ImageGridBlock({ props }: { props: Record<string, unknown> }) {
   const columns = gridClass(props.columns, 3)
   const items = asArray(props.items).map((value) => {

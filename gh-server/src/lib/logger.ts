@@ -4,6 +4,7 @@
  */
 type Level = 'info' | 'warn' | 'error'
 
+/** 输出一条结构化 JSON 日志到对应控制台；测试环境静默 */
 function emit(level: Level, msg: string, fields: Record<string, unknown> = {}): void {
   if (process.env.NODE_ENV === 'test') return
   const line = JSON.stringify({ ts: new Date().toISOString(), level, msg, ...fields })

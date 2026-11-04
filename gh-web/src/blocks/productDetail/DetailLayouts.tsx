@@ -19,6 +19,7 @@ type CommonProps = {
   t: T
 }
 
+/** 按 key 从详情分区列表中查找指定分区 */
 function sectionOf(sections: DetailSection[], key: DetailSectionKey) {
   return sections.find((section) => section.key === key)
 }
@@ -32,6 +33,7 @@ function Hero({ heroProps }: { heroProps: Record<string, unknown> }) {
   )
 }
 
+/** 分区标题：渲染可选的序号、分区标题与条目数量 */
 function SectionHead({ section, index, t }: { section: DetailSection; index?: number; t: T }) {
   return (
     <div className="pdl-section__head">
@@ -46,6 +48,7 @@ function SectionHead({ section, index, t }: { section: DetailSection; index?: nu
   )
 }
 
+/** 分区外壳：带锚点 id 的 section，复用标题头并承载分区内容 */
 function SectionFrame({ section, index, t }: { section: DetailSection; index?: number; t: T }) {
   return (
     <section
@@ -59,6 +62,7 @@ function SectionFrame({ section, index, t }: { section: DetailSection; index?: n
   )
 }
 
+/** 购买分区外壳：无购买分区时不渲染 */
 function BuySection({ buy }: { buy?: DetailSection }) {
   if (!buy) return null
   return <div className="pdl-buy-wrap">{buy.node}</div>
@@ -140,6 +144,7 @@ export function TocLayout({ sections, heroProps, t }: CommonProps) {
 
 type TabGroup = { key: string; label: string; sections: DetailSection[] }
 
+/** 标签式布局：把概览 / 规格 / 支持 / 图文分组为标签页，默认展示首个可用分组 */
 export function TabsLayout({ sections, heroProps, t }: CommonProps) {
   const buy = sectionOf(sections, 'buy')
   const overview = sectionOf(sections, 'overview')

@@ -16,6 +16,7 @@ import type { Block, Page, PageMeta, SiteConfig } from './contentTypes'
 
 /** 内置页面 key 清单（= seed 页面 key；内置页禁删），懒计算并缓存 */
 let builtinKeysCache: string[] | null = null
+/** 取内置页面 key 清单（seed 页面 key，禁止删除）；懒计算并缓存 */
 function builtinKeys(): string[] {
   if (!builtinKeysCache) builtinKeysCache = buildSeed().pages.map((page) => page.key)
   return builtinKeysCache

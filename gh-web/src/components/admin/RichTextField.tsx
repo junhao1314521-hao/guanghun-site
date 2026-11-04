@@ -100,6 +100,7 @@ function ToolButton({
   )
 }
 
+/** 组件：渲染富文本编辑器，支持行内格式、段落与链接/图片/表格插入。 */
 export function RichTextField({ fieldId, value, placeholder, onChange }: RichTextFieldProps) {
   const ref = useRef<HTMLDivElement>(null)
   /** 最近一次编辑区内的选区（供段落下拉 / 弹窗恢复，避免聚焦丢失） */

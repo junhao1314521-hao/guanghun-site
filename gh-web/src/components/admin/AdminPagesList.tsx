@@ -198,6 +198,7 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
   )
 }
 
+/** 组件：渲染后台页面列表，支持启用/下线、查看引用清单与新建页面。 */
 export function AdminPagesList() {
   const state = useApi<AdminPageList>((signal) => fetchAdminPages(signal), [])
   const templatesState = useApi((signal) => fetchTemplates(signal), [])

@@ -10,6 +10,7 @@ import { usePageEffects } from '../hooks/usePageEffects'
 /** 搜索结果每页条数 */
 const PAGE_SIZE = 8
 
+// 搜索词高亮：按查询词切分文本，命中片段包一层 <mark> 后返回节点数组
 function renderHighlight(text: string, query: string) {
   return highlight(text, query).map((part, index) =>
     part.hit ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>,

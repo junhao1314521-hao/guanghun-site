@@ -76,6 +76,7 @@ export type LadderMetricDetail = {
   meta: LadderMetricMeta
 }
 
+/** 把单项指标转成详情结构；label 缺省时沿用指标自身名称 */
 function fromMetric(metric: LadderMetric, label?: string): LadderMetricDetail {
   return {
     metric: metric.id,
@@ -85,6 +86,7 @@ function fromMetric(metric: LadderMetric, label?: string): LadderMetricDetail {
   }
 }
 
+/** 按 id 查指标，未命中时回退到列表首项，保证详情页总有数据 */
 function findMetric(id: string, metrics: LadderMetric[]): LadderMetric {
   return metrics.find((item) => item.id === id) ?? metrics[0]
 }

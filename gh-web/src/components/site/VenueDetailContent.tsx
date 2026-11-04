@@ -20,6 +20,7 @@ type Props = {
   variant: 'page' | 'dialog'
 }
 
+/** 组件：渲染体验点详情（门市信息、预约、产品与服务），支持 page/dialog 版式。 */
 export function VenueDetailContent({ detail, variant }: Props) {
   const isDialog = variant === 'dialog'
   const uid = useId()

@@ -18,6 +18,7 @@ const MIN_TICK_MS = 5_000
 let timer: NodeJS.Timeout | null = null
 let inFlight = false
 
+/** 执行一轮调度：补发已到点的定时发布；进行中则跳过，异常吞掉并记日志 */
 function tick(): void {
   if (inFlight) return
   inFlight = true

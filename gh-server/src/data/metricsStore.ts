@@ -40,6 +40,7 @@ export function trackEnabled(): boolean {
 
 /** 生成稳定且可读的新 id */
 let seq = 0
+/** 生成埋点记录 id：时间戳 36 进制 + 进程内自增序号，保证同毫秒内唯一 */
 function newId(): string {
   seq += 1
   return `m-${Date.now().toString(36)}-${seq.toString(36)}`

@@ -16,6 +16,7 @@ type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** 订阅区块：渲染邮箱订阅表单，校验邮箱与验证码，提交成功后展示结果状态 */
 export function SubscribeBlock({ props }: { props: Record<string, unknown> }) {
   const title = asString(props.title) || '订阅新品与固件更新'
   const desc = asString(props.desc) || '留下邮箱，第一时间收到新品发布、固件更新与活动通知。'
@@ -30,6 +31,7 @@ export function SubscribeBlock({ props }: { props: Record<string, unknown> }) {
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
 
+  /** 提交订阅表单：校验邮箱格式，成功后清空输入并显示回执 */
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     // 蜜罐字段为不受控隐藏输入：提交时从表单读取

@@ -38,6 +38,7 @@ function buildVideoDoc(videoUrl: string, poster: string): string {
   )
 }
 
+/** 嵌入区块：以沙箱 iframe 渲染自定义代码或视频播放页，按 allowScripts 决定脚本权限 */
 export function EmbedBlock({ props }: { props: Record<string, unknown> }) {
   const code = asString(props.code)
   const height = asNumber(props.height, 360)

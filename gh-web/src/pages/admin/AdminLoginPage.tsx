@@ -24,6 +24,7 @@ const DEMO_PASS = import.meta.env.VITE_ADMIN_DEMO_PASS ?? 'admin123'
  */
 const AUTO_LOGIN_ENABLED = import.meta.env.VITE_ADMIN_AUTO_LOGIN !== 'off'
 
+// 后台登录页：支持自动填充演示账号或手动登录，成功后跳回来源路径
 export function AdminLoginPage() {
   const { profile, loading, error: sessionError, login } = useAdminAuth()
   const navigate = useNavigate()

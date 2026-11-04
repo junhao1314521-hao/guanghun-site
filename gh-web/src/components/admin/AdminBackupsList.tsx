@@ -41,6 +41,7 @@ function formatTime(iso: string): string {
   return iso ? iso.replace('T', ' ').slice(0, 19) : '—'
 }
 
+/** 组件：渲染后台备份页，提供立即备份、下载、恢复、删除及内容导入/重置操作。 */
 export function AdminBackupsList() {
   const [reloadKey, setReloadKey] = useState(0)
   const state = useApi<BackupList>((signal) => listBackups(signal), [reloadKey])

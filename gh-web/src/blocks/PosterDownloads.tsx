@@ -78,6 +78,7 @@ function OsGlyph({ os }: { os: OsKind }) {
   )
 }
 
+/** 海报下载按钮组：按 downloadIds 从下载中心取数，渲染系统图标、版本要求与下载入口 */
 export function PosterDownloads({ data }: { data: PosterData }) {
   const { isHrefLive } = useSitePages()
   const ids = data.downloadIds

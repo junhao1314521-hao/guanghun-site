@@ -162,6 +162,7 @@ export function buildCollectionSeed(): CollectionMap {
 
 /** 英文覆盖层（懒加载并缓存：模块常量，进程内不变） */
 let enOverlayCache: ReturnType<typeof buildCollectionEnOverlays> | null = null
+/** 取英文覆盖层（懒构建一次并缓存），供集合数据按语言输出英文文案 */
 function enOverlays(): ReturnType<typeof buildCollectionEnOverlays> {
   if (!enOverlayCache) enOverlayCache = buildCollectionEnOverlays()
   return enOverlayCache

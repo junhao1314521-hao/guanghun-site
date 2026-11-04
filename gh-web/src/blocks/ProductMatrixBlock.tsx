@@ -35,6 +35,7 @@ type MatrixItem = {
   buttons: BlockLink[]
 }
 
+/** 把后台原始条目规范化为矩阵卡数据，并过滤无效按钮 */
 function toItem(value: unknown): MatrixItem {
   const record = asRecord(value)
   const buttons = asArray<unknown>(record.buttons)
@@ -75,6 +76,7 @@ function focusCss(focus: string): string {
   }
 }
 
+/** 产品矩阵区块：按列数、比例与裁切焦点渲染产品卡，移动端可横滑或网格 */
 export function ProductMatrixBlock({ props }: { props: Record<string, unknown> }) {
   const { isHrefLive } = useSitePages()
   const source = asString(props.source, 'product') === 'manual' ? 'manual' : 'product'

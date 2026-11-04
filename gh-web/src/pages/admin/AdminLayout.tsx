@@ -133,6 +133,7 @@ function NavEntry({ item, onNavigate }: { item: AdminNavItem; onNavigate: () => 
   )
 }
 
+// 读取侧栏导航的折叠项集合（localStorage），解析失败时返回空集合
 function readCollapsed(): ReadonlySet<string> {
   try {
     const raw = window.localStorage.getItem(NAV_COLLAPSE_KEY)
@@ -151,6 +152,7 @@ function readSideCollapsed(): boolean {
   }
 }
 
+// 后台整体布局：侧栏导航（搜索 / 折叠 / 拖拽调宽）+ 顶栏 + 路由内容区
 export function AdminLayout() {
   const { profile, loading, logout } = useAdminAuth()
   const { pathname } = useLocation()

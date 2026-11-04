@@ -14,10 +14,12 @@ let current: Theme = 'light'
 /** 站点默认主题（异步到达；null 视为 'auto'） */
 let siteDefault: SiteDefaultTheme | null = null
 
+// 读取系统配色偏好，返回 dark 或 light
 function systemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+// 读取本地保存的主题偏好，无有效值时返回 null
 export function getStoredTheme(): Theme | null {
   const value = localStorage.getItem(STORAGE_KEY)
   return value === 'light' || value === 'dark' ? value : null
@@ -36,22 +38,26 @@ function resolveTheme(): Theme {
   return systemTheme()
 }
 
+// 返回当前生效的主题
 export function getTheme(): Theme {
   return current
 }
 
+// 应用主题：写入根节点 data-theme 并通知所有订阅者
 export function applyTheme(theme: Theme): void {
   current = theme
   document.documentElement.setAttribute('data-theme', theme)
   listeners.forEach((notify) => notify())
 }
 
+// 明暗主题切换：持久化用户选择并立即应用
 export function toggleTheme(): void {
   const next: Theme = current === 'dark' ? 'light' : 'dark'
   localStorage.setItem(STORAGE_KEY, next)
   applyTheme(next)
 }
 
+// 订阅主题变化，返回取消订阅函数
 export function subscribeTheme(listener: () => void): () => void {
   listeners.add(listener)
   return () => {

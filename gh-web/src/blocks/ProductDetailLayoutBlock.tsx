@@ -19,10 +19,12 @@ import '../styles/product-detail-layouts.css'
 
 type Layout = 'toc' | 'tabs' | 'accordion' | 'long'
 
+/** 类型守卫：判断后台传入的布局值是否为受支持的四种布局之一 */
 function isLayout(value: unknown): value is Layout {
   return value === 'toc' || value === 'tabs' || value === 'accordion' || value === 'long'
 }
 
+/** 产品详情布局区块：读取当前产品详情，按 toc / tabs / accordion / long 选择布局渲染 */
 export function ProductDetailLayoutBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const detail = useProductDetail()

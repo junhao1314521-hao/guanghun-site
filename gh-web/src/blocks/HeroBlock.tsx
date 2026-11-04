@@ -21,6 +21,7 @@ import {
   toPoster,
 } from './PosterSlide'
 
+/** 首屏海报区块：渲染单张海报的媒体、文案与卖点，无媒体时回退代码动画背景 */
 export function HeroBlock({ props }: { props: Record<string, unknown> }) {
   const data = toPoster(props)
   const src = posterMediaSrc(data)

@@ -28,6 +28,7 @@ type EditorState = { open: false } | { open: true; mode: 'create' | 'edit'; key:
 
 const CLOSED: EditorState = { open: false }
 
+/** 组件：渲染角色管理页，支持新建、编辑、删除角色并配置权限范围。 */
 export function AdminRolesView() {
   const { profile } = useAdminAuth()
   const toast = useToast()

@@ -195,6 +195,7 @@ function MoveButtons({
   )
 }
 
+/** 组件：渲染多行文本编辑列表，支持增删行与上下移动。 */
 function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines: string[]) => void }) {
   return (
     <div className="builder-lines">

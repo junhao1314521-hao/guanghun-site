@@ -9,6 +9,7 @@ import { AdminNotFound } from '../../components/admin/AdminNotFound'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ErrorState } from '../../components/admin/states'
 
+// 分析主体：按 scope 请求分析数据，处理加载 / 错误态并渲染 KPI 卡片、趋势图与明细表
 function AnalyticsBody({ scope }: { scope: string }) {
   const state = useApi((signal) => fetchAdminAnalytics(scope, signal), [scope])
   const data = state.data
@@ -90,6 +91,7 @@ function AnalyticsBody({ scope }: { scope: string }) {
   )
 }
 
+// 数据分析页入口：校验路由中的 scope，非法时展示未找到，合法则渲染 AnalyticsBody
 export function AdminAnalyticsPage() {
   const { scope = '' } = useParams()
   if (!ANALYTICS_SCOPES.some((s) => s.scope === scope)) return <AdminNotFound title="未找到该分析" desc="该数据分析范围不存在。" />

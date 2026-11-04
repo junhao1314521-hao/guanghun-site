@@ -20,6 +20,7 @@ type Props = {
 const FOCUSABLE =
   'button:not([disabled]), a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
+/** 组件：渲染体验点详情弹窗，加载数据并处理焦点、滚动锁定与关闭。 */
 export function VenueDialog({ venueId, onClose }: Props) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)

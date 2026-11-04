@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { ConfirmContext, type ConfirmFn, type ConfirmOptions } from './feedback'
 
+/** 组件：提供 Promise 式全局确认对话框上下文，并渲染当前待确认弹窗。 */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<{ options: ConfirmOptions; resolve: (value: boolean) => void } | null>(null)
 
@@ -32,6 +33,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/** 组件：渲染确认弹窗，处理 Esc 关闭、焦点陷阱与确认/取消回调。 */
 function ConfirmDialog({ options, onResolve }: { options: ConfirmOptions; onResolve: (value: boolean) => void }) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)

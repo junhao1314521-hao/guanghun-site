@@ -108,6 +108,7 @@ const SHOWCASE_COPY_EN: Record<string, string> = {
     '26.5" 2K@500Hz QD-OLED with full-speed DP 2.1 and 0.03 ms GTG response.',
 }
 
+/** 构建首页英文变体：首屏、海报、产品矩阵、固件、留言与信任栏区块 */
 function buildHomeEn(): Page {
   return toPage('home', '/', 'Home', 'Homepage: hero, five posters, product matrix, firmware, message and trust bar.', [
     {
@@ -685,6 +686,7 @@ function buildBusinessEn(): Page {
   ])
 }
 
+/** 商务合作「场景方案」页英文变体（cards 区块） */
 function buildBusinessScenesEn(): Page {
   return toPage('business-scenes', '/business/scenes', 'Partnership scenarios', 'Scenarios + data-source block.', [
     {
@@ -702,6 +704,7 @@ function buildBusinessScenesEn(): Page {
   ])
 }
 
+/** 商务合作「案例」页英文变体（caseList 区块，数据由集合层提供） */
 function buildBusinessCasesEn(): Page {
   return toPage('business-cases', '/business/cases', 'Case studies', 'Case studies + data-source block.', [
     {
@@ -719,6 +722,7 @@ function buildBusinessCasesEn(): Page {
   ])
 }
 
+/** 商务合作「体验网点」页英文变体（venueList + b2bValue 区块） */
 function buildBusinessVenuesEn(): Page {
   return toPage('business-venues', '/business/venues', 'Experience spots', 'Venues + data-source block.', [
     {
@@ -886,6 +890,7 @@ function buildNewsEn(): Page {
   ], false)
 }
 
+/** 产品总览页英文变体：说明文本 + 产品网格（全部 / 手选 / 分类） */
 function buildProductsEn(): Page {
   return toPage('products', '/products', 'Products', 'Products + data-source block.', [
     { type: 'text', props: { title: 'Products', body: 'Filter in-stock products by category, connection and price.', align: 'left' } },
@@ -897,6 +902,7 @@ function buildProductsEn(): Page {
   ])
 }
 
+/** 天梯榜页英文变体：说明文本、总体排行与方法列表 */
 function buildLadderEn(): Page {
   return toPage('ladder', '/ladder', 'Rankings', 'Rankings + data-source block.', [
     {
@@ -912,6 +918,7 @@ function buildLadderEn(): Page {
   ])
 }
 
+/** 文章列表页英文变体：说明文本 + 文章列表（全部 / 手选） */
 function buildArticlesEn(): Page {
   return toPage('articles', '/articles', 'Articles', 'Articles + data-source block.', [
     { type: 'text', props: { title: 'Articles', body: 'Reviews, tutorials and industry notes. Params and methods are public; sources are traceable.', align: 'left' } },
@@ -921,6 +928,7 @@ function buildArticlesEn(): Page {
   ], false)
 }
 
+/** 下载中心页英文变体：说明文本 + 下载列表（全部 / 推荐） */
 function buildDownloadsEn(): Page {
   return toPage('downloads', '/downloads', 'Downloads', 'Downloads + data-source block.', [
     { type: 'text', props: { title: 'Downloads', body: 'Drivers, firmware and manuals. One file can map to multiple models.', align: 'left' } },
@@ -930,6 +938,7 @@ function buildDownloadsEn(): Page {
   ])
 }
 
+/** 常见问题页英文变体：说明文本 + FAQ 列表 */
 function buildFaqEn(): Page {
   return toPage('faq', '/faq', 'FAQ', 'FAQ + data-source block.', [
     { type: 'text', props: { title: 'FAQ', body: 'High-frequency questions on driver install, pairing, firmware and after-sales.', align: 'left' } },
@@ -937,6 +946,7 @@ function buildFaqEn(): Page {
   ])
 }
 
+/** 型号支持索引页英文变体：机型卡片，跳转到各型号支持详情 */
 function buildModelSupportEn(): Page {
   return toPage('model-support', '/support/models', 'Model support', 'Model support index.', [
     {
@@ -960,6 +970,7 @@ function buildModelSupportEn(): Page {
   ])
 }
 
+/** 在线咨询（提交工单）页英文变体：contact 表单区块 */
 function buildInquiryEn(): Page {
   return toPage('inquiry', '/inquiry', 'Submit a ticket', 'Submit a ticket.', [
     {

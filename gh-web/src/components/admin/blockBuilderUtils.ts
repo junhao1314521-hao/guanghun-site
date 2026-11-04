@@ -149,6 +149,7 @@ export function blockListKey(blocks: Block[], id: string): string | null {
   return listKeyOf(blocks, id, 'root')
 }
 
+/** 递归查找区块所属同层列表键，未找到返回 null。 */
 function listKeyOf(blocks: Block[], id: string, key: string): string | null {
   if (blocks.some((block) => block.id === id)) return key
   for (const block of blocks) {
@@ -298,6 +299,7 @@ const BLOCK_ICON: Record<BlockType, string> = {
   longImage: 'doc',
 }
 
+/** 返回区块类型对应的图标键，未知类型回退为 grid。 */
 export function blockIcon(type: BlockType): string {
   return BLOCK_ICON[type] ?? 'grid'
 }

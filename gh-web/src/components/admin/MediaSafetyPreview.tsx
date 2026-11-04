@@ -10,6 +10,7 @@
  */
 import { ratioToAspect } from './mediaHints'
 
+/** 组件：渲染海报安全区示意框，展示比例与建议尺寸。 */
 export function MediaSafetyPreview({ ratio, size }: { ratio: string; size: string }) {
   return (
     <div className="media-safety">

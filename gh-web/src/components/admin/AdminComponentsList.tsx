@@ -26,6 +26,7 @@ function describeType(meta: BlockTypeMeta): string {
   return labels.length > 0 ? labels.join('、') : '（无字段）'
 }
 
+/** 组件：按分组渲染区块类型目录，并支持启用/停用组件类型。 */
 export function AdminComponentsList() {
   const state = useApi<BlockTypeMeta[]>((signal) => fetchBlockTypeCatalog(signal), [])
   const toast = useToast()

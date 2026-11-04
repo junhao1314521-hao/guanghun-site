@@ -53,6 +53,7 @@ function FilterChips({
   )
 }
 
+/** 常见问题列表区块：按来源取数，支持分类筛选、关键词搜索与分页 */
 export function FaqListBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const source = asString(props.source, 'support')

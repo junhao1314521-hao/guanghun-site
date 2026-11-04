@@ -538,6 +538,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
   'zh-HK': {},
 }
 
+// 类型守卫：判断字符串是否为已支持的语言码
 function isLangCode(code: string): code is LangCode {
   // 用「已知语言」校验（而非下拉的「可选列表」）：繁体虽已从下拉下线，
   // 但仍需被识别为合法语言码，才能走到下面的「建设中」提示分支（不拿中文冒充）。
@@ -566,6 +567,7 @@ function readUrlLang(): LangCode | null {
   return null
 }
 
+// 模板插值：把 {key} 占位符替换为传入的变量值
 function interpolate(text: string, vars?: Record<string, string | number>): string {
   if (!vars) return text
   let out = text
@@ -587,6 +589,7 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null)
 
+// 国际化上下文提供者：初始化并持久化语言，向下提供翻译方法与当前语言
 export function I18nProvider({ children }: { children: ReactNode }) {
   // 懒初始化：在首次渲染（早于子组件）确定初始语言并同步给接口层，
   // 保证「刷新后仍是英文 / 以 ?lang=en 进入」时首个数据请求就带上 `?locale=en`。
@@ -636,6 +639,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
+// 读取国际化上下文（t、lang、setLang 等），须在 I18nProvider 内使用
 export function useI18n(): I18nValue {
   const ctx = useContext(I18nContext)
   if (!ctx) throw new Error('useI18n 必须在 <I18nProvider> 内使用')

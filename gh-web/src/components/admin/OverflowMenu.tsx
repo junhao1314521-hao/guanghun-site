@@ -20,6 +20,7 @@ export type OverflowMenuItem = {
   title?: string
 }
 
+/** 组件：渲染溢出操作菜单，支持跳转项、动作项及外部点击/Esc 关闭。 */
 export function OverflowMenu({
   items,
   label = '更多操作',

@@ -47,6 +47,7 @@ const ICONS: Record<string, (props: { size?: number; accent?: boolean }) => Reac
 /** 标题图标可用名称（供后台下拉复用） */
 export const BLOCK_ICON_NAMES = Object.keys(ICONS)
 
+/** 组件：按名称渲染区块标题图标，未知名称返回 null。 */
 export function BlockIcon({ name, size = 18, accent }: { name?: string; size?: number; accent?: boolean }) {
   if (!name) return null
   const Comp = ICONS[name]

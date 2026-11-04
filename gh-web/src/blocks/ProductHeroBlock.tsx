@@ -49,10 +49,12 @@ const COLOR_DOT: Array<[string, string]> = [
   ['金', '#C9A24B'],
 ]
 
+/** 根据颜色名中的关键词匹配色点色值，未命中时返回 undefined */
 function colorDotOf(value: string): string | undefined {
   return COLOR_DOT.find(([keyword]) => value.includes(keyword))?.[1]
 }
 
+/** 产品详情首屏区块：渲染相册、灯箱、价格与购买入口，并处理收藏与配色选择 */
 export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const navigate = useNavigate()

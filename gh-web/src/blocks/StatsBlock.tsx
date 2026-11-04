@@ -63,6 +63,7 @@ function Odometer({ value, delay = 0 }: { value: string; delay?: number }) {
   )
 }
 
+/** 数据统计区块：渲染带数字滚动动画的指标卡与脚注，无数据且无标题时不渲染 */
 export function StatsBlock({ props }: { props: Record<string, unknown> }) {
   const items = asStatItems(props.items)
   const footnote = asString(props.footnote)

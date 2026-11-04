@@ -10,6 +10,7 @@ import { asArray, asRecord, asString } from './blockUtils'
 
 type LongImageItem = { image: string; imageMobile: string; alt: string }
 
+/** 长图区块：多张切片按顺序无缝拼接，窄屏优先 imageMobile，可选整块链接跳转 */
 export function LongImageBlock({ props }: { props: Record<string, unknown> }) {
   const href = asString(props.href)
   const items: LongImageItem[] = asArray(props.items)

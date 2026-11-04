@@ -35,6 +35,7 @@ function formatTime(iso: string): string {
   return iso ? iso.replace('T', ' ').slice(0, 19) : '—'
 }
 
+/** 组件：渲染回收站列表，支持恢复与彻底删除条目。 */
 export function AdminTrashList() {
   const [reloadKey, setReloadKey] = useState(0)
   const state = useApi<AdminTrashList>((signal) => fetchAdminTrash(signal), [reloadKey])

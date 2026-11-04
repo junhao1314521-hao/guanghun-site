@@ -9,6 +9,7 @@ import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { useI18n } from '../i18n'
 import { asString, asStringArray } from './blockUtils'
 
+/** 购买区按钮：按 href 是否为站内路径选择 SafeLink 或原生 a，label 为空时不渲染 */
 function CtaButton({ label, href, primary }: { label: string; href: string; primary: boolean }) {
   if (!label) return null
   const className = `btn ${primary ? 'btn--primary' : 'btn--secondary'} btn--lg`
@@ -23,6 +24,7 @@ function CtaButton({ label, href, primary }: { label: string; href: string; prim
   )
 }
 
+/** 产品购买 / 咨询区块：渲染主次转化按钮与保障要点列表 */
 export function ProductBuyBlock({ props }: { props: Record<string, unknown> }) {
   const { t } = useI18n()
   const points = asStringArray(props.points)

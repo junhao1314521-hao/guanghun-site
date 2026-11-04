@@ -54,6 +54,7 @@ const MOTION_FALLBACK: PosterData = toPoster({
   contentPosition: { x: 50, y: 32 },
 })
 
+/** 首屏轮播区块：把 slides 转成海报，可选插入代码动画首帧，按高度档位自动播放 */
 export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
   const slides = asArray(props.slides).map(toPoster)
   const autoplay = asBool(props.autoplay, true)

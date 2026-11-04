@@ -18,6 +18,7 @@ type Props = {
   onClusterSelect?: (province: string) => void
 }
 
+/** 辅助函数：把文本中的 & < > " ' 转义为 HTML 实体。 */
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => {
     const map: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
@@ -25,6 +26,7 @@ function escapeHtml(value: string): string {
   })
 }
 
+/** 生成地图信息窗 HTML（名称、地址、产品与导航/详情链接）。 */
 function infoHtml(venue: VenuePoint): string {
   const models = (venue.products ?? []).map((model) => `<span class="venue-map__model">${escapeHtml(model)}</span>`).join('')
   return `<div class="venue-map__info">
@@ -38,6 +40,7 @@ function infoHtml(venue: VenuePoint): string {
   </div>`
 }
 
+/** 组件：渲染体验点地图，支持省份聚合与单店点位两种模式。 */
 export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, onClusterSelect }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<AMapMap | null>(null)

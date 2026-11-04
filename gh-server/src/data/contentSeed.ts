@@ -157,6 +157,7 @@ function posterButtons(detailHref: string): { primary: Record<string, unknown> }
 /** 海报文案位置：水平居中、纵向靠上（复刻客户参考：标题落在卡高约 16% 处，下方留给产品主体） */
 const POSTER_POSITION = { x: 50, y: 16 }
 
+/** 构建首页种子页：首屏、场景、重点产品、天梯榜、评测、品牌、服务、合作与新闻区块 */
 function buildHome(): Page {
   return toPage('home', '/', '首页', '首页装修：首屏、场景、重点产品、天梯榜、评测、品牌、服务、合作与新闻。', [
     {

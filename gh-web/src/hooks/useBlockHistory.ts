@@ -50,6 +50,7 @@ const snap = (blocks: Block[]): BlockSnapshot => ({ blocks, at: Date.now() })
 const trim = (list: BlockSnapshot[]): BlockSnapshot[] =>
   list.length > HISTORY_LIMIT ? list.slice(list.length - HISTORY_LIMIT) : list
 
+// 区块历史 Hook：维护撤销 / 重做栈，返回 blocks 与 apply、undo、redo 等操作
 export function useBlockHistory(initial: Block[]): BlockHistory {
   const [state, setState] = useState<HistoryState>({ blocks: initial, past: [], future: [], lastGroup: null })
 

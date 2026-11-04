@@ -36,6 +36,7 @@ function normalize(items: VenueSummary[]): VenueSummary[] {
   return items.map((item) => ({ ...item, lat: Number(item.lat), lng: Number(item.lng) }))
 }
 
+/** 产品体验点探索区块：渲染筛选器、门店列表与地图，支持定位就近排序与详情切换 */
 export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }) {
   const eyebrow = asString(props.eyebrow, 'PRODUCT EXPERIENCE')
   const title = asString(props.title, '产品体验点')
@@ -654,6 +655,7 @@ function Odometer({ value }: { value: number }) {
   )
 }
 
+/** 门店列表行：展示名称、地址与距离，点击切换当前选中门店 */
 function VenueRow({
   venue,
   active,

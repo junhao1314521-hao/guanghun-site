@@ -16,6 +16,7 @@ import { logger } from '../lib/logger'
 /** 已知栏目 key 集合（seed key ∪ 库中已有 key），按 DB 路径缓存 */
 let knownKeysCache: Set<string> | null = null
 let knownKeysPath = ''
+/** 取已知栏目 key 集合（seed key ∪ 库中已有 key）；按当前 DB 路径缓存，路径变化时重建 */
 function knownKeys(): Set<string> {
   const current = resolveDbPath()
   if (knownKeysCache && knownKeysPath === current) return knownKeysCache

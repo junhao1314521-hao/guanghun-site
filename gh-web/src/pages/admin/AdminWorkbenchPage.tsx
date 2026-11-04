@@ -49,6 +49,7 @@ function formatUptime(sec: number): string {
   return `${minutes} 分钟`
 }
 
+// 后台工作台：拉取概览数据，展示今日焦点待办、关键指标与快捷入口
 export function AdminWorkbenchPage() {
   const state = useApi((signal) => fetchAdminOverview(signal), [])
   const overview = state.data

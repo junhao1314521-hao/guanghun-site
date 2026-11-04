@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import type { Block } from './types'
 import { asArray, asNumber, asString } from './blockUtils'
 
+/** 布局容器区块：按列数把子区块分组，并交给 render 回调逐列渲染（只允许一层嵌套） */
 export function LayoutBlock({
   props,
   render,

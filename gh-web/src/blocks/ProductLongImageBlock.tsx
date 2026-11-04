@@ -9,6 +9,7 @@
 import { useProductDetail } from './ProductDetailContext'
 import { LongImageBlock } from './LongImageBlock'
 
+/** 产品 H5 长图区块：把桌面 / 移动切片按索引对齐后交给长图组件拼接 */
 export function ProductLongImageBlock({ props }: { props: Record<string, unknown> }) {
   const detail = useProductDetail()
   const desktop = detail?.h5LongImages ?? []

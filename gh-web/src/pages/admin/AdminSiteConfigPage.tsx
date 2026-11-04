@@ -222,6 +222,7 @@ function ShopChannelEditor({ channels, onChange }: { channels: ShopChannel[]; on
  */
 const MAX_FOOTER_GROUPS = 3
 
+// 页脚分组编辑器：增删、排序分组并编辑标题与链接，变更后整体回传
 function FooterEditor({ groups, onChange }: { groups: SiteFooterGroup[]; onChange: (groups: SiteFooterGroup[]) => void }) {
   const updateGroup = (index: number, patch: Partial<SiteFooterGroup>) => {
     const next = groups.slice()

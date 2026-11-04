@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { asString } from './blockUtils'
 import { sanitizeHtmlBlock } from './sanitize'
 
+/** 自定义 HTML 区块：白名单净化后以 dangerouslySetInnerHTML 输出静态 HTML */
 export function HtmlBlock({ props }: { props: Record<string, unknown> }) {
   const html = asString(props.html)
   const safeHtml = useMemo(() => sanitizeHtmlBlock(html), [html])

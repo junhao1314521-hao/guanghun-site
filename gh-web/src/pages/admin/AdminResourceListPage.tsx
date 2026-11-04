@@ -51,6 +51,7 @@ const STATUS_LEVELS: readonly StatusTone[] = ['success', 'warning', 'danger', 'i
 
 const KIND_ICON: Record<string, string> = { 图片: 'grid', 视频: 'monitor', 文档: 'doc' }
 
+// 状态值归一化为色板级别：合法值直接用，否则查表映射，兜底 muted
 function statusTone(value: string): StatusTone {
   if ((STATUS_LEVELS as readonly string[]).includes(value)) return value as StatusTone
   return STATUS_TONE[value] ?? 'muted'
@@ -76,6 +77,7 @@ function sortKey(value: unknown): number | string {
   return cellText(value)
 }
 
+// 通用比较器：数字比大小，其余按中文本地化字符串排序
 function compareValues(a: unknown, b: unknown): number {
   const va = sortKey(a)
   const vb = sortKey(b)
@@ -147,6 +149,7 @@ function pageWindow(page: number, total: number): Array<number | '…'> {
   return out
 }
 
+// 分页器：渲染页码窗口与上一页 / 下一页，仅一页时不渲染
 function AdminPager({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
   if (totalPages <= 1) return null
   const pages = pageWindow(page, totalPages)
@@ -245,6 +248,7 @@ function LegalImportButton() {
   )
 }
 
+// 通用资源列表主体：拉取数据并实现搜索、列筛选、排序、分页与删除
 function ResourceListBody({ resource }: { resource: AdminResource }) {
   const state = useApi<AdminList>((signal) => fetchAdminResource(resource.key, signal), [resource.key])
   const confirm = useConfirm()
@@ -666,6 +670,7 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
   )
 }
 
+// 资源列表页入口：按 key 取配置，并按产品 / 页面 / 素材 / 组件等专用视图分发
 export function AdminResourceListPage() {
   const { key = '' } = useParams()
   const resource = adminResource(key)

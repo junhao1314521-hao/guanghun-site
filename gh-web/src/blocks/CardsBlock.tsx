@@ -48,6 +48,7 @@ type CardItem = {
 /** 下载按钮目标：external 为真实文件地址（<a download>），否则为站内下载页（<Link>） */
 type DownloadTarget = { href: string; external: boolean }
 
+/** 把后台原始条目规范化为 CardItem（媒体类型仅保留 image / video / gif） */
 function toItem(value: unknown): CardItem {
   const record = asRecord(value)
   const rawType = asString(record.mediaType, 'image')
@@ -236,6 +237,7 @@ function SpotlightRow({ item, index }: { item: CardItem; index: number }) {
   )
 }
 
+/** 通用卡片区块：支持网格 / 横滑 / 聚光灯等布局，按需补充下载信息并处理链接下线级联 */
 export function CardsBlock({ props }: { props: Record<string, unknown> }) {
   const { isHrefLive } = useSitePages()
   const navigate = useNavigate()

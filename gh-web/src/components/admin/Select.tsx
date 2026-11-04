@@ -17,6 +17,7 @@ import { IconChevronDown, IconCheck } from '../ui/Icon'
 
 export type SelectOption = { value: string; label: string; disabled?: boolean }
 
+/** 组件：渲染无障碍自定义下拉选择，受控返回选中值。 */
 export function Select({
   value,
   onChange,

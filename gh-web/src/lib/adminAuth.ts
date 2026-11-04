@@ -8,6 +8,7 @@
 
 const TOKEN_KEY = 'gh-admin-token'
 
+// 读取 localStorage 中的后台令牌，不可用时返回 null
 export function getAdminToken(): string | null {
   try {
     return window.localStorage.getItem(TOKEN_KEY)
@@ -16,6 +17,7 @@ export function getAdminToken(): string | null {
   }
 }
 
+// 将后台令牌写入 localStorage（隐私模式下失败静默忽略）
 export function setAdminToken(token: string): void {
   try {
     window.localStorage.setItem(TOKEN_KEY, token)
@@ -24,6 +26,7 @@ export function setAdminToken(token: string): void {
   }
 }
 
+// 清除本地保存的后台令牌
 export function clearAdminToken(): void {
   try {
     window.localStorage.removeItem(TOKEN_KEY)

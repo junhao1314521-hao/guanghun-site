@@ -13,6 +13,7 @@ const box = (size: number) => ({ width: size, height: size, viewBox: `0 0 ${size
  */
 const snap = (v: number) => Math.round(v * 2) / 2
 
+/** 搜索图标（放大镜）。 */
 export function IconSearch({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -22,6 +23,7 @@ export function IconSearch({ size = 18, className }: IconProps) {
   )
 }
 
+/** 地球图标（语言/地区）。 */
 export function IconGlobe({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -36,6 +38,7 @@ export function IconGlobe({ size = 18, className }: IconProps) {
   )
 }
 
+/** 太阳图标（浅色主题）。 */
 export function IconSun({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -60,6 +63,7 @@ export function IconSun({ size = 18, className }: IconProps) {
   )
 }
 
+/** 月亮图标（深色主题）。 */
 export function IconMoon({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -73,6 +77,7 @@ export function IconMoon({ size = 18, className }: IconProps) {
   )
 }
 
+/** 客服耳机图标。 */
 export function IconSupport({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -83,6 +88,7 @@ export function IconSupport({ size = 18, className }: IconProps) {
   )
 }
 
+/** 用户头像图标。 */
 export function IconAccount({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -113,6 +119,7 @@ export function IconShop({ size = 18, className }: IconProps) {
   )
 }
 
+/** 汉堡菜单图标。 */
 export function IconMenu({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -121,6 +128,7 @@ export function IconMenu({ size = 18, className }: IconProps) {
   )
 }
 
+/** 关闭（叉号）图标。 */
 export function IconClose({ size = 18, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -129,6 +137,7 @@ export function IconClose({ size = 18, className }: IconProps) {
   )
 }
 
+/** 向下折叠箭头图标。 */
 export function IconChevronDown({ size = 14, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -146,6 +155,7 @@ export function IconCheck({ size = 14, className }: IconProps) {
   )
 }
 
+/** 左箭头图标。 */
 export function IconChevronLeft({ size = 16, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -154,6 +164,7 @@ export function IconChevronLeft({ size = 16, className }: IconProps) {
   )
 }
 
+/** 右箭头图标。 */
 export function IconChevronRight({ size = 16, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -251,6 +262,7 @@ export function IconCollapse({ size = 16, className }: IconProps) {
   )
 }
 
+/** 电话图标。 */
 export function IconPhone({ size = 15, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -264,6 +276,7 @@ export function IconPhone({ size = 15, className }: IconProps) {
   )
 }
 
+/** 邮件图标。 */
 export function IconMail({ size = 15, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -273,6 +286,7 @@ export function IconMail({ size = 15, className }: IconProps) {
   )
 }
 
+/** 定位图钉图标。 */
 export function IconPin({ size = 15, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -306,6 +320,7 @@ export function IconModel({ size = 20, className }: IconProps) {
   return <IconSearch size={size} className={className} />
 }
 
+/** 下载图标。 */
 export function IconDownload({ size = 20, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -316,6 +331,7 @@ export function IconDownload({ size = 20, className }: IconProps) {
   )
 }
 
+/** 帮助（问号）图标。 */
 export function IconHelp({ size = 20, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -326,6 +342,7 @@ export function IconHelp({ size = 20, className }: IconProps) {
   )
 }
 
+/** 对话气泡图标。 */
 export function IconChat({ size = 20, className }: IconProps) {
   return (
     <svg {...box(size)} fill="none" aria-hidden="true" className={className}>
@@ -353,6 +370,7 @@ export function IconChip({ size = 20, className, accent }: IconProps) {
   )
 }
 
+/** 安全盾牌图标。 */
 export function IconShield({ size = 20, className, accent }: IconProps) {
   const s = size
   const ac = accent ? 'ic-accent' : undefined
@@ -369,6 +387,7 @@ export function IconShield({ size = 20, className, accent }: IconProps) {
   )
 }
 
+/** 文档搜索图标。 */
 export function IconDocSearch({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -381,6 +400,7 @@ export function IconDocSearch({ size = 20, className }: IconProps) {
   )
 }
 
+/** 带勾选的圆形图标。 */
 export function IconCheckCircle({ size = 20, className, accent }: IconProps) {
   const s = size
   const ac = accent ? 'ic-accent' : undefined
@@ -404,6 +424,7 @@ export function IconCube({ size = 20, className, accent }: IconProps) {
   )
 }
 
+/** 显示器图标。 */
 export function IconMonitor({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -414,6 +435,7 @@ export function IconMonitor({ size = 20, className }: IconProps) {
   )
 }
 
+/** 奖杯图标。 */
 export function IconTrophy({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -429,6 +451,7 @@ export function IconTrophy({ size = 20, className }: IconProps) {
   )
 }
 
+/** 学士帽图标。 */
 export function IconCap({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -439,6 +462,7 @@ export function IconCap({ size = 20, className }: IconProps) {
   )
 }
 
+/** 书籍图标。 */
 export function IconBook({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -454,6 +478,7 @@ export function IconBook({ size = 20, className }: IconProps) {
   )
 }
 
+/** 双圆交集图标。 */
 export function IconVenn({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -488,6 +513,7 @@ export function IconGrid({ size = 20, className }: IconProps) {
   )
 }
 
+/** 键盘图标。 */
 export function IconKeyboard({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -503,6 +529,7 @@ export function IconKeyboard({ size = 20, className }: IconProps) {
   )
 }
 
+/** 调节滑块图标。 */
 export function IconSliders({ size = 20, className, accent }: IconProps) {
   const s = size
   const ac = accent ? 'ic-accent' : undefined
@@ -526,6 +553,7 @@ export function IconSliders({ size = 20, className, accent }: IconProps) {
   )
 }
 
+/** 刷新/循环箭头图标。 */
 export function IconRefresh({ size = 20, className, accent }: IconProps) {
   const s = size
   const ac = accent ? 'ic-accent' : undefined
@@ -537,6 +565,7 @@ export function IconRefresh({ size = 20, className, accent }: IconProps) {
   )
 }
 
+/** 云图标。 */
 export function IconCloud({ size = 20, className }: IconProps) {
   const s = size
   return (
@@ -551,6 +580,7 @@ export function IconCloud({ size = 20, className }: IconProps) {
   )
 }
 
+/** 心形图标。 */
 export function IconHeart({ size = 18, className }: IconProps) {
   const s = size
   return (

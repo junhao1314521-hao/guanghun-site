@@ -379,6 +379,7 @@ function RecordsField({ field, value, onChange }: { field: AdminField; value: un
   )
 }
 
+// 通用资源表单：按资源配置渲染字段，校验后新建或更新，脏数据时拦截离开
 function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?: string; initial: AdminRow }) {
   const isEdit = Boolean(id)
   const navigate = useNavigate()
@@ -605,6 +606,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
   )
 }
 
+// 表单容器：编辑态按 id 拉取详情并处理加载 / 错误态，再交给 ResourceForm 渲染
 function ResourceFormBody({ resource, id }: { resource: AdminResource; id?: string }) {
   const isEdit = Boolean(id)
   const detailState = useApi<AdminDetail>(
@@ -638,6 +640,7 @@ function ResourceFormBody({ resource, id }: { resource: AdminResource; id?: stri
   )
 }
 
+// 资源表单页入口：按 URL 中的 key 解析资源配置，不存在时展示未找到
 export function AdminResourceFormPage() {
   const { key = '', id } = useParams()
   const resource = adminResource(key)

@@ -15,6 +15,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useConfirm } from '../components/admin/feedback'
 
+// 未保存修改拦截 Hook：同时处理刷新 / 关闭与站内路由跳转前的确认
 export function useUnsavedGuard(dirty: boolean, message = '有未保存的修改，离开后将会丢失。确定离开吗？') {
   const navigate = useNavigate()
   const confirm = useConfirm()

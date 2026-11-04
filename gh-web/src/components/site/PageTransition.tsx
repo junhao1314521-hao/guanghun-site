@@ -12,6 +12,7 @@
 import type { ReactNode } from 'react'
 import { prefersReducedMotion } from '../../lib/motion'
 
+/** 组件：按 pathname 触发新页面入场动画并包裹子内容。 */
 export function PageTransition({ pathname, children }: { pathname: string; children: ReactNode }) {
   const reduced = prefersReducedMotion()
   return (

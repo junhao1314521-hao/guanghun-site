@@ -40,6 +40,7 @@ declare global {
 
 let loaderPromise: Promise<AMapApi> | null = null
 
+/** 懒加载高德地图脚本并返回 AMap 实例，复用同一加载 Promise。 */
 export function loadAmap(): Promise<AMapApi> {
   const key = import.meta.env.VITE_AMAP_KEY as string | undefined
   const securityCode = import.meta.env.VITE_AMAP_SECURITY_CODE as string | undefined
@@ -62,6 +63,7 @@ export function loadAmap(): Promise<AMapApi> {
   return loaderPromise
 }
 
+/** 辅助函数：把文本中的 & < > " ' 转义为 HTML 实体。 */
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => {
     const map: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
@@ -69,6 +71,7 @@ function escapeHtml(value: string): string {
   })
 }
 
+/** 组件：渲染高德地图与体验点标记，同步选中态并回调选择。 */
 export function VenueMap({
   venues,
   activeId,

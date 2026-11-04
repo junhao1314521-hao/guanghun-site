@@ -19,6 +19,7 @@ type Props = {
   fallback: ReactNode
 }
 
+/** 组件：按当前路径查询内容库页面并渲染，未命中时显示 fallback。 */
 export function DynamicPage({ fallback }: Props) {
   const { pathname } = useLocation()
   const { lang } = useI18n()

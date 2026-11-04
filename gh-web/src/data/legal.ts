@@ -118,6 +118,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
   },
 ]
 
+// 按 slug 查找法律文档，未找到返回 undefined
 export function findLegalDoc(slug?: string): LegalDoc | undefined {
   return LEGAL_DOCS.find((doc) => doc.slug === slug)
 }

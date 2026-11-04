@@ -82,6 +82,7 @@ export type AdminProfile = {
   scopes: string[]
 }
 
+/** 把后台账号领域对象裁剪为对外资料（补角色中文名与派生权限集），不暴露盐与哈希 */
 export function toProfile(user: AdminUser): AdminProfile {
   return {
     id: user.id,

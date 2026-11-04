@@ -25,6 +25,7 @@ export type ImageFieldProps = {
   previewClassName?: string
 }
 
+/** 组件：图片字段，FileField 的图片模式封装，仅接受图片并提供预览。 */
 export function ImageField(props: ImageFieldProps) {
   return <FileField variant="image" {...props} />
 }

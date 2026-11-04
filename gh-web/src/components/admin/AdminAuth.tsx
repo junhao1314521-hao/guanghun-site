@@ -22,6 +22,7 @@ type AdminAuthValue = {
 
 const AdminAuthContext = createContext<AdminAuthValue | null>(null)
 
+/** 组件：校验后台会话（Cookie）并将 profile、登录态与 login/logout 提供给上下文。 */
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AdminProfile | null>(null)
   // 启动即校验：Cookie 可能已存在，故始终进入 loading 直至 /auth/me 返回
@@ -72,6 +73,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/** Hook：读取后台会话上下文；须在 AdminAuthProvider 内使用，返回 profile/loading/error/login/logout。 */
 export function useAdminAuth(): AdminAuthValue {
   const value = useContext(AdminAuthContext)
   if (!value) throw new Error('useAdminAuth 必须在 AdminAuthProvider 内使用')

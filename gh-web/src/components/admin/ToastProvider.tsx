@@ -14,6 +14,7 @@ type ToastItem = { id: number; message: string; tone: ToastTone }
 /** 自动消失时长（与前台 demo-toast 量级一致） */
 const TOAST_DURATION = 3200
 
+/** 组件：提供全局 Toast 上下文并渲染右下角自动消失的提示队列。 */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
   const idRef = useRef(0)

@@ -18,6 +18,7 @@ import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, gridClass, pickByIds } from './blockUtils'
 
+/** 客户案例列表区块：拉取案例数据，按范围挑选、分页，并支持网格 / 横滑布局 */
 export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
   const scope = asString(props.scope, 'all')
   const ids = asStringArray(props.ids)

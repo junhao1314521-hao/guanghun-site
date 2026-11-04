@@ -84,6 +84,7 @@ export function compareProducts(ids: string[]): Product[] {
     .filter((item): item is Product => Boolean(item))
 }
 
+// 将跑分指标转换为通用结果结构，可覆写展示标签
 function fromMetric(metric: LadderMetric, label?: string): LadderMetricResult {
   return {
     metric: metric.id,
@@ -93,6 +94,7 @@ function fromMetric(metric: LadderMetric, label?: string): LadderMetricResult {
   }
 }
 
+// 按 id 查找跑分指标，未找到时回退第一项
 function findMetric(id: string): LadderMetric {
   return LADDER_METRICS.find((item) => item.id === id) ?? LADDER_METRICS[0]
 }

@@ -14,6 +14,7 @@ import { asArray, asBool, asString } from './blockUtils'
 
 type ValueItem = { icon: string; title: string; desc: string }
 
+/** B2B 采购价值区块：渲染价值点卡片，并在开启 showContact 时提供可复制的联系方式 */
 export function B2bValueBlock({ props }: { props: Record<string, unknown> }) {
   const items: ValueItem[] = asArray<Record<string, unknown>>(props.items)
     .map((item) => ({

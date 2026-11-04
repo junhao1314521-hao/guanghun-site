@@ -91,6 +91,7 @@ export type AdminTourValue = { start: () => void }
 
 export const AdminTourContext = createContext<AdminTourValue | null>(null)
 
+/** Hook：读取后台引导上下文；须在 AdminTourProvider 内使用，返回 start()。 */
 export function useAdminTour(): AdminTourValue {
   const value = useContext(AdminTourContext)
   if (!value) throw new Error('useAdminTour 必须在 AdminTourProvider 内使用')

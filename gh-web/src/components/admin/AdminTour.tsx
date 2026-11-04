@@ -48,6 +48,7 @@ function cardStyle(rect: DOMRect | null): { top: number; left: number; arrowTop:
   return { top, left, arrowTop }
 }
 
+/** 组件：提供后台新手引导上下文，首次进入时自动弹出分步引导。 */
 export function AdminTourProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const titleId = useId()

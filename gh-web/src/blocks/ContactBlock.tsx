@@ -19,6 +19,7 @@ const DEFAULT_POINTS: Record<string, string[]> = {
   business: ['渠道 / 送测 / 赛事合作皆可', '工作日 1–2 个工作日回复', '提交后进入统一工单系统'],
 }
 
+/** 联系区块：按渠道渲染标题与要点，可选择内嵌咨询表单或静态联系信息 */
 export function ContactBlock({ props }: { props: Record<string, unknown> }) {
   const title = asString(props.title)
   const desc = asString(props.desc)

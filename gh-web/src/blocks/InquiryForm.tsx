@@ -35,6 +35,7 @@ export function topicsForType(type: string): string[] {
   return INQUIRY_ROUTING.find((entry) => entry.value === type)?.topics ?? INQUIRY_ROUTING[1].topics
 }
 
+/** 生成咨询表单初始值：启用分流时默认选中「售后」类型及其首个主题 */
 function emptyForm(routingEnabled: boolean): InquiryBody {
   return {
     name: '',
@@ -78,6 +79,7 @@ export function InquiryForm({ title, desc, points, routingEnabled }: InquiryForm
     setErrors((prev) => (prev.topic ? { ...prev, topic: '' } : prev))
   }
 
+  /** 提交咨询表单：前端校验必填项与验证码，通过后调用接口并展示结果 */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     // 蜜罐字段为不受控隐藏输入（真人不可见）：提交时从表单读取，机器人自动填表会带出非空值

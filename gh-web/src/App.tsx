@@ -396,6 +396,7 @@ function AdminBootLoading() {
   )
 }
 
+// 应用根组件：包裹国际化 Provider 与路由，/admin 走后台，其余交给前台外壳
 function App() {
   return (
     <I18nProvider>

@@ -57,6 +57,7 @@ type VenueCard = {
   lng?: number
 }
 
+/** 门店列表区块：按来源拉取服务点 / 商业体验点，支持筛选、分组、分页与弹窗详情 */
 export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
   const source = asString(props.source, 'biz')
   const isService = source === 'service'

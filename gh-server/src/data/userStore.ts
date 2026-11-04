@@ -262,6 +262,7 @@ export function resetPasswordWithToken(token: string, password: string): ResetOu
 /** 修改密码（需校验当前密码）；成功后作废该账号全部会话，强制重新登录 */
 export type ChangePasswordOutcome = { ok: true } | { ok: false; error: string }
 
+/** 修改密码：先校验当前密码，成功后更新盐/哈希并作废该用户全部会话，强制重新登录 */
 export function changeUserPassword(userId: string, currentPassword: string, newPassword: string): ChangePasswordOutcome {
   if (!verifyUserPassword(userId, currentPassword)) return { ok: false, error: '当前密码不正确' }
   runInTransaction((tx) => {
@@ -318,6 +319,7 @@ function writeSection(userId: string, section: AccountSection, value: unknown): 
     .run(userId, section, JSON.stringify(value), new Date().toISOString())
 }
 
+/** 生成默认「我的设备」演示数据；序列号后缀取自用户名，便于区分用户 */
 function defaultDevices(profile: UserProfile): AccountDevice[] {
   const suffix = profile.username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'MEMBER'
   return [
@@ -332,6 +334,7 @@ function defaultDevices(profile: UserProfile): AccountDevice[] {
   ]
 }
 
+/** 生成默认收藏项（演示数据） */
 function defaultFavorites(): FavoriteItem[] {
   return [
     { name: '54027X1QE-W54 电竞OLED显示器', spec: '26.5 英寸 2K 540Hz', subscribed: true },
@@ -340,6 +343,7 @@ function defaultFavorites(): FavoriteItem[] {
   ]
 }
 
+/** 生成默认订阅 / 通知开关（演示数据） */
 function defaultNotifications(): NotificationSetting[] {
   return [
     { id: 'product', label: '产品动态', desc: '新品发布、型号更新与产品线调整。', enabled: true },

@@ -54,6 +54,7 @@ function statusClass(level: 'success' | 'warning' | 'danger' | 'info'): string {
   return level === 'info' ? 'status' : `status status--${level}`
 }
 
+/** 组件：渲染发布记录页，支持新建发布、定时发布、回滚与查看详情。 */
 export function AdminPublishList() {
   const [reloadKey, setReloadKey] = useState(0)
   const state = useApi<ReleaseList>((signal) => listReleases(signal), [reloadKey])

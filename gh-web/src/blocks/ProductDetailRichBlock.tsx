@@ -11,6 +11,7 @@
 import { useProductDetail } from './ProductDetailContext'
 import { sanitizeRichText } from './sanitize'
 
+/** 产品详情图文区块：净化当前产品的 detailHtml 后渲染，内容为空时不占位 */
 export function ProductDetailRichBlock() {
   const detail = useProductDetail()
   const html = detail?.detailHtml ? sanitizeRichText(detail.detailHtml) : ''

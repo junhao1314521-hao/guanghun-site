@@ -49,6 +49,7 @@ function rating(value: unknown): number {
   return Number.isFinite(n) ? Math.min(5, Math.max(0, n)) : 0
 }
 
+/** 辅助函数：把 unknown 值安全转为字符串，空值返回空串。 */
 function str(value: unknown): string {
   return value === undefined || value === null ? '' : String(value)
 }
@@ -257,6 +258,7 @@ function RequirementQuadrant({ rows }: { rows: Array<Record<string, string | num
   )
 }
 
+/** 组件：渲染迭代需求池，支持列表 / 看板 / 四象限视图切换。 */
 export function AdminRequirementsView() {
   const resource = adminResource('requirements')
   const state = useApi((signal) => fetchAdminResource('requirements', signal), [])

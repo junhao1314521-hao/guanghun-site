@@ -19,6 +19,7 @@ export type ToastApi = {
 
 export const ToastContext = createContext<ToastApi | null>(null)
 
+/** Hook：读取 Toast 上下文；须在 ToastProvider 内使用，返回各类提示方法。 */
 export function useToast(): ToastApi {
   const value = useContext(ToastContext)
   if (!value) throw new Error('useToast 必须在 ToastProvider 内使用')
@@ -39,6 +40,7 @@ export type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>
 
 export const ConfirmContext = createContext<ConfirmFn | null>(null)
 
+/** Hook：读取确认上下文；返回 Promise<boolean> 形式的 confirm 函数。 */
 export function useConfirm(): ConfirmFn {
   const value = useContext(ConfirmContext)
   if (!value) throw new Error('useConfirm 必须在 ConfirmProvider 内使用')
