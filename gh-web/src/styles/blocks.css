@@ -1825,48 +1825,60 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   outline-offset: 2px;
   border-radius: var(--gh-radius-lg);
 }
-/* 展台大图：稳定展示，点击进入灯箱；左右圆形按钮切换 */
+/* 展台大图：悬停放大镜（跟随光标、图片本身不位移），点击进入灯箱 */
 .stage__content { position: relative; }
-.pd-stage-nav {
+.pd-lens {
+  position: absolute;
+  z-index: 3;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background-color: var(--gh-neutral-950);
+  background-repeat: no-repeat;
+  box-shadow: 0 18px 48px -18px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+@media (hover: none), (pointer: coarse) {
+  .pd-lens { display: none; }
+}
+
+/* 缩略图行：内容溢出时两端出现圆形左右按钮（京东 / 淘宝详情页同款） */
+.pd-thumbs { position: relative; }
+.pd-thumbs__track {
+  display: flex;
+  gap: var(--gh-space-3);
+  margin-top: var(--gh-space-3);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+.pd-thumbs__track::-webkit-scrollbar { display: none; }
+.pd-thumbs__track .thumb { flex: 0 0 auto; }
+.pd-thumbs__nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 3;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.82);
-  color: #1d1d1f;
-  font-size: 26px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.35);
-  transition: background .2s ease, transform .2s ease;
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.45);
+  transition: opacity .18s ease, background .18s ease;
 }
-.pd-stage-nav:hover { background: #fff; transform: translateY(-50%) scale(1.05); }
-.pd-stage-nav--prev { left: 16px; }
-.pd-stage-nav--next { right: 16px; }
-@media (max-width: 767px) {
-  .pd-stage-nav { width: 36px; height: 36px; font-size: 22px; }
-  .pd-stage-nav--prev { left: 10px; }
-  .pd-stage-nav--next { right: 10px; }
-}
-
-/* 缩略图多于一行（>4 张）：该行横向滑动；少量时保持现状（换行） */
-.detail-thumbs.pd-gallery__thumbs--scroll {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: var(--gh-space-2);
-  scrollbar-width: thin;
-}
-.detail-thumbs.pd-gallery__thumbs--scroll .thumb {
-  flex: 0 0 auto;
-}
+.pd-thumbs__nav:hover { background: var(--color-bg-subtle); }
+.pd-thumbs__nav.is-off { opacity: 0; pointer-events: none; }
+.pd-thumbs__nav--prev { left: -6px; }
+.pd-thumbs__nav--next { right: -6px; }
 
 /* 产品详情 · 参数区块（R8）：核心卖点 / 性能摘要 / 分组折叠规格 */
 .pd-spec-section { margin-bottom: var(--gh-space-8); }

@@ -6,7 +6,8 @@
  *
  * 相册（§5.2）：优先读取**当前产品的 `gallery`**（按产品单独上传、可排序）；
  * 未配置时回退内置 4 视角图（`MEDIA.views[variant]`，行为与观感不变）。
- * 交互：缩略图切换 + 主图左右圆形按钮翻页 + 点击大图打开灯箱
+ * 交互（对齐京东 / 淘宝详情页）：主图悬停显示跟随光标的放大镜（图片本身不位移）；
+ * 缩略图行内容溢出时两端出现圆形左右按钮；点击大图打开灯箱
  * （灯箱内「＋/－」稳定放大并原生滚动查看细节，左右切换 / Esc 关闭 / 键盘可达）。
  *
  * 数据来自 `ProductDetailContext`（当前产品）；装修配置来自区块 props（模板级，统一生效）。
@@ -19,14 +20,12 @@ import { IconHeart } from '../components/ui/Icon'
 import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
 import { MediaImg } from '../components/ui/MediaImg'
+import { isPlaceholderMedia } from '../components/ui/CodeMedia'
 import { addMyFavorite, fetchMyFavorites, removeMyFavorite } from '../api/account'
 import { useSession } from '../hooks/useSession'
 import { useProductDetail } from './ProductDetailContext'
 import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
-
-/** 超过该张数时缩略图行改为横向滑动（少量时与现状一致） */
-const THUMB_SCROLL_THRESHOLD = 4
 
 /** 后台 SKU 规格值支持「数组」或「逗号分隔文本」两种录入方式 */
 function splitSkuValues(value: string | string[] | undefined): string[] {
@@ -70,12 +69,99 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const lightboxStageRef = useRef<HTMLDivElement>(null)
   /** 放大态拖拽平移（鼠标拖住图片移动视野） */
   const dragRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null)
+  /** 悬停放大镜：跟随光标、图片本身不动（京东 / 淘宝同款交互） */
+  const [lens, setLens] = useState<{
+    left: number
+    top: number
+    size: number
+    imgW: number
+    imgH: number
+    bgX: number
+    bgY: number
+  } | null>(null)
+  /** 缩略图横滑 */
+  const stripRef = useRef<HTMLDivElement>(null)
+  const [strip, setStrip] = useState({ overflow: false, start: false, end: false })
 
   const variant = PRODUCTS.find((item) => item.id === detail?.id)?.variant ?? 'mouse'
   const fallbackViews = MEDIA.views[variant] ?? MEDIA.views.mouse
   const gallery = detail?.gallery && detail.gallery.length > 0 ? detail.gallery : fallbackViews
   const active = Math.min(thumb, Math.max(0, gallery.length - 1))
-  const stepThumb = (offset: number) => setThumb((index) => (index + offset + gallery.length) % gallery.length)
+  const activeSrc = gallery[active]
+
+  /** 悬停放大镜：只在「有精确指针」的设备开启，且素材必须是真实位图 */
+  const canLens =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !isPlaceholderMedia(activeSrc)
+
+  const onZoomMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!canLens) return
+    const host = event.currentTarget
+    const img = host.querySelector('img')
+    if (!img || !img.naturalWidth || !img.naturalHeight) return
+    const box = img.getBoundingClientRect()
+    const hostRect = host.getBoundingClientRect()
+    // object-fit: contain → 算出图片在容器里的真实显示区域（去掉两侧留白）
+    const ratio = Math.min(box.width / img.naturalWidth, box.height / img.naturalHeight)
+    const contentW = img.naturalWidth * ratio
+    const contentH = img.naturalHeight * ratio
+    const contentLeft = box.left + (box.width - contentW) / 2
+    const contentTop = box.top + (box.height - contentH) / 2
+    const size = 180
+    if (contentW < size + 24 || contentH < size + 24) {
+      setLens(null)
+      return
+    }
+    const x = event.clientX - contentLeft
+    const y = event.clientY - contentTop
+    if (x < 0 || y < 0 || x > contentW || y > contentH) {
+      setLens(null)
+      return
+    }
+    // 镜头中心限制在画面内，边缘处不越界
+    const clampedX = Math.min(Math.max(x, size / 2), contentW - size / 2)
+    const clampedY = Math.min(Math.max(y, size / 2), contentH - size / 2)
+    setLens({
+      size,
+      left: contentLeft - hostRect.left + clampedX,
+      top: contentTop - hostRect.top + clampedY,
+      imgW: contentW,
+      imgH: contentH,
+      bgX: -(clampedX * 2 - size / 2),
+      bgY: -(clampedY * 2 - size / 2),
+    })
+  }
+
+  // 切换主图 / 打开灯箱时收起镜头
+  useEffect(() => setLens(null), [active, lightbox])
+
+  /** 缩略图横滑：内容溢出才显示两端圆钮（京东 / 淘宝同款） */
+  const measureStrip = () => {
+    const el = stripRef.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    setStrip({ overflow: max > 2, start: el.scrollLeft > 2, end: el.scrollLeft < max - 2 })
+  }
+
+  useEffect(() => {
+    measureStrip()
+    const el = stripRef.current
+    if (!el) return
+    const observer = new ResizeObserver(measureStrip)
+    observer.observe(el)
+    const timer = window.setTimeout(measureStrip, 200)
+    return () => {
+      observer.disconnect()
+      window.clearTimeout(timer)
+    }
+  }, [gallery.length])
+
+  const scrollStrip = (direction: number) => {
+    const el = stripRef.current
+    if (!el) return
+    el.scrollBy({ left: direction * Math.max(140, el.clientWidth * 0.8), behavior: 'smooth' })
+  }
 
   // 灯箱键盘操作：左右切换、Esc 关闭；打开时聚焦关闭按钮
   useEffect(() => {
@@ -257,6 +343,9 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                 type="button"
                 className="pd-zoom-host"
                 aria-label="查看大图"
+                onPointerMove={onZoomMove}
+                onPointerLeave={() => setLens(null)}
+                onBlur={() => setLens(null)}
                 onClick={() => {
                   setLightboxZoom(false)
                   setLightbox(active)
@@ -264,54 +353,65 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
               >
                 <MediaImg
                   className="detail-img"
-                  src={gallery[active]}
+                  src={activeSrc}
                   alt={`${detail.model} ${detail.name}`}
                   variant={variant}
                   label={`${detail.model} 产品图`}
                   loading="eager"
                 />
+                {lens && (
+                  <span
+                    className="pd-lens"
+                    aria-hidden="true"
+                    style={{
+                      width: lens.size,
+                      height: lens.size,
+                      left: lens.left - lens.size / 2,
+                      top: lens.top - lens.size / 2,
+                      backgroundImage: `url("${activeSrc}")`,
+                      backgroundSize: `${lens.imgW * 2}px ${lens.imgH * 2}px`,
+                      backgroundPosition: `${lens.bgX}px ${lens.bgY}px`,
+                    }}
+                  />
+                )}
               </button>
-              {gallery.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    className="pd-stage-nav pd-stage-nav--prev"
-                    aria-label="上一张"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      stepThumb(-1)
-                    }}
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    className="pd-stage-nav pd-stage-nav--next"
-                    aria-label="下一张"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      stepThumb(1)
-                    }}
-                  >
-                    ›
-                  </button>
-                </>
-              )}
             </div>
           </div>
-          <div className={`detail-thumbs${gallery.length > THUMB_SCROLL_THRESHOLD ? ' pd-gallery__thumbs--scroll' : ''}`}>
-            {gallery.map((src, index) => (
+          <div className="pd-thumbs">
+            {strip.overflow && (
               <button
-                key={`${src}-${index}`}
                 type="button"
-                className={`thumb${index === active ? ' is-active' : ''}`}
-                aria-label={t('blocks.pd.view', { n: index + 1 })}
-                aria-pressed={index === active}
-                onClick={() => setThumb(index)}
+                className={`pd-thumbs__nav pd-thumbs__nav--prev${strip.start ? '' : ' is-off'}`}
+                aria-label="向前查看更多图片"
+                onClick={() => scrollStrip(-1)}
               >
-                <MediaImg src={src} alt="" variant={variant} />
+                ‹
               </button>
-            ))}
+            )}
+            <div className="detail-thumbs pd-thumbs__track" ref={stripRef} onScroll={measureStrip}>
+              {gallery.map((src, index) => (
+                <button
+                  key={`${src}-${index}`}
+                  type="button"
+                  className={`thumb${index === active ? ' is-active' : ''}`}
+                  aria-label={t('blocks.pd.view', { n: index + 1 })}
+                  aria-pressed={index === active}
+                  onClick={() => setThumb(index)}
+                >
+                  <MediaImg src={src} alt="" variant={variant} />
+                </button>
+              ))}
+            </div>
+            {strip.overflow && (
+              <button
+                type="button"
+                className={`pd-thumbs__nav pd-thumbs__nav--next${strip.end ? '' : ' is-off'}`}
+                aria-label="向后查看更多图片"
+                onClick={() => scrollStrip(1)}
+              >
+                ›
+              </button>
+            )}
           </div>
         </div>
 
