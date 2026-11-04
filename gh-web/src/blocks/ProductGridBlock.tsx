@@ -138,6 +138,8 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const [vtId, setVtId] = useState('')
   // 轻提示（对比上限等本地校验，非演示占位）
   const [hint, setHint] = useState<string | null>(null)
+  // 移动端筛选面板展开态（桌面端由 CSS 始终展示完整面板）
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const navigate = useNavigate()
   const { isHrefLive } = useSitePages()
 
@@ -317,7 +319,29 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           {/* 列表页：左侧筛选栏 + 右侧大图卡片 */}
           {showFilter ? (
             <div className="catalog">
-              <aside className="catalog__aside" aria-label="产品筛选">
+              {/* 移动端：筛选面板默认收起，避免首屏被四组筛选挤满 */}
+              <button
+                className="catalog__filter-toggle"
+                type="button"
+                aria-expanded={filtersOpen}
+                aria-controls="catalog-filter-panel"
+                onClick={() => setFiltersOpen((open) => !open)}
+              >
+                <span>
+                  筛选
+                  {activeChips.length > 0 ? ` · 已选 ${activeChips.length}` : ''}
+                </span>
+                <span className={`catalog__filter-caret${filtersOpen ? ' is-open' : ''}`} aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </span>
+              </button>
+              <aside
+                className={`catalog__aside${filtersOpen ? '' : ' is-collapsed'}`}
+                id="catalog-filter-panel"
+                aria-label="产品筛选"
+              >
                 <div className="catalog__aside-head">
                   <h2 className="catalog__aside-title">筛选</h2>
                   {activeChips.length > 0 && (

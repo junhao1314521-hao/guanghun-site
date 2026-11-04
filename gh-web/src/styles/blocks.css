@@ -2347,8 +2347,22 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .catalog__empty { padding: var(--gh-space-7) 0; text-align: center; color: var(--color-text-secondary); }
 .catalog__pager { display: flex; justify-content: center; margin-top: var(--gh-space-7); }
 
+/* 移动端筛选开关（桌面隐藏）：默认收起四组筛选，先露出产品 */
+.catalog__filter-toggle { display: none; }
+.catalog__filter-caret { display: inline-flex; color: var(--color-text-tertiary); transition: transform var(--gh-duration-fast) var(--gh-ease-standard); }
+.catalog__filter-caret.is-open { transform: rotate(180deg); }
+
 @media (max-width: 900px) {
   .catalog { grid-template-columns: minmax(0, 1fr); gap: var(--gh-space-4); }
+  .catalog__filter-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-2);
+    width: 100%; padding: var(--gh-space-3) var(--gh-space-4);
+    border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-lg);
+    background: var(--color-bg-surface); color: var(--color-text-primary);
+    font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium);
+    cursor: pointer;
+  }
+  .catalog__aside.is-collapsed { display: none; }
   .catalog__aside { position: static; }
   .catalog__group { padding-top: var(--gh-space-3); }
   .catalog__opts { flex-direction: row; flex-wrap: wrap; gap: var(--gh-space-1); }

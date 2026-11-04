@@ -2276,7 +2276,9 @@ body.drawer-open { overflow: hidden; }
 .announce__link:hover { text-decoration: underline; }
 .announce__close {
   position: absolute;
-  right: var(--gh-space-4);
+  right: var(--gh-space-2);
+  top: 50%;
+  transform: translateY(-50%);
   border: 0;
   background: transparent;
   color: #fff;
@@ -2284,7 +2286,8 @@ body.drawer-open { overflow: hidden; }
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  padding: 4px 8px;
+  /* 视觉仍是小 ×，但把可点区域扩到 40px 以上，方便触屏 */
+  padding: 10px 12px;
 }
 .announce__close:hover { opacity: 1; }
 
