@@ -625,6 +625,17 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   color: var(--color-text-primary);
 }
 .blk-stats__unit { font-style: normal; margin-left: 2px; font-size: .44em; vertical-align: .7em; color: var(--color-accent-solid); }
+
+/* 数字滚轮：每位数字纵向滚动到目标值 */
+.odo { display: inline-flex; align-items: flex-start; line-height: 1; overflow: hidden; }
+.odo__digit { display: inline-block; width: .62em; height: 1em; overflow: hidden; }
+.odo__track { display: flex; flex-direction: column; transform: translateY(0); transition: transform 1.15s var(--gh-ease-accent); will-change: transform; }
+.odo.is-run .odo__track { transform: translateY(calc(var(--d) * -1em - 10em)); }
+.odo__cell { display: flex; align-items: center; justify-content: center; height: 1em; line-height: 1; }
+.odo__sep { display: inline-block; }
+@media (prefers-reduced-motion: reduce) {
+  .odo__track { transition: none; }
+}
 .blk-stats__label { margin-top: var(--gh-space-4); font-size: var(--gh-font-size-caption); letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-secondary); }
 .blk-stats__note { margin: var(--gh-space-3) 0 0; font-size: var(--gh-font-size-body-sm); line-height: 1.65; color: var(--color-text-tertiary); max-width: 34ch; }
 /* 原底部装饰条在「数据带」形态下不再需要 */

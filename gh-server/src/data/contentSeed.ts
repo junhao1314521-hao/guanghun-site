@@ -872,7 +872,7 @@ function buildSupport(): Page {
     // 数据源区块：网点/体验点取自集合 service-info（后台「服务信息」维护，改后前台即时生效）
     {
       type: 'venueList',
-      props: { title: '服务网点与体验点', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
+      props: { title: '产品体验点', subtitle: '到店试机、现场调校与售后咨询', ctaLabel: '查看全部体验点', ctaHref: '/business/venues', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
     },
     // 联系我们：与 /contact 重复，默认停用（§4.3）
     {

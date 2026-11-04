@@ -3,67 +3,64 @@
  * props: title / subtitle / footnote / items:{value,unit?,label,note?}[]
  *
  * 「数据带」形态：序号 + 大数字（含单位）+ 说明 + 补充说明。
- * 纯计数（非年份）在进入视口时做一次「滚动计数」，配合整体入场节奏。
+ * 数字以 Odometer 滚轮进入视口时滚动到目标值，配合整体入场节奏。
  */
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { prefersReducedMotion } from '../lib/motion'
 import { asStatItems, asString } from './blockUtils'
 
-/** 千分位格式化 */
-function format(value: number): string {
-  return value.toLocaleString('en-US')
-}
-
 /**
- * 数字滚动计数：仅对「纯数字（非年份）」生效 —— 从 0 递增到目标，进入视口时触发。
- * 年份（1900–2100）与含其它字符的值（如 98%、<1）直接原样展示，避免观感奇怪。
+ * 数字滚轮（Odometer）：每一位数字纵向滚动到目标值，进入视口时触发一次。
+ * 年份 / 普通数字统一处理；减少动效时直接显示最终值。
  */
-function CountUp({ value }: { value: string }) {
-  const target = useMemo(() => {
-    if (!/^\d[\d,]*$/.test(value)) return null
-    const parsed = Number(value.replace(/,/g, ''))
-    if (!Number.isFinite(parsed)) return null
-    if (parsed >= 1900 && parsed <= 2100) return null // 年份不做计数
-    return parsed
-  }, [value])
+function Odometer({ value, delay = 0 }: { value: string; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const [text, setText] = useState(target === null ? value : format(0))
+  const [run, setRun] = useState(false)
 
   useEffect(() => {
-    if (target === null) return
     if (prefersReducedMotion()) {
-      setText(format(target))
+      setRun(true)
       return
     }
     const el = ref.current
     if (!el) return
-    let raf = 0
-    let start = 0
-    const DURATION = 900
-    const step = (now: number) => {
-      if (!start) start = now
-      const progress = Math.min(1, (now - start) / DURATION)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setText(format(Math.round(target * eased)))
-      if (progress < 1) raf = window.requestAnimationFrame(step)
-    }
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries[0].isIntersecting) return
         observer.disconnect()
-        raf = window.requestAnimationFrame(step)
+        setRun(true)
       },
       { threshold: 0.4 },
     )
     observer.observe(el)
-    return () => {
-      observer.disconnect()
-      window.cancelAnimationFrame(raf)
-    }
-  }, [target])
+    return () => observer.disconnect()
+  }, [])
 
-  return <span ref={ref}>{text}</span>
+  return (
+    <span className={`odo${run ? ' is-run' : ''}`} ref={ref} role="img" aria-label={value}>
+      {Array.from(value).map((char, index) =>
+        /\d/.test(char) ? (
+          <span className="odo__digit" aria-hidden="true" key={`${char}-${index}`}>
+            <span
+              className="odo__track"
+              style={{ '--d': Number(char), transitionDelay: `${delay}ms` } as CSSProperties}
+            >
+              {Array.from({ length: 20 }, (_, n) => (
+                <span className="odo__cell" key={n}>
+                  {n % 10}
+                </span>
+              ))}
+            </span>
+          </span>
+        ) : (
+          <span className="odo__sep" aria-hidden="true" key={`${char}-${index}`}>
+            {char}
+          </span>
+        ),
+      )}
+    </span>
+  )
 }
 
 export function StatsBlock({ props }: { props: Record<string, unknown> }) {
@@ -79,7 +76,7 @@ export function StatsBlock({ props }: { props: Record<string, unknown> }) {
           <div className="blk-stats__item reveal" key={`${item.label}-${index}`} data-delay={String(Math.min(index + 1, 6))}>
             <span className="blk-stats__index">{String(index + 1).padStart(2, '0')}</span>
             <div className="blk-stats__value">
-              <CountUp value={String(item.value)} />
+              <Odometer value={String(item.value)} delay={index * 120} />
               {item.unit && <i className="blk-stats__unit">{item.unit}</i>}
             </div>
             <div className="blk-stats__label">{item.label}</div>
