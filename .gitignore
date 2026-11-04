@@ -28,6 +28,8 @@ gh-server/*.sqlite-*
 *.log
 .env
 .env.*
+# 环境变量示例可入库（不含真实密钥）
+!gh-web/.env.example
 # 本地临时凭据（切勿提交）
 .gh-token
 .git-credentials

@@ -1274,6 +1274,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'status', label: '状态', type: 'select', options: ['营业中', '调整中', '筹备中'] },
           { key: 'ok', label: '正常营业', type: 'switch' },
           { key: 'address', label: '地址', type: 'text', span: 2 },
+          { key: 'lat', label: '纬度', type: 'number', placeholder: '22.5405', hint: '用于高德地图打点，如 22.5405' },
+          { key: 'lng', label: '经度', type: 'number', placeholder: '113.9345', hint: '用于高德地图打点，如 113.9345' },
           { key: 'cover', label: '封面地址', type: 'image', span: 2 },
           { key: 'hours', label: '营业时间', type: 'text', placeholder: '每日 10:00–21:00' },
           { key: 'phone', label: '门店电话', type: 'text', placeholder: '0755-0000-0000' },

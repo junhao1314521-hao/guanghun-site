@@ -805,12 +805,13 @@ function buildBusinessVenues(): Page {
     {
       type: 'venueList',
       props: {
-        title: '线下体验点',
+        title: '产品体验点',
         subtitle: '就近体验实机与调参。',
         scope: 'all',
         groupBy: 'province',
         showModels: true,
         dialog: true,
+        showMap: true,
         limit: 0,
         pageSize: 0,
         columns: 3,

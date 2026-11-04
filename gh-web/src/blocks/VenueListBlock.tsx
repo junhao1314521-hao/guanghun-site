@@ -22,6 +22,7 @@ import { MediaImg } from '../components/ui/MediaImg'
 import { IconChevronDown, IconCopy, IconNavigate, IconPin } from '../components/ui/Icon'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { VenueDialog } from '../components/site/VenueDialog'
+import { VenueMap } from '../components/site/VenueMap'
 import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, gridClass, pickByIds } from './blockUtils'
 
@@ -48,8 +49,11 @@ type VenueCard = {
   href?: string
   /** —— 以下仅商业体验点（biz）填充 —— */
   province?: string
+  city?: string
   type?: string
   products?: string[]
+  lat?: number
+  lng?: number
 }
 
 export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
@@ -64,9 +68,12 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
   const groupBy = asString(props.groupBy, 'none')
   const showModels = asBool(props.showModels)
   const dialog = asBool(props.dialog)
+  const showMap = asBool(props.showMap)
   const { isHrefLive } = useSitePages()
   const [reloadKey, setReloadKey] = useState(0)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [activeVenue, setActiveVenue] = useState<string | null>(null)
+  const [city, setCity] = useState('全部')
   const closeDialog = useCallback(() => setOpenId(null), [])
 
   const { data, loading, error } = useApi<{ items: unknown[] }>(
@@ -93,6 +100,7 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
         id: String(spot.id),
         name: String(spot.name),
         meta: `${spot.city ?? ''} · ${spot.type ?? ''}`,
+        city: String(spot.city ?? ''),
         cover: '',
         ok: spot.status === '营业中',
         status: String(spot.status ?? ''),
@@ -109,7 +117,10 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
         status: String(venue.status ?? ''),
         address: String(venue.address ?? ''),
         province: String(venue.province ?? ''),
+        city: String(venue.city ?? ''),
         type: String(venue.type ?? ''),
+        lat: Number(venue.lat),
+        lng: Number(venue.lng),
         products: Array.isArray(venue.products)
           ? (venue.products as unknown[]).filter((product): product is string => typeof product === 'string')
           : [],
@@ -117,10 +128,12 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
       }))
 
   const picked = pickByIds(items, scope, ids)
-  const capped = limit > 0 ? picked.slice(0, limit) : picked
+  const cityOptions = Array.from(new Set(picked.map((item) => item.city).filter((value): value is string => Boolean(value))))
+  const cityScoped = showMap && !isService && city !== '全部' ? picked.filter((item) => item.city === city) : picked
+  const capped = limit > 0 ? cityScoped.slice(0, limit) : cityScoped
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
-  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${scope}|${ids.join(',')}`)
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${scope}|${ids.join(',')}|${city}`)
   const shown = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   const grouped = !isService && groupBy === 'province'
@@ -145,6 +158,38 @@ export function VenueListBlock({ props }: { props: Record<string, unknown> }) {
   return (
     <div>
       <SectionHeadFromProps props={props} />
+      {showMap && !isService && (
+        <div className="venue-map-block">
+          <div className="venue-map-cities" role="group" aria-label="按城市筛选体验点">
+            {['全部', ...cityOptions].map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={`chip${city === option ? ' is-active' : ''}`}
+                aria-pressed={city === option}
+                onClick={() => {
+                  setCity(option)
+                  setActiveVenue(null)
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          <VenueMap
+            venues={cityScoped.map((item) => ({
+              id: item.id,
+              name: item.name,
+              address: item.address,
+              phone: item.phone,
+              lat: item.lat,
+              lng: item.lng,
+            }))}
+            activeId={activeVenue}
+            onSelect={setActiveVenue}
+          />
+        </div>
+      )}
       {error ? (
         <div className="empty">
           <div className="empty__title">体验点加载失败</div>

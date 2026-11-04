@@ -858,6 +858,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'showModels', label: '显示可体验型号', kind: 'switch' },
       { name: 'dialog', label: '点击打开详情弹窗', kind: 'switch' },
+      { name: 'showMap', label: '显示地图（仅商业体验点）', kind: 'switch' },
     ],
   },
   // —— 测评方法数据源区块：从集合 methods 取数（后台「测评方法」维护）——

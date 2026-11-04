@@ -200,6 +200,9 @@ export type VenueSummary = {
   ok: boolean
   address: string
   cover: string
+  /** 地图坐标（后台「体验点管理」维护；缺省时不在地图上打点） */
+  lat?: number
+  lng?: number
   /** 以下为详情扩展字段（运营可在后台维护；缺省回退内置示例） */
   hours?: string
   phone?: string
@@ -230,6 +233,8 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: true,
     address: '深圳市南山区科苑大道 · 光魂旗舰体验中心',
     cover: '/media/business/venues/sz-flagship.svg',
+    lat: 22.5405,
+    lng: 113.9345,
     products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器', '27 英寸 2K 电竞显示器', '显示器悬臂支架'],
   },
   {
@@ -243,6 +248,8 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: true,
     address: '上海市黄浦区南京东路 · 数码体验街区内',
     cover: '/media/business/venues/sh-experience.svg',
+    lat: 31.2354,
+    lng: 121.4745,
     products: ['27 英寸 2K 电竞显示器', '24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
   },
   {
@@ -256,6 +263,8 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: false,
     address: '北京市海淀区中关村大街 · 授权服务点',
     cover: '/media/business/venues/bj-service.svg',
+    lat: 39.9834,
+    lng: 116.3165,
     products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器'],
   },
   {
@@ -269,6 +278,8 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: true,
     address: '成都市锦江区春熙路商圈 · 电竞主题店内',
     cover: '/media/business/venues/cd-experience.svg',
+    lat: 30.657,
+    lng: 104.081,
     products: ['闪电 540Hz 电竞OLED显示器', '27 英寸 2K 电竞显示器', 'Meta 双模 4K 电竞显示器'],
   },
   {
@@ -282,6 +293,8 @@ export const BIZ_VENUES: VenueSummary[] = [
     ok: false,
     address: '广州市天河区天河路商圈 · 授权服务点',
     cover: '/media/business/venues/gz-service.svg',
+    lat: 23.135,
+    lng: 113.324,
     products: ['24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
   },
 ]
