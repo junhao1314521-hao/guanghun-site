@@ -10,7 +10,18 @@ import { ensureUploadDir } from './data/uploadStore'
 import { syncMediaMeta } from './data/mediaStore'
 import { hiddenUploadIds } from './data/trashStore'
 import { startScheduler } from './data/publishScheduler'
+import { getCollectionItem } from './data/collectionStore'
 import { registerRoutes } from './routes'
+
+/** 详情页路由 → 集合 key：用于 SPA 回退前判定实体是否存在，不存在时返回真实 404 状态 */
+const DETAIL_ROUTES: Array<{ pattern: RegExp; key: 'products' | 'downloads' | 'faqs' | 'articles' | 'biz-cases' | 'biz-venues' }> = [
+  { pattern: /^\/products\/([^/]+)$/, key: 'products' },
+  { pattern: /^\/downloads\/([^/]+)$/, key: 'downloads' },
+  { pattern: /^\/faq\/([^/]+)$/, key: 'faqs' },
+  { pattern: /^\/articles\/([^/]+)$/, key: 'articles' },
+  { pattern: /^\/business\/cases\/([^/]+)$/, key: 'biz-cases' },
+  { pattern: /^\/business\/venues\/([^/]+)$/, key: 'biz-venues' },
+]
 
 /**
  * 构建 Express 应用。
@@ -155,6 +166,16 @@ export function createApp(): Express {
       /^\/(?!api(\/|$)|healthz(\/|$)|uploads(\/|$)|assets(\/|$)|media(\/|$)|posters(\/|$)|brand(\/|$)|fonts(\/|$)|shots(\/|$)|favicon\.png$|icons\.svg$|robots\.txt$|sitemap\.xml$).*/,
       (req: Request, res: Response, next: NextFunction) => {
         if (!req.accepts('html')) return next()
+        // 详情页实体不存在时返回 404 状态（页面仍由 SPA 渲染“未找到”空态），
+        // 避免软 404 被搜索引擎当成有效页面收录。
+        const cleanPath = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path
+        for (const route of DETAIL_ROUTES) {
+          const matched = route.pattern.exec(cleanPath)
+          if (!matched) continue
+          const id = decodeURIComponent(matched[1])
+          if (!getCollectionItem(route.key, id)) res.status(404)
+          break
+        }
         res.setHeader('Cache-Control', 'no-cache')
         res.sendFile(indexFile)
       },

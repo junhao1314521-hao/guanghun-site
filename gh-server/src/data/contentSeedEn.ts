@@ -237,10 +237,10 @@ function buildHomeEn(): Page {
         cropFocus: 'center',
         mobileLayout: 'rail',
         items: [
-          { productId: 'gh-54027x1qe', desc: '26.5" 2K@540Hz 4th-gen W-OLED flagship', buttons: [{ label: 'Learn more', href: '/products/gh-54027x1qe' }, { label: 'Buy', href: '/products/gh-54027x1qe' }] },
-          { productId: 'gh-32x1ue', desc: 'Dual-mode OLED: 4K@165 / FHD@330 in one', buttons: [{ label: 'Learn more', href: '/products/gh-32x1ue' }, { label: 'Buy', href: '/products/gh-32x1ue' }] },
-          { productId: 'gh-28027x1qe', desc: '2K@280Hz with 1500 nit peak brightness', buttons: [{ label: 'Learn more', href: '/products/gh-28027x1qe' }, { label: 'Buy', href: '/products/gh-28027x1qe' }] },
-          { productId: 'gh-27q1f', desc: '27" 2K 200Hz Fast IPS, best value', buttons: [{ label: 'Learn more', href: '/products/gh-27q1f' }, { label: 'Buy', href: '/products/gh-27q1f' }] },
+          { productId: 'gh-54027x1qe', desc: '26.5" 2K@540Hz 4th-gen W-OLED flagship', buttons: [{ label: 'Learn more', href: '/products/gh-54027x1qe' }] },
+          { productId: 'gh-32x1ue', desc: 'Dual-mode OLED: 4K@165 / FHD@330 in one', buttons: [{ label: 'Learn more', href: '/products/gh-32x1ue' }] },
+          { productId: 'gh-28027x1qe', desc: '2K@280Hz with 1500 nit peak brightness', buttons: [{ label: 'Learn more', href: '/products/gh-28027x1qe' }] },
+          { productId: 'gh-27q1f', desc: '27" 2K 200Hz Fast IPS, best value', buttons: [{ label: 'Learn more', href: '/products/gh-27q1f' }] },
         ],
       },
       // Full-bleed: cards span the viewport width (flush with the posters above / blocks below)

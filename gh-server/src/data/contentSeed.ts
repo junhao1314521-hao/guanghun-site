@@ -300,7 +300,6 @@ function buildHome(): Page {
             desc: '26.5 英寸 2K@540Hz 第四代 W-OLED 旗舰',
             buttons: [
               { label: '进一步了解', href: '/products/gh-54027x1qe' },
-              { label: '购买', href: '/products/gh-54027x1qe' },
             ],
           },
           {
@@ -308,7 +307,6 @@ function buildHome(): Page {
             desc: '4K@165 / FHD@330 双模 OLED，一机两用',
             buttons: [
               { label: '进一步了解', href: '/products/gh-32x1ue' },
-              { label: '购买', href: '/products/gh-32x1ue' },
             ],
           },
           {
@@ -316,7 +314,6 @@ function buildHome(): Page {
             desc: '2K@280Hz，1500 nit 峰值亮度的超跑之选',
             buttons: [
               { label: '进一步了解', href: '/products/gh-28027x1qe' },
-              { label: '购买', href: '/products/gh-28027x1qe' },
             ],
           },
           {
@@ -324,7 +321,6 @@ function buildHome(): Page {
             desc: '27 英寸 2K 200Hz Fast IPS 高性价比之选',
             buttons: [
               { label: '进一步了解', href: '/products/gh-27q1f' },
-              { label: '购买', href: '/products/gh-27q1f' },
             ],
           },
         ],
