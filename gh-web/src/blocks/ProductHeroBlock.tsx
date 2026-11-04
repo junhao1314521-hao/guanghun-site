@@ -435,17 +435,24 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
 
           {showPrice && (
             <div className="detail-price">
-              {displayPrice}{' '}
-              <small
-                style={{
-                  fontFamily: 'var(--gh-font-sans)',
-                  fontSize: 'var(--gh-font-size-body-sm)',
-                  color: 'var(--color-text-tertiary)',
-                  fontWeight: 'var(--gh-weight-regular)',
-                }}
-              >
-                {t('blocks.pd.refPrice')}
-              </small>
+              {displayPrice ? (
+                <>
+                  {displayPrice}{' '}
+                  <small
+                    style={{
+                      fontFamily: 'var(--gh-font-sans)',
+                      fontSize: 'var(--gh-font-size-body-sm)',
+                      color: 'var(--color-text-tertiary)',
+                      fontWeight: 'var(--gh-weight-regular)',
+                    }}
+                  >
+                    {t('blocks.pd.refPrice')}
+                  </small>
+                </>
+              ) : (
+                // 未定参考价时不臆造数字：文案与「参考价，实际以各平台为准」口径一致
+                <span className="detail-price__pending">价格以各电商平台为准</span>
+              )}
             </div>
           )}
 

@@ -285,7 +285,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 ))}
               </div>
             )}
-            {showPrice && <span className="pcard__price">{item.price}</span>}
+            {showPrice && <span className="pcard__price">{item.price || '询价'}</span>}
           </div>
           {live ? (
             <SafeLink className="btn btn--sm btn--primary pcard__buy" to={`/products/${item.id}`} viewTransition>

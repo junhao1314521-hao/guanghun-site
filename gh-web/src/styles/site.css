@@ -988,6 +988,8 @@ main.main--flush + .site-footer { margin-top: 0; }
   .detail-info__name { line-height: var(--gh-line-height-h3); }
 }
 .detail-price { font-family: var(--gh-font-mono); font-size: var(--gh-font-size-h3); font-weight: var(--gh-weight-semibold); }
+/* 未定参考价：不显示数字，改用平台价口径 */
+.detail-price__pending { font-family: var(--gh-font-sans); font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-regular); color: var(--color-text-tertiary); }
 
 /* SKU 规格选择（颜色 / 版本等） */
 .sku-picker { display: flex; flex-direction: column; gap: var(--gh-space-3); margin: var(--gh-space-4) 0 0; }
