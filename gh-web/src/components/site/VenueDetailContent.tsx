@@ -9,7 +9,9 @@ import { useId, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { submitReservation } from '../../api/support-extra'
 import { trackEvent } from '../../lib/track'
+import { copyText, venueNavigationUrl } from '../../lib/venue'
 import type { VenueDetail } from '../../data/business-extra'
+import { IconCopy, IconNavigate } from '../ui/Icon'
 
 type Props = {
   detail: VenueDetail
@@ -27,6 +29,13 @@ export function VenueDetailContent({ detail, variant }: Props) {
   const [reserveErr, setReserveErr] = useState<string | null>(null)
   const [reserveId, setReserveId] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    const ok = await copyText(detail.address || `${detail.province}${detail.city}${detail.name}`)
+    setCopied(ok)
+    window.setTimeout(() => setCopied(false), 1800)
+  }
 
   const fieldId = (name: string) => `${uid}-${name}`
 
@@ -69,25 +78,35 @@ export function VenueDetailContent({ detail, variant }: Props) {
             <div>
               <div className="dl-meta__k">地址</div>
               <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
-                {detail.address}
+                {detail.address || '地址待补充'}
               </div>
             </div>
             <div>
               <div className="dl-meta__k">电话</div>
-              <div className="dl-meta__v">{detail.phone}</div>
+              <div className="dl-meta__v">{detail.phone || '电话待补充'}</div>
             </div>
             <div>
               <div className="dl-meta__k">营业时间</div>
               <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
-                {detail.hours}
+                {detail.hours || '以门店公告为准'}
               </div>
             </div>
-            <div>
-              <div className="dl-meta__k">交通</div>
-              <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
-                {detail.transport}
+            {detail.transport && (
+              <div>
+                <div className="dl-meta__k">交通</div>
+                <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
+                  {detail.transport}
+                </div>
               </div>
-            </div>
+            )}
+          </div>
+          <div className="row" style={{ marginTop: 'var(--gh-space-4)', flexWrap: 'wrap' }}>
+            <a className="btn btn--primary btn--sm" href={venueNavigationUrl(detail)} target="_blank" rel="noopener noreferrer">
+              <IconNavigate size={14} /> 到这里去
+            </a>
+            <button className="btn btn--secondary btn--sm" type="button" onClick={handleCopy}>
+              <IconCopy size={14} /> {copied ? '已复制' : '复制地址'}
+            </button>
           </div>
         </div>
 
@@ -179,13 +198,19 @@ export function VenueDetailContent({ detail, variant }: Props) {
               </div>
             </form>
           ) : (
-            <div className="row" style={{ marginTop: 'var(--gh-space-5)' }}>
+            <div className="row" style={{ marginTop: 'var(--gh-space-5)', flexWrap: 'wrap' }}>
               <button className="btn btn--primary" type="button" onClick={() => setReserveOpen(true)}>
                 预约到店
               </button>
-              <a className="btn btn--secondary" href={`tel:${detail.phone.replace(/[^0-9]/g, '')}`}>
-                拨打 {detail.phone}
-              </a>
+              {detail.phone ? (
+                <a className="btn btn--secondary" href={`tel:${detail.phone.replace(/[^0-9]/g, '')}`}>
+                  拨打 {detail.phone}
+                </a>
+              ) : (
+                <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+                  门店电话待补充，可先提交预约
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -203,11 +228,17 @@ export function VenueDetailContent({ detail, variant }: Props) {
           </Link>
         </div>
         <div className="row" style={{ gap: 'var(--gh-space-3)' }}>
-          {detail.products.map((product) => (
-            <span className="tag" key={product}>
-              {product}
+          {detail.products.length > 0 ? (
+            detail.products.map((product) => (
+              <span className="tag" key={product}>
+                {product}
+              </span>
+            ))
+          ) : (
+            <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
+              暂无型号信息，可先电话咨询门店。
             </span>
-          ))}
+          )}
         </div>
       </section>
 

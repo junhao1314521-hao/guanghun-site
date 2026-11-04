@@ -8,6 +8,7 @@
  */
 import type { ReactNode } from 'react'
 import '../styles/blocks.css'
+import '../styles/venue-explorer.css'
 import type { Block } from './types'
 import { containerClass, normalizeAnchor, shellClass } from './blockUtils'
 import { HeroBlock } from './HeroBlock'
@@ -36,6 +37,8 @@ import { ProductSpecsBlock } from './ProductSpecsBlock'
 import { ProductBuyBlock } from './ProductBuyBlock'
 import { CaseListBlock } from './CaseListBlock'
 import { VenueListBlock } from './VenueListBlock'
+import { VenueExplorerBlock } from './VenueExplorerBlock'
+import { ContactChannelsBlock } from './ContactChannelsBlock'
 import { MethodListBlock } from './MethodListBlock'
 import { B2bValueBlock } from './B2bValueBlock'
 import { ProductMatrixBlock } from './ProductMatrixBlock'
@@ -106,6 +109,10 @@ function renderBlock(block: Block): ReactNode {
       return <CaseListBlock props={props} />
     case 'venueList':
       return <VenueListBlock props={props} />
+    case 'venueExplorer':
+      return <VenueExplorerBlock props={props} />
+    case 'contactChannels':
+      return <ContactChannelsBlock props={props} />
     case 'methodList':
       return <MethodListBlock props={props} />
     // B2B 采购价值 + 商务联系

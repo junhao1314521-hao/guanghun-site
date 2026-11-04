@@ -161,8 +161,8 @@ export const PAGE_META: PageMeta[] = [
   },
   {
     path: '/business/venues',
-    title: '体验点与服务网点 · 光魂',
-    description: '按城市查找光魂体验点与授权服务网点。',
+    title: '产品体验点 · 光魂',
+    description: '全国合作体验点地图：按城市、省份与机型查找光魂 / 极创显示器实机体验。',
     indexable: true,
     changefreq: 'monthly',
     priority: 0.6,
@@ -256,7 +256,7 @@ export function pageMetaFor(pathname: string): PageMeta {
     return { path: pathname, title: '合作案例 · 光魂', description: '光魂合作案例的背景、方案与成果。', indexable: true }
   }
   if (/^\/business\/venues\/[^/]+$/.test(pathname)) {
-    return { path: pathname, title: '体验点详情 · 光魂', description: '光魂体验点与授权服务网点信息。', indexable: true }
+    return { path: pathname, title: '产品体验点详情 · 光魂', description: '门店地址、可体验机型与到店导航。', indexable: true }
   }
   if (/^\/ladder\/[^/]+$/.test(pathname)) {
     return { path: pathname, title: '天梯榜 · 光魂', description: '按单项指标排序的电竞装备实测榜。', indexable: true }

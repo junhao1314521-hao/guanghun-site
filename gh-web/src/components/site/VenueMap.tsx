@@ -15,21 +15,21 @@ export type MapVenue = {
   lng?: number
 }
 
-type AMapApi = {
+export type AMapApi = {
   Map: new (container: HTMLElement, opts: Record<string, unknown>) => AMapMap
   Marker: new (opts: Record<string, unknown>) => AMapMarker
   InfoWindow: new (opts: Record<string, unknown>) => AMapInfoWindow
   Pixel: new (x: number, y: number) => unknown
 }
-type AMapMap = {
+export type AMapMap = {
   add: (overlays: unknown | unknown[]) => void
   remove: (overlays: unknown | unknown[]) => void
   setFitView: (overlays?: unknown[], immediately?: boolean, avoid?: number[]) => void
+  lngLatToContainer?: (position: unknown) => { x: number; y: number }
   destroy: () => void
 }
-type AMapMarker = { on: (event: string, handler: () => void) => void }
-type AMapInfoWindow = { open: (map: AMapMap, position: unknown) => void; close: () => void }
-
+export type AMapMarker = { on: (event: string, handler: () => void) => void }
+export type AMapInfoWindow = { open: (map: AMapMap, position: unknown) => void; close: () => void }
 declare global {
   interface Window {
     AMap?: AMapApi
@@ -39,7 +39,7 @@ declare global {
 
 let loaderPromise: Promise<AMapApi> | null = null
 
-function loadAmap(): Promise<AMapApi> {
+export function loadAmap(): Promise<AMapApi> {
   const key = import.meta.env.VITE_AMAP_KEY as string | undefined
   const securityCode = import.meta.env.VITE_AMAP_SECURITY_CODE as string | undefined
   if (!key) return Promise.reject(new Error('未配置高德地图 Key'))

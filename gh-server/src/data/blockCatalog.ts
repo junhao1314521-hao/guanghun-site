@@ -861,6 +861,37 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'showMap', label: '显示地图（仅商业体验点）', kind: 'switch' },
     ],
   },
+  // —— 体验点独立页：搜索 / 附近 / 城市弹层 / 机型筛选 / 地图聚合 ——
+  {
+    type: 'venueExplorer',
+    name: '体验点独立页',
+    group: '数据',
+    fields: [
+      { name: 'eyebrow', label: '眉题', kind: 'text', placeholder: 'PRODUCT EXPERIENCE' },
+      { name: 'title', label: '大标题', kind: 'text', placeholder: '产品体验点' },
+      { name: 'subtitle', label: '副标题', kind: 'textarea', placeholder: '先摸到那台机器，再决定。' },
+      { name: 'limit', label: '数量（0=全部）', kind: 'number' },
+      { name: 'showMap', label: '显示地图', kind: 'switch' },
+    ],
+  },
+  // —— 联系渠道：苹果风分隔列表，可点击复制 / 跳转 ——
+  {
+    type: 'contactChannels',
+    name: '联系渠道',
+    group: '结构',
+    fields: [
+      { name: 'eyebrow', label: '眉题', kind: 'text', placeholder: 'CONTACT' },
+      { name: 'title', label: '标题', kind: 'text', placeholder: '与你，直接对话。' },
+      { name: 'subtitle', label: '副标题', kind: 'textarea' },
+      { name: 'items', label: '渠道', kind: 'list' },
+    ],
+    listFields: [
+      { name: 'label', label: '名称', kind: 'text', placeholder: '官方网站' },
+      { name: 'value', label: '展示值', kind: 'text', placeholder: 'www.xxrsm.com' },
+      { name: 'href', label: '链接（可留空）', kind: 'text', placeholder: 'https://…' },
+      { name: 'copy', label: '点击复制', kind: 'switch' },
+    ],
+  },
   // —— 测评方法数据源区块：从集合 methods 取数（后台「测评方法」维护）——
   {
     type: 'methodList',

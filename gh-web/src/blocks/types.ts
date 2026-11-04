@@ -316,6 +316,37 @@ export type VenueListProps = DataBlockInteraction & {
   dialog?: boolean
 }
 
+/**
+ * 33. venueExplorer 体验点独立页（数据源 biz-venues）。
+ * 搜索 / 附近 / 城市弹层 / 机型筛选 / 地图聚合 + 按省分组列表。
+ */
+export type VenueExplorerProps = {
+  eyebrow?: string
+  title?: string
+  subtitle?: string
+  /** 展示数量上限（0 = 全部） */
+  limit?: number
+  /** 是否默认显示地图 */
+  showMap?: boolean
+}
+
+/**
+ * 34. contactChannels 联系渠道（苹果风分隔列表）。
+ * 用于体验点页底部「与你，直接对话」区块，也可复用到联系页。
+ */
+export type ContactChannelsProps = {
+  eyebrow?: string
+  title?: string
+  subtitle?: string
+  items?: {
+    label?: string
+    value?: string
+    href?: string
+    /** 点击复制（微信 / QQ群等无法直接跳转的值） */
+    copy?: boolean
+  }[]
+}
+
 /** 26. methodList 测评方法（数据源，集合 methods） */
 export type MethodListProps = DataBlockInteraction & {
   title: string
@@ -494,6 +525,8 @@ export type BlockPropsMap = {
   productBuy: ProductBuyProps
   caseList: CaseListProps
   venueList: VenueListProps
+  venueExplorer: VenueExplorerProps
+  contactChannels: ContactChannelsProps
   methodList: MethodListProps
   b2bValue: B2bValueProps
   productMatrix: ProductMatrixProps

@@ -23,6 +23,7 @@ import { IconChevronDown, IconCopy, IconNavigate, IconPin } from '../components/
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { VenueDialog } from '../components/site/VenueDialog'
 import { VenueMap } from '../components/site/VenueMap'
+import { copyText, venueNavigationUrl } from '../lib/venue'
 import { BlockPager, useBlockPager } from './BlockPager'
 import { asBool, asNumber, asString, asStringArray, gridClass, pickByIds } from './blockUtils'
 
@@ -289,16 +290,12 @@ function BizVenueCard({
 
   const type = venueTypeClass(item.type ?? '')
   const label = VENUE_TYPE_LABEL[type] ?? '体验点'
-  const navHref = `https://uri.amap.com/search?keyword=${encodeURIComponent(item.address)}`
+  const navHref = venueNavigationUrl(item)
   const clickable = dialog || (Boolean(item.href) && live)
 
   const copyAddress = async () => {
-    try {
-      await navigator.clipboard.writeText(item.address)
-      setCopied('ok')
-    } catch {
-      setCopied('fail')
-    }
+    const ok = await copyText(item.address || `${item.province ?? ''}${item.city ?? ''}${item.name}`)
+    setCopied(ok ? 'ok' : 'fail')
   }
 
   return (
@@ -316,6 +313,11 @@ function BizVenueCard({
 
       <span className={`tag venue-type venue-type--${type}`}>{label}</span>
 
+      <div className="venue-card__media" aria-hidden="true">
+        <span className="venue-card__media-city">{item.city || item.province || '体验点'}</span>
+        <span className="venue-card__media-line" />
+      </div>
+
       <div className="venue-card__title-row">
         <h3 className="card__title">{item.name}</h3>
         {showStatus && <span className={`status status--${item.ok ? 'success' : 'warning'}`}>{item.status}</span>}
@@ -323,14 +325,14 @@ function BizVenueCard({
 
       <div className="venue-card__addr">
         <IconPin size={15} className="venue-card__addr-icon" />
-        <span className="venue-card__addr-text" title={item.address}>
-          {item.address}
+        <span className="venue-card__addr-text" title={item.address || '地址待补充'}>
+          {item.address || '地址待补充'}
         </span>
         <span className="venue-card__addr-actions">
-          <button type="button" className="venue-card__act" aria-label={`复制地址：${item.address}`} onClick={copyAddress}>
+          <button type="button" className="venue-card__act" aria-label={`复制地址：${item.address || item.name}`} onClick={copyAddress}>
             <IconCopy size={15} />
           </button>
-          <a className="venue-card__act" href={navHref} target="_blank" rel="noreferrer" aria-label={`导航到 ${item.address}`}>
+          <a className="venue-card__act" href={navHref} target="_blank" rel="noreferrer" aria-label={`导航到 ${item.name}`}>
             <IconNavigate size={15} />
           </a>
         </span>

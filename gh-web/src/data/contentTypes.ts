@@ -32,6 +32,10 @@ export type BlockType =
   | 'productHero' | 'productSpecs' | 'productBuy'
   // 商业合作数据源区块（集合 biz-cases / biz-venues，支持全部 / 手动挑选）
   | 'caseList' | 'venueList'
+  // 体验点独立页（搜索 / 附近 / 城市弹层 / 机型筛选 / 地图聚合）
+  | 'venueExplorer'
+  // 联系渠道（官网 / 微信 / QQ群 / 社交平台；苹果风分隔列表）
+  | 'contactChannels'
   // 测评方法数据源区块（集合 methods）
   | 'methodList'
   // B2B 采购价值 + 商务联系区块（可后台编辑 / 可关闭；扩展 §4）

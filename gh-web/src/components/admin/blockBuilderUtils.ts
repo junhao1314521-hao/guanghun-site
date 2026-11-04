@@ -272,6 +272,9 @@ const BLOCK_ICON: Record<BlockType, string> = {
   // 商业合作数据源区块
   caseList: 'book',
   venueList: 'grid',
+  // 体验点独立页 / 联系渠道
+  venueExplorer: 'grid',
+  contactChannels: 'chat',
   // 测评方法数据源区块
   methodList: 'doc',
   // B2B 采购价值 + 商务联系

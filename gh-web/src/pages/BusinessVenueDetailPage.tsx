@@ -6,6 +6,7 @@ import { VenueDetailContent } from '../components/site/VenueDetailContent'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { venueLocation } from '../lib/venue'
 
 /** 体验点详情加载骨架 */
 function VenueDetailSkeleton() {
@@ -41,7 +42,7 @@ export function BusinessVenueDetailPage() {
           <span>/</span>
           <Link to="/business">商业合作</Link>
           <span>/</span>
-          <Link to="/business/venues">线下体验点</Link>
+          <Link to="/business/venues">产品体验点</Link>
         </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">未找到该体验点</div>
@@ -67,7 +68,7 @@ export function BusinessVenueDetailPage() {
           <span>/</span>
           <Link to="/business">商业合作</Link>
           <span>/</span>
-          <Link to="/business/venues">线下体验点</Link>
+          <Link to="/business/venues">产品体验点</Link>
           <span>/</span>
           <span>{detail.name}</span>
         </nav>
@@ -78,7 +79,7 @@ export function BusinessVenueDetailPage() {
             <div className="row" style={{ marginTop: 'var(--gh-space-3)' }}>
               <span className={`status ${detail.ok ? 'status--success' : 'status--muted'}`}>{detail.status}</span>
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                {detail.city} · {detail.area}
+                {venueLocation(detail)}
               </span>
             </div>
           </div>

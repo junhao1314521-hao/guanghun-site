@@ -1,4 +1,5 @@
 /** 商业合作深度线数据：场景与方案 / 合作案例 / 线下体验点（文案为占位内容，上线前由运营替换） */
+import { XXRSM_VENUES } from './xxrsmVenues'
 
 export type SceneProduct = { id: string; name: string }
 
@@ -203,6 +204,10 @@ export type VenueSummary = {
   /** 地图坐标（后台「体验点管理」维护；缺省时不在地图上打点） */
   lat?: number
   lng?: number
+  /** 坐标精度：门址/兴趣点为 exact；仅到区县为 district（地图可按城市级展示） */
+  precision?: 'exact' | 'district'
+  /** 数据来源：xxrsm=抓取的合作体验点；manual=后台新增（自营/合作门店） */
+  source?: 'xxrsm' | 'manual'
   /** 以下为详情扩展字段（运营可在后台维护；缺省回退内置示例） */
   hours?: string
   phone?: string
@@ -221,134 +226,10 @@ export type VenueDetail = VenueSummary & {
   note: string
 }
 
-export const BIZ_VENUES: VenueSummary[] = [
-  {
-    id: 'sz-flagship',
-    name: '光魂 · 深圳旗舰体验中心',
-    province: '广东',
-    city: '深圳',
-    area: '南山区',
-    type: 'flagship',
-    status: '营业中',
-    ok: true,
-    address: '深圳市南山区科苑大道 · 光魂旗舰体验中心',
-    cover: '/media/business/venues/sz-flagship.svg',
-    lat: 22.5405,
-    lng: 113.9345,
-    products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器', '27 英寸 2K 电竞显示器', '显示器悬臂支架'],
-  },
-  {
-    id: 'sh-experience',
-    name: '光魂 · 上海南京路体验点',
-    province: '上海',
-    city: '上海',
-    area: '黄浦区',
-    type: 'experience',
-    status: '营业中',
-    ok: true,
-    address: '上海市黄浦区南京东路 · 数码体验街区内',
-    cover: '/media/business/venues/sh-experience.svg',
-    lat: 31.2354,
-    lng: 121.4745,
-    products: ['27 英寸 2K 电竞显示器', '24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
-  },
-  {
-    id: 'bj-service',
-    name: '光魂 · 北京授权服务点',
-    province: '北京',
-    city: '北京',
-    area: '海淀区',
-    type: 'service',
-    status: '调整中',
-    ok: false,
-    address: '北京市海淀区中关村大街 · 授权服务点',
-    cover: '/media/business/venues/bj-service.svg',
-    lat: 39.9834,
-    lng: 116.3165,
-    products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器'],
-  },
-  {
-    id: 'cd-experience',
-    name: '光魂 · 成都春熙路体验点',
-    province: '四川',
-    city: '成都',
-    area: '锦江区',
-    type: 'experience',
-    status: '营业中',
-    ok: true,
-    address: '成都市锦江区春熙路商圈 · 电竞主题店内',
-    cover: '/media/business/venues/cd-experience.svg',
-    lat: 30.657,
-    lng: 104.081,
-    products: ['闪电 540Hz 电竞OLED显示器', '27 英寸 2K 电竞显示器', 'Meta 双模 4K 电竞显示器'],
-  },
-  {
-    id: 'gz-service',
-    name: '光魂 · 广州授权服务点',
-    province: '广东',
-    city: '广州',
-    area: '天河区',
-    type: 'service',
-    status: '筹备中',
-    ok: false,
-    address: '广州市天河区天河路商圈 · 授权服务点',
-    cover: '/media/business/venues/gz-service.svg',
-    lat: 23.135,
-    lng: 113.324,
-    products: ['24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
-  },
-]
+export const BIZ_VENUES: VenueSummary[] = XXRSM_VENUES
 
 /** 省份列表：用于体验点页的筛选 / 分组（去重，保持数据出现顺序） */
 export const BIZ_VENUE_PROVINCES: string[] = Array.from(new Set(BIZ_VENUES.map((venue) => venue.province)))
-
-export const BIZ_VENUE_DETAILS: Record<string, VenueDetail> = {
-  'sz-flagship': {
-    ...BIZ_VENUES[0],
-    hours: '周一至周日 10:00–22:00',
-    phone: '400-000-0000',
-    products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器', '27 英寸 2K 电竞显示器', '显示器悬臂支架'],
-    services: ['全系显示器试机体验', '显示档现场咨询与色彩校准', '保修检测与寄修受理', '联名限定款限量发售'],
-    transport: '地铁 1 号线高新园站步行约 5 分钟；商场地下停车场可停车',
-    note: '体验高峰期试机位有限，建议提前通过预约到店登记，到店后由店员安排。',
-  },
-  'sh-experience': {
-    ...BIZ_VENUES[1],
-    hours: '周一至周日 10:00–21:30',
-    phone: '400-000-0000',
-    products: ['27 英寸 2K 电竞显示器', '24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
-    services: ['重点型号试机体验', '选购建议与搭配咨询', '线上咨询到店联动'],
-    transport: '地铁 2 / 10 号线南京东路站步行约 3 分钟',
-    note: '周末人流较大，试机请配合现场取号；具体活动以门店公告为准。',
-  },
-  'bj-service': {
-    ...BIZ_VENUES[2],
-    hours: '周一至周六 09:30–18:30',
-    phone: '400-000-0000',
-    products: ['闪电 540Hz 电竞OLED显示器', 'Meta 双模 4K 电竞显示器'],
-    services: ['保修检测与故障判定', '维修寄送与进度查询', '配件更换'],
-    transport: '地铁 4 号线中关村站步行约 8 分钟',
-    note: '服务点当前处于调整期，受理时间可能变动，建议先电话确认再前往。',
-  },
-  'cd-experience': {
-    ...BIZ_VENUES[3],
-    hours: '周一至周日 11:00–22:00',
-    phone: '400-000-0000',
-    products: ['闪电 540Hz 电竞OLED显示器', '27 英寸 2K 电竞显示器', 'Meta 双模 4K 电竞显示器'],
-    services: ['电竞主题店内试机体验', '赛事与活动报名咨询', '联名周边展示'],
-    transport: '地铁 2 / 3 号线春熙路站步行约 2 分钟',
-    note: '体验点位于合作主题店内，试机位与营业安排以门店现场为准。',
-  },
-  'gz-service': {
-    ...BIZ_VENUES[4],
-    hours: '周一至周五 10:00–18:00',
-    phone: '400-000-0000',
-    products: ['24 英寸 200Hz 电竞显示器', '显示器悬臂支架'],
-    services: ['保修受理与寄修登记', '配件供应咨询'],
-    transport: '地铁 1 / 3 号线体育西路站步行约 6 分钟',
-    note: '服务点仍在筹备，暂未对外受理；开放时间以官方公布为准。',
-  },
-}
 
 /** 按 id 取案例详情：扩展字段优先取记录值（后台可维护），缺省回退内置示例表 */
 export function getBizCaseDetail(cases: CaseSummary[], id: string): CaseDetail | null {
@@ -368,14 +249,13 @@ export function getBizCaseDetail(cases: CaseSummary[], id: string): CaseDetail |
 export function getBizVenueDetail(venues: VenueSummary[], id: string): VenueDetail | null {
   const summary = venues.find((item) => item.id === id)
   if (!summary) return null
-  const extra = BIZ_VENUE_DETAILS[id]
   return {
     ...summary,
-    hours: summary.hours ?? extra?.hours ?? '',
-    phone: summary.phone ?? extra?.phone ?? '',
-    products: summary.products ?? extra?.products ?? [],
-    services: summary.services ?? extra?.services ?? [],
-    transport: summary.transport ?? extra?.transport ?? '',
-    note: summary.note ?? extra?.note ?? '',
+    hours: summary.hours ?? '',
+    phone: summary.phone ?? '',
+    products: summary.products ?? [],
+    services: summary.services ?? ['到店实机体验'],
+    transport: summary.transport ?? '',
+    note: summary.note ?? '到店体验请以门店现场安排为准。',
   }
 }

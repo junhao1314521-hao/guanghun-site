@@ -801,21 +801,16 @@ function buildBusinessCases(): Page {
 
 /** 体验点列表 */
 function buildBusinessVenues(): Page {
-  return toPage('business-venues', '/business/venues', '体验点列表', '体验点装修 + 数据源区块。', [
+  return toPage('business-venues', '/business/venues', '产品体验点', '全国合作体验点：地图、城市与机型筛选。', [
     {
-      type: 'venueList',
+      type: 'venueExplorer',
+      style: { container: 'full', paddingY: 'sm' },
       props: {
+        eyebrow: 'PRODUCT EXPERIENCE',
         title: '产品体验点',
-        subtitle: '就近体验实机与调参。',
-        scope: 'all',
-        groupBy: 'province',
-        showModels: true,
-        dialog: true,
-        showMap: true,
+        subtitle: '先摸到那台机器，再决定。全国合作门店提供光魂与极创全系显示器实机体验。',
         limit: 0,
-        pageSize: 0,
-        columns: 3,
-        showStatus: true,
+        showMap: true,
       },
     },
     {
@@ -833,6 +828,21 @@ function buildBusinessVenues(): Page {
         email: '1009742523@qq.com',
         hotline: '15913908438',
         showContact: true,
+      },
+    },
+    {
+      type: 'contactChannels',
+      props: {
+        eyebrow: 'CONTACT · 联系我们',
+        title: '与你，直接对话。',
+        subtitle: '小雪人数码官方网站 · 集显示器资讯、评测、资源、技术解析于一体。',
+        items: [
+          { label: '官方网站', value: 'www.xxrsm.com', href: 'https://www.xxrsm.com', copy: false },
+          { label: '福利号微信', value: 'xxrsm004 / xxrsm001', copy: true },
+          { label: 'QQ 交流群', value: '770256041', copy: true },
+          { label: 'B站 / 抖音', value: '小雪人兄弟', copy: false },
+          { label: '抖音', value: '小雪人评测', copy: false },
+        ],
       },
     },
   ])
@@ -870,10 +880,10 @@ function buildSupport(): Page {
         ],
       },
     },
-    // 数据源区块：网点/体验点取自集合 service-info（后台「服务信息」维护，改后前台即时生效）
+    // 数据源区块：体验点取自集合 biz-venues（真实合作门店，后台可维护）
     {
       type: 'venueList',
-      props: { title: '产品体验点', subtitle: '到店试机、现场调校与售后咨询', ctaLabel: '查看全部体验点', ctaHref: '/business/venues', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
+      props: { title: '产品体验点', subtitle: '到店试机、现场调校与售后咨询', ctaLabel: '查看全部体验点', ctaHref: '/business/venues', source: 'biz', scope: 'manual', ids: ['xxrsm-5d22dy', 'xxrsm-fxsep9', 'xxrsm-x8ccxe'], columns: 3, limit: 3, showStatus: false, showModels: true },
     },
     // 联系我们：与 /contact 重复，默认停用（§4.3）
     {
