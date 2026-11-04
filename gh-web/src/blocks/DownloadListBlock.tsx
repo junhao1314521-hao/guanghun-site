@@ -126,10 +126,10 @@ function DownloadGrid({ items }: { items: DownloadItem[] }) {
                 <span
                   className="btn btn--sm btn--ghost"
                   role="note"
-                  title="该资料尚未上传文件，上线后可用"
+                  title="该资料正在整理中，可联系客服获取"
                   style={{ opacity: 0.6, cursor: 'not-allowed' }}
                 >
-                  待上传
+                  整理中
                 </span>
               )}
             </div>

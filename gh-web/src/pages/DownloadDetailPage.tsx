@@ -112,10 +112,10 @@ export function DownloadDetailPage() {
               <span
                 className="btn btn--primary"
                 role="note"
-                title="该资料尚未上传文件，上线后可用"
+                title="该资料正在整理中，可联系客服获取"
                 style={{ opacity: 0.6, cursor: 'not-allowed' }}
               >
-                下载（文件待上传）
+                资料整理中
               </span>
             )}
             <Link className="btn btn--secondary" to="/downloads">
