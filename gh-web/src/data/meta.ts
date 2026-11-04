@@ -269,8 +269,13 @@ export function pageMetaFor(pathname: string): PageMeta {
   if (/^\/me(\/.*)?$/.test(pathname)) {
     return { path: pathname, title: '个人中心 · 光魂', description: '工单、设备、收藏与订阅通知。', indexable: false }
   }
-  // 未知路径（含 404）：不收录
-  return { path: pathname, title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION, indexable: false }
+  // 未知路径（含 404）：不收录；标题与站内 404 文案一致
+  return {
+    path: pathname,
+    title: '页面未找到 · 光魂',
+    description: '你访问的页面不存在或已被移动，请从导航重新进入。',
+    indexable: false,
+  }
 }
 
 /** 面包屑（首页 → 各级），用于 BreadcrumbList 结构化数据 */

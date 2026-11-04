@@ -86,11 +86,11 @@ export function createHttpTransport(baseUrl: string): Transport {
     } catch (error) {
       // 主动取消：原样抛出 AbortError，交由 useApi 忽略，不降级为「网络失败」
       if ((error as { name?: string } | null)?.name === 'AbortError') throw error
-      throw new ApiError('网络连接失败，请稍后重试', 0)
+      throw new ApiError('网络连接失败', 0)
     }
     if (!res.ok) {
       // 优先采用后端给出的可读错误（如「账号或密码不正确」），否则回退到状态码文案
-      let message = `请求失败（${res.status}）`
+      let message = res.status >= 500 ? '服务暂时不可用' : `请求失败（${res.status}）`
       try {
         const payload = (await res.json()) as { error?: unknown }
         if (typeof payload?.error === 'string' && payload.error.trim()) message = payload.error

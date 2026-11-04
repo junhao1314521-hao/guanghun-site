@@ -1,5 +1,6 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ApiError } from '../api/client'
 import { BlockRenderer } from '../blocks/BlockRenderer'
 import { ProductDetailContext } from '../blocks/ProductDetailContext'
 import { fetchProductDetail } from '../api/products'
@@ -33,7 +34,8 @@ function DetailSkeleton() {
 /** 产品详情：全部主体由内容库 `template-product` 区块渲染（无遗留硬编码骨架） */
 export function ProductDetailPage() {
   const { id = '' } = useParams()
-  const { data: detail, loading, error } = useApi((signal) => fetchProductDetail(id, signal), [id])
+  const [reloadKey, setReloadKey] = useState(0)
+  const { data: detail, loading, error } = useApi((signal) => fetchProductDetail(id, signal), [id, reloadKey])
   // 产品详情模板（内容库）：主体区块（展示台 / 规格 / 图文 / 购买）均来自模板
   const { data: template, loading: templateLoading } = useApi((signal) => fetchPage('template-product', signal), [])
 
@@ -58,6 +60,8 @@ export function ProductDetailPage() {
   if (loading) return <DetailSkeleton />
 
   if (!detail) {
+    // 404 = 型号不存在；其他错误 = 网络 / 服务异常，不能误报「未找到」
+    const notFound = error instanceof ApiError && error.status === 404
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
         <nav className="breadcrumb" aria-label="面包屑">
@@ -66,8 +70,17 @@ export function ProductDetailPage() {
           <Link to="/products">产品</Link>
         </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
-          <div className="empty__title">未找到该产品</div>
-          <p className="empty__desc">{error?.message ?? '型号可能已下架或链接有误'}，返回产品列表重新选择。</p>
+          <div className="empty__title">{notFound ? '未找到该产品' : '产品加载失败'}</div>
+          <p className="empty__desc">
+            {notFound
+              ? '该型号可能已下架，或链接有误，返回产品列表重新选择。'
+              : `${error?.message ?? '网络异常'}，请检查网络后重试。`}
+          </p>
+          {!notFound && (
+            <button className="btn btn--secondary btn--sm" type="button" onClick={() => setReloadKey((key) => key + 1)}>
+              重新加载
+            </button>
+          )}
           <Link className="btn btn--secondary btn--sm" to="/products">
             返回产品列表
           </Link>
