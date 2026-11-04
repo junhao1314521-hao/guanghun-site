@@ -123,3 +123,16 @@ export function venueRegionName(province: string): string {
 export function venueLocation(venue: VenueSummary): string {
   return [venue.city, venue.area].filter(Boolean).join(' · ') || provinceShort(venue.province)
 }
+
+/** 门店类型文案：自营旗舰优先展示，合作体验点次之，服务网点最后 */
+export function venueTypeLabel(type?: string): string {
+  if (type === 'flagship') return '官方直营'
+  if (type === 'service') return '授权服务点'
+  return '合作体验点'
+}
+
+const VENUE_TYPE_RANK: Record<string, number> = { flagship: 0, experience: 1, service: 2 }
+
+export function venueTypeRank(type?: string): number {
+  return VENUE_TYPE_RANK[type ?? ''] ?? 1
+}

@@ -24,6 +24,8 @@ import {
   venueModelMatch,
   venueNavigationUrl,
   venueRegionName,
+  venueTypeLabel,
+  venueTypeRank,
 } from '../lib/venue'
 
 type GeoPoint = { lat: number; lng: number }
@@ -119,6 +121,9 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
         if (db === null) return -1
         return da - db
       })
+    } else {
+      // 自营旗舰优先，其次合作体验点，最后服务网点；同级按名称稳定排序
+      list = [...list].sort((a, b) => venueTypeRank(a.type) - venueTypeRank(b.type) || a.name.localeCompare(b.name, 'zh'))
     }
     return list
   }, [venues, province, city, model, query, nearby, userPoint])
@@ -375,7 +380,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
                   <button className="vx-detail__close" type="button" aria-label="关闭" onClick={() => setActiveId(null)}>
                     <IconClose size={13} />
                   </button>
-                  <div className="vx-detail__tag">{provinceShort(selected.province)} · 合作体验点</div>
+                  <div className="vx-detail__tag">{provinceShort(selected.province)} · {venueTypeLabel(selected.type)}</div>
                   <h3 className="vx-detail__name">{selected.name}</h3>
                   <p className={`vx-detail__addr${selected.address ? '' : ' is-todo'}`}>
                     {selected.address || '地址待补充'}
@@ -550,7 +555,7 @@ function VenueRow({
       <span className="vx-row__main">
         <span className="vx-row__top">
           <span className="vx-row__name">{venue.name}</span>
-          <span className="vx-row__badge">体验点</span>
+          <span className="vx-row__badge">{venueTypeLabel(venue.type)}</span>
         </span>
         <span className={`vx-row__addr${venue.address ? '' : ' is-todo'}`}>{venue.address || '地址待补充'}</span>
         <span className="vx-row__foot">
