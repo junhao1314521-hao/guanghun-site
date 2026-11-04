@@ -72,6 +72,15 @@ export type Product = {
   h5LongImagesMobile?: string[]
   /** 购买链接（详情页 / 对比页主按钮「立即购买」取此值；未填则回退） */
   buyUrl?: string
+  /** 性能摘要（标称 / 实测）：后台可维护；有值时覆盖内置摘要 */
+  summaryRows?: ProductSummaryRowInput[]
+}
+
+/** 后台录入的摘要行：实测留空时只展示标称值 */
+export type ProductSummaryRowInput = {
+  label?: string
+  nominal?: string
+  measured?: string
 }
 
 export const PRODUCTS: Product[] = [
@@ -256,8 +265,31 @@ export const PRODUCT_DETAILS_EN: Record<string, ProductDetail> = {
 }
 
 /** 从产品记录中取出运营可维护的扩展字段（仅取已定义项，供详情合并） */
-function extendedFields(base: Product): Partial<ProductDetail> {
+function extendedFields(base: Product, locale: string = 'zh'): Partial<ProductDetail> {
   const out: Partial<ProductDetail> = {}
+  // 性能摘要：后台录入优先（有值即覆盖内置示例），实测留空时前台只展示标称值
+  const summaryRows = (Array.isArray(base.summaryRows) ? base.summaryRows : [])
+    .map((row) => ({
+      label: String(row?.label ?? '').trim(),
+      nominal: String(row?.nominal ?? '').trim(),
+      measured: String(row?.measured ?? '').trim(),
+    }))
+    .filter((row) => row.label && (row.nominal || row.measured))
+    .map((row) => ({
+      label: row.label,
+      nominal: row.nominal,
+      measured: row.measured,
+      value: row.measured || row.nominal,
+      missing: !row.nominal && !row.measured,
+    }))
+  if (summaryRows.length > 0) {
+    out.summary = [
+      {
+        title: locale === 'en' ? 'Performance summary (nominal / measured)' : '性能摘要（标称 / 实测）',
+        rows: summaryRows,
+      },
+    ]
+  }
   if (base.features !== undefined) out.features = base.features
   if (base.attributes !== undefined) out.attributes = base.attributes
   if (base.inBox !== undefined) out.inBox = base.inBox
@@ -280,7 +312,7 @@ export function getProductDetail(products: Product[], id: string, locale: string
   if (!base) return null
   if (locale === 'en') {
     const detailedEn = PRODUCT_DETAILS_EN[id]
-    if (detailedEn) return { ...detailedEn, ...extendedFields(base) }
+    if (detailedEn) return { ...detailedEn, ...extendedFields(base, locale) }
     return {
       id: base.id,
       model: base.model,
@@ -296,11 +328,11 @@ export function getProductDetail(products: Product[], id: string, locale: string
         },
       ],
       tabs: ['Specifications', 'Test records'],
-      ...extendedFields(base),
+      ...extendedFields(base, locale),
     }
   }
   const detailed = PRODUCT_DETAILS[id]
-  if (detailed) return { ...detailed, ...extendedFields(base) }
+  if (detailed) return { ...detailed, ...extendedFields(base, locale) }
   return {
     id: base.id,
     model: base.model,

@@ -227,6 +227,18 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       {
         title: '详情信息（前台展示）',
         fields: [
+          {
+            key: 'summaryRows',
+            label: '性能摘要（标称 / 实测）',
+            type: 'records',
+            span: 2,
+            hint: '详情页首屏与规格区使用。实测值留空时只展示标称值；留空整块则回退内置示例',
+            recordFields: [
+              { key: 'label', label: '指标', type: 'text' },
+              { key: 'nominal', label: '标称值', type: 'text' },
+              { key: 'measured', label: '实测值', type: 'text' },
+            ],
+          },
           { key: 'features', label: '产品亮点', type: 'list', span: 2, hint: '每行一项，如：满速 DP 2.1 · 80Gbps' },
           {
             key: 'attributes',
@@ -235,7 +247,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             span: 2,
             hint: '唯一「完整规格」来源，详情页按分组折叠展示。常用参数名——显示：面板 / 尺寸 / 分辨率 / 刷新率 / 响应时间 / 对比度 / 色域 / HDR 认证；接口：接口 / 同步技术；电源：功耗；机械：支架；物理尺寸：净重 / 尺寸；包装：包装清单；认证：CE / FCC / CCC',
             recordFields: [
-              { key: 'group', label: '分组', type: 'select', options: ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证'] },
+              { key: 'group', label: '分组', type: 'select', options: ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证', '其他'] },
               { key: 'label', label: '参数名', type: 'text' },
               { key: 'value', label: '取值', type: 'text' },
             ],
