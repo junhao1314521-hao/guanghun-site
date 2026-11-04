@@ -11,38 +11,47 @@
 .vx-hero {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(1100px 560px at 82% -10%, rgba(0, 113, 227, 0.12), transparent 62%),
-    radial-gradient(900px 520px at 6% 10%, rgba(0, 0, 0, 0.05), transparent 60%),
-    #f5f5f7;
+  background: linear-gradient(180deg, #f4f7fd 0%, #f9fbff 58%, #fff 100%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
-.vx-hero__inner { max-width: 1280px; margin: 0 auto; padding: 84px 32px 60px; }
+.vx-hero__inner {
+  max-width: 1280px; margin: 0 auto; padding: 50px 32px 42px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: end;
+}
+.vx-hero__copy { min-width: 0; }
 .vx-eyebrow {
   display: inline-flex; align-items: center; gap: 10px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
-  color: #86868b;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #2447ff;
 }
-.vx-eyebrow::before { content: ""; width: 26px; height: 1px; background: #86868b; opacity: 0.6; }
+.vx-eyebrow::before { content: ""; width: 26px; height: 1px; background: #2447ff; opacity: 0.6; }
 .vx-title {
-  margin: 22px 0 0; font-size: clamp(52px, 7.2vw, 100px); line-height: 0.98;
-  letter-spacing: -0.045em; font-weight: 700; color: #1d1d1f;
+  margin: 14px 0 0; font-size: clamp(38px, 4.2vw, 52px); line-height: 1.05;
+  letter-spacing: -0.035em; font-weight: 700; color: #111827;
 }
 .vx-lead {
-  margin: 24px 0 0; max-width: 620px;
-  font-size: clamp(17px, 1.55vw, 20px); line-height: 1.55; letter-spacing: -0.01em;
-  color: #6e6e73;
+  margin: 16px 0 0; max-width: 620px;
+  font-size: 15px; line-height: 1.7; letter-spacing: -0.01em;
+  color: #667085;
 }
-.vx-stats { display: flex; flex-wrap: wrap; gap: 46px; margin-top: 44px; }
-.vx-stats > div { display: flex; flex-direction: column; gap: 8px; }
-.vx-stats b { font-size: 32px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #1d1d1f; }
-.vx-stats span { font-size: 12px; color: #86868b; letter-spacing: 0.02em; }
-.vx-model-line {
-  display: flex; gap: 26px; flex-wrap: wrap; margin-top: 50px;
-  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #86868b;
+.vx-stats {
+  display: flex; gap: 30px; padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 34px -26px rgba(16, 24, 40, 0.3);
 }
-.vx-model-line span { display: inline-flex; align-items: center; gap: 26px; }
-.vx-model-line span:not(:last-child)::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: #c7c7cc; }
+.vx-stats > div { display: flex; flex-direction: column; gap: 6px; min-width: 74px; }
+.vx-stat-num { font-size: 34px; line-height: 1; font-weight: 700; letter-spacing: -0.04em; color: #111827; }
+.vx-stats > div > span:last-child { font-size: 11px; color: #667085; white-space: nowrap; }
+.vx-stats > div + div { border-left: 1px solid rgba(0, 0, 0, 0.08); padding-left: 28px; }
+
+/* —— 老虎机数字 —— */
+.vx-odo { display: inline-flex; align-items: flex-start; height: 1.2em; overflow: hidden; line-height: 1; }
+.vx-odo__digit { display: inline-block; width: 0.62em; height: 1.2em; overflow: hidden; }
+.vx-odo__track { display: flex; flex-direction: column; transform: translateY(0); transition: transform 1.25s var(--gh-ease-accent); }
+.vx-odo.is-run .vx-odo__track { transform: translateY(calc(var(--d) * -1.2em - 12em)); }
+.vx-odo__cell { display: flex; align-items: center; justify-content: center; height: 1.2em; }
 
 /* —— 工具条 —— */
 .vx-toolbar {
@@ -229,6 +238,10 @@
 .vx-detail__addr.is-todo { color: #86868b; }
 .vx-detail__models { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .vx-detail__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+@media (min-width: 768px) {
+  /* 桌面端用地图信息窗承载地址弹窗；固定详情卡只在移动端作为底部抽屉 */
+  .vx-detail { display: none; }
+}
 .vx-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-height: 36px; padding: 0 14px; border-radius: 999px;
@@ -325,6 +338,49 @@
 .vx-city.is-active { background: #1d1d1f; border-color: #1d1d1f; color: #fff; }
 .vx-city.is-active span { color: rgba(255, 255, 255, 0.6); }
 
+/* —— 城市弹窗 v2：搜索 + 大区 + 省市双栏 —— */
+.vx-city-dialog {
+  position: relative; width: min(760px, 100%); height: min(560px, 82vh);
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 40px 90px -30px rgba(16, 24, 40, 0.45);
+}
+.vx-city-head { padding: 20px 22px 14px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+.vx-city-head__row { display: flex; align-items: center; justify-content: space-between; }
+.vx-city-title { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.vx-city-search {
+  margin-top: 13px; height: 38px; display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; background: #f5f7fb; border: 1px solid transparent; border-radius: 9px;
+}
+.vx-city-search:focus-within { background: #fff; border-color: #b9c6ff; }
+.vx-city-search svg { flex: none; color: #98a2b3; }
+.vx-city-search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 13px; }
+.vx-city-body { flex: 1; display: grid; grid-template-columns: 150px minmax(0, 1fr); min-height: 0; }
+.vx-city-regions { border-right: 1px solid rgba(0, 0, 0, 0.06); padding: 10px 8px; overflow-y: auto; }
+.vx-city-region {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border: 0; border-radius: 8px; background: transparent;
+  font: inherit; font-size: 12px; color: #667085; text-align: left;
+}
+.vx-city-region:hover { background: #f7f9fc; color: #344054; }
+.vx-city-region.is-active { background: #eef2ff; color: #1c37cc; font-weight: 600; }
+.vx-city-region span { font-size: 10px; color: #98a2b3; }
+.vx-city-list { padding: 16px 18px; overflow-y: auto; }
+.vx-city-group + .vx-city-group { margin-top: 20px; }
+.vx-city-group__name { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #98a2b3; margin-bottom: 8px; }
+.vx-city-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.vx-city-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 9px 10px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 12px; color: #344054; text-align: left;
+}
+.vx-city-item:hover { background: #f7f9fc; border-color: #d7dee8; }
+.vx-city-item.is-active { background: #2447ff; border-color: #2447ff; color: #fff; }
+.vx-city-item span { font-size: 10px; color: #98a2b3; }
+.vx-city-item.is-active span { color: rgba(255, 255, 255, 0.65); }
+.vx-city-empty { margin: 30px 0; text-align: center; font-size: 12px; color: #98a2b3; }
+.vx-notice__action { margin-left: auto; color: #2447ff; font-weight: 600; font-size: 12px; white-space: nowrap; }
+
 /* —— 嵌入模块：体验点卡片（venueList）苹果风重做 —— */
 .venue-card {
   position: relative; overflow: hidden;
@@ -377,7 +433,72 @@
   .venue-card__title-row, .venue-card__addr, .venue-card__models, .venue-card__copied { padding-left: 16px; padding-right: 16px; }
 }
 
-/* —— 联系渠道 —— */
+/* —— 地图信息窗操作 —— */
+.venue-map__actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.venue-map__nav { font-size: 12px; font-weight: 500; color: #2447ff; }
+.venue-map__detail { font-size: 12px; color: #667085; }
+
+/* —— 门店详情：两张卡等高，操作贴底 —— */
+.venue-detail__pair { align-items: stretch; }
+.venue-detail__pair > .card { display: flex; flex-direction: column; }
+.venue-detail__pair > .card > .row:last-child { margin-top: auto; }
+
+/* —— 嵌入模块：卡片等高 + 媒体插画 + 底部对齐 —— */
+.venue-card { display: flex; flex-direction: column; }
+.venue-card__media-art {
+  position: absolute; right: 16px; bottom: 12px; width: 96px;
+  opacity: 0.55;
+}
+.venue-card__media-city { max-width: 60%; }
+.venue-card__models { margin-top: 14px; }
+.venue-card__foot {
+  margin-top: auto; padding: 12px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 10px; color: #86868b;
+}
+.venue-card__foot span:last-child { color: #2447ff; font-weight: 500; }
+
+/* —— 企业采购：四卡等高 + 单条联系栏 —— */
+.b2b-card { min-height: 170px; }
+.b2b-card__icon { width: 38px; height: 38px; border-radius: 10px; background: #eef2ff; color: #2447ff; display: grid; place-items: center; }
+.b2b-contact {
+  display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0;
+  margin-top: 16px; background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 12px; overflow: hidden;
+}
+.b2b-contact__item { display: flex; align-items: center; gap: 9px; padding: 12px 16px; min-height: 56px; border-left: 1px solid rgba(0, 0, 0, 0.05); }
+.b2b-contact__item:first-child { border-left: 0; }
+.b2b-pill { border: 0; background: transparent; padding: 0; gap: 9px; align-items: center; }
+.b2b-pill:hover { border-color: transparent; background: transparent; }
+.b2b-pill__icon { color: #2447ff; }
+.b2b-pill__label { font-size: 10px; color: #98a2b3; }
+.b2b-pill__value { font-size: 12px; color: #344054; font-weight: 600; }
+.b2b-pill__copy { margin-left: auto; color: #98a2b3; }
+.b2b-contact__feedback { position: absolute; margin-top: 34px; font-size: 10px; color: #12b76a; }
+.b2b-contact__cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 10px 14px; padding: 0 16px; min-height: 36px;
+  border-radius: 8px; background: #2447ff; color: #fff;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.b2b-contact__cta:hover { background: #1c37cc; color: #fff; }
+
+@media (max-width: 1023px) {
+  .b2b-contact { grid-template-columns: 1fr 1fr; }
+  .b2b-contact__item:nth-child(3) { border-left: 0; border-top: 1px solid rgba(0, 0, 0, 0.05); }
+  .b2b-contact__cta { grid-column: 2; margin: 10px 14px; }
+}
+@media (max-width: 767px) {
+  .vx-hero__copy .vx-lead { font-size: 14px; }
+  .venue-card__media-art { width: 78px; }
+  .venue-card__foot { padding-left: 16px; padding-right: 16px; }
+  .b2b-contact { grid-template-columns: 1fr; }
+  .b2b-contact__item { border-left: 0; border-top: 1px solid rgba(0, 0, 0, 0.05); }
+  .b2b-contact__item:first-child { border-top: 0; }
+  .b2b-contact__cta { grid-column: auto; margin: 12px 16px; }
+}
+
 .blk[data-block='contactChannels'] { padding: 0; background: #fff; }
 .cc { border-top: 1px solid rgba(0, 0, 0, 0.05); }
 .cc__inner {
@@ -406,6 +527,8 @@ a.cc__row .cc__action { color: #0071e3; }
 
 /* —— 响应式 —— */
 @media (max-width: 1080px) {
+  .vx-hero__inner { grid-template-columns: 1fr; gap: 24px; }
+  .vx-stats { justify-self: start; }
   .vx-grid { grid-template-columns: 1fr; }
   .vx-map-card { min-height: 440px; }
   .vx-list-card { min-height: 0; max-height: none; }
@@ -416,9 +539,11 @@ a.cc__row .cc__action { color: #0071e3; }
   .vx-region__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 767px) {
-  .vx-hero__inner { padding: 56px 20px 40px; }
-  .vx-stats { gap: 26px; margin-top: 32px; }
-  .vx-stats b { font-size: 26px; }
+  .vx-hero__inner { padding: 34px 20px 30px; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+  .vx-stats { width: 100%; gap: 16px; padding: 14px 16px; margin-top: 0; }
+  .vx-stats > div { min-width: 0; flex: 1; }
+  .vx-stats > div + div { padding-left: 16px; }
+  .vx-stat-num { font-size: 27px; }
   .vx-model-line { gap: 16px; margin-top: 36px; font-size: 10px; }
   .vx-model-line span { gap: 16px; }
   .vx-toolbar__inner { padding: 10px 20px 8px; gap: 8px; flex-wrap: wrap; }
@@ -433,6 +558,7 @@ a.cc__row .cc__action { color: #0071e3; }
   .vx-map-card { min-height: 340px; border-radius: 24px; }
   .vx-map-top { top: 14px; left: 14px; right: 14px; }
   .vx-detail {
+    display: block;
     position: fixed; left: 16px; right: 16px; bottom: 20px; width: auto; z-index: 180;
     padding: 18px;
     padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
@@ -444,6 +570,12 @@ a.cc__row .cc__action { color: #0071e3; }
   .vx-row { padding: 14px 12px; }
   .vx-modal { padding: 0; align-items: flex-end; }
   .vx-modal__dialog { width: 100%; max-height: 88vh; border-radius: 28px 28px 0 0; }
+  .vx-city-dialog { width: 100%; height: 88vh; border-radius: 18px 18px 0 0; }
+  .vx-city-body { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .vx-city-regions { display: flex; gap: 6px; overflow-x: auto; border-right: 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06); padding: 8px 12px; }
+  .vx-city-region { width: auto; flex: none; padding: 7px 11px; white-space: nowrap; }
+  .vx-city-list { padding: 14px; }
+  .vx-city-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .vx-modal__head { padding: 20px 20px 16px; }
   .vx-modal__body { padding: 18px 20px 28px; }
   .vx-region__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

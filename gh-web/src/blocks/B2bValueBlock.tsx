@@ -51,13 +51,11 @@ export function B2bValueBlock({ props }: { props: Record<string, unknown> }) {
         <div className="b2b-contact">
           {wechat && <ContactPill icon={<IconChat size={18} />} label="微信" value={wechat} />}
           {email && <ContactPill icon={<IconMail size={18} />} label="邮箱" value={email} />}
+          {hotline && <ContactPill icon={<IconPhone size={18} />} label="热线" value={hotline} />}
           {hotline && (
-            <ContactPill
-              icon={<IconPhone size={18} />}
-              label="热线"
-              value={hotline}
-              telHref={`tel:${hotline.replace(/[^0-9+]/g, '')}`}
-            />
+            <a className="b2b-contact__cta" href={`tel:${hotline.replace(/[^0-9+]/g, '')}`}>
+              拨打热线
+            </a>
           )}
         </div>
       )}
@@ -65,17 +63,15 @@ export function B2bValueBlock({ props }: { props: Record<string, unknown> }) {
   )
 }
 
-/** 可复制胶囊：点击复制值并给出内联反馈；hotline 额外提供 tel: 拨号 */
+/** 可复制条目：点击复制值并给出内联反馈 */
 function ContactPill({
   icon,
   label,
   value,
-  telHref,
 }: {
   icon: ReactNode
   label: string
   value: string
-  telHref?: string
 }) {
   const [copied, setCopied] = useState(false)
   useEffect(() => {
@@ -107,11 +103,6 @@ function ContactPill({
           <IconCopy size={14} />
         </span>
       </button>
-      {telHref && (
-        <a className="b2b-pill__tel" href={telHref} aria-label={`拨打 ${value}`}>
-          拨打
-        </a>
-      )}
       <span className="b2b-contact__feedback" role="status" aria-live="polite">
         {copied ? '已复制' : ''}
       </span>

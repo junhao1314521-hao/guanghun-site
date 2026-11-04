@@ -25,6 +25,19 @@ function escapeHtml(value: string): string {
   })
 }
 
+function infoHtml(venue: VenuePoint): string {
+  const models = (venue.products ?? []).map((model) => `<span class="venue-map__model">${escapeHtml(model)}</span>`).join('')
+  return `<div class="venue-map__info">
+    <b>${escapeHtml(venue.name)}</b>
+    <span>${escapeHtml(venue.address || '地址待补充')}</span>
+    ${models ? `<div class="venue-map__models">${models}</div>` : ''}
+    <div class="venue-map__actions">
+      <a class="venue-map__nav" href="${venueNavigationUrl(venue)}" target="_blank" rel="noopener noreferrer">到这里去 →</a>
+      <a class="venue-map__detail" href="/business/venues/${encodeURIComponent(venue.id)}">查看详情</a>
+    </div>
+  </div>`
+}
+
 export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, onClusterSelect }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<AMapMap | null>(null)
@@ -52,7 +65,7 @@ export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, 
           center: [104.2, 35.6],
           viewMode: '2D',
           zooms: [3, 18],
-          mapStyle: 'amap://styles/grey',
+          mapStyle: 'amap://styles/whitesmoke',
           features: ['bg', 'road', 'building'],
         })
         mapRef.current = map
@@ -88,23 +101,6 @@ export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, 
     if (points.length === 0) return
 
     const created: unknown[] = []
-    const openInfo = (venue: VenuePoint) => {
-      infoRef.current?.close()
-      const models = (venue.products ?? []).map((model) => `<span class="venue-map__model">${escapeHtml(model)}</span>`).join('')
-      const info = new AMap.InfoWindow({
-        offset: new AMap.Pixel(0, -14),
-        isCustom: true,
-        autoMove: true,
-        content: `<div class="venue-map__info">
-          <b>${escapeHtml(venue.name)}</b>
-          <span>${escapeHtml(venue.address || '地址待补充')}</span>
-          ${models ? `<div class="venue-map__models">${models}</div>` : ''}
-          <a class="venue-map__nav" href="${venueNavigationUrl(venue)}" target="_blank" rel="noopener noreferrer">到这里去 →</a>
-        </div>`,
-      })
-      info.open(map, [venue.lng, venue.lat])
-      infoRef.current = info
-    }
 
     if (mode === 'clusters') {
       const groups = new Map<string, VenuePoint[]>()
@@ -187,7 +183,6 @@ export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, 
         })
         marker.on('click', () => {
           selectRef.current?.(venue.id)
-          openInfo(venue)
         })
         map.add(marker)
         created.push(marker)
@@ -206,6 +201,28 @@ export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, 
     overlaysRef.current = created
     map.setFitView(created, false, [70, 70, 90, 70])
   }, [state, mode, pointsKey, activeId, userPoint?.lat, userPoint?.lng])
+
+  // 点击列表门店 / 地图点位后：地图移动到该门店并弹出地址窗口
+  useEffect(() => {
+    const AMap = window.AMap
+    const map = mapRef.current
+    if (!AMap || !map || state !== 'ready') return
+    const venue = activeId ? points.find((item) => item.id === activeId) : null
+    if (!venue) {
+      infoRef.current?.close()
+      return
+    }
+    map.setZoomAndCenter?.(13, [venue.lng, venue.lat], false, 500)
+    infoRef.current?.close()
+    const info = new AMap.InfoWindow({
+      offset: new AMap.Pixel(0, -14),
+      isCustom: true,
+      autoMove: true,
+      content: infoHtml(venue),
+    })
+    info.open(map, [venue.lng, venue.lat])
+    infoRef.current = info
+  }, [activeId, state, pointsKey])
 
   if (state === 'unavailable') {
     return (

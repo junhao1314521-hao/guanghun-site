@@ -5,7 +5,7 @@
  * 能力：搜索 / 附近 / 城市弹层 / 机型筛选 / 地图聚合下钻 / 按省分组列表 / 门店详情浮层。
  * 设计：苹果风大留白、细分割线、玻璃浮层；省份不再平铺成筛选条。
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { fetchBizVenues } from '../api/business-extra'
@@ -20,6 +20,7 @@ import {
   copyText,
   distanceKm,
   formatDistance,
+  hasCoords,
   provinceShort,
   venueModelMatch,
   venueNavigationUrl,
@@ -59,6 +60,8 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   const [geoError, setGeoError] = useState('')
   const [activeId, setActiveId] = useState<string | null>(null)
   const [cityOpen, setCityOpen] = useState(false)
+  const [cityRegion, setCityRegion] = useState('全部')
+  const [cityQuery, setCityQuery] = useState('')
   const [copied, setCopied] = useState(false)
   const [isMobile, setIsMobile] = useState(() =>
     typeof window === 'undefined' ? false : window.matchMedia('(max-width: 767px)').matches,
@@ -100,6 +103,38 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6)
       .map(([name, count]) => ({ name, count }))
+  }, [venues])
+
+  const cityGroups = useMemo(() => {
+    const keyword = cityQuery.trim().toLowerCase()
+    return VENUE_REGIONS
+      .filter((region) => cityRegion === '全部' || region.name === cityRegion)
+      .map((region) => ({
+        name: region.name,
+        provinces: region.provinces.filter((item) => {
+          if (!provinceCounts.has(item)) return false
+          if (!keyword) return true
+          return (
+            (provinceShort(item) + item).toLowerCase().includes(keyword) ||
+            venues.some((venue) => venue.province === item && venue.city.toLowerCase().includes(keyword))
+          )
+        }),
+      }))
+      .filter((region) => region.provinces.length > 0)
+  }, [cityRegion, cityQuery, provinceCounts, venues])
+
+  const quickFiltered = useMemo(() => {
+    const keyword = cityQuery.trim().toLowerCase()
+    return keyword ? quickCities.filter((item) => item.name.toLowerCase().includes(keyword)) : quickCities
+  }, [quickCities, cityQuery])
+
+  const regionCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    map.set('全部', venues.length)
+    for (const region of VENUE_REGIONS) {
+      map.set(region.name, venues.filter((venue) => region.provinces.includes(venue.province)).length)
+    }
+    return map
   }, [venues])
 
   const filtered = useMemo(() => {
@@ -190,6 +225,40 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
     }
   }
 
+  const openCity = () => {
+    setCityQuery('')
+    setCityOpen(true)
+  }
+
+  const pickProvince = (value: string) => {
+    setProvince(value)
+    setCity('全部')
+    setNearby(false)
+    setQuery('')
+    setActiveId(null)
+    setCityOpen(false)
+  }
+
+  const pickCity = (value: string) => {
+    setCity(value)
+    setProvince('全部')
+    setNearby(false)
+    setQuery('')
+    setActiveId(null)
+    setCityOpen(false)
+  }
+
+  const selectVenue = (id: string) => {
+    const venue = venues.find((item) => item.id === id)
+    if (venue && !hasCoords(venue)) {
+      setGeoError('该门店地址待补充，暂无法在地图上定位；可先复制地址或联系门店确认。')
+      setActiveId(id)
+      return
+    }
+    setGeoError('')
+    setActiveId(id)
+  }
+
   const handleNearby = () => {
     if (nearby) {
       setNearby(false)
@@ -263,16 +332,15 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
     <div className="vx-shell">
       <section className="vx-hero">
         <div className="vx-hero__inner">
-          <div className="vx-eyebrow">{eyebrow}</div>
-          <h2 className="vx-title">{title}</h2>
-          <p className="vx-lead">{subtitle}</p>
-          <div className="vx-stats">
-            <div><b>{total}</b><span>线下合作体验点</span></div>
-            <div><b>{provinceCount}</b><span>覆盖省市</span></div>
-            <div><b>{regionCount}</b><span>大区覆盖</span></div>
+          <div className="vx-hero__copy">
+            <div className="vx-eyebrow">{eyebrow}</div>
+            <h2 className="vx-title">{title}</h2>
+            <p className="vx-lead">{subtitle}</p>
           </div>
-          <div className="vx-model-line" aria-hidden="true">
-            <span>闪电 540</span><span>枪神 550</span><span>鹰眼 380</span><span>极创 G251FE</span><span>光魂 25S1FP</span>
+          <div className="vx-stats" aria-label="体验点统计">
+            <div><span className="vx-stat-num"><Odometer value={total} /></span><span>线下合作体验点</span></div>
+            <div><span className="vx-stat-num"><Odometer value={provinceCount} /></span><span>覆盖省市</span></div>
+            <div><span className="vx-stat-num"><Odometer value={regionCount} /></span><span>大区覆盖</span></div>
           </div>
         </div>
       </section>
@@ -298,7 +366,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
             <IconNavigate size={14} />
             {locating ? '定位中…' : '附近'}
           </button>
-          <button className="vx-tool" type="button" onClick={() => setCityOpen(true)}>
+          <button className="vx-tool" type="button" onClick={openCity}>
             全部城市
             <IconChevronDown size={12} />
           </button>
@@ -322,7 +390,14 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
         </div>
       </div>
 
-      {geoError && <div className="vx-container"><div className="vx-notice" role="status">{geoError}</div></div>}
+      {geoError && (
+        <div className="vx-container">
+          <div className="vx-notice" role="status">
+            {geoError}
+            <button type="button" className="vx-notice__action" onClick={openCity}>选择城市</button>
+          </div>
+        </div>
+      )}
 
       {activeFilters.length > 0 && (
         <div className="vx-container vx-active">
@@ -348,7 +423,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
                 mode={mapMode}
                 activeId={activeId}
                 userPoint={nearby ? userPoint : null}
-                onSelect={setActiveId}
+                onSelect={selectVenue}
                 onClusterSelect={(next) => {
                   setProvince(next)
                   setCity('全部')
@@ -433,7 +508,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
                         active={venue.id === activeId}
                         nearby={nearby}
                         userPoint={userPoint}
-                        onClick={() => setActiveId(venue.id)}
+                        onClick={() => selectVenue(venue.id)}
                       />
                     ))}
                   </div>
@@ -446,7 +521,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
                     active={venue.id === activeId}
                     nearby={nearby}
                     userPoint={userPoint}
-                    onClick={() => setActiveId(venue.id)}
+                    onClick={() => selectVenue(venue.id)}
                   />
                 ))
               )}
@@ -458,81 +533,112 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       {cityOpen && createPortal(
         <div className="vx-modal" role="presentation">
           <div className="vx-modal__backdrop" onClick={() => setCityOpen(false)} />
-          <div className="vx-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="vx-city-title">
-            <div className="vx-modal__head">
-              <h2 className="vx-modal__title" id="vx-city-title">选择城市</h2>
-              <button className="vx-modal__close" type="button" aria-label="关闭" onClick={() => setCityOpen(false)}>
-                <IconClose size={14} />
-              </button>
-            </div>
-            <div className="vx-modal__body">
-              <button
-                className="vx-city-all"
-                type="button"
-                onClick={() => {
-                  setProvince('全部')
-                  setCity('全部')
-                  setNearby(false)
-                  setQuery('')
-                  setCityOpen(false)
-                }}
-              >
-                全国 <span>{total} 家体验点</span>
-              </button>
-              <div className="vx-region">
-                <div className="vx-region__name">快速查看</div>
-                <div className="vx-region__grid">
-                  {quickCities.map((item) => (
-                    <button
-                      className={`vx-city${city === item.name ? ' is-active' : ''}`}
-                      type="button"
-                      key={item.name}
-                      onClick={() => {
-                        setCity(item.name)
-                        setProvince('全部')
-                        setNearby(false)
-                        setQuery('')
-                        setCityOpen(false)
-                      }}
-                    >
-                      {item.name}<span>{item.count}</span>
-                    </button>
-                  ))}
-                </div>
+          <div className="vx-city-dialog" role="dialog" aria-modal="true" aria-labelledby="vx-city-title">
+            <div className="vx-city-head">
+              <div className="vx-city-head__row">
+                <h2 className="vx-city-title" id="vx-city-title">选择城市</h2>
+                <button className="vx-modal__close" type="button" aria-label="关闭" onClick={() => setCityOpen(false)}>
+                  <IconClose size={14} />
+                </button>
               </div>
-              {VENUE_REGIONS.map((region) => {
-                const provinces = region.provinces.filter((item) => provinceCounts.has(item))
-                if (provinces.length === 0) return null
-                return (
-                  <div className="vx-region" key={region.name}>
-                    <div className="vx-region__name">{region.name}</div>
-                    <div className="vx-region__grid">
-                      {provinces.map((item) => (
+              <label className="vx-city-search">
+                <IconSearch size={14} />
+                <input
+                  value={cityQuery}
+                  onChange={(event) => setCityQuery(event.target.value)}
+                  placeholder="搜索省市，例如：广东 / 成都"
+                  aria-label="搜索省市"
+                />
+              </label>
+            </div>
+            <div className="vx-city-body">
+              <aside className="vx-city-regions">
+                {['全部', ...VENUE_REGIONS.map((region) => region.name)].map((name) => (
+                  <button
+                    className={`vx-city-region${cityRegion === name ? ' is-active' : ''}`}
+                    type="button"
+                    key={name}
+                    onClick={() => setCityRegion(name)}
+                  >
+                    {name}
+                    <span>{regionCounts.get(name) ?? 0}</span>
+                  </button>
+                ))}
+              </aside>
+              <div className="vx-city-list">
+                <button className="vx-city-all" type="button" onClick={() => pickProvince('全部')}>
+                  全国 <span>{total} 家体验点</span>
+                </button>
+                {cityRegion === '全部' && quickFiltered.length > 0 && (
+                  <div className="vx-city-group">
+                    <div className="vx-city-group__name">快速查看</div>
+                    <div className="vx-city-grid">
+                      {quickFiltered.map((item) => (
                         <button
-                          className={`vx-city${province === item ? ' is-active' : ''}`}
+                          className={`vx-city-item${city === item.name ? ' is-active' : ''}`}
+                          type="button"
+                          key={item.name}
+                          onClick={() => pickCity(item.name)}
+                        >
+                          {item.name}<span>{item.count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {cityGroups.map((group) => (
+                  <div className="vx-city-group" key={group.name}>
+                    <div className="vx-city-group__name">{group.name}</div>
+                    <div className="vx-city-grid">
+                      {group.provinces.map((item) => (
+                        <button
+                          className={`vx-city-item${province === item ? ' is-active' : ''}`}
                           type="button"
                           key={item}
-                          onClick={() => {
-                            setProvince(item)
-                            setCity('全部')
-                            setNearby(false)
-                            setQuery('')
-                            setCityOpen(false)
-                          }}
+                          onClick={() => pickProvince(item)}
                         >
                           {provinceShort(item)}<span>{provinceCounts.get(item) ?? 0}</span>
                         </button>
                       ))}
                     </div>
                   </div>
-                )
-              })}
+                ))}
+                {cityGroups.length === 0 && quickFiltered.length === 0 && (
+                  <p className="vx-city-empty">没有找到匹配的省市</p>
+                )}
+              </div>
             </div>
           </div>
         </div>,
         document.body,
       )}
     </div>
+  )
+}
+
+/** 老虎机式数字滚动：每位数字一条 0–9 轨道，挂载后滚动到目标位。 */
+function Odometer({ value }: { value: number }) {
+  const [run, setRun] = useState(false)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setRun(true), 120)
+    return () => window.clearTimeout(timer)
+  }, [])
+  return (
+    <span className={`vx-odo${run ? ' is-run' : ''}`} role="img" aria-label={String(value)}>
+      {Array.from(String(value)).map((char, index) =>
+        /\d/.test(char) ? (
+          <span className="vx-odo__digit" aria-hidden="true" key={`${char}-${index}`}>
+            <span className="vx-odo__track" style={{ '--d': Number(char) } as CSSProperties}>
+              {Array.from({ length: 20 }, (_, n) => (
+                <span className="vx-odo__cell" key={n}>{n % 10}</span>
+              ))}
+            </span>
+          </span>
+        ) : (
+          <span aria-hidden="true" key={`${char}-${index}`}>{char}</span>
+        ),
+      )}
+    </span>
   )
 }
 

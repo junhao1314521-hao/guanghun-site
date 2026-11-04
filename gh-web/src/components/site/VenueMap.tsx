@@ -25,6 +25,7 @@ export type AMapMap = {
   add: (overlays: unknown | unknown[]) => void
   remove: (overlays: unknown | unknown[]) => void
   setFitView: (overlays?: unknown[], immediately?: boolean, avoid?: number[]) => void
+  setZoomAndCenter?: (zoom: number, center: unknown, immediately?: boolean, duration?: number) => void
   lngLatToContainer?: (position: unknown) => { x: number; y: number }
   destroy: () => void
 }

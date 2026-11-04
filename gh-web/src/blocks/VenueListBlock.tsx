@@ -316,6 +316,13 @@ function BizVenueCard({
       <div className="venue-card__media" aria-hidden="true">
         <span className="venue-card__media-city">{item.city || item.province || '体验点'}</span>
         <span className="venue-card__media-line" />
+        <svg className="venue-card__media-art" viewBox="0 0 120 80" fill="none">
+          <rect x="8" y="6" width="104" height="60" rx="5" fill="#fff" stroke="#c9d4e8" />
+          <rect x="14" y="12" width="92" height="48" rx="3" fill="#141821" />
+          <path d="M24 48 L42 28 L56 40 L74 22 L96 44" stroke="#3b4353" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="48" y="68" width="24" height="4" rx="2" fill="#dbe3ee" />
+          <rect x="36" y="73" width="48" height="3" rx="1.5" fill="#c9d4e8" />
+        </svg>
       </div>
 
       <div className="venue-card__title-row">
@@ -359,6 +366,10 @@ function BizVenueCard({
           })}
         </div>
       )}
+      <div className="venue-card__foot">
+        <span>到店实机体验</span>
+        <span>查看门店 →</span>
+      </div>
     </article>
   )
 }

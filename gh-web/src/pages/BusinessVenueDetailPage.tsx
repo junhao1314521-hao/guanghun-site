@@ -75,7 +75,7 @@ export function BusinessVenueDetailPage() {
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)' }}>
           <div>
-            <h1 className="section__title">{detail.name}</h1>
+            <h1 className="section__title" style={{ fontSize: 'clamp(30px, 4vw, 38px)' }}>{detail.name}</h1>
             <div className="row" style={{ marginTop: 'var(--gh-space-3)' }}>
               <span className={`status ${detail.ok ? 'status--success' : 'status--muted'}`}>{detail.status}</span>
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
