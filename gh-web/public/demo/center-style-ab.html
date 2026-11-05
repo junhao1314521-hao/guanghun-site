@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Center 风格对照 · B 强镜头 / C 混合</title>
+<style>
+  :root {
+    --bg: #04060b;
+    --text: #f2f7ff;
+    --muted: #9aa7bd;
+    --dim: #69768c;
+    --line: rgba(255,255,255,.09);
+    --line-2: rgba(255,255,255,.18);
+    --blue: #4da3ff;
+    --cyan: #6ee7ff;
+    --ease: cubic-bezier(.16,1,.3,1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "MiSans", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  .wrap { width: min(1280px, calc(100% - 64px)); margin-inline: auto; }
+
+  /* 顶栏 */
+  .bar {
+    position: fixed; inset: 0 0 auto 0; z-index: 80;
+    height: 64px; display: flex; align-items: center;
+    background: rgba(4,6,11,.72); backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar__inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: min(1280px, calc(100% - 48px)); margin-inline: auto; }
+  .bar b { font-size: 14px; font-weight: 600; letter-spacing: .01em; }
+  .bar b em { font-style: normal; color: var(--cyan); }
+  .switch { display: inline-flex; padding: 3px; border: 1px solid var(--line-2); border-radius: 999px; background: rgba(255,255,255,.03); }
+  .switch a { padding: 7px 14px; border-radius: 999px; font-size: 12px; color: var(--muted); text-decoration: none; transition: all .2s ease; }
+  .switch a:hover { color: #fff; }
+  .switch a.on { background: rgba(110,231,255,.14); color: #dff6ff; }
+  .bar__note { font-size: 11px; color: var(--dim); }
+
+  /* 章节 */
+  .stage { position: relative; height: 240vh; }
+  .stage__sticky {
+    position: sticky; top: 64px; height: calc(100svh - 64px);
+    display: flex; align-items: center; overflow: hidden;
+  }
+  .stage__inner {
+    display: grid; grid-template-columns: minmax(0,.42fr) minmax(0,.58fr);
+    gap: 48px; align-items: center;
+  }
+  .label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 500; letter-spacing: .04em; color: var(--cyan);
+  }
+  .label i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
+  h2 { margin: 16px 0 16px; font-size: clamp(38px, 4.4vw, 60px); line-height: 1.06; letter-spacing: -.03em; }
+  .copy p { margin: 0; max-width: 420px; color: var(--muted); font-size: 17px; line-height: 1.85; }
+  .copy ul { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+  .copy li { position: relative; padding-left: 20px; font-size: 14px; color: #c7d2e3; }
+  .copy li::before { content: ''; position: absolute; left: 1px; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); opacity: .8; }
+  .copy .hint { margin-top: 26px; font-size: 13px; color: var(--dim); }
+
+  /* 窗口 */
+  .stagewin { position: relative; perspective: 1100px; transform-style: preserve-3d; }
+  .frame {
+    position: relative; border-radius: 18px; overflow: hidden;
+    border: 1px solid rgba(150,200,255,.2); background: #070b12;
+    transform-style: preserve-3d; will-change: transform;
+    transition: transform .08s linear, box-shadow .3s ease;
+  }
+  .frame img { display: block; width: 100%; height: auto; filter: brightness(1.32) contrast(1.05); }
+  .frame::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(112deg, rgba(255,255,255,.12), transparent 26%, transparent 74%, rgba(255,255,255,.05)),
+      linear-gradient(0deg, rgba(4,6,11,.3), transparent 32%);
+  }
+
+  /* ===== B：强镜头科幻 ===== */
+  #b .frame {
+    transform:
+      rotateY(calc(-28deg + var(--p,0) * 31deg))
+      rotateX(calc(14deg - var(--p,0) * 16deg))
+      scale(calc(.76 + var(--p,0) * .40))
+      translateZ(calc(60px - var(--p,0) * 60px));
+    box-shadow:
+      0 50px 110px rgba(0,0,0,.72),
+      0 0 110px rgba(77,163,255,.28),
+      inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  #b .stagewin::before {
+    content: ''; position: absolute; inset: -8% -6%;
+    background:
+      linear-gradient(rgba(110,231,255,.07) 1px, transparent 1px) 0 0 / 100% 46px,
+      linear-gradient(90deg, rgba(110,231,255,.07) 1px, transparent 1px) 0 0 / 46px 100%;
+    mask-image: radial-gradient(70% 70% at 50% 50%, #000 20%, transparent 80%);
+    pointer-events: none;
+  }
+  #b .hud { position: absolute; inset: 0; pointer-events: none; }
+  #b .hud span {
+    position: absolute; font-family: ui-monospace, monospace; font-size: 10px;
+    letter-spacing: .14em; color: rgba(130,230,255,.62);
+  }
+  #b .hud span:nth-child(1) { left: -6px; top: -18px; }
+  #b .hud span:nth-child(2) { right: -6px; top: -18px; }
+  #b .hud span:nth-child(3) { left: -6px; bottom: -18px; }
+  #b .hud i { position: absolute; width: 16px; height: 16px; border: 1px solid rgba(110,231,255,.45); }
+  #b .hud i:nth-of-type(1) { left: -2px; top: -2px; border-right: 0; border-bottom: 0; }
+  #b .hud i:nth-of-type(2) { right: -2px; top: -2px; border-left: 0; border-bottom: 0; }
+  #b .hud i:nth-of-type(3) { left: -2px; bottom: -2px; border-right: 0; border-top: 0; }
+  #b .hud i:nth-of-type(4) { right: -2px; bottom: -2px; border-left: 0; border-top: 0; }
+  #b .stagewin::after {
+    content: ''; position: absolute; left: 8%; right: 8%; bottom: -34px; height: 60px;
+    background: radial-gradient(50% 100% at 50% 0%, rgba(77,163,255,.35), transparent 70%);
+    filter: blur(16px); pointer-events: none;
+  }
+
+  /* ===== C：混合（克制排版 + 单点强镜头） ===== */
+  #c { background: linear-gradient(180deg, #04060b, #050810 60%, #04060b); }
+  #c .frame {
+    transform:
+      rotateY(calc(-18deg + var(--p,0) * 20deg))
+      rotateX(calc(9deg - var(--p,0) * 10deg))
+      scale(calc(.84 + var(--p,0) * .26))
+      translate3d(0, calc(16px - var(--p,0) * 28px), 0);
+    box-shadow:
+      0 60px 130px rgba(0,0,0,.7),
+      0 0 70px rgba(77,163,255,.12),
+      inset 0 1px 0 rgba(255,255,255,.09);
+  }
+  #c .stagewin::before {
+    content: ''; position: absolute; inset: 12% 8%;
+    background: radial-gradient(60% 60% at 50% 50%, rgba(47,125,246,.18), transparent 70%);
+    filter: blur(30px); pointer-events: none;
+  }
+  #c .copy .label { color: #9fb3cc; }
+  #c .copy .label i { background: #9fb3cc; box-shadow: none; }
+  #c .copy li::before { background: #9fb3cc; opacity: .55; }
+
+  /* 对比区 */
+  .compare { padding: 110px 0 130px; border-top: 1px solid var(--line); }
+  .compare h2 { font-size: clamp(30px, 3.2vw, 44px); }
+  .compare .lead { max-width: 640px; color: var(--muted); font-size: 16px; line-height: 1.85; }
+  .table { width: 100%; border-collapse: collapse; margin-top: 34px; font-size: 14px; }
+  .table th, .table td { text-align: left; padding: 15px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .table th { font-size: 12px; font-weight: 500; letter-spacing: .06em; color: var(--dim); }
+  .table td { color: var(--muted); }
+  .table td b { color: #dce6f5; font-weight: 500; }
+  .table td.first { color: #dff6ff; }
+  .end { padding: 90px 0 110px; text-align: center; background: radial-gradient(70% 120% at 50% 120%, rgba(47,125,246,.18), transparent 64%); }
+  .end h2 { font-size: clamp(34px, 4vw, 52px); }
+  .end p { color: var(--muted); font-size: 16px; }
+  .back { display: inline-flex; margin-top: 18px; padding: 11px 20px; border: 1px solid var(--line-2); border-radius: 999px; color: var(--text); text-decoration: none; font-size: 13px; }
+  .back:hover { border-color: rgba(110,231,255,.5); }
+
+  @media (max-width: 900px) {
+    .wrap { width: calc(100% - 36px); }
+    .bar__note { display: none; }
+    .stage { height: auto; }
+    .stage__sticky { position: static; height: auto; padding: 70px 0; }
+    .stage__inner { grid-template-columns: 1fr; gap: 30px; }
+    .frame { transform: none; }
+    #c .stagewin::before, #b .stagewin::before { display: none; }
+    .compare { padding: 70px 0 80px; }
+    .table { font-size: 13px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .frame { transform: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar__inner">
+    <b>Center 风格对照 · <em>B / C</em></b>
+    <div class="switch">
+      <a class="on" href="#b">B · 强镜头科幻</a>
+      <a href="#c">C · 混合</a>
+    </div>
+    <span class="bar__note">同一段内容，只改镜头幅度与信息密度</span>
+  </div>
+</div>
+
+<!-- ================= B ================= -->
+<section class="stage" id="b">
+  <div class="stage__sticky">
+    <div class="wrap stage__inner">
+      <div class="copy">
+        <span class="label"><i></i>方案 B · 强镜头科幻</span>
+        <h2>把镜头<br />推到你面前</h2>
+        <p>大幅度 3D、HUD 网格与刻度、更强光晕。第一眼冲击力最大，适合做发布会或新品首屏。</p>
+        <ul>
+          <li>镜头从 -28° 推到 +3°，缩放 0.76 → 1.16</li>
+          <li>窗口四周叠加坐标刻度与四角框线</li>
+          <li>底部蓝色反射光随进度增强</li>
+        </ul>
+        <p class="hint">向下滚动，观察窗口转正的过程。</p>
+      </div>
+      <div class="stagewin">
+        <div class="frame"><img src="/media/center/app/basic.webp" alt="Center 真实客户端界面" /></div>
+        <div class="hud">
+          <span>X 0480 / Y 0240</span>
+          <span>SYS · ONLINE</span>
+          <span>SCALE 1.16 / 60FPS</span>
+          <i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= C ================= -->
+<section class="stage" id="c">
+  <div class="stage__sticky">
+    <div class="wrap stage__inner">
+      <div class="copy">
+        <span class="label"><i></i>方案 C · 混合</span>
+        <h2>只让一个<br />动作有张力</h2>
+        <p>排版更安静、留白更大，把强度集中在一个镜头上。其余部分克制，整体更耐看，也更像成熟产品页。</p>
+        <ul>
+          <li>镜头从 -18° 推到 +2°，缩放 0.84 → 1.10</li>
+          <li>去掉 HUD 与刻度，只保留一层柔光</li>
+          <li>文字层级更清楚，小字最小 13px</li>
+        </ul>
+        <p class="hint">同样的内容，感受一下节奏差异。</p>
+      </div>
+      <div class="stagewin">
+        <div class="frame"><img src="/media/center/app/basic.webp" alt="Center 真实客户端界面" /></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 对比 ================= -->
+<section class="compare">
+  <div class="wrap">
+    <h2>差别在哪</h2>
+    <p class="lead">内容、截图、文案完全一致，只有三件事不同：镜头幅度、信息密度、光效强度。</p>
+    <table class="table">
+      <thead><tr><th>维度</th><th>B · 强镜头科幻</th><th>C · 混合</th></tr></thead>
+      <tbody>
+        <tr><td><b>镜头幅度</b></td><td class="first">-28° → +3°，缩放 0.76 → 1.16</td><td>-18° → +2°，缩放 0.84 → 1.10</td></tr>
+        <tr><td><b>信息密度</b></td><td class="first">HUD 刻度、坐标、四角框线</td><td>只留标题、正文、三行要点</td></tr>
+        <tr><td><b>光效</b></td><td class="first">网格 + 反射 + 强光晕</td><td>单层柔光 + 暗角</td></tr>
+        <tr><td><b>第一眼</b></td><td class="first">冲击强，像发布会</td><td>安静、耐看，像成熟产品页</td></tr>
+        <tr><td><b>风险</b></td><td class="first">元素多，容易显得用力</td><td>记忆点集中在一次镜头</td></tr>
+        <tr><td><b>适合</b></td><td class="first">新品首发 / 活动页</td><td>官网长期主页</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="end">
+  <div class="wrap">
+    <h2>也可以 B + C</h2>
+    <p>首屏用 B 的镜头，后面回到 C 的克制排版——这是我更推荐的做法。</p>
+    <a class="back" href="/demo/center.html">返回完整 Demo</a>
+  </div>
+</section>
+
+<script>
+(function () {
+  const stages = [...document.querySelectorAll('.stage')];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function update() {
+    if (reduce) return;
+    stages.forEach((stage) => {
+      const travel = Math.max(1, stage.offsetHeight - innerHeight);
+      const p = Math.min(1, Math.max(0, -stage.getBoundingClientRect().top / travel));
+      stage.querySelector('.frame')?.style.setProperty('--p', p.toFixed(4));
+    });
+  }
+  let raf = 0;
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); }, { passive: true });
+  addEventListener('resize', update);
+  update();
+})();
+</script>
+</body>
+</html>
