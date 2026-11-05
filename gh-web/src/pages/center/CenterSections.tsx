@@ -1,32 +1,27 @@
-/** Center 页后半段：能力总览 / 功能深读 / 支持设备 / 下载 / 更新日志 / FAQ / 页尾 */
-import { useEffect, useRef } from 'react'
+/** Center 页后半段：六模块 / 界面拆层 / 功能深读 / 设备 / 下载 / 更新 / FAQ / 页尾 */
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowIcon, CheckIcon, DownloadIcon, TabIcon } from './Icons'
 import { CAPABILITIES, DEVICE_MODELS, FAQS, FEATURES } from './data'
 import type { CenterDownload } from './data'
-import { observeResize, prefersReducedMotion } from './canvasEnv'
+import { useScrollProgress } from './useScrollProgress'
 
-// 能力总览区：渲染六张模块卡片，点击跳到下方控制台对应 Tab
-export function CapabilityGrid() {
+/** 六个模块：静态网格，点击跳到演示台；不做花哨动效，保持节奏安静 */
+export function CenterModules() {
   return (
-    <section className="center-section" id="capability" aria-labelledby="capability-title">
-      <div className="center-wrap">
-        <header className="center-head">
-          <span className="center-eyebrow">01 / 六个模块</span>
-          <h2 id="capability-title">六件事，一个窗口做完</h2>
-          <p className="center-lead">真实软件里的六个导航，对应六类调校。点任意一张卡，直接跳到下面的控制台。</p>
+    <section className="cp-section cp-modules" id="modules" aria-labelledby="cp-modules-title">
+      <div className="cp-wrap">
+        <header className="cp-head">
+          <span className="cp-eyebrow">01 / 六件事</span>
+          <h2 id="cp-modules-title">一块屏，六种掌控</h2>
         </header>
-
-        <div className="center-caps">
+        <div className="cp-modules__grid">
           {CAPABILITIES.map((item) => (
-            <a key={item.no} className="center-cap" href="#console">
-              <span className="center-cap__no">CH {item.no}</span>
-              <span className="center-cap__icon">
-                <TabIcon id={item.tab} />
-              </span>
+            <a key={item.no} className="cp-module" href="#console">
+              <span className="cp-module__no">{item.no}</span>
+              <TabIcon id={item.tab} />
               <b>{item.title}</b>
               <p>{item.desc}</p>
-              <ArrowIcon className="center-cap__arrow" />
             </a>
           ))}
         </div>
@@ -35,71 +30,81 @@ export function CapabilityGrid() {
   )
 }
 
-// 卖点区：逐条说明产品相较传统调节方式的优势
-export function FeatureBlocks() {
+/** 界面拆层：真实窗口做轻微 3D 镜头，三处标注随滚动依次出现 */
+export function CenterLayers() {
+  const ref = useRef<HTMLElement>(null)
+  useScrollProgress(ref)
+
   return (
-    <section className="center-section center-features" id="features" aria-labelledby="features-title">
-      <div className="center-wrap">
-        <header className="center-head">
-          <span className="center-eyebrow">03 / 为什么用它</span>
-          <h2 id="features-title">省掉的不是几步操作，是每次换场景的折腾</h2>
+    <section className="cp-layers" ref={ref} aria-labelledby="cp-layers-title">
+      <div className="cp-layers__sticky">
+        <div className="cp-layers__copy">
+          <span className="cp-eyebrow">它就是你在用的那个界面</span>
+          <h2 id="cp-layers-title">不用重新学一遍</h2>
+          <p>六个导航、一组状态读数、一整套调校项。截图来自真实客户端，不是重画的示意图。</p>
+        </div>
+
+        <div className="cp-layers__stage">
+          <div className="cp-layers__frame">
+            <img src="/media/center/app/basic.webp" alt="光魂 Center 基本功能界面" loading="lazy" decoding="async" />
+            <span className="cp-callout cp-callout--side" aria-hidden="true">六个导航，一屏直达</span>
+            <span className="cp-callout cp-callout--main" aria-hidden="true">参数改动，即时写入</span>
+            <span className="cp-callout cp-callout--status" aria-hidden="true">状态栏同步读数</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** 功能深读：应用联动 / 固件升级；配真实界面截图，避免插画感 */
+export function CenterFeatures() {
+  return (
+    <section className="cp-section cp-features" id="features" aria-labelledby="cp-features-title">
+      <div className="cp-wrap">
+        <header className="cp-head">
+          <span className="cp-eyebrow">03 / 让它自己工作</span>
+          <h2 id="cp-features-title">设一次，之后不用管</h2>
         </header>
 
-        <div className="center-feature-list">
+        <div className="cp-feature-list">
           {FEATURES.map((feature, index) => (
-            <article className="center-feature" key={feature.id}>
-              <div className="center-feature__copy">
-                <span className="center-eyebrow">{feature.eyebrow}</span>
+            <article className="cp-feature" key={feature.id}>
+              <div className="cp-feature__copy">
+                <span className="cp-eyebrow">{feature.eyebrow}</span>
                 <h3>{feature.title}</h3>
                 <p>{feature.desc}</p>
                 <ul>
                   {feature.points.map((point) => (
                     <li key={point}>
-                      <CheckIcon className="center-feature__check" />
+                      <CheckIcon />
                       {point}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className={`center-feature__visual is-${feature.id}`} aria-hidden="true">
+              <div className="cp-feature__visual">
                 {index === 0 && (
-                  <div className="cf-sliders">
-                    {[
-                      ['亮度', 82, '#60a5fa'],
-                      ['对比度', 56, '#38bdf8'],
-                      ['饱和度', 68, '#22d3ee'],
-                      ['伽马', 44, '#a78bfa'],
-                    ].map(([label, value, color]) => (
-                      <div className="cf-slider" key={String(label)}>
-                        <span>{label}</span>
-                        <i style={{ width: `${value}%`, background: String(color) }} />
-                        <b>{value}</b>
-                      </div>
-                    ))}
+                  <div className="cp-linkflow">
+                    <span className="cp-linkflow__app">GAME.EXE</span>
+                    <span className="cp-linkflow__line"><i /></span>
+                    <span className="cp-linkflow__mode">FPS</span>
+                    <em>进入前台 · 自动切换</em>
                   </div>
                 )}
-
                 {index === 1 && (
-                  <div className="cf-link">
-                    <span className="cf-link__app">GAME.EXE</span>
-                    <span className="cf-link__line">
-                      <i />
-                    </span>
-                    <span className="cf-link__mode">FPS</span>
-                    <span className="cf-link__note">进入前台 · 自动切换</span>
-                  </div>
-                )}
-
-                {index === 2 && (
-                  <div className="cf-firmware">
-                    <svg viewBox="0 0 120 120" className="cf-firmware__ring">
+                  <div className="cp-firmware">
+                    <svg viewBox="0 0 120 120" aria-hidden="true">
                       <circle cx="60" cy="60" r="50" />
                       <circle cx="60" cy="60" r="50" className="is-progress" />
                     </svg>
                     <b>V1.3.3</b>
                     <span>校验通过 · 升级完成</span>
                   </div>
+                )}
+                {index === 2 && (
+                  <img className="cp-feature__shot" src="/media/center/app/system.webp" alt="Center 系统设置界面" loading="lazy" />
                 )}
               </div>
             </article>
@@ -110,38 +115,33 @@ export function FeatureBlocks() {
   )
 }
 
-// 支持设备区：介绍可识别且可调节的显示器与面板能力
-export function DeviceSection() {
+/** 支持设备 */
+export function CenterDevices() {
   return (
-    <section className="center-section" id="devices" aria-labelledby="devices-title">
-      <div className="center-wrap">
-        <header className="center-head">
-          <span className="center-eyebrow">04 / 支持的设备</span>
-          <h2 id="devices-title">连上就能认出来</h2>
-          <p className="center-lead">连接后用 DDC/CI 读取型号与能力，按面板实际支持的项目开放调节，不支持的项不会出现在界面里。</p>
+    <section className="cp-section" id="devices" aria-labelledby="cp-devices-title">
+      <div className="cp-wrap">
+        <header className="cp-head">
+          <span className="cp-eyebrow">04 / 支持的设备</span>
+          <h2 id="cp-devices-title">连上就能认出来</h2>
+          <p className="cp-lead">用 DDC/CI 读取型号与面板能力，只显示这台显示器真正支持的调节项。</p>
         </header>
-
-        <div className="center-devices">
-          <div className="center-devices__panel">
-            <span className="center-devices__label">SUPPORTED MODELS</span>
-            <div className="center-devices__list">
+        <div className="cp-devices">
+          <div className="cp-devices__panel">
+            <span className="cp-devices__label">SUPPORTED MODELS</span>
+            <div className="cp-devices__list">
               {DEVICE_MODELS.map((model) => (
-                <span key={model} className="center-device">
+                <span key={model} className="cp-device">
                   {model}
                   <i>全面支持</i>
                 </span>
               ))}
             </div>
-            <p className="center-devices__note">更多机型持续适配中。未列出的型号仍可通过通用 DDC/CI 读取基础参数。</p>
+            <p>更多机型持续适配中。未列出的型号仍可读取基础参数。</p>
           </div>
-          <div className="center-devices__hint">
-            <span className="center-devices__badge">DDC/CI</span>
+          <div className="cp-devices__hint">
+            <span className="cp-devices__badge">DDC/CI</span>
             <b>识别不到？</b>
-            <p>在显示器 OSD 菜单里开启 DDC/CI，用 DP 或 USB-C 直连，不要经过转接坞，然后回到 Center 点刷新。</p>
-            <a href="#faq">
-              查看排查步骤
-              <ArrowIcon />
-            </a>
+            <p>在显示器 OSD 里开启 DDC/CI，用 DP 或 USB-C 直连，不要经过转接坞，再回到 Center 刷新。</p>
           </div>
         </div>
       </div>
@@ -149,114 +149,85 @@ export function DeviceSection() {
   )
 }
 
-// 下载区：展示三步安装流程与当前版本下载入口
-export function DownloadSection({ download }: { download: CenterDownload }) {
+/** 下载与安装 */
+export function CenterDownload({ download }: { download: CenterDownload }) {
   return (
-    <section className="center-section center-download" id="download" aria-labelledby="download-title">
-      <div className="center-wrap">
-        <header className="center-head">
-          <span className="center-eyebrow">05 / 下载与安装</span>
-          <h2 id="download-title">三步开始</h2>
+    <section className="cp-section cp-download" id="download" aria-labelledby="cp-download-title">
+      <div className="cp-wrap">
+        <header className="cp-head">
+          <span className="cp-eyebrow">05 / 下载与安装</span>
+          <h2 id="cp-download-title">三步开始</h2>
         </header>
-
-        <div className="center-download__grid">
-          <div className="center-download__card">
-            <span className="center-download__os">{download.os}</span>
-            <b className="center-download__version">{download.version}</b>
+        <div className="cp-download__grid">
+          <div className="cp-download__card">
+            <span className="cp-download__os">{download.os}</span>
+            <b className="cp-download__version">{download.version}</b>
             <dl>
-              <div>
-                <dt>安装包大小</dt>
-                <dd>{download.size}</dd>
-              </div>
-              <div>
-                <dt>更新日期</dt>
-                <dd>{download.date}</dd>
-              </div>
+              <div><dt>安装包大小</dt><dd>{download.size}</dd></div>
+              <div><dt>更新日期</dt><dd>{download.date}</dd></div>
               <div>
                 <dt>SHA-256</dt>
                 <dd className="is-mono">{download.sha256.slice(0, 12)}…{download.sha256.slice(-8)}</dd>
               </div>
             </dl>
-            <a className="center-btn center-btn--primary center-btn--wide" href={download.url} download>
-              <DownloadIcon className="center-btn__icon" />
+            <a className="cp-btn cp-btn--primary cp-btn--wide" href={download.url} download>
+              <DownloadIcon className="cp-btn__icon" />
               下载 Center {download.version}
             </a>
-            <Link className="center-download__more" to="/downloads">
+            <Link className="cp-more" to="/downloads">
               前往下载中心 · 固件与说明书
               <ArrowIcon />
             </Link>
           </div>
 
-          <ol className="center-steps">
-            <li>
-              <span>01</span>
-              <b>下载并安装</b>
-              <p>运行安装包，按提示完成安装，首次启动会自动读取显示器。</p>
-            </li>
-            <li>
-              <span>02</span>
-              <b>连接显示器</b>
-              <p>用 DP 或 USB-C 直连，确认显示器处于对应输入源。</p>
-            </li>
-            <li>
-              <span>03</span>
-              <b>开始调校</b>
-              <p>识别到型号后进入对应调校页，参数改动即时写入显示器。</p>
-            </li>
+          <ol className="cp-steps">
+            <li><span>01</span><b>下载并安装</b><p>运行安装包，按提示完成安装。</p></li>
+            <li><span>02</span><b>连接显示器</b><p>用 DP 或 USB-C 直连，确认输入源。</p></li>
+            <li><span>03</span><b>开始调校</b><p>识别到型号后，参数改动即时写入。</p></li>
           </ol>
         </div>
-
-        <p className="center-download__tip">
-          暂不提供 macOS 版本。Windows 10 / 11 需为 64 位系统。
-        </p>
+        <p className="cp-note">暂不提供 macOS 版本。Windows 10 / 11 需为 64 位系统。</p>
       </div>
     </section>
   )
 }
 
-// 更新记录区：按版本渲染更新日志时间线
-export function ChangelogSection({ download }: { download: CenterDownload }) {
+/** 更新记录 */
+export function CenterChangelog({ download }: { download: CenterDownload }) {
   return (
-    <section className="center-section" id="changelog" aria-labelledby="changelog-title">
-      <div className="center-wrap">
-        <header className="center-head">
-          <span className="center-eyebrow">06 / 更新记录</span>
-          <h2 id="changelog-title">版本历史</h2>
+    <section className="cp-section" id="changelog" aria-labelledby="cp-changelog-title">
+      <div className="cp-wrap">
+        <header className="cp-head">
+          <span className="cp-eyebrow">06 / 更新记录</span>
+          <h2 id="cp-changelog-title">版本历史</h2>
         </header>
-
-        <div className="center-log">
-          <div className="center-log__item">
-            <span className="center-log__dot" aria-hidden="true" />
-            <div className="center-log__head">
+        <div className="cp-log">
+          <span className="cp-log__dot" aria-hidden="true" />
+          <div>
+            <div className="cp-log__head">
               <b>{download.version}</b>
               <span>{download.date}</span>
               <i>当前版本</i>
             </div>
-            <p>配合本页控制台展示的六个功能模块；固件升级链路支持校验与中断重试。</p>
+            <p>与演示台一致的六个功能模块；固件升级支持校验与中断重试。</p>
           </div>
         </div>
-
-        <p className="center-log__note">
-          更早版本与固件更新请在
-          <Link to="/downloads">下载中心</Link>
-          查看。
-        </p>
+        <p className="cp-note">更早版本与固件更新请在<Link to="/downloads">下载中心</Link>查看。</p>
       </div>
     </section>
   )
 }
 
-// 常见问题区：渲染可展开的安装与使用问答列表
-export function FaqSection() {
+/** 常见问题 */
+export function CenterFaq() {
   return (
-    <section className="center-section" id="faq" aria-labelledby="faq-title">
-      <div className="center-wrap">
-        <header className="center-head">
-          <span className="center-eyebrow">07 / 常见问题</span>
-          <h2 id="faq-title">安装与使用</h2>
+    <section className="cp-section" id="faq" aria-labelledby="cp-faq-title">
+      <div className="cp-wrap">
+        <header className="cp-head">
+          <span className="cp-eyebrow">07 / 常见问题</span>
+          <h2 id="cp-faq-title">安装与使用</h2>
         </header>
-
-        <div className="center-faq">
+        <div className="cp-faq">
           {FAQS.map((item) => (
             <details key={item.q}>
               <summary>{item.q}</summary>
@@ -264,88 +235,22 @@ export function FaqSection() {
             </details>
           ))}
         </div>
-        <p className="center-faq__more">
-          没找到答案？
-          <Link to="/inquiry">提交咨询</Link>
-          ，工作日会尽快回复。
-        </p>
       </div>
     </section>
   )
 }
 
-/** 页尾：深空星场收尾（方案 A 的元素只留在这里） */
-function StarCanvas() {
-  const ref = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = ref.current
-    if (!canvas) return
-    let ctx: CanvasRenderingContext2D | null = null
-    try {
-      ctx = canvas.getContext('2d')
-    } catch {
-      return
-    }
-    if (!ctx) return
-    const reduce = prefersReducedMotion()
-    let raf = 0
-    let width = 0
-    let height = 0
-    let stars: { x: number; y: number; r: number; a: number; v: number }[] = []
-
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect()
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      width = rect.width
-      height = rect.height
-      canvas.width = Math.max(1, Math.round(width * dpr))
-      canvas.height = Math.max(1, Math.round(height * dpr))
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      stars = Array.from({ length: 120 }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        r: Math.random() * 1.4 + 0.3,
-        a: Math.random() * 0.6 + 0.2,
-        v: Math.random() * 0.12 + 0.03,
-      }))
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, width, height)
-      for (const star of stars) {
-        if (!reduce) star.y = star.y > height ? 0 : star.y + star.v
-        ctx.beginPath()
-        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(180, 220, 255, ${star.a})`
-        ctx.fill()
-      }
-      raf = requestAnimationFrame(draw)
-    }
-
-    const stopResize = observeResize(canvas, resize)
-    draw()
-    return () => {
-      cancelAnimationFrame(raf)
-      stopResize()
-    }
-  }, [])
-
-  return <canvas ref={ref} className="center-cta__stars" aria-hidden="true" />
-}
-
-// 页尾行动区：星空背景 + 当前版本信息与下载按钮
-export function FooterCta({ download }: { download: CenterDownload }) {
+/** 页尾：穹顶余光 + 下载 */
+export function CenterFooter({ download }: { download: CenterDownload }) {
   return (
-    <section className="center-cta" aria-labelledby="cta-title">
-      <StarCanvas />
-      <div className="center-cta__glow" aria-hidden="true" />
-      <div className="center-wrap center-cta__inner">
-        <span className="center-eyebrow">READY TO TUNE</span>
-        <h2 id="cta-title">现在下载，五分钟调完</h2>
+    <section className="cp-cta" aria-labelledby="cp-cta-title">
+      <div className="cp-cta__glow" aria-hidden="true" />
+      <div className="cp-wrap cp-cta__inner">
+        <span className="cp-eyebrow">READY TO TUNE</span>
+        <h2 id="cp-cta-title">现在，开始调校。</h2>
         <p>{download.version} · {download.size} · {download.os}</p>
-        <a className="center-btn center-btn--primary" href={download.url} download>
-          <DownloadIcon className="center-btn__icon" />
+        <a className="cp-btn cp-btn--primary" href={download.url} download>
+          <DownloadIcon className="cp-btn__icon" />
           下载 Windows 版
         </a>
       </div>

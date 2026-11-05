@@ -1,163 +1,78 @@
-/** 首屏：信号矩阵 + 像素放大镜（方案 C 为主，吸收 B 的硬件质感） */
-import { useRef, useState } from 'react'
+/** 首屏：弧形穹顶 + 真实 Center 界面 + 滚动镜头归正（方案 A） */
+import { useRef } from 'react'
+import { CenterDome } from './CenterDome'
+import { SlotNumber } from './SlotNumber'
+import { useScrollProgress } from './useScrollProgress'
 import { ArrowIcon, DownloadIcon } from './Icons'
-import { CenterHorizon } from './CenterHorizon'
-import { WaveCanvas } from './WaveCanvas'
 import type { CenterDownload } from './data'
 
-// 首屏 Hero：渲染标题与下载入口，并实现跟随指针的镜头与亮度对比度预览
 export function CenterHero({ download }: { download: CenterDownload }) {
   const heroRef = useRef<HTMLElement>(null)
-  const lensRef = useRef<HTMLDivElement>(null)
-  const [brightness, setBrightness] = useState(80)
-  const [contrast, setContrast] = useState(50)
-
-  const handlePointer = (event: React.PointerEvent<HTMLElement>) => {
-    const lens = lensRef.current
-    const hero = heroRef.current
-    if (!lens || !hero || event.pointerType === 'touch') return
-    const rect = hero.getBoundingClientRect()
-    lens.style.setProperty('--lens-x', `${event.clientX - rect.left}px`)
-    lens.style.setProperty('--lens-y', `${event.clientY - rect.top}px`)
-    lens.style.setProperty('--lens-opacity', '1')
-  }
+  useScrollProgress(heroRef)
 
   return (
-    <section
-      className="center-hero"
-      ref={heroRef}
-      onPointerMove={handlePointer}
-      onPointerLeave={() => lensRef.current?.style.setProperty('--lens-opacity', '0')}
-      aria-labelledby="center-hero-title"
-    >
-      <div className="center-hero__grid" aria-hidden="true" />
-      <CenterHorizon className="center-hero__horizon" />
-      <WaveCanvas className="center-hero__wave" level={brightness / 100} frequency={0.42} />
-      <div className="center-hero__lens" ref={lensRef} aria-hidden="true">
-        <span />
-      </div>
-
-      <div className="center-wrap center-hero__inner">
-        <div className="center-hero__copy">
-          <span className="center-eyebrow">SVDC CENTER · 显示器控制中心</span>
-          <h1 id="center-hero-title">
-            把显示器的控制权
-            <br />
-            交还给你
+    <section className="cp-hero" ref={heroRef} aria-labelledby="cp-hero-title">
+      <CenterDome className="cp-hero__dome" />
+      <div className="cp-wrap cp-hero__inner">
+        <div className="cp-hero__copy">
+          <span className="cp-eyebrow">CENTER 1.3 · 显示控制中心</span>
+          <h1 id="cp-hero-title">
+            全新升级 <span>Center</span>
           </h1>
-          <p className="center-hero__lead">
-            亮度、色彩、刷新率、固件，一个窗口全部接管。
-            <br />
-            不用再摸显示器背后的按键。
-          </p>
+          <p className="cp-hero__lead">把亮度、色彩、刷新率和固件，收进一个窗口。</p>
 
-          <div className="center-hero__meta">
+          <div className="cp-hero__meta">
             <span>Windows 10 / 11</span>
             <span>{download.version}</span>
             <span>{download.size}</span>
             <span>{download.date}</span>
           </div>
 
-          <div className="center-hero__actions">
-            <a className="center-btn center-btn--primary" href={download.url} download>
-              <DownloadIcon className="center-btn__icon" />
+          <div className="cp-hero__actions">
+            <a className="cp-btn cp-btn--primary" href={download.url} download>
+              <DownloadIcon className="cp-btn__icon" />
               下载 Windows 版
             </a>
-            <a className="center-btn center-btn--ghost" href="#console">
-              先在网页里试
-              <ArrowIcon className="center-btn__icon" />
+            <a className="cp-link-arrow" href="#changelog">
+              查看更新记录
+              <ArrowIcon />
             </a>
           </div>
 
-          <dl className="center-hero__stats">
+          <dl className="cp-hero__stats">
             <div>
               <dt>功能模块</dt>
-              <dd>6</dd>
+              <dd>
+                <SlotNumber value="6" />
+              </dd>
             </div>
             <div>
               <dt>预设模式</dt>
-              <dd>8</dd>
+              <dd>
+                <SlotNumber value="8" />
+              </dd>
             </div>
             <div>
-              <dt>固件升级</dt>
-              <dd>OTA</dd>
+              <dt>可调参数</dt>
+              <dd>
+                <SlotNumber value="40+" />
+              </dd>
             </div>
           </dl>
         </div>
 
-        <div className="center-hero__panel">
-          <header className="center-panel__head">
-            <span className="center-panel__dot" aria-hidden="true" />
-            <b>SVDC CENTER</b>
-            <span>{download.version} · CONNECTED</span>
-          </header>
-
-          <div className="center-panel__readings">
-            <div>
-              <em>RESOLUTION</em>
-              <b>3840×2160</b>
-            </div>
-            <div>
-              <em>REFRESH</em>
-              <b>
-                165<i>HZ</i>
-              </b>
-            </div>
-            <div>
-              <em>COLOR</em>
-              <b>
-                10<i>BIT</i>
-              </b>
-            </div>
+        <div className="cp-hero__stage" aria-hidden="true">
+          <div className="cp-window">
+            <img src="/media/center/app/basic.webp" alt="" loading="eager" decoding="async" />
+            <span className="cp-window__glare" />
           </div>
-
-          <WaveCanvas className="center-panel__wave" level={brightness / 100} frequency={0.6} />
-
-          <div className="center-panel__sliders">
-            <label className="center-panel__slider">
-              <span>
-                亮度 <b>{brightness}</b>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={brightness}
-                aria-label="演示亮度"
-                onChange={(event) => setBrightness(Number(event.target.value))}
-              />
-            </label>
-            <label className="center-panel__slider">
-              <span>
-                对比度 <b>{contrast}</b>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={contrast}
-                aria-label="演示对比度"
-                onChange={(event) => setContrast(Number(event.target.value))}
-              />
-            </label>
+          <div className="cp-float">
+            <span>应用联动</span>
+            <b>GAME.EXE</b>
+            <i>→ FPS</i>
           </div>
-
-          <footer className="center-panel__foot">
-            <span>
-              <i className="is-on" /> HDR 开启
-            </span>
-            <span>
-              <i className="is-on" /> VRR 开启
-            </span>
-            <span>DP 2.1 · 39.2 Gbps</span>
-          </footer>
         </div>
       </div>
-
-      <a className="center-hero__scroll" href="#capability" aria-label="向下浏览">
-        <span />
-        SCROLL
-      </a>
     </section>
   )
 }

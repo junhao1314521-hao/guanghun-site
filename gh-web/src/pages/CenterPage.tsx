@@ -2,24 +2,25 @@
 import { useEffect, useState } from 'react'
 import { fetchDownloads } from '../api/support-extra'
 import { isDownloadable } from '../data/support-extra'
-import { CenterConsole } from './center/CenterConsole'
+import { CenterLive } from './center/CenterLive'
 import { CenterHero } from './center/CenterHero'
 import {
-  CapabilityGrid,
-  ChangelogSection,
-  DeviceSection,
-  DownloadSection,
-  FaqSection,
-  FeatureBlocks,
-  FooterCta,
+  CenterChangelog,
+  CenterDevices,
+  CenterDownload,
+  CenterFaq,
+  CenterFeatures,
+  CenterFooter,
+  CenterLayers,
+  CenterModules,
 } from './center/CenterSections'
 import { CENTER_FALLBACK } from './center/data'
-import type { CenterDownload } from './center/data'
+import type { CenterDownload as CenterDownloadInfo } from './center/data'
 import '../styles/center.css'
 
 // 光魂中心页：拉取下载信息（失败回退默认值），依次渲染首屏、能力、控制台、下载、FAQ 等区块
 export function CenterPage() {
-  const [download, setDownload] = useState<CenterDownload>(CENTER_FALLBACK)
+  const [download, setDownload] = useState<CenterDownloadInfo>(CENTER_FALLBACK)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -45,14 +46,15 @@ export function CenterPage() {
   return (
     <div className="center-page">
       <CenterHero download={download} />
-      <CapabilityGrid />
-      <CenterConsole />
-      <FeatureBlocks />
-      <DeviceSection />
-      <DownloadSection download={download} />
-      <ChangelogSection download={download} />
-      <FaqSection />
-      <FooterCta download={download} />
+      <CenterModules />
+      <CenterLive />
+      <CenterLayers />
+      <CenterFeatures />
+      <CenterDevices />
+      <CenterDownload download={download} />
+      <CenterChangelog download={download} />
+      <CenterFaq />
+      <CenterFooter download={download} />
     </div>
   )
 }

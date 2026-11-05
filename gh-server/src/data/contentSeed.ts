@@ -186,8 +186,8 @@ function buildHome(): Page {
         autoplay: true,
         // 首屏恢复满屏高度：21:9 素材按 cover 铺满，裁掉两侧空白，产品保持完整
         height: 'full',
-        // 代码动画作为第 1 张（可关闭；关闭后仅展示下面配置的海报）
-        motion: true,
+        // 代码动画默认关闭：首屏第一张改为固定展示静态主视觉（后台可随时开启）
+        motion: false,
       },
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },

@@ -38,6 +38,11 @@ export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 's0',
     media: { kind: 'image' },
+    // 首屏第一张固定展示静态主视觉；代码动画由后台「轮播 → 代码动画」开关控制
+    poster: '/media/home/s0.jpg',
+    posterMobile: '/media/home/s0-m.jpg',
+    // 深色主视觉配浅色文案；关闭代码动画后仍保持正确对比度
+    theme: 'dark',
     mediaTag: '品牌主视觉',
     // 首页海报暂不采用图片素材（图片由后台按需补充）；保留文案即可
     eyebrow: 'SUPER DISPLAY / 2026',
