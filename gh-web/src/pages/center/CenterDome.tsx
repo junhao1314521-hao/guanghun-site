@@ -44,7 +44,7 @@ float noise(vec2 p) {
 float fbm(vec2 p) {
   float v = 0.0;
   float a = 0.5;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     v += a * noise(p);
     p *= 2.03;
     a *= 0.5;
@@ -56,47 +56,61 @@ void main() {
   vec2 uv = gl_FragCoord.xy / uRes;
   vec2 p = uv - 0.5;
   p.x *= uRes.x / uRes.y;
+  float t = uTime;
 
   // 深海军蓝底色
   vec3 top = vec3(0.004, 0.008, 0.020);
   vec3 mid = vec3(0.014, 0.034, 0.078);
   vec3 sky = mix(top, mid, smoothstep(0.0, 0.95, uv.y));
 
-  // 穹顶：圆心在画面下方，弧顶约在 28% 高度
-  vec2 center = vec2(0.5, 1.28 + uPointer.y * 0.006);
-  vec2 q = (uv - center) * vec2(1.0, 0.62);
-  float d = length(q) - 0.62;
+  // 极光：两层低频噪声缓慢横向漂移，肉眼可见的流动感
+  float a1 = fbm(vec2(uv.x * 2.1 + t * 0.045 + uPointer.x * 0.12, uv.y * 1.7 - t * 0.030 + uPointer.y * 0.08));
+  float a2 = fbm(vec2(uv.x * 3.6 - t * 0.034, uv.y * 2.5 + t * 0.040));
+  vec3 aurora = mix(vec3(0.03, 0.18, 0.62), vec3(0.06, 0.62, 0.86), a2);
+  sky += aurora * smoothstep(0.48, 0.92, a1) * 0.20;
+  sky += aurora * smoothstep(0.62, 0.98, a2) * 0.10;
+
+  // 穹顶：圆心在画面下方，弧线随时间和鼠标呼吸
+  float wob = 0.012 * sin(uv.x * 6.283 + t * 0.45) + 0.007 * sin(uv.x * 13.0 - t * 0.3);
+  vec2 center = vec2(0.5 + uPointer.x * 0.035, 1.30 + 0.008 * sin(t * 0.18) + uPointer.y * 0.025);
+  vec2 q = (uv - center) * vec2(1.0, 0.60);
+  float d = length(q) - (0.62 + wob);
 
   float arc = exp(-abs(d) * 34.0);
-  float halo = exp(-abs(d) * 7.0);
+  float halo = exp(-abs(d) * 7.5);
   float inside = smoothstep(0.03, -0.02, d);
 
-  vec3 glowCool = vec3(0.08, 0.30, 0.78);
-  vec3 glowWarm = vec3(0.12, 0.62, 0.95);
-  vec3 glow = mix(glowCool, glowWarm, smoothstep(-0.16, 0.14, d));
+  vec3 glowCool = vec3(0.05, 0.22, 0.70);
+  vec3 glowWarm = vec3(0.12, 0.66, 1.0);
+  vec3 glow = mix(glowCool, glowWarm, smoothstep(-0.22, 0.20, d));
 
-  // 弧线亮度沿角度轻微起伏，避免像一条均匀的灯带
-  float around = atan(q.y, q.x) / 3.1415926;
-  float var = 0.72 + 0.56 * fbm(vec2(around * 3.0 + 1.7, 0.4));
+  // 沿弧线的亮度流动，让光带像在缓慢呼吸
+  float flow = 0.72 + 0.28 * sin(atan(q.y, q.x) * 4.0 - t * 1.2);
 
   vec3 col = sky;
-  col += glow * arc * 0.82 * var;
-  col += glow * halo * 0.25;
-  col += vec3(0.010, 0.030, 0.070) * inside * 0.55;
+  col += glow * arc * 0.95 * flow;
+  col += glow * halo * 0.30;
+  col += vec3(0.008, 0.026, 0.062) * inside;
 
-  // 穹顶内部极淡的尘埃，增加空气感
-  float dust = fbm(uv * vec2(3.2, 2.0) + vec2(uTime * 0.012, 0.0));
-  col += vec3(0.06, 0.16, 0.30) * smoothstep(0.55, 0.9, dust) * inside * 0.12;
+  // 沿弧线横向扫过的一道高光
+  float sweep = exp(-pow((uv.x - (0.5 + 0.42 * sin(t * 0.18))) * 3.2, 2.0)) * exp(-abs(d) * 4.5);
+  col += vec3(0.18, 0.48, 1.0) * sweep * 0.28;
+
+  // 空气尘埃 + 跟手光斑
+  float dust = smoothstep(0.58, 0.95, fbm(uv * 3.4 + vec2(t * 0.02, 0.0)));
+  col += vec3(0.06, 0.15, 0.32) * dust * inside * 0.18;
+  float mouse = exp(-length((uv - (uPointer * 0.5 + 0.5)) * vec2(uRes.x / uRes.y, 1.0)) * 2.1);
+  col += vec3(0.06, 0.16, 0.34) * mouse * 0.45;
 
   // 暗角
-  float vig = smoothstep(1.25, 0.18, length(p * vec2(0.92, 1.05)));
-  col *= 0.55 + 0.55 * vig;
+  float vig = smoothstep(1.18, 0.24, length(p * vec2(0.92, 1.05)));
+  col *= 0.58 + 0.52 * vig;
 
   // 抖动噪点，消除 8-bit 色带
-  float grain = hash(gl_FragCoord.xy + fract(uTime) * 431.0) - 0.5;
+  float grain = hash(gl_FragCoord.xy + fract(t) * 431.0) - 0.5;
   col += grain * 0.012;
 
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(max(col, 0.0), 1.0);
 }
 `
 

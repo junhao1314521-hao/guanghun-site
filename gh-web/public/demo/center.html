@@ -632,7 +632,7 @@
     vec3 col=mix(vec3(.004,.007,.018), vec3(.012,.033,.075), smoothstep(0.,.95,uv.y));
 
     // 极光带：两层低频噪声缓慢漂移
-    float a1=fbm(vec2(uv.x*2.1+t*.028, uv.y*1.7-t*.018));
+    float a1=fbm(vec2(uv.x*2.1+t*.045+(m.x-.5)*.24, uv.y*1.7-t*.030+(m.y-.5)*.16));
     float a2=fbm(vec2(uv.x*3.6-t*.02, uv.y*2.5+t*.024));
     vec3 aurora=mix(vec3(.03,.18,.62), vec3(.06,.62,.86), a2);
     col += aurora * smoothstep(.48,.92,a1) * .20;
@@ -640,27 +640,27 @@
 
     // 弧形地平线：半径随时间和位置轻微呼吸
     float wob=.012*sin(uv.x*6.283+t*.45)+.007*sin(uv.x*13.0-t*.3);
-    vec2 c=vec2(.5,1.30+.008*sin(t*.18));
+    vec2 c=vec2(.5+(m.x-.5)*.07,1.30+.008*sin(t*.18)+(m.y-.5)*.05);
     vec2 d=(uv-c)*vec2(1.,.60);
     float dist=length(d)-(.62+wob);
     float arc=exp(-abs(dist)*36.);
     float halo=exp(-abs(dist)*7.5);
     float inside=smoothstep(.03,-.02,dist);
     vec3 glow=mix(vec3(.05,.22,.70), vec3(.12,.66,1.), smoothstep(-.22,.20,dist));
-    float flow=.72+.28*sin(atan(d.y,d.x)*4.0-t*.9);
+    float flow=.72+.28*sin(atan(d.y,d.x)*4.0-t*1.2);
     col += glow*arc*.95*flow;
     col += glow*halo*.30;
     col += vec3(.008,.026,.062)*inside;
 
     // 沿弧线扫过的一道高光
-    float sweep=exp(-pow((uv.x-(.5+.42*sin(t*.13)))*3.2,2.0))*exp(-abs(dist)*4.5);
+    float sweep=exp(-pow((uv.x-(.5+.42*sin(t*.18)))*3.2,2.0))*exp(-abs(dist)*4.5);
     col += vec3(.18,.48,1.)*sweep*.28;
 
     // 尘埃与鼠标光
     float dust=smoothstep(.58,.95,fbm(uv*3.4+vec2(t*.02,0.)));
     col += vec3(.06,.15,.32)*dust*inside*.18;
-    float mouse=exp(-length((uv-m)*vec2(r.x/r.y,1.))*2.8);
-    col += vec3(.04,.12,.26)*mouse*.18;
+    float mouse=exp(-length((uv-m)*vec2(r.x/r.y,1.))*2.1);
+    col += vec3(.06,.16,.34)*mouse*.45;
 
     // 暗角 / 噪点
     col *= .58+.52*smoothstep(1.18,.24,length(q*vec2(.92,1.05)));
