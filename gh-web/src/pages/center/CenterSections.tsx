@@ -12,7 +12,6 @@ export function CenterModules() {
     <section className="cp-section cp-modules" id="modules" aria-labelledby="cp-modules-title">
       <div className="cp-wrap">
         <header className="cp-head">
-          <span className="cp-eyebrow">01 / 六件事</span>
           <h2 id="cp-modules-title">一块屏，六种掌控</h2>
         </header>
         <div className="cp-modules__grid">
@@ -39,7 +38,6 @@ export function CenterLayers() {
     <section className="cp-layers" ref={ref} aria-labelledby="cp-layers-title">
       <div className="cp-layers__sticky">
         <div className="cp-layers__copy">
-          <span className="cp-eyebrow">它就是你在用的那个界面</span>
           <h2 id="cp-layers-title">不用重新学一遍</h2>
           <p>六个导航、一组状态读数、一整套调校项。截图来自真实客户端，不是重画的示意图。</p>
         </div>
@@ -63,7 +61,6 @@ export function CenterFeatures() {
     <section className="cp-section cp-features" id="features" aria-labelledby="cp-features-title">
       <div className="cp-wrap">
         <header className="cp-head">
-          <span className="cp-eyebrow">03 / 让它自己工作</span>
           <h2 id="cp-features-title">设一次，之后不用管</h2>
         </header>
 
@@ -71,7 +68,6 @@ export function CenterFeatures() {
           {FEATURES.map((feature, index) => (
             <article className="cp-feature" key={feature.id}>
               <div className="cp-feature__copy">
-                <span className="cp-eyebrow">{feature.eyebrow}</span>
                 <h3>{feature.title}</h3>
                 <p>{feature.desc}</p>
                 <ul>
@@ -121,7 +117,6 @@ export function CenterDevices() {
     <section className="cp-section" id="devices" aria-labelledby="cp-devices-title">
       <div className="cp-wrap">
         <header className="cp-head">
-          <span className="cp-eyebrow">04 / 支持的设备</span>
           <h2 id="cp-devices-title">连上就能认出来</h2>
           <p className="cp-lead">用 DDC/CI 读取型号与面板能力，只显示这台显示器真正支持的调节项。</p>
         </header>
@@ -155,7 +150,6 @@ export function CenterDownload({ download }: { download: CenterDownload }) {
     <section className="cp-section cp-download" id="download" aria-labelledby="cp-download-title">
       <div className="cp-wrap">
         <header className="cp-head">
-          <span className="cp-eyebrow">05 / 下载与安装</span>
           <h2 id="cp-download-title">三步开始</h2>
         </header>
         <div className="cp-download__grid">
@@ -198,7 +192,6 @@ export function CenterChangelog({ download }: { download: CenterDownload }) {
     <section className="cp-section" id="changelog" aria-labelledby="cp-changelog-title">
       <div className="cp-wrap">
         <header className="cp-head">
-          <span className="cp-eyebrow">06 / 更新记录</span>
           <h2 id="cp-changelog-title">版本历史</h2>
         </header>
         <div className="cp-log">
@@ -224,7 +217,6 @@ export function CenterFaq() {
     <section className="cp-section" id="faq" aria-labelledby="cp-faq-title">
       <div className="cp-wrap">
         <header className="cp-head">
-          <span className="cp-eyebrow">07 / 常见问题</span>
           <h2 id="cp-faq-title">安装与使用</h2>
         </header>
         <div className="cp-faq">
@@ -246,7 +238,7 @@ export function CenterFooter({ download }: { download: CenterDownload }) {
     <section className="cp-cta" aria-labelledby="cp-cta-title">
       <div className="cp-cta__glow" aria-hidden="true" />
       <div className="cp-wrap cp-cta__inner">
-        <span className="cp-eyebrow">READY TO TUNE</span>
+
         <h2 id="cp-cta-title">现在，开始调校。</h2>
         <p>{download.version} · {download.size} · {download.os}</p>
         <a className="cp-btn cp-btn--primary" href={download.url} download>

@@ -2310,10 +2310,26 @@ body.drawer-open { overflow: hidden; }
    ============================================================ */
 .site-footer__top {
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) minmax(0, 1.7fr);
+  grid-template-columns: minmax(200px, 1fr) minmax(0, 1.7fr) auto;
   gap: var(--gh-space-7) var(--gh-space-9);
   align-items: start;
 }
+
+/* 小程序商城二维码（占位）：白底保证可扫，放在链接组右侧 */
+.site-footer__qr {
+  width: 150px;
+  padding: 12px 12px 10px;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .10);
+}
+.site-footer__qr img { display: block; width: 112px; height: 112px; border-radius: 4px; }
+.site-footer__qr b { font-size: 13px; font-weight: var(--gh-weight-semibold); color: #0f172a; }
+.site-footer__qr span { font-size: 11px; color: #64748b; }
 
 /* 右侧：多列链接组，组与组横向并排、左对齐；窄屏自动折行 */
 .site-footer__cols {
@@ -2395,6 +2411,7 @@ body.drawer-open { overflow: hidden; }
 /* 窄屏（≤900px）：品牌区与链接区回落为纵向堆叠 */
 @media (max-width: 900px) {
   .site-footer__top { grid-template-columns: minmax(0, 1fr); }
+  .site-footer__qr { width: 138px; }
   .site-footer__cols { gap: var(--gh-space-6) var(--gh-space-7); }
 }
 @media (max-width: 767px) {
@@ -2556,6 +2573,82 @@ body.drawer-open { overflow: hidden; }
   .pcard__foot { padding: 0 26px 26px; }
   .pcard__name { font-size: 22px; }
   .pcard__buy { height: 40px; padding: 0 22px; }
+}
+
+/* ============================================================
+   产品卡 3.0（苹果式商品卡）
+   —— 图片优先：4:3 产品画布 → 名称 → 类别 / 状态 + 查看详情。
+      整卡即链接，悬停浮起并轻推图片，不再用大按钮压住产品。
+   ============================================================ */
+.pcard {
+  aspect-ratio: auto;
+  justify-content: flex-start;
+  padding: 14px 14px 12px;
+  border: 1px solid rgba(17, 17, 20, .06);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(4, 6, 12, .04), 0 14px 34px rgba(4, 6, 12, .06);
+  cursor: pointer;
+}
+.pcard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(17, 17, 20, .1);
+  box-shadow: 0 4px 10px rgba(4, 6, 12, .05), 0 26px 60px rgba(4, 6, 12, .14);
+}
+.pcard--dark { background: #0a0c13; border-color: rgba(255, 255, 255, .08); }
+.pcard__media {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  flex: 0 0 auto;
+  aspect-ratio: 4 / 3;
+  padding: 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 0%, #fbfbfd 0%, #f4f5f8 52%, #edeff4 100%);
+}
+.pcard--dark .pcard__media {
+  background: radial-gradient(120% 90% at 50% 0%, #171b25 0%, #0d1119 60%, #080a10 100%);
+}
+.pcard__media img { transition: transform .7s var(--gh-ease-accent); }
+.pcard:hover .pcard__media img { transform: scale(1.035); }
+.pcard__head { padding: 16px 6px 0; }
+.pcard__name {
+  font-size: clamp(16px, 1.15vw, 18px);
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.pcard__foot { margin-top: auto; padding: 8px 6px 6px; align-items: center; }
+.pcard__category,
+.pcard__status { font-size: 12px; }
+.pcard__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: currentColor;
+  opacity: .5;
+  white-space: nowrap;
+  transition: opacity .25s var(--gh-ease-standard), color .25s var(--gh-ease-standard);
+}
+.pcard__cta svg { width: 13px; height: 13px; transition: transform .3s var(--gh-ease-accent); }
+.pcard:hover .pcard__cta { opacity: .95; }
+.pcard:hover .pcard__cta svg { transform: translateX(4px); }
+/* 覆盖整张卡的透明链接：点卡片任意位置都能进详情 */
+.pcard__overlay { position: absolute; inset: 0; z-index: 3; border-radius: inherit; }
+.pcard__overlay:focus-visible { outline: 2px solid var(--color-accent-solid); outline-offset: 4px; }
+.pcard__pick { top: 24px; right: 24px; z-index: 5; }
+/* 文字与底部信息不拦截点击，交给覆盖链接 */
+.pcard__head, .pcard__foot { pointer-events: none; }
+@media (max-width: 767px) {
+  .pcard { padding: 10px 10px 8px; border-radius: 22px; }
+  .pcard__media { padding: 12px; border-radius: 16px; }
+  .pcard__head { padding: 14px 4px 0; }
+  .pcard__name { font-size: 16px; }
+  .pcard__foot { padding: 6px 4px 4px; }
 }
 
 /* 3 列产品网格：与参考一致，桌面固定 3 列，间距放大减少密集感 */

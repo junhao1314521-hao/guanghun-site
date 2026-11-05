@@ -15,7 +15,6 @@ export function CenterHero({ download }: { download: CenterDownload }) {
       <CenterDome className="cp-hero__dome" />
       <div className="cp-wrap cp-hero__inner">
         <div className="cp-hero__copy">
-          <span className="cp-eyebrow">CENTER 1.3 · 显示控制中心</span>
           <h1 id="cp-hero-title">
             全新升级 <span>Center</span>
           </h1>

@@ -32,7 +32,7 @@ export function HeroBlock({ props }: { props: Record<string, unknown> }) {
 
   return (
     <div
-      className={`blk-hero ${posterHeightClass(data.height)}${theme === 'light' ? ' blk-hero--light' : ''}`}
+      className={`blk-hero ${posterHeightClass(data.height)}${theme === 'light' ? ' blk-hero--light' : ''}${data.scrim ? '' : ' is-no-scrim'}`}
       style={posterHeightStyle(data)}
     >
       {isCode && <CodeBackdrop className="blk-hero__anim" theme={theme} />}

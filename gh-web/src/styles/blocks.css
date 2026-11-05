@@ -107,6 +107,11 @@
 }
 /* 单张海报可关闭压暗遮罩：完整呈现原图细节（后台字段 scrim） */
 .blk-hero__bg.has-media.is-no-scrim::after { display: none; }
+/* 整块海报关闭压暗层：海报原图直接呈现，文案改用文字阴影保证可读 */
+.blk-hero.is-no-scrim::after { display: none; }
+.blk-hero.is-no-scrim .hero__title,
+.blk-hero.is-no-scrim .hero__desc,
+.blk-hero.is-no-scrim .hero__eyebrow { text-shadow: 0 2px 26px rgba(0, 0, 0, .55), 0 1px 3px rgba(0, 0, 0, .4); }
 /* 图片完整显示：contain 不裁切，两侧留出画布底色 */
 .blk-hero__bg.is-contain { background: var(--gh-neutral-950); }
 .blk-hero__bg.is-contain img { object-fit: contain; }

@@ -10,7 +10,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { flushSync } from 'react-dom'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { SafeLink } from '../components/ui/SafeLink'
 import { useSitePages } from '../hooks/useSitePages'
 import { fetchProductCategories, fetchProducts } from '../api/products'
 import { SCENES } from '../data/home'
@@ -258,32 +257,14 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             <input type="checkbox" checked={isPicked} onChange={() => togglePick(item.id)} />
           </label>
         )}
-        <div className="pcard__head">
-          {live ? (
-            <Link to={`/products/${item.id}`} viewTransition className="pcard__name-link">
-              <h3 className="pcard__name">{item.name}</h3>
-            </Link>
-          ) : (
-            <h3 className="pcard__name">{item.name}</h3>
-          )}
-        </div>
         <div
           className="pcard__media"
           style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
         >
-          {/* 缩略图整块可点：直接进详情，不必再找按钮 */}
-          {live ? (
-            <Link
-              to={`/products/${item.id}`}
-              viewTransition
-              className="pcard__media-link"
-              aria-label={`查看 ${item.model} ${item.name} 详情`}
-            >
-              <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
-            </Link>
-          ) : (
-            <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
-          )}
+          <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
+        </div>
+        <div className="pcard__head">
+          <h3 className="pcard__name">{item.name}</h3>
         </div>
         <div className="pcard__foot">
           <div className="pcard__meta">
@@ -300,16 +281,22 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             )}
             {showPrice && <span className="pcard__price">{item.price || '询价'}</span>}
           </div>
-          {live ? (
-            <SafeLink className="btn btn--sm btn--primary pcard__buy" to={`/products/${item.id}`} viewTransition>
-              进一步了解
-            </SafeLink>
-          ) : (
-            <span className="btn btn--sm pcard__buy is-disabled" aria-disabled="true">
-              进一步了解
-            </span>
-          )}
+          <span className="pcard__cta" aria-hidden="true">
+            查看详情
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14m-5-5 5 5-5 5" />
+            </svg>
+          </span>
         </div>
+        {/* 整卡可点：悬停卡片任意位置即可进入详情，不必再找按钮 */}
+        {live && (
+          <Link
+            to={`/products/${item.id}`}
+            viewTransition
+            className="pcard__overlay"
+            aria-label={`查看 ${item.model} ${item.name} 详情`}
+          />
+        )}
       </article>
     )
   }

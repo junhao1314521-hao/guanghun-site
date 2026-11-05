@@ -244,6 +244,13 @@ export function SiteFooter() {
               </div>
             ))}
           </nav>
+
+          {/* 小程序商城：占位二维码，正式上线前替换为真实小程序码 */}
+          <div className="site-footer__qr">
+            <img src="/media/site/miniprogram-qr.png" alt="光魂小程序商城二维码" loading="lazy" />
+            <b>小程序商城</b>
+            <span>扫码进入</span>
+          </div>
         </div>
 
         {/* 底部：左 = 公司名 + Copyright + 用户协议 | 用户隐私；右 = ICP 备案号 */}

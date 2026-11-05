@@ -93,7 +93,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
 
   return (
     <div
-      className={`blk-hero ${heightClass('blk-hero', height)}${theme === 'light' ? ' blk-hero--light' : ''}${paused ? ' is-paused' : ''}`}
+      className={`blk-hero ${heightClass('blk-hero', height)}${theme === 'light' ? ' blk-hero--light' : ''}${deck.length > 0 && deck.every((item) => !item.scrim) ? ' is-no-scrim' : ''}${paused ? ' is-paused' : ''}`}
       style={heightStyleValue}
       tabIndex={0}
       role="group"
