@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Center · 完整重构 Demo</title>
+<link rel="icon" href="data:," />
+<style>
+  :root{
+    --ink:#04050a; --ink2:#070a12; --panel:#0b0f18;
+    --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.06);
+    --text:#eef4fb; --sub:#9dabbe; --dim:#6d7b8e;
+    --cyan:#6fe9ff; --blue:#3f8cff; --violet:#8f7bff;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",monospace;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  ::selection{background:rgba(111,233,255,.25)}
+  .wrap{width:min(1240px,calc(100% - 64px));margin:0 auto}
+  .mono{font-family:var(--mono)}
+  .k{font-size:13px;letter-spacing:.08em;color:var(--cyan);font-weight:500}
+  h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.02em}
+  p{margin:0}
+
+  /* ---------- 背景层 ---------- */
+  .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--ink)}
+  #stars{position:absolute;inset:0;width:100%;height:100%}
+  .nebula{position:absolute;inset:-20%;opacity:.9;
+    background:
+      radial-gradient(38% 30% at 22% 18%, rgba(56,120,255,.26), transparent 70%),
+      radial-gradient(32% 26% at 78% 8%, rgba(143,123,255,.22), transparent 70%),
+      radial-gradient(45% 34% at 62% 46%, rgba(30,180,220,.14), transparent 70%);
+    animation:drift 38s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+  .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(0,0,0,.55))}
+  main{position:relative;z-index:3}
+
+  /* ---------- 顶栏 ---------- */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:50;height:64px;display:flex;align-items:center;
+    background:linear-gradient(180deg,rgba(4,5,10,.78),rgba(4,5,10,0));
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.05)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;letter-spacing:.02em}
+  .brand i{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--cyan),var(--violet));box-shadow:0 0 22px rgba(111,233,255,.45)}
+  .nav-links{display:flex;gap:32px;font-size:14px;color:var(--sub)}
+  .nav-links a{color:inherit;text-decoration:none;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{font-size:14px;padding:8px 16px;border-radius:999px;background:var(--text);color:#05070c;text-decoration:none;font-weight:600}
+
+  /* ---------- 通用 ---------- */
+  .btn{display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 24px;border-radius:999px;
+    font-size:15px;font-weight:600;text-decoration:none;border:1px solid transparent;cursor:pointer;
+    transition:transform .25s var(--ease),box-shadow .25s,background .25s,border-color .25s;will-change:transform}
+  .btn--primary{background:linear-gradient(135deg,#9af3ff,#5fd8ff 45%,#7f9dff);color:#04121a;
+    box-shadow:0 10px 34px rgba(95,216,255,.28)}
+  .btn--primary:hover{box-shadow:0 14px 44px rgba(95,216,255,.45)}
+  .btn--ghost{border-color:rgba(255,255,255,.18);color:var(--text);background:rgba(255,255,255,.03)}
+  .btn--ghost:hover{border-color:rgba(111,233,255,.55);background:rgba(111,233,255,.07)}
+  .btn svg{width:16px;height:16px}
+  .sec{padding:150px 0;position:relative}
+  .sec-head{max-width:820px;margin-bottom:56px}
+  .sec-head h2{font-size:clamp(32px,3.4vw,48px);line-height:1.18}
+  .sec-head p{margin-top:18px;color:var(--sub);font-size:17px;max-width:680px;line-height:1.85}
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- 首屏 ---------- */
+  .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:120px 0 60px;overflow:hidden}
+  .arc{position:absolute;left:50%;top:74%;width:158vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;
+    border:1px solid rgba(140,240,255,.55);pointer-events:none;
+    box-shadow:0 0 150px 26px rgba(60,170,255,.18),inset 0 0 160px rgba(60,170,255,.20)}
+  .arc::after{content:"";position:absolute;inset:5.5%;border-radius:50%;border:1px solid rgba(140,220,255,.14)}
+  .arc-glow{position:absolute;left:50%;top:52%;width:120vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;
+    background:radial-gradient(circle at 50% 50%,rgba(70,190,255,.42),rgba(40,90,220,.16) 55%,transparent 70%);filter:blur(40px);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:64px;align-items:center;position:relative}
+  .hero h1{font-size:clamp(42px,5.2vw,76px);line-height:1.06;letter-spacing:-.035em}
+  .hero h1 em{font-style:normal;background:linear-gradient(100deg,#fff 10%,#9befff 55%,#9c8bff 92%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{margin-top:24px;color:var(--sub);font-size:17px;line-height:1.9;max-width:440px}
+  .hero-actions{display:flex;gap:12px;margin-top:36px;flex-wrap:wrap}
+  .stats{display:flex;gap:40px;margin-top:52px;padding-top:26px;border-top:1px solid var(--line)}
+  .stat b{font-family:var(--mono);font-size:30px;font-weight:500;letter-spacing:-.02em;display:flex;align-items:flex-start;height:1.15em;line-height:1.15em}
+  .stat > span{display:block;font-size:13px;color:var(--dim);margin-top:4px}
+  .slot{display:inline-flex;align-items:flex-start;height:1.15em;overflow:hidden;line-height:1.15em;flex:0 0 auto}
+  .slot i{display:block;height:11.5em;font-style:normal;transition:transform 1.1s var(--ease);width:.62em;text-align:center;flex:0 0 auto}
+  .slot i span{display:block;height:1.15em;line-height:1.15em}
+  .stage-view{position:relative;perspective:1200px}
+  .window{position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.14);
+    background:#070a10 url('/media/center/app/basic.webp') center/cover no-repeat;
+    box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.4);
+    transform:rotateY(var(--ry,-20deg)) rotateX(var(--rx,9deg)) scale(var(--sc,.94));
+    transition:transform .2s linear;will-change:transform}
+  .window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 32%,transparent 70%,rgba(111,233,255,.06));pointer-events:none}
+  .window--ratio{aspect-ratio:16/10}
+  .win-bar{position:absolute;top:0;left:0;right:0;height:34px;display:flex;align-items:center;gap:6px;padding:0 12px;
+    background:rgba(7,10,16,.72);border-bottom:1px solid rgba(255,255,255,.07);z-index:2}
+  .win-bar i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18)}
+  .win-bar span{margin-left:8px;font-size:12px;color:var(--dim);font-family:var(--mono)}
+  .hero-window .win-bar{height:30px}
+  .scroll-cue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);font-size:12px;color:var(--dim);
+    display:flex;flex-direction:column;align-items:center;gap:8px;letter-spacing:.12em}
+  .scroll-cue i{width:1px;height:38px;background:linear-gradient(180deg,var(--cyan),transparent);animation:cue 2.2s ease-in-out infinite}
+  @keyframes cue{0%,100%{opacity:.25;transform:scaleY(.6)}50%{opacity:1;transform:scaleY(1)}}
+
+  /* ---------- 六模块（平铺起立） ---------- */
+  .mods{perspective:1400px}
+  .mods::before,#features::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;
+    background:
+      linear-gradient(rgba(120,170,255,.06) 1px,transparent 1px) 0 0/100% 48px,
+      linear-gradient(90deg,rgba(120,170,255,.06) 1px,transparent 1px) 0 0/48px 100%,
+      radial-gradient(60% 50% at 72% 18%,rgba(40,110,220,.14),transparent 70%);
+    -webkit-mask-image:linear-gradient(180deg,transparent,#000 14%,#000 86%,transparent);
+    mask-image:linear-gradient(180deg,transparent,#000 14%,#000 86%,transparent)}
+  .mods .wrap,#features .wrap{position:relative}
+  .mod-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;perspective:1200px}
+  .mod{position:relative;min-height:310px;padding:28px;border-radius:16px;overflow:hidden;
+    background:linear-gradient(180deg,rgba(19,25,38,.92),rgba(9,12,18,.96));
+    border:1px solid var(--line);
+    transform:rotateX(var(--rx,62deg)) translateY(var(--ty,46px)) scale(var(--s,.97));
+    transform-origin:50% 100%;opacity:var(--op,.15);
+    transition:transform .18s linear,opacity .3s linear,border-color .3s,box-shadow .3s;
+    will-change:transform,opacity}
+  .mod::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .35s;pointer-events:none;
+    background:radial-gradient(280px 220px at var(--mx,50%) var(--my,0%),rgba(111,233,255,.16),transparent 65%)}
+  .mod:hover::before{opacity:1}
+  .mod:hover{border-color:rgba(111,233,255,.35);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(111,233,255,.12)}
+  .mod-icon{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;
+    background:linear-gradient(145deg,rgba(111,233,255,.16),rgba(143,123,255,.10));
+    border:1px solid rgba(111,233,255,.22);color:var(--cyan);margin-bottom:26px}
+  .mod-icon svg{width:22px;height:22px}
+  .mod h3{font-size:24px;line-height:1.3;margin-bottom:10px}
+  .mod p{font-size:15px;line-height:1.8;color:var(--sub)}
+  .mod-no{position:absolute;right:24px;top:22px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+  .mod-link{position:absolute;left:28px;bottom:24px;font-size:13px;color:var(--dim);display:flex;align-items:center;gap:6px;transition:color .25s,gap .25s}
+  .mod:hover .mod-link{color:var(--cyan);gap:10px}
+
+  /* ---------- 固定镜头 ---------- */
+  .stage{height:340vh;position:relative}
+  .stage-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+  .stage-inner{display:grid;grid-template-columns:minmax(0,.40fr) minmax(0,.60fr);gap:56px;align-items:center}
+  .stage-copy h2{font-size:clamp(30px,3.2vw,46px);line-height:1.2}
+  .stage-copy p{margin-top:18px;color:var(--sub);font-size:16px;max-width:340px}
+  .steps{display:flex;flex-direction:column;gap:18px;margin-top:34px}
+  .step{display:flex;gap:12px;font-size:14px;color:var(--dim);transition:color .3s}
+  .step b{font-family:var(--mono);font-weight:400;color:var(--dim);transition:color .3s}
+  .step.on{color:var(--text)}
+  .step.on b{color:var(--cyan)}
+  .stage-view{perspective:1200px;position:relative}
+  .stage-window{border-radius:12px;border:1px solid rgba(255,255,255,.14);overflow:hidden;position:relative;
+    aspect-ratio:16/10;background:#06080d url('/media/center/app/basic.webp') center/cover no-repeat;
+    box-shadow:0 60px 140px rgba(0,0,0,.75),0 0 90px rgba(60,150,255,.10);
+    transform:rotateX(var(--rx,58deg)) rotateY(var(--ry,-22deg)) scale(var(--sc,.82));
+    transform-origin:50% 100%;will-change:transform}
+  .stage-window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 30%,transparent 72%,rgba(111,233,255,.08));pointer-events:none}
+  .callouts{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .callout{position:absolute;right:2%;display:flex;align-items:center;gap:10px;opacity:0;transform:translateX(14px);transition:opacity .5s,transform .5s}
+  .callout::before{content:"";width:56px;height:1px;background:linear-gradient(90deg,transparent,rgba(111,233,255,.7))}
+  .callout span{font-size:13px;color:var(--text);background:rgba(6,10,18,.72);border:1px solid rgba(111,233,255,.22);padding:7px 12px;border-radius:8px;backdrop-filter:blur(8px)}
+  .callout.on{opacity:1;transform:none}
+  .callout:nth-child(1){top:22%}
+  .callout:nth-child(2){top:48%}
+  .callout:nth-child(3){top:72%}
+
+  /* ---------- 调校台 ---------- */
+  .console{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px;align-items:center}
+  .shot{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#06080d;position:relative}
+  .shot img{display:block;width:100%;height:auto}
+  .shot::after{content:"";position:absolute;inset:0;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+  .panel{border-radius:16px;border:1px solid var(--line);background:rgba(10,14,22,.78);backdrop-filter:blur(14px);padding:26px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .panel-head h3{font-size:18px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+  .chip{font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--sub);cursor:pointer;transition:.25s}
+  .chip:hover{border-color:rgba(111,233,255,.4);color:var(--text)}
+  .chip.on{background:rgba(111,233,255,.12);border-color:rgba(111,233,255,.5);color:var(--cyan)}
+  .row{display:grid;grid-template-columns:64px 1fr 48px;gap:12px;align-items:center;margin:14px 0;font-size:13px;color:var(--sub)}
+  .row output{font-family:var(--mono);text-align:right;color:var(--text)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:rgba(255,255,255,.14);border-radius:2px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px rgba(111,233,255,.14);cursor:pointer;transition:box-shadow .2s}
+  input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(111,233,255,.18)}
+  .preview{margin-top:20px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--line)}
+  .preview img{display:block;width:100%;height:210px;object-fit:cover;filter:brightness(var(--br,1)) contrast(var(--co,1)) saturate(var(--sa,1)) sepia(var(--se,0)) hue-rotate(var(--hu,0deg))}
+  .preview::after{content:"";position:absolute;inset:0;background:var(--tint,transparent);mix-blend-mode:soft-light;pointer-events:none}
+  .preview b{position:absolute;left:10px;bottom:8px;font-size:11px;font-family:var(--mono);color:rgba(255,255,255,.7);letter-spacing:.08em}
+
+  /* ---------- 功能 ---------- */
+  .feat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center;padding:56px 0;border-top:1px solid var(--line2)}
+  .feat:nth-child(even) .feat-media{order:-1}
+  .feat-no{font-family:var(--mono);font-size:13px;color:var(--dim)}
+  .feat h3{font-size:clamp(26px,2.6vw,36px);line-height:1.25;margin:12px 0 14px}
+  .feat p{color:var(--sub);font-size:16px;line-height:1.9;max-width:460px}
+  .feat-media{border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;background:#070a10}
+  .feat-media img{display:block;width:100%;transition:transform .8s var(--ease)}
+  .feat:hover .feat-media img{transform:scale(1.025)}
+
+  /* ---------- 设备 ---------- */
+  .devices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+  .device{border:1px solid var(--line);border-radius:14px;padding:22px;background:rgba(10,14,22,.6);transition:.35s}
+  .device:hover{transform:translateY(-6px);border-color:rgba(111,233,255,.35);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .monitor{height:96px;border:1px solid rgba(255,255,255,.16);border-radius:6px;margin-bottom:20px;position:relative;
+    background:linear-gradient(160deg,rgba(111,233,255,.10),rgba(143,123,255,.08))}
+  .monitor::after{content:"";position:absolute;left:50%;bottom:-14px;width:36px;height:14px;transform:translateX(-50%);border-left:1px solid rgba(255,255,255,.16);border-right:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);border-radius:0 0 3px 3px}
+  .device b{display:block;font-size:16px;margin-bottom:6px}
+  .device span{font-size:13px;color:var(--dim);line-height:1.7;display:block}
+
+  /* ---------- 下载 ---------- */
+  .download{border:1px solid rgba(111,233,255,.22);border-radius:20px;padding:56px;position:relative;overflow:hidden;
+    background:radial-gradient(ellipse at 78% 20%,rgba(70,150,255,.18),transparent 60%),rgba(9,13,21,.8)}
+  .download h2{font-size:clamp(30px,3.2vw,44px);line-height:1.2}
+  .download p{color:var(--sub);margin-top:14px;font-size:16px}
+  .os{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+  .os a{font-size:14px;padding:12px 20px;border-radius:10px;border:1px solid var(--line);color:var(--text);text-decoration:none;background:rgba(255,255,255,.03);transition:.25s}
+  .os a:hover{border-color:rgba(111,233,255,.5);background:rgba(111,233,255,.08)}
+  .dl-meta{display:flex;gap:28px;margin-top:28px;font-size:12px;color:var(--dim);font-family:var(--mono);flex-wrap:wrap}
+
+  /* ---------- 版本 / FAQ ---------- */
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px}
+  .log{list-style:none;margin:0;padding:0}
+  .log li{display:grid;grid-template-columns:88px 1fr;gap:18px;padding:20px 0;border-top:1px solid var(--line2)}
+  .log time{font-family:var(--mono);font-size:13px;color:var(--dim)}
+  .log b{display:block;font-size:15px;margin-bottom:4px}
+  .log span{font-size:14px;color:var(--sub);line-height:1.75}
+  .faq details{border-top:1px solid var(--line2);padding:18px 0}
+  .faq summary{list-style:none;cursor:pointer;font-size:16px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font-family:var(--mono);color:var(--dim);transition:transform .3s}
+  .faq details[open] summary::after{transform:rotate(45deg);color:var(--cyan)}
+  .faq p{font-size:14px;color:var(--sub);margin-top:12px;line-height:1.8;max-width:520px}
+
+  /* ---------- 页脚 ---------- */
+  .footer{position:relative;padding:120px 0 48px;overflow:hidden;border-top:1px solid var(--line2)}
+  .footer::before{content:"";position:absolute;left:50%;bottom:-52%;width:150%;aspect-ratio:2.4/1;transform:translateX(-50%);
+    background:radial-gradient(ellipse at 50% 100%,rgba(90,215,255,.55),rgba(40,90,220,.24) 42%,transparent 70%);filter:blur(34px)}
+  .footer .wrap{position:relative}
+  .foot-top{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,.6fr));gap:40px}
+  .foot-brand b{font-size:20px}
+  .foot-brand p{color:var(--sub);font-size:14px;margin-top:12px;max-width:280px}
+  .foot-col b{display:block;font-size:13px;color:var(--dim);margin-bottom:14px}
+  .foot-col a{display:block;font-size:14px;color:var(--sub);text-decoration:none;padding:5px 0;transition:color .2s}
+  .foot-col a:hover{color:var(--text)}
+  .wordmark{font-size:clamp(90px,17vw,250px);line-height:.82;letter-spacing:.04em;font-weight:600;
+    color:rgba(255,255,255,.055);text-align:center;margin-top:64px;user-select:none;pointer-events:none}
+  .foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:8px}
+
+  /* ---------- 移动 ---------- */
+  @media (max-width:980px){
+    .wrap{width:calc(100% - 40px)}
+    .nav-links{display:none}
+    .hero{padding-top:100px;min-height:auto}
+    .hero .wrap{grid-template-columns:1fr;gap:48px}
+    .hero-sub{max-width:none}
+    .stats{gap:26px}
+    .sec{padding:96px 0}
+    .mod-grid{grid-template-columns:1fr 1fr}
+    .mod{min-height:280px}
+    .stage{height:auto}
+    .stage-sticky{position:static;height:auto;padding:80px 0}
+    .stage-inner{grid-template-columns:1fr;gap:40px}
+    .stage-window{transform:none}
+    .callouts{display:none}
+    .console,.cols,.feat{grid-template-columns:1fr;gap:36px}
+    .feat:nth-child(even) .feat-media{order:0}
+    .devices{grid-template-columns:1fr 1fr}
+    .download{padding:34px}
+    .foot-top{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:620px){
+    .mod-grid{grid-template-columns:1fr}
+    .devices{grid-template-columns:1fr}
+    .stats{flex-wrap:wrap;gap:18px 30px}
+    .hero-actions .btn{width:100%;justify-content:center}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .mod{transform:none;opacity:1}
+  }
+</style>
+</head>
+<body>
+<div class="bg">
+  <canvas id="stars"></canvas>
+  <div class="nebula"></div>
+</div>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<nav class="nav">
+  <div class="wrap">
+    <div class="brand"><i></i>光魂 Center</div>
+    <div class="nav-links">
+      <a href="#mods">功能</a><a href="#stage">调校</a><a href="#devices">设备</a><a href="#download">下载</a>
+    </div>
+    <a class="nav-cta" href="#download">下载 Center</a>
+  </div>
+</nav>
+
+<main>
+  <!-- 首屏 -->
+  <header class="hero">
+    <div class="arc"></div>
+    <div class="arc-glow"></div>
+    <div class="wrap">
+      <div>
+        <h1>把每一帧<br /><em>调到你要的样子</em></h1>
+        <p class="hero-sub">亮度、色温、HDR、分区背光，全部收进一个界面。改一个参数，画面立刻给你回应。</p>
+        <div class="hero-actions">
+          <a class="btn btn--primary magnet" href="#download">下载 Center
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="#stage">看它怎么工作</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><b><span class="slot" data-value="6"></span></b><span>场景预设</span></div>
+          <div class="stat"><b><span class="slot" data-value="8"></span></b><span>可调参数</span></div>
+          <div class="stat"><b><span class="slot" data-value="40"></span><span style="font-size:20px;align-self:flex-start;line-height:1.4">+</span></b><span>支持机型</span></div>
+        </div>
+      </div>
+      <div class="stage-view hero-window" id="heroWindow">
+        <div class="window window--ratio" id="heroWin">
+          <div class="win-bar"><i></i><i></i><i></i><span>Center 2.6.0</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-cue"><i></i>向下滚动</div>
+  </header>
+
+  <!-- 六模块 -->
+  <section class="sec mods" id="mods">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2>六件事，一个界面做完</h2>
+        <p>从开箱预设到逐帧微调，不需要在多个工具之间来回切换。向下滚动，卡片会从平铺状态立起来。</p>
+      </div>
+      <div class="mod-grid" id="modGrid">
+        <article class="mod" tabindex="0">
+          <span class="mod-no">01</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg></div>
+          <h3>场景预设</h3>
+          <p>游戏、观影、修图、办公，一键切到对应亮度与色温，不用每次重调。</p>
+          <span class="mod-link">了解预设 →</span>
+        </article>
+        <article class="mod" tabindex="0">
+          <span class="mod-no">02</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16 9 9l4 5 3-4 4 6"/><path d="M4 20h16"/></svg></div>
+          <h3>逐帧调校</h3>
+          <p>亮度、对比、饱和度、色温、锐度五条曲线，拖动时画面同步变化。</p>
+          <span class="mod-link">打开调校 →</span>
+        </article>
+        <article class="mod" tabindex="0">
+          <span class="mod-no">03</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></div>
+          <h3>HDR 映射</h3>
+          <p>根据内容自动选择 HDR / SDR 曲线，暗部不糊，高光不过曝。</p>
+          <span class="mod-link">查看映射 →</span>
+        </article>
+        <article class="mod" tabindex="0">
+          <span class="mod-no">04</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></div>
+          <h3>分区背光</h3>
+          <p>分区亮度实时预览，光晕与黑位可控，深夜看片不刺眼。</p>
+          <span class="mod-link">调整分区 →</span>
+        </article>
+        <article class="mod" tabindex="0">
+          <span class="mod-no">05</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <h3>多屏同步</h3>
+          <p>一套参数同步到同型号副屏，色彩和亮度不会一块亮一块暗。</p>
+          <span class="mod-link">管理多屏 →</span>
+        </article>
+        <article class="mod" tabindex="0">
+          <span class="mod-no">06</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3 4 7v6c0 5 3.5 7.5 8 8 4.5-.5 8-3 8-8V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>配置记忆</h3>
+          <p>每台显示器独立保存配置，接上就恢复，换机不用重新设。</p>
+          <span class="mod-link">查看配置 →</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 固定镜头 -->
+  <section class="stage" id="stage">
+    <div class="stage-sticky">
+      <div class="wrap stage-inner">
+        <div class="stage-copy">
+          <h2>先平铺，<br />再立起来</h2>
+          <p>同一个窗口，随着滚动从桌面角度立起、转正、推近。不是播放视频，是界面本身在动。</p>
+          <div class="steps">
+            <div class="step" data-step="0"><b>01</b><span>平铺：看清整体布局</span></div>
+            <div class="step" data-step="1"><b>02</b><span>立起：进入工作视角</span></div>
+            <div class="step" data-step="2"><b>03</b><span>推近：对准调校面板</span></div>
+          </div>
+        </div>
+        <div class="stage-view">
+          <div class="stage-window" id="stageWin"><div class="win-bar"><i></i><i></i><i></i><span>Center 2.6.0</span></div></div>
+          <div class="callouts">
+            <div class="callout" data-at="0.16"><span>左侧导航 · 六个模块</span></div>
+            <div class="callout" data-at="0.46"><span>中部滑杆 · 实时生效</span></div>
+            <div class="callout" data-at="0.74"><span>底部状态 · 机型与固件</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 调校台 -->
+  <section class="sec" id="console">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2>拖动滑杆，右边立刻变</h2>
+        <p>这是真实界面的截图，右侧是同一张画面经过参数处理后的效果。你可以直接拖，感受 Center 的调校逻辑。</p>
+      </div>
+      <div class="console">
+        <div class="shot reveal">
+          <img src="/media/center/app/pro.webp" alt="Center 调校界面实拍" loading="lazy" />
+        </div>
+        <div class="panel reveal">
+          <div class="panel-head"><h3>画面调校</h3><span class="mono" style="font-size:12px;color:var(--dim)">LIVE</span></div>
+          <div class="chips" id="presets">
+            <button class="chip on" data-preset="standard">标准</button>
+            <button class="chip" data-preset="game">游戏</button>
+            <button class="chip" data-preset="movie">观影</button>
+            <button class="chip" data-preset="photo">修图</button>
+          </div>
+          <div class="row"><span>亮度</span><input type="range" id="br" min="60" max="140" value="100" /><output id="brv">100</output></div>
+          <div class="row"><span>对比</span><input type="range" id="co" min="70" max="140" value="100" /><output id="cov">100</output></div>
+          <div class="row"><span>饱和</span><input type="range" id="sa" min="40" max="160" value="100" /><output id="sav">100</output></div>
+          <div class="row"><span>色温</span><input type="range" id="te" min="-40" max="40" value="0" /><output id="tev">0</output></div>
+          <div class="row"><span>锐度</span><input type="range" id="sh" min="0" max="100" value="40" /><output id="shv">40</output></div>
+          <div class="preview" id="preview">
+            <img src="/media/home/hero-3.jpg" alt="调色预览" loading="lazy" />
+            <b>PREVIEW · 实时输出</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 功能 -->
+  <section class="sec" id="features">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2>把复杂留在后台</h2>
+        <p>你只需要看到结果：画面对了、眼睛不累、换机不用重设。</p>
+      </div>
+      <div class="feat reveal">
+        <div>
+          <span class="feat-no">01 / 自动</span>
+          <h3>认出你在看什么，自动切预设</h3>
+          <p>检测到游戏、影片或修图软件，Center 会切到对应模式；也可以锁定当前配置，不被打断。</p>
+        </div>
+        <div class="feat-media"><img src="/media/center/app/image.webp" alt="自动场景识别" loading="lazy" /></div>
+      </div>
+      <div class="feat reveal">
+        <div>
+          <span class="feat-no">02 / 护眼</span>
+          <h3>低蓝光不等于发黄</h3>
+          <p>按环境光调整色温曲线，保留肤色和白色的准确度，长时间工作眼睛不酸。</p>
+        </div>
+        <div class="feat-media"><img src="/media/center/app/input.webp" alt="护眼模式" loading="lazy" /></div>
+      </div>
+      <div class="feat reveal">
+        <div>
+          <span class="feat-no">03 / 记忆</span>
+          <h3>每台显示器，都有自己的配置</h3>
+          <p>型号、固件、分区数自动识别；配置跟着设备走，换主机也不用重新调。</p>
+        </div>
+        <div class="feat-media"><img src="/media/center/app/system.webp" alt="设备配置记忆" loading="lazy" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 设备 -->
+  <section class="sec" id="devices">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2>接上就能认出来</h2>
+        <p>覆盖光魂在售的 40+ 机型，插上即读型号、固件与分区能力。</p>
+      </div>
+      <div class="devices reveal">
+        <div class="device"><div class="monitor"></div><b>光魂 27 Pro</b><span>4K · 160Hz · 1152 分区</span></div>
+        <div class="device"><div class="monitor"></div><b>光魂 32 Ultra</b><span>4K · 144Hz · 2304 分区</span></div>
+        <div class="device"><div class="monitor"></div><b>光魂 34 Curve</b><span>2K · 165Hz · 原生 10bit</span></div>
+        <div class="device"><div class="monitor"></div><b>光魂 24 ES</b><span>2K · 180Hz · 硬件低蓝光</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 下载 -->
+  <section class="sec" id="download">
+    <div class="wrap">
+      <div class="download reveal">
+        <h2>Center 2.6.0</h2>
+        <p>支持 Windows 10 / 11 与 macOS 13 及以上。安装包约 86 MB。</p>
+        <div class="os">
+          <a href="#">Windows 版 · x64</a>
+          <a href="#">macOS · Apple Silicon</a>
+          <a href="#">macOS · Intel</a>
+        </div>
+        <div class="dl-meta"><span>SHA256 9F2A…C41D</span><span>更新于 2026-10-28</span><span>86.4 MB</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 版本 + FAQ -->
+  <section class="sec" id="more">
+    <div class="wrap cols">
+      <div class="reveal">
+        <h2 style="font-size:32px;margin:0 0 18px">最近更新</h2>
+        <ul class="log">
+          <li><time>2026-10-28</time><div><b>2.6.0</b><span>新增分区背光预览；重写 HDR 曲线，暗部细节提升。</span></div></li>
+          <li><time>2026-09-12</time><div><b>2.5.2</b><span>修复多屏同步偶发失效；降低待机占用。</span></div></li>
+          <li><time>2026-08-03</time><div><b>2.5.0</b><span>全新调校面板；支持配置导入导出。</span></div></li>
+        </ul>
+      </div>
+      <div class="reveal">
+        <h2 style="font-size:32px;margin:0 0 18px">你可能想问</h2>
+        <div class="faq">
+          <details open><summary>需要显示器支持吗？</summary><p>主流光魂在售机型均可识别；部分老型号仅支持亮度与色温调节。</p></details>
+          <details><summary>配置会丢失吗？</summary><p>配置保存在本地，并按显示器序列号区分；重装系统后可导入备份。</p></details>
+          <details><summary>为什么拖动后画面变化不明显？</summary><p>预览使用压缩图像模拟，实际显示器上的变化会更直接。</p></details>
+          <details><summary>支持 macOS 吗？</summary><p>支持 macOS 13 及以上，Apple Silicon 与 Intel 均有安装包。</p></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <b>光魂科技（深圳）有限公司</b>
+          <p>为创作者与玩家，做看得清的显示器。</p>
+        </div>
+        <div class="foot-col"><b>产品</b><a href="#">Center</a><a href="#">显示器</a><a href="#">配件</a></div>
+        <div class="foot-col"><b>支持</b><a href="#">下载</a><a href="#">说明书</a><a href="#">联系客服</a></div>
+        <div class="foot-col"><b>公司</b><a href="#">关于我们</a><a href="#">新闻</a><a href="#">加入我们</a></div>
+      </div>
+      <div class="wordmark">SVDC</div>
+      <div class="foot-bot"><span>© 2026 光魂科技（深圳）有限公司</span><span>粤ICP备00000000号</span></div>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- 星空 ---------- */
+  var cvs = document.getElementById('stars');
+  if (cvs && cvs.getContext && !reduce) {
+    var ctx = cvs.getContext('2d');
+    var stars = [], w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var mouse = { x: 0, y: 0 }, sy = 0;
+    function resize() {
+      w = cvs.clientWidth; h = cvs.clientHeight;
+      cvs.width = w * dpr; cvs.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.round(Math.min(420, w * h / 3800));
+      stars = [];
+      for (var i = 0; i < n; i++) {
+        stars.push({
+          x: Math.random() * w, y: Math.random() * h,
+          r: Math.random() * 1.5 + .35,
+          a: Math.random() * .55 + .35,
+          p: Math.random() * Math.PI * 2,
+          d: Math.random() * .6 + .2
+        });
+      }
+    }
+    function draw(t) {
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        var tw = .65 + Math.sin(t / 1400 + s.p) * .35;
+        var x = s.x + mouse.x * s.d * 14;
+        var y = s.y + mouse.y * s.d * 8 - sy * s.d * .06;
+        y = ((y % h) + h) % h;
+        ctx.beginPath();
+        ctx.arc(x, y, s.r, 0, 6.283);
+        ctx.fillStyle = 'rgba(190,235,255,' + (s.a * tw) + ')';
+        ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', function (e) {
+      mouse.x = e.clientX / window.innerWidth - .5;
+      mouse.y = e.clientY / window.innerHeight - .5;
+    }, { passive: true });
+    window.addEventListener('scroll', function () { sy = window.scrollY; }, { passive: true });
+    requestAnimationFrame(draw);
+  }
+
+  /* ---------- 数字老虎机 ---------- */
+  document.querySelectorAll('.slot').forEach(function (el) {
+    var v = String(el.getAttribute('data-value') || '0');
+    el.innerHTML = v.split('').map(function (d) {
+      var col = '<i data-y="-' + (Number(d) * 10) + '">';
+      for (var n = 0; n < 10; n++) col += '<span>' + n + '</span>';
+      return col + '</i>';
+    }).join('');
+  });
+  setTimeout(function () {
+    document.querySelectorAll('.slot i').forEach(function (el, i) {
+      el.style.transitionDelay = (i * 70) + 'ms';
+      el.style.transform = 'translateY(' + el.getAttribute('data-y') + '%)';
+    });
+  }, 420);
+
+  /* ---------- 入场 ---------- */
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: .12, rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* ---------- 卡片平铺 → 起立 ---------- */
+  var mods = Array.prototype.slice.call(document.querySelectorAll('.mod'));
+  var modTops = [];
+  function measureMods() {
+    modTops = mods.map(function (el) {
+      var t = 0, n = el;
+      while (n) { t += n.offsetTop; n = n.offsetParent; }
+      return t;
+    });
+  }
+  function standUp() {
+    if (reduce) return;
+    var vh = window.innerHeight;
+    mods.forEach(function (el, i) {
+      var top = (modTops[i] || 0) - window.scrollY;
+      var start = vh * .96, end = vh * .52;
+      var p = (start - top) / (start - end);
+      p = Math.max(0, Math.min(1, p));
+      var e = 1 - Math.pow(1 - p, 3);
+      el.style.setProperty('--rx', (62 * (1 - e)).toFixed(2) + 'deg');
+      el.style.setProperty('--ty', (46 * (1 - e)).toFixed(2) + 'px');
+      el.style.setProperty('--op', (.15 + .85 * e).toFixed(3));
+    });
+  }
+  measureMods();
+
+  /* ---------- 首屏窗口视差 ---------- */
+  var win = document.getElementById('heroWin');
+  var hero = document.querySelector('.hero');
+  var hx = 0, hy = 0, tx = 0, ty = 0;
+  window.addEventListener('mousemove', function (e) {
+    hx = e.clientX / window.innerWidth - .5;
+    hy = e.clientY / window.innerHeight - .5;
+  }, { passive: true });
+  function heroLoop() {
+    if (!reduce && win) {
+      tx += (hx - tx) * .06; ty += (hy - ty) * .06;
+      var sc = Math.max(0, 1 - window.scrollY / 900);
+      var ry = -20 + tx * 10;
+      var rx = 9 - ty * 8;
+      win.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+      win.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+      win.style.setProperty('--sc', (0.94 + sc * .04).toFixed(3));
+    }
+    requestAnimationFrame(heroLoop);
+  }
+  requestAnimationFrame(heroLoop);
+
+  /* ---------- 固定镜头 ---------- */
+  var stage = document.querySelector('.stage');
+  var stageWin = document.getElementById('stageWin');
+  var callouts = Array.prototype.slice.call(document.querySelectorAll('.callout'));
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  function stageLoop() {
+    if (!stage || !stageWin) return;
+    var r = stage.getBoundingClientRect();
+    var total = r.height - window.innerHeight;
+    var p = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 0;
+    var rx = 58 * (1 - p), ry = -22 + 24 * p, sc = .82 + .30 * p;
+    stageWin.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+    stageWin.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+    stageWin.style.setProperty('--sc', sc.toFixed(3));
+    callouts.forEach(function (el) {
+      var at = Number(el.getAttribute('data-at'));
+      el.classList.toggle('on', p >= at && p <= at + .22);
+    });
+    steps.forEach(function (el) {
+      var i = Number(el.getAttribute('data-step'));
+      var on = (i === 0 && p < .28) || (i === 1 && p >= .28 && p < .62) || (i === 2 && p >= .62);
+      el.classList.toggle('on', on);
+    });
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      standUp();
+      stageLoop();
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function () { measureMods(); onScroll(); });
+  standUp(); stageLoop();
+
+  /* ---------- 卡片聚光 ---------- */
+  document.querySelectorAll('.mod').forEach(function (el) {
+    el.addEventListener('mousemove', function (e) {
+      var r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      el.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+
+  /* ---------- 磁吸按钮 ---------- */
+  document.querySelectorAll('.magnet').forEach(function (el) {
+    el.addEventListener('mousemove', function (e) {
+      var r = el.getBoundingClientRect();
+      var x = (e.clientX - r.left - r.width / 2) * .12;
+      var y = (e.clientY - r.top - r.height / 2) * .18;
+      el.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    });
+    el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+  });
+
+  /* ---------- 调校台 ---------- */
+  var ids = ['br', 'co', 'sa', 'te', 'sh'];
+  var vals = { br: 100, co: 100, sa: 100, te: 0, sh: 40 };
+  var presets = {
+    standard: { br: 100, co: 100, sa: 100, te: 0, sh: 40 },
+    game: { br: 112, co: 118, sa: 124, te: -8, sh: 62 },
+    movie: { br: 92, co: 108, sa: 96, te: 12, sh: 30 },
+    photo: { br: 100, co: 102, sa: 90, te: 0, sh: 20 }
+  };
+  var preview = document.getElementById('preview');
+  function apply() {
+    if (!preview) return;
+    preview.style.setProperty('--br', (vals.br / 100).toFixed(3));
+    preview.style.setProperty('--co', (vals.co / 100).toFixed(3));
+    preview.style.setProperty('--sa', (vals.sa / 100).toFixed(3));
+    preview.style.setProperty('--hu', (vals.te * .35).toFixed(1) + 'deg');
+    preview.style.setProperty('--se', Math.max(0, vals.te / 220).toFixed(3));
+    preview.style.setProperty('--tint', vals.te > 0 ? 'rgba(255,180,90,.10)' : 'rgba(90,160,255,.10)');
+    ids.forEach(function (id) {
+      var out = document.getElementById(id + 'v');
+      if (out) out.textContent = vals[id];
+    });
+  }
+  ids.forEach(function (id) {
+    var input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('input', function () {
+      vals[id] = Number(input.value);
+      document.querySelectorAll('#presets .chip').forEach(function (c) { c.classList.remove('on'); });
+      apply();
+    });
+  });
+  document.querySelectorAll('#presets .chip').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var p = presets[btn.getAttribute('data-preset')];
+      if (!p) return;
+      document.querySelectorAll('#presets .chip').forEach(function (c) { c.classList.remove('on'); });
+      btn.classList.add('on');
+      Object.keys(p).forEach(function (k) {
+        vals[k] = p[k];
+        var input = document.getElementById(k);
+        if (input) input.value = p[k];
+      });
+      apply();
+    });
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
