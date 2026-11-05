@@ -1,5 +1,6 @@
 /** 纯代码信号波形：Canvas 2D，跟随控件变化，页面隐藏或减少动效时自动降级 */
 import { useEffect, useRef } from 'react'
+import { observeResize, prefersReducedMotion } from './canvasEnv'
 
 type Props = {
   /** 0–1，控制振幅 */
@@ -24,10 +25,15 @@ export function WaveCanvas({ level = 0.5, frequency = 0.5, className }: Props) {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    let ctx: CanvasRenderingContext2D | null = null
+    try {
+      ctx = canvas.getContext('2d')
+    } catch {
+      return
+    }
     if (!ctx) return
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduce = prefersReducedMotion()
     let raf = 0
     let phase = 0
     let width = 0
@@ -69,9 +75,7 @@ export function WaveCanvas({ level = 0.5, frequency = 0.5, className }: Props) {
       raf = requestAnimationFrame(draw)
     }
 
-    resize()
-    const observer = new ResizeObserver(resize)
-    observer.observe(canvas)
+    const stopResize = observeResize(canvas, resize)
     draw()
 
     const onVisibility = () => {
@@ -82,7 +86,7 @@ export function WaveCanvas({ level = 0.5, frequency = 0.5, className }: Props) {
 
     return () => {
       cancelAnimationFrame(raf)
-      observer.disconnect()
+      stopResize()
       document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])

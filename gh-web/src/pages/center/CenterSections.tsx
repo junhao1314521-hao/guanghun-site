@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { ArrowIcon, CheckIcon, DownloadIcon, TabIcon } from './Icons'
 import { CAPABILITIES, DEVICE_MODELS, FAQS, FEATURES } from './data'
 import type { CenterDownload } from './data'
+import { observeResize, prefersReducedMotion } from './canvasEnv'
 
 // 能力总览区：渲染六张模块卡片，点击跳到下方控制台对应 Tab
 export function CapabilityGrid() {
@@ -280,9 +281,14 @@ function StarCanvas() {
   useEffect(() => {
     const canvas = ref.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    let ctx: CanvasRenderingContext2D | null = null
+    try {
+      ctx = canvas.getContext('2d')
+    } catch {
+      return
+    }
     if (!ctx) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduce = prefersReducedMotion()
     let raf = 0
     let width = 0
     let height = 0
@@ -317,13 +323,11 @@ function StarCanvas() {
       raf = requestAnimationFrame(draw)
     }
 
-    resize()
-    const observer = new ResizeObserver(resize)
-    observer.observe(canvas)
+    const stopResize = observeResize(canvas, resize)
     draw()
     return () => {
       cancelAnimationFrame(raf)
-      observer.disconnect()
+      stopResize()
     }
   }, [])
 

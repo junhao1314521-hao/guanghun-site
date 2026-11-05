@@ -9,6 +9,7 @@
  * 降级：WebGL 不可用 / 减少动效时退回静态首帧，不阻塞页面。
  */
 import { useEffect, useRef } from 'react'
+import { observeResize, observeVisibility, prefersReducedMotion } from './canvasEnv'
 
 const VERT = `
 attribute vec2 aPos;
@@ -127,13 +128,19 @@ export function CenterHorizon({ className }: { className?: string }) {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const gl = canvas.getContext('webgl', {
-      alpha: false,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      powerPreference: 'low-power',
-    })
+    let gl: WebGLRenderingContext | null = null
+    try {
+      gl = canvas.getContext('webgl', {
+        alpha: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: 'low-power',
+      })
+    } catch {
+      canvas.dataset.fallback = 'true'
+      return
+    }
     // WebGL 不可用：保留 CSS 渐变兜底，不抛错
     if (!gl) {
       canvas.dataset.fallback = 'true'
@@ -181,7 +188,7 @@ export function CenterHorizon({ className }: { className?: string }) {
     const uTime = gl.getUniformLocation(program, 'uTime')
     const uPointer = gl.getUniformLocation(program, 'uPointer')
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduce = prefersReducedMotion()
     let width = 0
     let height = 0
     let raf = 0
@@ -217,19 +224,13 @@ export function CenterHorizon({ className }: { className?: string }) {
       targetY = (event.clientY / window.innerHeight - 0.5) * 2
     }
 
-    resize()
-    const observer = new ResizeObserver(resize)
-    observer.observe(canvas)
+    const stopResize = observeResize(canvas, resize)
 
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        visible = entry.isIntersecting
-        cancelAnimationFrame(raf)
-        if (visible) raf = requestAnimationFrame(render)
-      },
-      { threshold: 0 },
-    )
-    io.observe(canvas)
+    const stopVisibility = observeVisibility(canvas, (isVisible) => {
+      visible = isVisible
+      cancelAnimationFrame(raf)
+      if (visible) raf = requestAnimationFrame(render)
+    })
 
     const onVisibility = () => {
       cancelAnimationFrame(raf)
@@ -242,8 +243,8 @@ export function CenterHorizon({ className }: { className?: string }) {
 
     return () => {
       cancelAnimationFrame(raf)
-      observer.disconnect()
-      io.disconnect()
+      stopResize()
+      stopVisibility()
       window.removeEventListener('pointermove', onPointer)
       document.removeEventListener('visibilitychange', onVisibility)
       gl.deleteProgram(program)
