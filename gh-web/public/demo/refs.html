@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Center 页 · 背景与镜头对标参考</title>
+<style>
+  :root{
+    --bg:#07080b; --panel:#0d1016; --line:rgba(255,255,255,.09);
+    --text:#eef2f7; --sub:#98a3b3; --dim:#6b7686; --cyan:#5ee7ff;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased}
+  .wrap{width:min(1160px,calc(100% - 64px));margin:0 auto}
+  header{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+  .kicker{font-size:13px;letter-spacing:.06em;color:var(--cyan);font-weight:500}
+  h1{font-size:48px;line-height:1.15;letter-spacing:-.02em;margin:14px 0 18px;font-weight:600}
+  .lede{font-size:17px;line-height:1.9;color:var(--sub);max-width:760px;margin:0}
+  .meta{margin-top:22px;font-size:13px;color:var(--dim);font-family:var(--mono)}
+  section{padding:64px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:28px;line-height:1.25;margin:0 0 10px;font-weight:600}
+  .sub{color:var(--sub);font-size:15px;margin:0 0 28px;max-width:760px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+  .card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+  .shot{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top center;border-bottom:1px solid var(--line)}
+  .body{padding:22px 24px 26px}
+  .body h3{font-size:20px;line-height:1.3;margin:0 0 4px;font-weight:600}
+  .tag{font-size:13px;color:var(--dim);font-family:var(--mono);display:block;margin-bottom:14px}
+  .row{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05);font-size:14px;line-height:1.7}
+  .row b{color:var(--cyan);font-weight:500;font-size:13px}
+  .row span{color:var(--sub)}
+  .row span strong{color:var(--text);font-weight:500}
+  .rules{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-top:8px}
+  .rule{border-left:1px solid rgba(94,231,255,.35);padding:4px 0 4px 16px}
+  .rule b{display:block;font-size:15px;margin-bottom:6px}
+  .rule span{font-size:13px;line-height:1.65;color:var(--dim)}
+  .previews{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:8px}
+  .pv{position:relative;height:220px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#05070c}
+  .pv i{position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,rgba(94,231,255,.6),transparent)}
+  .pv em{position:absolute;left:20px;bottom:16px;font-style:normal;font-size:13px;color:var(--sub);font-family:var(--mono)}
+  .pv--hero::before{
+    content:"";position:absolute;left:50%;bottom:-46%;width:150%;aspect-ratio:1;transform:translateX(-50%);
+    background:
+      radial-gradient(circle at 50% 50%, rgba(120,240,255,.55) 0 32%, rgba(40,120,255,.30) 45%, transparent 62%),
+      conic-gradient(from 200deg at 50% 50%, rgba(94,231,255,.30), rgba(70,90,255,.10), transparent 40%);
+    filter:blur(28px);
+  }
+  .pv--hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 88%,rgba(94,231,255,.18),transparent 55%)}
+  .pv--hero b{position:absolute;left:50%;top:24%;width:170%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;border:1px solid rgba(140,244,255,.55);box-shadow:0 0 60px 12px rgba(94,231,255,.16),inset 0 0 60px rgba(94,231,255,.10)}
+  .pv--hero b::after{content:"";position:absolute;inset:7%;border-radius:50%;border:1px solid rgba(140,244,255,.22)}
+  .pv--mid::before{
+    content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(rgba(120,160,255,.055) 1px,transparent 1px) 0 0/100% 44px,
+      linear-gradient(90deg,rgba(120,160,255,.055) 1px,transparent 1px) 0 0/44px 100%,
+      radial-gradient(ellipse at 70% 20%,rgba(50,120,220,.22),transparent 60%),
+      #070a10;
+    mask-image:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);
+  }
+  .pv--footer::before{
+    content:"";position:absolute;left:-10%;right:-10%;bottom:-52%;height:150%;
+    background:radial-gradient(ellipse at 50% 100%,rgba(94,231,255,.55),rgba(30,80,220,.28) 45%,transparent 70%);
+    filter:blur(24px);
+  }
+  .pv--footer b{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:64px;letter-spacing:.12em;color:rgba(255,255,255,.10);font-weight:600}
+  .note{font-size:13px;color:var(--dim);margin-top:16px}
+  .quote{border:1px solid var(--line);border-radius:14px;padding:26px 28px;background:linear-gradient(180deg,rgba(94,231,255,.05),transparent 60%)}
+  .quote p{margin:0 0 10px;font-size:15px;color:var(--sub)}
+  .quote b{color:var(--text);font-weight:600}
+  a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(94,231,255,.3)}
+  footer{padding:48px 0 80px;color:var(--dim);font-size:13px}
+  @media (max-width:900px){
+    .wrap{width:calc(100% - 40px)}
+    h1{font-size:34px} .grid,.previews{grid-template-columns:1fr}
+    .rules{grid-template-columns:1fr 1fr}
+    .pv{height:180px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">CENTER · 背景与镜头对标</div>
+    <h1>暗色页面为什么看起来“空”</h1>
+    <p class="lede">我抓了四个真实站点做对照。结论很一致：高级感不来自“更多颜色”，而来自<strong>局部光源、方向、暗部和材质</strong>。纯黑只是背景，不是氛围。</p>
+    <div class="meta">采集日期 2026-11-05 · 1440×900 · 真实站点截图</div>
+  </header>
+
+  <section>
+    <h2>四个对标</h2>
+    <p class="sub">每张图下面写清楚：我看到了什么、准备借什么、不借什么。</p>
+    <div class="grid">
+      <article class="card">
+        <img class="shot" src="/demo/refs/raycast-hero.jpg" alt="Raycast 首屏" loading="lazy" />
+        <div class="body">
+          <h3>Raycast · 斜向光束</h3>
+          <span class="tag">raycast.com</span>
+          <div class="row"><b>观察</b><span>纯黑底，但主角背后有 6–8 道<strong>大模糊斜光束</strong>，中心留暗，文字压在光上仍然清楚。</span></div>
+          <div class="row"><b>借用</b><span>首屏穹顶改成<strong>多道弧形光束</strong>叠加大模糊，而不是一层均匀渐变；光要有一条条的结构。</span></div>
+          <div class="row"><b>不借</b><span>高饱和红。我们换成品牌青，且亮度更低。</span></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/demo/refs/stripe-hero.jpg" alt="Stripe 首屏" loading="lazy" />
+        <div class="body">
+          <h3>Stripe · 色彩丝带</h3>
+          <span class="tag">stripe.com</span>
+          <div class="row"><b>观察</b><span>渐变只占画面<strong>右侧约 45%</strong>，左侧整块留白给文字；色彩边缘最亮，中心反而柔。</span></div>
+          <div class="row"><b>借用</b><span>光只放在<strong>一侧或一处</strong>，其余留暗；渐变要有明确方向，不能四面均匀。</span></div>
+          <div class="row"><b>不借</b><span>浅色底。我们仍是深色，但保留“大面积安静、小面积发光”的比例。</span></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/demo/refs/linear-hero.jpg" alt="Linear 首屏" loading="lazy" />
+        <div class="body">
+          <h3>Linear · 排版层级</h3>
+          <span class="tag">linear.app</span>
+          <div class="row"><b>观察</b><span>约 64px 标题 / 15px 副文 / 13px 标签，<strong>三级就够</strong>；副文一行不超过 40 个字符；界面是唯一主角。</span></div>
+          <div class="row"><b>借用</b><span>六级字号、正文 17px、小字最小 13px；<strong>不再用 10px 大字距标签</strong>。</span></div>
+          <div class="row"><b>不借</b><span>它的背景其实也接近纯黑——所以我们要在背景上比它多做一层。</span></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <img class="shot" src="/demo/refs/vercel-hero.jpg" alt="Vercel 首屏" loading="lazy" />
+        <div class="body">
+          <h3>Vercel · 单焦点</h3>
+          <span class="tag">vercel.com</span>
+          <div class="row"><b>观察</b><span>画面中央<strong>只有一个物体</strong>，左右各一组小信息，其余全是留白；没有第二个抢眼元素。</span></div>
+          <div class="row"><b>借用</b><span>每屏只保留一个视觉焦点；辅助信息靠边站，不围着主体堆。</span></div>
+          <div class="row"><b>不借</b><span>极简到近乎无氛围。我们的首屏仍需要那层穹顶光。</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>页脚参考</h2>
+    <p class="sub">大多数科技站页脚其实是“黑底 + 链接列”，这也是我们上一版显得空的原因。更值得借的是这一类：</p>
+    <div class="quote">
+      <p><b>Endex 式页脚</b>：上方是一条“渐变天际线”色带，下面接点线引导的链接行，底部压一个<strong>巨型、低对比度的字标</strong>，几乎融进背景。</p>
+      <p>它解决了两件事：页脚不再突然黑掉；品牌名成为画面的一部分，而不是一行小字。</p>
+      <p><a href="https://inspiration.vasa.works/item/website-sections/endex-footer-section" target="_blank" rel="noreferrer">参考条目 · VASA Works</a></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>五条共同规律</h2>
+    <div class="rules">
+      <div class="rule"><b>光有方向</b><span>从一侧、一角或地平线来，不是四面发光。</span></div>
+      <div class="rule"><b>保留暗部</b><span>亮部占比不超过 40%，暗才有纵深。</span></div>
+      <div class="rule"><b>边缘更亮</b><span>光束边缘比中心亮，才像真实光源。</span></div>
+      <div class="rule"><b>材质收尾</b><span>2–3% 颗粒 + 1px 内高光，消除塑料感。</span></div>
+      <div class="rule"><b>单焦点</b><span>一屏一个主角，其余信息退到边缘。</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>落到光魂：三段背景</h2>
+    <p class="sub">下面是 CSS 草图，只表达光的方向和层次，不是最终效果。</p>
+    <div class="previews">
+      <div class="pv pv--hero"><b></b><i></i><em>顶部 · 弧形穹顶</em></div>
+      <div class="pv pv--mid"><i></i><em>中段 · 雾面网格</em></div>
+      <div class="pv pv--footer"><b>SVDC</b><i></i><em>尾部 · 地平线</em></div>
+    </div>
+    <p class="note">顶部保留原来的弧顶构图，但拆成“主弧 + 内外双弧 + 光束 + 星尘 + 颗粒”五层；中段压到极暗，只留网格和雾；尾部地平线光带重新升起，和顶部形成闭环，并压一个巨型 SVDC 字标。</p>
+  </section>
+
+  <footer>采集与整理：光魂官网 · Center 重构</footer>
+</div>
+</body>
+</html>
