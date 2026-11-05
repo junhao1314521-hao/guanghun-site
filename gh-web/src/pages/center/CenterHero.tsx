@@ -72,6 +72,7 @@ export function CenterHero({ download }: { download: CenterDownload }) {
           </div>
         </div>
       </div>
+      <span className="cp-hero__cue" aria-hidden="true">向下滚动 · 看真实界面</span>
     </section>
   )
 }

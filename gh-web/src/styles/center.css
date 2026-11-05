@@ -92,10 +92,10 @@
    ============================================================ */
 .cp-hero {
   position: relative;
-  min-height: clamp(720px, 96vh, 1000px);
+  min-height: clamp(660px, 90vh, 960px);
   display: flex;
   align-items: center;
-  padding-block: clamp(64px, 9vh, 110px) clamp(80px, 10vh, 130px);
+  padding-block: clamp(40px, 5vh, 72px) clamp(64px, 8vh, 104px);
   background: linear-gradient(180deg, #04060b 0%, #050912 60%, #04060b 100%);
   overflow: hidden;
   isolation: isolate;
@@ -112,14 +112,14 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
   align-items: center;
-  gap: clamp(28px, 4vw, 64px);
+  gap: clamp(24px, 3.4vw, 56px);
 }
 .cp-hero__copy h1 {
   margin: 0 0 18px;
-  font-size: clamp(40px, 5.2vw, 70px);
-  line-height: 1.04;
+  font-size: clamp(44px, 5.6vw, 76px);
+  line-height: 1.02;
   white-space: nowrap;
 }
 .cp-hero__copy h1 span {
@@ -181,12 +181,13 @@
 /* 真实界面：3D 镜头 */
 .cp-hero__stage {
   position: relative;
-  perspective: 1800px;
+  perspective: 1600px;
   transform-style: preserve-3d;
   transform:
-    rotateX(calc(9deg - var(--p, 0) * 9deg))
-    rotateY(calc(-7deg + var(--p, 0) * 5deg))
-    translate3d(0, calc(var(--p, 0) * -22px), 0);
+    rotateX(calc(6deg - var(--p, 0) * 6deg))
+    rotateY(calc(-5deg + var(--p, 0) * 4deg))
+    scale(calc(0.97 + var(--p, 0) * 0.05))
+    translate3d(0, calc(var(--p, 0) * -24px), 0);
   transition: transform 0.12s linear;
 }
 .cp-window {
@@ -200,7 +201,34 @@
     0 0 90px rgba(56, 189, 248, 0.10),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-.cp-window img { display: block; width: 100%; height: auto; filter: brightness(1.32) contrast(1.05) saturate(1.06); }
+.cp-window img { display: block; width: 100%; height: auto; filter: brightness(1.38) contrast(1.05) saturate(1.08); }
+/* 首屏底部的滚动提示：一条向下呼吸的细线，填住底部留白并给出方向 */
+.cp-hero__cue {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  z-index: 2;
+  transform: translateX(-50%);
+  font-family: var(--cp-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(160, 190, 220, 0.5);
+  white-space: nowrap;
+}
+.cp-hero__cue::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 26px;
+  margin: 10px auto 0;
+  background: linear-gradient(rgba(96, 165, 250, 0.65), transparent);
+  animation: cpCue 2.4s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes cpCue {
+  0%, 100% { opacity: 0.25; transform: scaleY(0.5); }
+  50% { opacity: 0.9; transform: scaleY(1); }
+}
 .cp-window__glare {
   position: absolute;
   inset: 0;
@@ -586,7 +614,7 @@
    ============================================================ */
 .cp-layers {
   position: relative;
-  height: 240vh;
+  height: 320vh;
   background: #03050a;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -595,20 +623,20 @@
   top: var(--gh-header-h, 64px);
   height: calc(100vh - var(--gh-header-h, 64px));
   display: grid;
-  grid-template-columns: 0.62fr 1.38fr;
+  grid-template-columns: 0.56fr 1.44fr;
   align-items: center;
-  gap: clamp(24px, 4vw, 56px);
+  gap: clamp(20px, 3vw, 44px);
   max-width: 1240px;
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 48px);
   overflow: hidden;
 }
-.cp-layers__copy h2 { margin: 14px 0 14px; font-size: clamp(28px, 3.2vw, 40px); line-height: 1.18; }
-.cp-layers__copy p { max-width: 420px; color: var(--cp-muted); font-size: 14px; line-height: 1.8; }
+.cp-layers__copy h2 { margin: 14px 0 14px; font-size: clamp(30px, 3.4vw, 44px); line-height: 1.16; }
+.cp-layers__copy p { max-width: 420px; color: var(--cp-muted); font-size: 16px; line-height: 1.8; }
 .cp-layers__stage {
   position: relative;
   min-width: 0;
-  padding: 18px 24px 26px;
+  padding: 14px 18px 22px;
   perspective: 1500px;
 }
 .cp-layers__stage::before {
@@ -616,20 +644,22 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 70%;
-  height: 70%;
+  width: calc(64% + var(--p, 0) * 16%);
+  height: calc(64% + var(--p, 0) * 16%);
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgba(37, 99, 235, 0.22), transparent 68%);
+  background: radial-gradient(ellipse, rgba(37, 99, 235, 0.28), transparent 68%);
   filter: blur(30px);
+  opacity: calc(0.55 + var(--p, 0) * 0.45);
   pointer-events: none;
 }
 .cp-layers__frame {
   position: relative;
   transform-style: preserve-3d;
   transform:
-    rotateY(calc(-7deg + var(--p, 0) * 6deg))
-    rotateX(calc(4deg - var(--p, 0) * 3deg))
-    translate3d(0, calc(var(--p, 0) * -14px), 0);
+    rotateY(calc(-13deg + var(--p, 0) * 15deg))
+    rotateX(calc(7deg - var(--p, 0) * 8deg))
+    scale(calc(0.9 + var(--p, 0) * 0.16))
+    translate3d(0, calc(24px - var(--p, 0) * 42px), 0);
   transition: transform 0.1s linear;
   will-change: transform;
 }
@@ -642,22 +672,27 @@
   box-shadow:
     0 50px 100px rgba(0, 0, 0, 0.6),
     0 0 70px rgba(56, 189, 248, 0.08);
-  filter: brightness(1.28) contrast(1.04);
+  filter: brightness(1.34) contrast(1.04);
 }
 .cp-callout {
   position: absolute;
-  padding: 7px 12px;
+  padding: 8px 13px;
   border: 1px solid rgba(96, 165, 250, 0.35);
   border-radius: 8px;
   background: rgba(7, 12, 22, 0.92);
   font-family: var(--cp-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.06em;
   color: #cfe4ff;
   white-space: nowrap;
-  opacity: min(1, calc(var(--p, 0) * 2.6));
+  opacity: 0;
+  transform: translateY(10px);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
 }
+/* 三段标注按滚动进度依次亮起：约 10% / 40% / 68% 处开始入场 */
+.cp-callout--side { opacity: clamp(0, calc((var(--p, 0) - 0.1) / 0.14), 1); transform: translateY(calc(10px - clamp(0, calc((var(--p, 0) - 0.1) / 0.14), 1) * 10px)); }
+.cp-callout--main { opacity: clamp(0, calc((var(--p, 0) - 0.4) / 0.14), 1); transform: translateY(calc(10px - clamp(0, calc((var(--p, 0) - 0.4) / 0.14), 1) * 10px)); }
+.cp-callout--status { opacity: clamp(0, calc((var(--p, 0) - 0.68) / 0.14), 1); transform: translateY(calc(10px - clamp(0, calc((var(--p, 0) - 0.68) / 0.14), 1) * 10px)); }
 .cp-callout::before {
   content: '';
   position: absolute;
@@ -967,8 +1002,16 @@
   .cp-side__item { flex: none; }
   .cp-side__item em { display: none; }
   .cp-main { grid-template-columns: minmax(0, 1fr); }
-  .cp-layers { height: 200vh; }
-  .cp-layers__sticky { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 18px; }
+  /* 移动端不做固定镜头：改成常规文档流，避免大段空滚与无效停留 */
+  .cp-layers { height: auto; }
+  .cp-layers__sticky {
+    position: static;
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding-block: clamp(56px, 10vw, 84px);
+  }
+  .cp-layers__frame { transform: none; }
   .cp-layers__stage { max-width: 720px; width: 100%; }
   .cp-feature { grid-template-columns: minmax(0, 1fr); }
   .cp-feature:nth-child(even) .cp-feature__copy { order: 0; }
@@ -998,5 +1041,6 @@
   .cp-float { animation: none; }
   .cp-hero__stage,
   .cp-layers__frame { transform: none !important; }
+  .cp-hero__cue::after { animation: none; }
   .slot__strip { transition: none !important; }
 }
