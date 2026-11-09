@@ -49,6 +49,11 @@ import { BrandAssetListBlock } from './BrandAssetListBlock'
 import { TrustBarBlock } from './TrustBarBlock'
 import { FullscreenVisualBlock } from './FullscreenVisualBlock'
 import { LongImageBlock } from './LongImageBlock'
+import { SupportHeroBlock } from './SupportHeroBlock'
+import { SupportDevicePickerBlock } from './SupportDevicePickerBlock'
+import { DownloadDockBlock } from './DownloadDockBlock'
+import { InquiryDockBlock } from './InquiryDockBlock'
+import '../styles/home-docks.css'
 import { useProductDetail } from './ProductDetailContext'
 
 /** 按区块类型分派到对应组件；未知类型返回 null（向前兼容后台新增类型） */
@@ -142,6 +147,14 @@ function renderBlock(block: Block): ReactNode {
     // 长图无缝拼接（R6 新建）
     case 'longImage':
       return <LongImageBlock props={props} />
+    case 'supportHero':
+      return <SupportHeroBlock props={props} />
+    case 'supportDevicePicker':
+      return <SupportDevicePickerBlock props={props} />
+    case 'downloadDock':
+      return <DownloadDockBlock props={props} />
+    case 'inquiryDock':
+      return <InquiryDockBlock props={props} />
     default:
       return null
   }

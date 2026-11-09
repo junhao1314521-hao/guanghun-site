@@ -83,6 +83,8 @@ const SITE: SiteConfig = {
   ],
   // —— 下拉面板推荐卡开关：默认关闭（后台可在「站点配置 · 主导航」开启）——
   navFeatureEnabled: false,
+  // —— 页脚动画：默认关闭，页脚保持纯色干净（后台可在「站点配置 · 页脚」开启）——
+  footerMotion: false,
   // —— 顶栏公告条（后台可改文案 / 链接 / 定时 / 是否可关闭）——
   announcement: {
     enabled: true,
@@ -93,24 +95,40 @@ const SITE: SiteConfig = {
   // —— 顶栏右侧行动按钮：按反馈默认不放 CTA（顶栏更干净）；
   //     能力保留，运营可在「站点配置 → 顶栏按钮」里随时填文案与链接启用 ——
   topCta: {},
-  // —— 表单安全开关：默认开启图形验证码，第三方登录仅留位 ——
-  auth: { captcha: true, thirdParty: false },
+  // —— 表单安全开关：默认「连续失败 3 次后才出验证码」，登录体验与防刷兼顾 ——
+  auth: {
+    captcha: true,
+    thirdParty: false,
+    captchaMode: 'after3',
+    registerEnabled: true,
+    login: {
+      title: '登录光魂账号',
+      subtitle: '登录后可跟踪咨询进度、管理已登记设备与订阅通知。',
+      headline: '把每一块屏的参数，测给你看',
+      description: '不写形容词，只给可复现的测试记录与版本号。',
+      poster: '/media/home/showcase/poster-1.jpg',
+      points: ['跟踪咨询与预约进度', '登记与管理我的设备', '收藏型号与下载资料'],
+      agreement: '登录即表示同意《服务条款》与《隐私政策》',
+    },
+    wechat: { enabled: false },
+    phone: { enabled: false },
+  },
   // —— 保修参数：三年质保（含烧屏保护），到期前 30 天提醒 ——
   warranty: { years: 3, remindDays: 30, snParse: false },
-  // —— 页脚社交（§1.9）：每个平台一条（二维码 / 账号 / 链接三项选填）——
+  // —— 页脚社交（§1.9）：每个平台一条（二维码 / 账号 / 链接三项选填），账号取自官网对外公布信息 ——
   social: {
     items: [
-      { label: '微信', account: 'guanghun-official' },
-      { label: '微博', account: '光魂电竞' },
-      { label: 'B 站', account: '光魂官方' },
-      { label: '抖音', account: '光魂' },
+      { label: '微信', account: 'xxrsm001', qr: '/media/site/wechat-qr-placeholder.svg' },
+      { label: '小红书', href: 'https://www.xiaohongshu.com/' },
+      { label: 'B 站', href: 'https://space.bilibili.com/51365206' },
+      { label: '抖音', account: '光魂官方旗舰店', qr: '/media/site/douyin-qr-placeholder.svg' },
     ],
   },
-  // —— 店铺渠道：顶栏「店铺」圆钮下拉用；href 为占位，上线前替换为真实店铺链接 ——
+  // —— 店铺渠道：顶栏「店铺」圆钮下拉用；链接取自官网对外公布入口 ——
   shopChannels: [
-    { name: '天猫', href: 'https://tmall.example/' },
-    { name: '京东', href: 'https://jd.example/' },
-    { name: '淘宝', href: 'https://taobao.example/' },
+    { name: '京东', href: 'https://mall.jd.com/index-12338213.html' },
+    { name: '抖音', href: 'https://www.douyin.com/search/%E5%85%89%E9%AD%82%E5%AE%98%E6%96%B9%E6%97%97%E8%88%B0%E5%BA%97' },
+    { name: '淘宝 / 天猫', href: 'https://xiaoxuerenshuma.taobao.com/' },
   ],
 }
 
@@ -138,13 +156,7 @@ const SERVICE_HREF: Record<string, string> = {
   contact: '/contact',
 }
 
-/** 服务支持页「快速入口」的跳转目标（按 QUICK_ENTRIES 的 id 映射） */
-const SUPPORT_QUICK_HREF: Record<string, string> = {
-  model: '/support',
-  download: '/downloads',
-  faq: '/faq',
-  contact: '/contact',
-}
+/** 服务支持页「快速入口」的跳转目标已并入 QUICK_ENTRIES（entry.href），不再单独映射 */
 
 /** 首屏 / 全屏海报的统一按钮口径：只保留一个「立即购买」按钮，
  *  链接保持原来的产品详情页（品牌 / 场景类海报回退到产品总览）；文案与链接后台均可改。 */
@@ -167,8 +179,8 @@ function buildHome(): Page {
           const detail = slide.primaryTo ?? '/products'
           return {
             eyebrow: slide.eyebrow,
-            // 默认不显示眉题 / 数据点（后台可开启）
-            eyebrowEnabled: false,
+            // 大疆官网式首屏：保留一行系列小字（12px 半透明白）
+            eyebrowEnabled: true,
             title: slide.title,
             desc: slide.desc,
             mediaTag: slide.mediaTag,
@@ -177,14 +189,18 @@ function buildHome(): Page {
             ...(slide.mediaContain ? { mediaContain: true } : {}),
             ...(slide.scrim === false ? { scrim: false } : {}),
             ...(slide.theme ? { theme: slide.theme } : {}),
-            ...posterButtons(detail),
+            // 大疆官网式文案：主按钮「立即购买」+ 次按钮「了解更多」
+            primary: { label: '立即购买', href: detail },
+            secondary: { label: '了解更多', href: slide.secondaryTo ?? detail },
             stats: slide.stats,
             statsEnabled: false,
             contentPosition: slide.position ?? POSTER_POSITION,
           }
         }),
         autoplay: true,
-        // 首屏恢复满屏高度：21:9 素材按 cover 铺满，裁掉两侧空白，产品保持完整
+        // 首屏轮播保留左右切换按钮（贴边竖条），底部仍只留圆点
+        arrows: true,
+        // 首屏为最高一级：满屏高度（100svh，上限 940px）；下方三张海报用 21:9 封顶 660px，形成明确层级
         height: 'full',
         // 代码动画默认关闭：首屏第一张改为固定展示静态主视觉（后台可随时开启）
         motion: false,
@@ -192,9 +208,10 @@ function buildHome(): Page {
       // 首页首屏海报：通栏铺满视口宽度，磨砂顶栏浮于其上
       style: { theme: 'dark', container: 'full' },
     },
-    // —— 五张全屏海报（§1.3）：一张海报 = 一个区块（hero），各自独立、上下无缝衔接 ——
+    // —— 三张全屏海报（§1.3）：一张海报 = 一个区块（hero），各自独立、上下无缝衔接 ——
     // 与首屏同一套字段 / 口径：默认关眉题与数据点、文案居中偏上、只留一个「立即购买」按钮；
-    // 高度档位统一为 21:9 宽幅（h-r219）；通栏满宽、无圆角、无上下留白，相邻海报之间不留间隙。
+    // 高度档位统一为 21:9 宽幅（h-r219，封顶 660px）——比首屏矮一级，避免视觉反超首屏；
+    // 通栏满宽、无圆角、无上下留白，相邻海报之间不留间隙。
     {
       type: 'hero',
       props: {
@@ -296,36 +313,41 @@ function buildHome(): Page {
       // 通栏满幅：卡片铺满视口宽度（与上方海报、下方模块无缝相接）
       style: { container: 'full' },
     },
-    // —— 固件与驱动（§1.5）：3 张卡自动带最新版本与日期（取下载中心 downloads 最新一条）——
+    // —— 资料坞（§1.5）：取下载中心各类型最新一条，行内直接下载 ——
     {
-      type: 'cards',
+      type: 'downloadDock',
       props: {
         title: '固件与驱动',
-        icon: 'download',
-        subtitle: '保持最新版本，获得更好的兼容与调校。',
-        ctaLabel: '前往下载中心',
-        ctaHref: '/downloads',
-        // 标题行左侧搜索栏（简约，复用站点输入框）：占位文字与跳转地址后台可改
-        searchPlaceholder: '搜索型号',
-        searchHref: '/search',
-        layout: 'entries',
-        columns: 3,
-        autoVersions: true,
-        items: [
-          { icon: 'chip', tag: '固件', title: '固件一键升级', desc: '在光魂 Center 里检查更新并升级，每次附带变更说明。', href: '/downloads', downloadType: 'firmware' },
-          { icon: 'sliders', tag: '驱动', title: '驱动与调色配置', desc: 'ICC 与调色文件公开下载，无需注册。', href: '/downloads', downloadType: 'driver' },
-          { icon: 'refresh', tag: '软件', title: '光魂 Center', desc: '按键、参数、灯效与固件统一在一处管理。', href: '/center', downloadType: 'software' },
-        ],
+        desc: '保持最新版本，获得更好的兼容与调校。以下为该类型当前最新文件。',
+        showFirmware: true,
+        showDriver: true,
+        showSoftware: true,
+        moreLabel: '全部资料',
+        moreHref: '/downloads',
       },
+      style: { background: 'soft' },
     },
-    // —— 留言（§1.6）：左文案 + 右表单；轻量分流默认开启（后台可关）——
+    // —— 咨询分流（§1.6）：首页不内嵌表单，先分流再进 /inquiry 预选类型 ——
     {
-      type: 'contact',
+      type: 'inquiryDock',
       props: {
-        title: '没找到答案？留言给我们',
-        desc: '有问题或想合作？填好表单提交，我们会在工作时间内跟进。',
-        channel: 'inquiry',
-        showForm: true,
+        title: '还有问题？找对入口，回复更快。',
+        desc: '先选问题类型，我们会带着对应模板和负责人接手；复杂问题可在工单里补图、补日志。',
+        points: ['工作日 09:00–21:00 在线', '售前 / 售后工单 1 个工作日首次响应', '登录后可在「我的工单」查看进度'],
+        quickEnabled: true,
+        quickPlaceholder: '用一句话描述你的问题，例如：54027X1QE 更新固件后 HDR 偏暗',
+        quickCta: '快速提问',
+        quickTip: '提交后可在「我的工单」查看进度；需要填型号与截图时再用完整表单。',
+        channels: [
+          { label: '售前咨询', desc: '选型、参数、兼容', type: 'pre', action: '立即咨询' },
+          { label: '售后报修', desc: '故障、保修、换新', type: 'after', action: '提交工单' },
+          { label: '商务合作', desc: '渠道、送测、赛事', type: 'business', action: '合作申请' },
+        ],
+        primaryLabel: '提交咨询',
+        primaryHref: '/inquiry',
+        secondaryLabel: '常见问题',
+        secondaryHref: '/faq',
+        links: ['我的工单|/me/inquiries', '保修与设备|/me/devices', '服务时间说明|/support'],
       },
     },
     // —— 信任条（§1.7）：页脚上面的最后一块 ——
@@ -334,10 +356,10 @@ function buildHome(): Page {
       props: {
         columns: 4,
         items: [
-          { icon: 'flask', text: '小雪人评测实验室' },
-          { icon: 'shield', text: '三年质保' },
-          { icon: 'check', text: '官方正品' },
-          { icon: 'box', text: '顺丰包邮' },
+          { icon: 'flask', text: '实测数据', desc: '小雪人评测实验室 · 方法与样本公开' },
+          { icon: 'shield', text: '三年质保', desc: '含 OLED 烧屏保护，全国联保' },
+          { icon: 'check', text: '官方直营', desc: '官网 · 京东 · 抖音旗舰店' },
+          { icon: 'box', text: '顺丰包邮', desc: '全国配送，整机包邮' },
         ],
       },
     },
@@ -495,94 +517,138 @@ function buildHome(): Page {
   ])
 }
 
-/** 探索光魂（原「关于光魂」）：品牌理念 → 关键事实 → 测试实验室（图文＋3 步合并） → 发展历程 → 新闻 → 文化 → 招聘 → 电竞合作 → 合规（默认停用） → 引导 */
+/**
+ * 探索光魂（初期品牌版，6 屏）：
+ * 主张 → 我们是谁 → 怎么做事 → 在售产品线 → 怎么测 + 关键事实 → 历程 → 引导。
+ * 已按「只写能验证的事」删除实验室、赛事合作、媒体报道 / 荣誉、文化三卡、招聘与合规区块；
+ * 后续有真实素材时，后台新开对应区块（cards / stats）即可，无需改代码。
+ */
 function buildAbout(): Page {
-  return toPage('about', '/about', '探索光魂', '探索光魂装修。', [
+  return toPage('about', '/about', '探索光魂', '探索光魂：品牌主张、在售产品线、公开的测试方法与服务承诺。', [
+    // ① 首屏主张：与首页海报同一套渲染规格（r219、文案居中偏上、单主按钮 + 次按钮）
     {
-      type: 'imageText',
+      type: 'hero',
       props: {
-        image: '/media/about/brand.svg',
-        title: '我们相信数据比形容词可信',
-        body: about.PHILOSOPHY_POINTS.join('\n'),
-        side: 'left',
+        eyebrow: 'GUANGHUN / 探索光魂',
+        eyebrowEnabled: true,
+        statsEnabled: false,
+        // 单行整句（桌面端不折行）：方案稿是一句话，断两行会让第二行孤立
+        title: '把每一块屏的参数，测给你看',
+        subtitle: '不写形容词，只给可复现的测试记录与版本号。',
+        media: '/media/home/showcase/poster-1.jpg',
+        mediaType: 'image',
+        mediaTag: '探索光魂 主视觉',
+        scrim: false,
+        primary: { label: '查看全系产品', href: '/products' },
+        secondary: { label: '看天梯榜', href: '/ladder' },
+        // 文案上移到 14%：单行标题更矮，按钮要离开产品图主体
+        contentPosition: { x: 50, y: 14 },
+        height: 'r219',
+        theme: 'dark',
       },
+      // anchor 供本页专用样式（放大主标题）与深链定位
+      style: { container: 'full', anchor: 'about-hero' },
     },
-    { type: 'stats', props: { title: '关键事实', items: about.FACTS } },
-    // 测试实验室（T5.8 合并）：原「测试实验室」图文 + 原「光魂实验室」3 步卡合为一个区块（图 + 3 步同屏）
+    // ② 我们是谁：一段起点 + 三条「已经做到的事」，全部是现在能验证的
     {
       type: 'imageText',
       props: {
-        image: '/media/about/lab.svg',
-        title: '测试实验室',
+        // 用深色场景图而不是白底产品图：16:9 裁切后不会出现整块白底
+        image: '/media/home/showcase/poster-2.jpg',
+        title: '我们是谁',
         body: [
-          '收样登记 → 仪器实测 → 方法复核，每一步都可追溯。',
-          '收样登记：记录样机编号、批次与环境条件。',
-          '仪器实测：色度计 / 亮度计 / 响应测试仪 / 均匀度台架。',
-          '方法复核：样本 n≥3，口径与版本公开，结果可复现。',
-          ...about.LAB_POINTS,
+          '光魂是一个还在早期的电竞显示器品牌。产品线不多，所以每一款的参数都自己测一遍再写。',
+          '参数按实测记录写，没有数据的项标注「暂无」，不填 0',
+          '测试方法、条件与版本随结果一起公开，方法升级后旧数据保留原版本',
+          '说明书、固件、驱动与调校文件在下载中心直接取，不用先找客服',
         ].join('\n'),
+        // 左文右图，与方案一致
         side: 'right',
       },
+      // 首屏之后留一档完整留白，避免图文块贴着海报
+      style: { paddingY: 'md', anchor: 'about-who' },
     },
-    {
-      type: 'timeline',
-      props: { title: '发展历程', items: about.TIMELINE.map((item) => ({ time: item.year, title: item.title, desc: item.tag })) },
-    },
+    // ③ 我们怎么做事：三条具体做法，不写价值观口号
     {
       type: 'cards',
       props: {
-        title: '媒体报道 · 荣誉',
-        icon: 'cap',
+        title: '我们怎么做事',
+        subtitle: '三条能落到日常的做法，而不是三句口号。',
+        icon: 'chip',
         columns: 3,
         items: [
-          { tag: '媒体报道', title: '硬件媒体 B · 540Hz OLED 深度评测', desc: '2026-09' },
-          { tag: '媒体报道', title: '电竞媒体 C · 赛场装备专题', desc: '2026-08' },
-          { tag: '荣誉', title: '2026 年度 OLED 旗舰显示器', desc: '编辑部推荐' },
+          { title: '参数按实测写', desc: '亮度、色域、响应时间以实测记录为准；没有测过的项写「暂无」。' },
+          { title: '方法与版本公开', desc: '同一套测试脚本跑全部型号，条件与版本号随结果一起公开。' },
+          { title: '资料公开可取', desc: '说明书、固件、驱动与校色文件在下载中心直接下载，无需注册。' },
         ],
       },
+      style: { paddingY: 'sm', background: 'soft' },
     },
-    { type: 'cards', props: { title: '企业文化', icon: 'venn', columns: 3, items: about.CULTURE_TAGS.map((tag) => ({ title: tag })) } },
+    // ④ 在售产品线：四类均为产品库真实分类，点击进产品列表对应筛选
     {
       type: 'cards',
       props: {
-        title: '加入我们',
-        icon: 'chat',
-        columns: 3,
-        // 岗位卡带投递入口（此前只有岗位名，无法投递）
-        items: about.JOBS.map((job) => ({ title: job, desc: '投递至 hr@guanghun.example', href: `mailto:hr@guanghun.example?subject=${encodeURIComponent(`应聘：${job}`)}` })),
+        title: '在售产品线',
+        subtitle: '按类别查看该系列的全部型号与实测参数。',
+        icon: 'monitor',
+        columns: 4,
+        items: [
+          // 数量取自产品库实况（/api/products）：OLED 旗舰 7 款、双模高刷 2 款；
+          // IPS 与周边当前无上架型号，标注「暂未上架」且不给死链。
+          { tag: '在售 7 款', title: 'OLED 旗舰', desc: '2K / 4K 高刷 OLED，540Hz、500Hz 与 240Hz 多档。', href: `/products?category=${encodeURIComponent('OLED旗舰')}` },
+          { tag: '在售 2 款', title: '双模高刷', desc: '4K 高画质与 FHD 高刷在同一台机器上切换。', href: `/products?category=${encodeURIComponent('双模高刷')}` },
+          { tag: '暂未上架', title: '电竞 IPS', desc: '高刷 IPS，适合长时间使用与多场景；当前无上架型号。' },
+          { tag: '暂未上架', title: '周边', desc: '支架、线材与配套附件；随整机方案一起上架。' },
+        ],
       },
+      style: { paddingY: 'sm', anchor: 'about-lines' },
     },
-    // 电竞合作（T5.8 / §4.13）：品牌线 /brand/esports 下线后，内容并入探索光魂（保留原有文案要点）
+    // ⑤ 怎么测：数据源区块，读后台「测评方法」集合（仅已发布），版本号随方法展示
     {
-      type: 'cards',
+      type: 'methodList',
       props: {
-        title: '电竞合作',
-        icon: 'chat',
-        subtitle: '与选手一起打磨每一帧画面。',
-        columns: 3,
-        items: (brand.BRAND_PROFILES.find((profile) => profile.slug === 'esports')?.points ?? []).map((point) => ({
-          title: point,
-        })),
+        title: '怎么测',
+        subtitle: '收样登记 → 仪器实测 → 方法复核，每一步都留记录；方法升级后旧版本数据不覆盖。',
+        limit: 3,
       },
+      style: { paddingY: 'sm', background: 'soft' },
     },
-    // 合规与条款：页脚 / /legal/* 已有入口，默认停用（后台可开启）
+    // ⑥ 关键事实：只放能对得上的数字，每条补口径
     {
-      enabled: false,
-      type: 'cards',
+      type: 'stats',
       props: {
-        title: '合规与条款',
-        columns: 3,
-        items: about.LEGAL_CARDS.map((card) => ({ title: card.title, desc: card.desc, href: card.to })),
+        title: '关键事实',
+        items: [
+          { value: '2', label: '在售产品线', note: 'OLED 旗舰 7 款 / 双模高刷 2 款' },
+          { value: '9', label: '在售型号', note: '以产品库当前上架型号计' },
+          { value: 'v2', label: '天梯榜测试方法', note: '方法升级后旧数据保留原版本' },
+          { value: '3', unit: '年', label: '整机质保', note: '含 OLED 烧屏保护' },
+        ],
+        footnote: '数字口径以产品库与站点配置为准，更新日期见各条目说明。',
       },
+      style: { paddingY: 'sm' },
     },
+    // ⑦ 发展历程：只留四个节点，描述写「做了什么」
+    {
+      type: 'timeline',
+      props: {
+        title: '发展历程',
+        // 横向流程：年份 + 做了什么 + 一句影响，比「表格行」更像一条历程
+        layout: 'flow',
+        items: about.TIMELINE.map((item) => ({ time: item.year, title: item.title, desc: item.desc ?? item.tag })),
+      },
+      style: { paddingY: 'sm', background: 'soft' },
+    },
+    // ⑧ 页尾引导：三个真实入口，不放表单
     {
       type: 'contact',
       props: {
-        title: '想了解更多，或与我们合作？',
-        desc: '产品、评测与售后问题走服务支持；渠道、送测与赛事合作走商业合作。',
+        title: '接下来，从哪里开始？',
+        desc: '看产品、查资料、谈合作，三条路都有人接。',
         channel: 'inquiry',
         showForm: false,
       },
+      style: { paddingY: 'sm' },
     },
   ])
 }
@@ -864,21 +930,67 @@ function buildBusinessVenues(): Page {
 /** 服务支持首页：快速入口 → 下载 → 保修 → 网点 → 联系 → FAQ → 引导 */
 function buildSupport(): Page {
   return toPage('support', '/support', '服务与支持首页', '服务与支持首页装修。', [
+    // 页头：标题 + 搜索 + 热门词 + 登录引导，全部由后台装修器维护
+    {
+      type: 'supportHero',
+      props: {
+        title: '服务与支持',
+        desc: '从固件下载到保修寄修，选好你的设备，快速找到对应资料与服务入口。',
+        showSearch: true,
+        searchPlaceholder: '搜索型号、资料或问题关键词',
+        hotKeywords: ['固件更新', 'HDR', '烧屏', '保修'],
+        loginLabel: '登录查看我的设备、保修剩余与工单进度',
+        loginHref: '/me/devices',
+      },
+      style: { container: 'full' },
+    },
+    // 设备选择：读取 models 集合，选中后写 ?model=，下方下载自动跟随
+    {
+      type: 'supportDevicePicker',
+      props: {
+        title: '先选择你的设备',
+        desc: '选择型号后，下方资料与下载会自动跟随。',
+        limit: 4,
+        allLabel: '全部型号',
+        allHref: '/support/models',
+      },
+      style: { background: 'soft', paddingY: 'md', anchor: 'devices' },
+    },
+    // 四张任务卡：只保留真实可用入口，去掉重复的 6 卡墙
     {
       type: 'cards',
       props: {
-        title: '快速入口',
-        icon: 'help',
-        columns: 3,
-        // 每张卡带跳转目标（此前无链接，点了没反应）
-        items: support.QUICK_ENTRIES.map((entry) => ({ tag: entry.id, title: entry.title, desc: entry.desc, href: SUPPORT_QUICK_HREF[entry.id] ?? '/support' })),
+        title: '按任务找入口',
+        icon: 'grid',
+        layout: 'capability',
+        columns: 4,
+        items: [
+          { icon: 'download', title: '下载与固件', desc: '固件、说明书、升级与调校工具，按型号归档。', href: '/downloads' },
+          { icon: 'shield', title: '保修与报修', desc: '查看保修政策、登记设备，在线提交寄修申请。', href: '/support#warranty' },
+          { icon: 'book', title: '常见问题', desc: '安装、连接、HDR 与售后的高频问题，按分类浏览。', href: '/faq' },
+          { icon: 'help', title: '联系人工', desc: '工作日 09:00–21:00 在线，复杂问题可提交工单。', href: '/inquiry' },
+        ],
       },
     },
-    // 下载中心：支持首页只放精选（完整列表去 /downloads，避免页面过长）；锚点 #download
-    { type: 'downloadList', props: { title: '下载中心', icon: 'download', subtitle: '说明书、固件与调校配置，最新资料优先。', category: 'all', limit: 6, ctaLabel: '查看全部资料', ctaHref: '/downloads' }, style: { anchor: 'download' } },
-    // 保修与售后：锚点 #warranty，供导航「保修与售后」深链直达（R4-②）
+    // 下载：跟随设备选择；未选设备时展示最新资料
+    {
+      type: 'downloadList',
+      props: {
+        title: '当前设备资料',
+        icon: 'download',
+        subtitle: '说明书、固件与调校工具，选择设备后自动按型号收敛。',
+        category: 'all',
+        limit: 4,
+        showFilter: false,
+        followDevice: true,
+        ctaLabel: '查看全部资料',
+        ctaHref: '/downloads',
+      },
+      style: { anchor: 'download' },
+    },
+    // 保修与售后：锚点 #warranty，供任务卡深链直达
     { type: 'cards', props: { title: '保修与售后', icon: 'shield', columns: 2, items: support.WARRANTY_POINTS.map((point) => ({ title: point })) }, style: { anchor: 'warranty' } },
-    // 服务承诺条（三年质保 · 顺丰 · 15 天退换）；与首页信任条同源，默认停用（§4.3）
+    // 服务承诺条（默认停用）
     {
       enabled: false,
       type: 'cards',
@@ -893,27 +1005,9 @@ function buildSupport(): Page {
         ],
       },
     },
-    // 数据源区块：体验点取自集合 biz-venues（真实合作门店，后台可维护）
-    {
-      type: 'venueList',
-      props: { title: '产品体验点', subtitle: '到店试机、现场调校与售后咨询', ctaLabel: '查看全部体验点', ctaHref: '/business/venues', source: 'biz', scope: 'manual', ids: ['xxrsm-5d22dy', 'xxrsm-fxsep9', 'xxrsm-x8ccxe'], columns: 3, limit: 3, showStatus: false, showModels: true },
-    },
-    // 联系我们：与 /contact 重复，默认停用（§4.3）
-    {
-      enabled: false,
-      type: 'cards',
-      props: {
-        title: '联系我们',
-        columns: 3,
-        items: supportExtra.CONTACT_PAYLOAD.channels.map((channel) => ({
-          tag: channel.kind,
-          title: channel.label,
-          desc: `${channel.value} · ${channel.note}`,
-        })),
-      },
-    },
-    // FAQ：锚点 #faq，供导航「常见问题」深链直达；补「查看全部」CTA → /faq（§4.6）
-    { type: 'faqList', props: { title: '常见问题', source: 'support', limit: 10, ctaLabel: '查看全部', ctaHref: '/faq' }, style: { anchor: 'faq' } },
+    // 体验点已移出服务支持页：属于售前决策内容，统一由 /business/venues 承载
+    // FAQ：分类筛选 + 搜索，只展示 6 条高频；完整列表在 /faq
+    { type: 'faqList', props: { title: '常见问题', source: 'support', limit: 6, showFilter: true, ctaLabel: '查看全部', ctaHref: '/faq' }, style: { anchor: 'faq' } },
     {
       type: 'contact',
       props: {
@@ -1020,22 +1114,27 @@ function buildBrandPage(profile: brand.BrandProfile): Page {
 /** 产品列表 */
 function buildProducts(): Page {
   return toPage('products', '/products', '产品列表', '产品列表装修 + 数据源区块。', [
-    // 顶部全屏海报（纯图片、无文案）：固定 480px 高，宽屏铺满；图片由后台替换
+    // 全部产品（带筛选/排序）：极简卡（型号 / 名称 / 参数 / 状态），底部按系列入口
+    // 顶部海报不再内置空模块——需要时在后台装修器添加「全屏海报」并上传图片即可
     {
-      type: 'fullscreenVisual',
+      type: 'productGrid',
       props: {
-        media: '',
-        mediaType: 'image',
-        height: 'custom',
-        heightValue: 480,
-        alt: '全部产品顶部横幅（待上传）',
+        title: '全部产品',
+        subtitle: '按类别、连接方式与价格筛选在售产品。',
+        scope: 'all',
+        limit: 24,
+        columns: 3,
+        cardTone: 'light',
+        showFilter: true,
+        showSpecs: true,
+        showStatus: true,
+        showModel: true,
+        showFlag: true,
+        showPrice: false,
+        showCta: false,
+        showSeriesNav: true,
       },
-      style: { container: 'full' },
     },
-    // 全部产品（带筛选/排序）——productGrid 的范围/呈现/字段全部可配（见后台装修器）
-    { type: 'productGrid', props: { title: '全部产品', subtitle: '按类别、连接方式与价格筛选在售产品。', scope: 'all', limit: 24, columns: 3, cardTone: 'light' } },
-    // 样板：按分类——只挑一个品类
-    { type: 'productGrid', props: { title: 'OLED 旗舰', subtitle: '只展示「OLED旗舰」分类的全部型号。', scope: 'category', category: 'OLED旗舰', limit: 6, columns: 3, showFilter: false, cardTone: 'light' } },
   ])
 }
 
@@ -1136,11 +1235,11 @@ function buildTemplates(): Page[] {
         props: {
           layout: 'toc',
           showBuy: false,
-          // §4.22 3-2：主 CTA「立即购买」取当前产品的「购买链接」(buyUrl)；次 CTA「预约体验」→ 体验点
-          primaryLabel: '立即购买',
+          // §4.22 3-2：主 CTA「去淘宝购买」取当前产品的购买链接(buyUrl)；次 CTA「加入对比」→ /compare?ids=<当前产品>
+          primaryLabel: '去淘宝购买',
           primaryHref: '',
-          secondaryLabel: '预约体验',
-          secondaryHref: '/business/venues',
+          secondaryLabel: '加入对比',
+          secondaryHref: '',
           primaryFromProduct: true,
           showBadges: true,
           showPrice: true,
@@ -1178,17 +1277,6 @@ function buildTemplates(): Page[] {
           limit: 4,
           columns: 4,
           cardTone: 'light',
-        },
-      },
-      {
-        type: 'articleList',
-        props: {
-          title: '相关评测',
-          subtitle: '参数与实测的完整过程。',
-          ctaLabel: '查看全部评测',
-          ctaHref: '/articles',
-          source: 'review',
-          limit: 3,
         },
       },
     ]),

@@ -268,7 +268,7 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'pg-002', title: '产品列表', path: '/products', status: '已发布', updatedBy: '运营专员', updatedAt: '2026-10-09', views: 42180, seoTitle: '全部产品 · 光魂', seoDesc: '按产品线、场景与新品筛选。' },
     { id: 'pg-003', title: '秋季专题页', path: '/campaign/autumn', status: '草稿', updatedBy: '运营专员', updatedAt: '2026-10-08', views: 0, seoTitle: '秋季专题 · 光魂', seoDesc: '秋季新品与活动。' },
     { id: 'pg-004', title: '商业合作首页', path: '/business', status: '已发布', updatedBy: '运营专员', updatedAt: '2026-09-30', views: 12640, seoTitle: '商业合作 · 光魂', seoDesc: '渠道、赛事与内容合作。' },
-    { id: 'pg-005', title: '关于光魂', path: '/about', status: '已发布', updatedBy: '管理员', updatedAt: '2026-09-25', views: 8420, seoTitle: '关于光魂 · 品牌与实验室', seoDesc: '品牌理念与光魂实验室。' },
+    { id: 'pg-005', title: '关于光魂', path: '/about', status: '已发布', updatedBy: '管理员', updatedAt: '2026-09-25', views: 8420, seoTitle: '探索光魂 · 品牌与测试方法', seoDesc: '品牌主张、在售产品线与公开的测试方法。' },
   ],
   nav: [
     { id: 'nv-001', label: '产品', to: '/products', location: '主导航', order: 1, visible: true },

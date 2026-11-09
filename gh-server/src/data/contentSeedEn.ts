@@ -1048,17 +1048,6 @@ function buildTemplatesEn(): Page[] {
             columns: 4,
           },
         },
-        {
-          type: 'articleList',
-          props: {
-            title: 'Related reviews',
-            subtitle: 'The full process behind the numbers.',
-            ctaLabel: 'View all reviews',
-            ctaHref: '/articles',
-            source: 'review',
-            limit: 3,
-          },
-        },
       ],
     ),
     toPage('template-series', '/products/series/:slug', 'Product series template', 'Product series area.', [

@@ -58,6 +58,7 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
         eyebrow: 'Brand',
         links: [
           { label: 'About Guanghun', to: '/about' },
+          { label: 'Partner venues', to: '/business/venues' },
           { label: 'Esports partnerships', to: '/brand/esports' },
         ],
       },

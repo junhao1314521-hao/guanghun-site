@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { getInquiryDetail, type InquirySummary, type InquiryTimelineEntry } from '../data/auth'
 import { listCollection, updateCollectionItem } from '../data/collectionStore'
 import {
-  addAccountDevice,
   addAccountFavorite,
   changeUserEmail,
   changeUserPassword,
@@ -11,14 +10,12 @@ import {
   deleteUserAccount,
   destroyUserSession,
   findUserByEmail,
-  getAccountDevices,
   getAccountFavorites,
   getAccountNotifications,
   getUserSession,
   listUserSessions,
   loginUser,
   registerUser,
-  removeAccountDevice,
   removeAccountFavorite,
   resetPasswordWithToken,
   revokeUserSession,
@@ -28,8 +25,17 @@ import {
   userSessionTtlMs,
   type UserProfile,
 } from '../data/userStore'
+import {
+  countDevices,
+  deleteDevice,
+  discardReceipt,
+  listDevices,
+  registerDevice,
+  saveReceipt,
+  snTaken,
+} from '../data/deviceStore'
 import { readCookie, readParam } from '../middleware/adminAuth'
-import { checkCaptcha } from '../lib/formGuard'
+import { checkCaptcha, clearFormFailures, recordFormFailure, shouldRequireCaptcha } from '../lib/formGuard'
 import { logger } from '../lib/logger'
 import { isNotifyConfigured, sendNotify } from '../lib/notify'
 
@@ -138,21 +144,24 @@ function inquiriesOf(userId: string): InquirySummary[] {
 
 authRouter.post('/auth/register', (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
-  // 反垃圾第一道闸：图形验证码（开关见 formGuard / 站点配置 site.auth.captcha）
-  if (!checkCaptcha(body, res)) return
+  // 反垃圾第一道闸：图形验证码（策略见 formGuard / 站点配置 site.auth.captchaMode）
+  if (!checkCaptcha(body, res, req, 'register')) return
   const username = readString(body.username)
   const email = readString(body.email).toLowerCase()
   const password = readRaw(body.password)
   const invalid = validateUsername(username) || validateEmail(email) || validatePassword(password)
   if (invalid) {
-    res.status(400).json({ error: invalid })
+    recordFormFailure(req, 'register')
+    res.status(400).json({ error: invalid, captchaRequired: shouldRequireCaptcha(req, 'register') })
     return
   }
   const outcome = registerUser({ username, email, password })
   if (!outcome.ok) {
-    res.status(409).json({ error: outcome.error })
+    recordFormFailure(req, 'register')
+    res.status(409).json({ error: outcome.error, captchaRequired: shouldRequireCaptcha(req, 'register') })
     return
   }
+  clearFormFailures(req, 'register')
   // 注册即登录：签发前台会话并下发 gh_user Cookie
   const token = createUserSession(outcome.user.id)
   res.cookie(USER_SESSION_COOKIE, token, userCookieOptions())
@@ -161,8 +170,8 @@ authRouter.post('/auth/register', (req, res) => {
 
 authRouter.post('/auth/login', (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
-  // 反垃圾第一道闸：图形验证码（开关见 formGuard / 站点配置 site.auth.captcha）
-  if (!checkCaptcha(body, res)) return
+  // 反垃圾第一道闸：图形验证码（策略见 formGuard / 站点配置 site.auth.captchaMode）
+  if (!checkCaptcha(body, res, req, 'login')) return
   const identifier = readString(body.username) || readString(body.account) || readString(body.email)
   const password = readRaw(body.password)
   if (!identifier || !password) {
@@ -171,9 +180,11 @@ authRouter.post('/auth/login', (req, res) => {
   }
   const user = loginUser(identifier, password)
   if (!user) {
-    res.status(401).json({ error: '账号或密码不正确' })
+    recordFormFailure(req, 'login')
+    res.status(401).json({ error: '账号或密码不正确', captchaRequired: shouldRequireCaptcha(req, 'login') })
     return
   }
+  clearFormFailures(req, 'login')
   const token = createUserSession(user.id)
   res.cookie(USER_SESSION_COOKIE, token, userCookieOptions())
   res.json({ user })
@@ -193,8 +204,8 @@ authRouter.get('/auth/me', requireUser, (_req, res) => {
  * 找回密码：按邮箱生成重置令牌并投递。
  * 通道由 `NOTIFY_CHANNEL` 决定（见 lib/notify.ts）：
  * - 已配置 → 通过 webhook 投递（邮件 / 短信网关），响应体不含令牌；
- * - 未配置且非生产 → 直出 `devToken`，便于自测；
- * - 未配置且生产 → 只记告警日志，响应与「已发送」一致，不泄露邮箱是否注册。
+ * - 未配置且为测试 / 显式开启 ALLOW_DEV_RESET_TOKEN=1（且非生产）→ 直出 `devToken`，便于自测；
+ * - 其余情况 → 只记告警日志，响应与「已发送」一致，不泄露邮箱是否注册。
  */
 authRouter.post('/auth/forgot', async (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
@@ -221,8 +232,13 @@ authRouter.post('/auth/forgot', async (req, res) => {
     res.json({ ok: true, sentTo: user.email })
     return
   }
-  if (process.env.NODE_ENV !== 'production') {
-    logger.info('找回密码重置令牌已生成（开发态直出，仅非生产环境）', { email: user.email, token })
+  // 开发自测开关：自动化测试（NODE_ENV=test）或显式设置 ALLOW_DEV_RESET_TOKEN=1 且非生产时才直出令牌，
+  // 不再单以 NODE_ENV !== production 作为判据，避免部署时漏配环境变量导致令牌泄露。
+  const devTokenAllowed =
+    process.env.NODE_ENV === 'test' ||
+    (process.env.ALLOW_DEV_RESET_TOKEN === '1' && process.env.NODE_ENV !== 'production')
+  if (devTokenAllowed) {
+    logger.warn('找回密码重置令牌已生成（开发直出模式，请勿在生产环境开启）', { email: user.email, token })
     res.json({ ok: true, sentTo: user.email, devToken: token })
     return
   }
@@ -282,7 +298,7 @@ authRouter.get('/account/me', requireUser, (_req, res) => {
   res.json({
     user,
     stats: {
-      devices: getAccountDevices(user).length,
+      devices: countDevices(user.id),
       inquiries: inquiriesOf(user.id).length,
       favorites: getAccountFavorites(user.id).length,
       notifications: getAccountNotifications(user.id).length,
@@ -304,7 +320,7 @@ authRouter.get('/account/inquiries/:id', requireUser, (req, res) => {
 })
 
 authRouter.get('/account/devices', requireUser, (_req, res) => {
-  res.json({ items: getAccountDevices(currentUser(res)) })
+  res.json({ items: listDevices(currentUser(res).id) })
 })
 
 authRouter.get('/account/favorites', requireUser, (_req, res) => {
@@ -359,23 +375,51 @@ authRouter.put('/account/settings', requireUser, (req, res) => {
 
 /* ---------------- 设备登记（增 / 删） ---------------- */
 
+/**
+ * 登记设备：型号 + 序列号（全局唯一）+ 购买日期 + 购买渠道 + 购买凭证（data URL）。
+ * 落库为「待审核」，后台核对凭证后转「在保 / 已驳回」；保修期由服务端按 36 个月计算。
+ */
 authRouter.post('/account/devices', requireUser, (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>
-  const outcome = addAccountDevice(currentUser(res), { model: readString(body.model), sn: readString(body.sn) })
+  const user = currentUser(res)
+  const sn = readString(body.sn)
+  const receipt = typeof body.receipt === 'string' ? body.receipt : ''
+  if (!receipt) {
+    res.status(400).json({ error: '请上传购买凭证' })
+    return
+  }
+  // 先查序列号再落盘，避免为无效登记写孤儿文件
+  if (sn && snTaken(sn)) {
+    res.status(409).json({ error: '该序列号已被登记，请核对后重试' })
+    return
+  }
+  const saved = saveReceipt(receipt)
+  if (!saved.ok) {
+    res.status(400).json({ error: saved.error })
+    return
+  }
+  const outcome = registerDevice(user.id, {
+    model: readString(body.model),
+    sn,
+    purchasedAt: readString(body.purchasedAt),
+    channel: readString(body.channel),
+    receiptUrl: saved.url,
+  })
+  if (!outcome.ok) {
+    discardReceipt(saved.url)
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  res.status(201).json({ items: listDevices(user.id) })
+})
+
+authRouter.delete('/account/devices/:id', requireUser, (req, res) => {
+  const outcome = deleteDevice(currentUser(res).id, readParam(req, 'id'))
   if (!outcome.ok) {
     res.status(400).json({ error: outcome.error })
     return
   }
-  res.status(201).json({ items: outcome.devices })
-})
-
-authRouter.delete('/account/devices/:sn', requireUser, (req, res) => {
-  const outcome = removeAccountDevice(currentUser(res).id, readParam(req, 'sn'))
-  if (!outcome.ok) {
-    res.status(404).json({ error: outcome.error })
-    return
-  }
-  res.json({ ok: true, items: outcome.devices })
+  res.json({ ok: true, items: listDevices(currentUser(res).id) })
 })
 
 /* ---------------- 收藏（新增 / 删除） ---------------- */

@@ -9,7 +9,7 @@
  * 双主题：内联覆盖对明/暗同时生效，故令牌均为与明暗无关的几何/排版项（或需用户自保证对比度的主色实底）。
  */
 import { useMemo, useState } from 'react'
-import { fetchAdminSite, saveDefaultTheme, saveTheme } from '../../api/adminPages'
+import { fetchAdminSite, saveCenterBackdrop, saveDefaultTheme, saveTheme } from '../../api/adminPages'
 import type { SiteConfig } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
@@ -31,6 +31,9 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
   const [saving, setSaving] = useState(false)
   const [defaultTheme, setDefaultTheme] = useState<DefaultTheme>(initial.defaultTheme ?? 'auto')
   const [savingDefaultTheme, setSavingDefaultTheme] = useState(false)
+  // Center 独立页的背景装饰（缺省开启；关闭后只留纯色底 + 首屏星球）
+  const [centerBackdrop, setCenterBackdrop] = useState<boolean>(initial.centerBackdrop !== false)
+  const [savingBackdrop, setSavingBackdrop] = useState(false)
   const toast = useToast()
   const confirm = useConfirm()
 
@@ -49,6 +52,21 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
       toast.error(ex instanceof Error ? ex.message : '保存默认主题失败，请稍后重试')
     } finally {
       setSavingDefaultTheme(false)
+    }
+  }
+
+  /** 切换 Center 页背景装饰即保存（与默认主题同一套即时保存交互） */
+  const onBackdropChange = async (next: boolean) => {
+    if (next === centerBackdrop) return
+    setSavingBackdrop(true)
+    try {
+      await saveCenterBackdrop(next)
+      setCenterBackdrop(next)
+      toast.success(next ? '已开启 Center 页背景装饰。' : '已关闭 Center 页背景装饰，刷新 /center 即可看到。')
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '保存失败，请稍后重试')
+    } finally {
+      setSavingBackdrop(false)
     }
   }
 
@@ -149,6 +167,24 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
               <span className="field__hint">切换后立即保存；用户手动选择优先于站点默认主题。</span>
             </div>
           </div>
+        </div>
+
+        <div className="admin-form__section">
+          <h2 className="admin-form__section-title">Center 页背景</h2>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            Center 独立页（/center）的整页装饰背景：星空、星云、颗粒与暗角。关闭后只保留纯色底与首屏星球。
+          </p>
+          <label className="switch" style={{ gap: 'var(--gh-space-2)' }}>
+            <input
+              type="checkbox"
+              checked={centerBackdrop}
+              disabled={savingBackdrop}
+              aria-label={centerBackdrop ? '关闭 Center 页背景装饰' : '开启 Center 页背景装饰'}
+              onChange={(event) => void onBackdropChange(event.target.checked)}
+            />
+            <span className="switch__track" />
+            <span>{centerBackdrop ? '已开启' : '已关闭'}</span>
+          </label>
         </div>
 
         <div className="admin-form__section">

@@ -9,7 +9,7 @@
     "start": "tsx src/index.ts",
     "serve": "STATIC_DIR=../gh-web/dist tsx src/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "NODE_ENV=test node --import tsx --test test/contract.test.ts test/contentStore.test.ts test/contentStoreInit.test.ts test/collectionStore.test.ts test/sqlite.test.ts test/uploads.test.ts test/uploadsFolders.test.ts test/uploadVariants.test.ts test/auditLog.test.ts test/authBackup.test.ts test/accountSystem.test.ts test/publish.test.ts test/rbac.test.ts test/contentFields.test.ts test/metricsTrash.test.ts test/trashPagesUploads.test.ts test/seoHead.test.ts",
+    "test": "NODE_ENV=test node --import tsx --test test/contract.test.ts test/contentStore.test.ts test/contentStoreInit.test.ts test/collectionStore.test.ts test/sqlite.test.ts test/uploads.test.ts test/uploadsFolders.test.ts test/uploadVariants.test.ts test/auditLog.test.ts test/authBackup.test.ts test/accountSystem.test.ts test/rankingsImport.test.ts test/publish.test.ts test/rbac.test.ts test/contentFields.test.ts test/metricsTrash.test.ts test/trashPagesUploads.test.ts test/seoHead.test.ts",
     "test:e2e": "VITE_API_BASE= npm --prefix ../gh-web run build && NODE_ENV=test node --import tsx --test test/e2e.test.ts"
   },
   "dependencies": {

@@ -32,7 +32,7 @@ const STATIC_META: Record<string, StaticMeta> = {
   '/business/scenes': { title: '场景与方案 · 光魂', description: '面向电竞、创作、办公与差旅的场景化装备方案。', indexable: true },
   '/business/cases': { title: '合作案例 · 光魂', description: '赛事、高校与品牌联名等合作案例。', indexable: true },
   '/business/venues': { title: '产品体验点 · 光魂', description: '全国合作体验点地图：按城市、省份与机型查找实机体验。', indexable: true },
-  '/about': { title: '关于光魂 · 品牌与实验室', description: '品牌理念、光魂实验室、发展历程与团队文化。', indexable: true },
+  '/about': { title: '探索光魂 · 品牌与测试方法', description: '品牌主张、在售产品线、公开的测试方法与服务承诺。', indexable: true },
   '/legal/privacy': { title: '隐私政策 · 光魂', description: '光魂官网隐私政策。', indexable: true },
   '/legal/terms': { title: '服务条款 · 光魂', description: '光魂官网服务条款。', indexable: true },
   '/legal/cookies': { title: 'Cookie 声明 · 光魂', description: '光魂官网 Cookie 使用声明。', indexable: true },

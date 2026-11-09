@@ -579,9 +579,9 @@ export type ContactPayload = {
 
 export const CONTACT_PAYLOAD: ContactPayload = {
   channels: [
-    { kind: 'phone', label: '客服热线', value: '400-000-0000', note: '周一至周日 09:00–21:00' },
-    { kind: 'mail', label: '技术支持邮箱', value: 'support@guanghun.example', note: '1 个工作日内回复' },
-    { kind: 'chat', label: '在线咨询', value: '提交咨询工单', note: '提交后可在个人中心跟踪进度' },
+    { kind: 'phone', label: '采购与合作热线', value: '15913908438（李经理）', note: '批量采购、渠道与项目合作' },
+    { kind: 'mail', label: '商务邮箱', value: '1009742523@qq.com', note: '1 个工作日内回复' },
+    { kind: 'chat', label: '微信 / 在线咨询', value: 'xxrsm001 / xxrsm004', note: '也可提交咨询工单，在个人中心跟踪进度' },
   ],
   offices: [
     { city: '上海', address: '静安区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '10:00–21:00' },

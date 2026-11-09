@@ -351,6 +351,31 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setDirty(true)
   }
 
+  /** 登录页文案（嵌套字段；留空回退内置文案） */
+  const setLogin = (patch: Partial<NonNullable<SiteAuthConfig['login']>>) => {
+    setSite((prev) => ({
+      ...prev,
+      auth: { captcha: true, thirdParty: false, ...prev.auth, login: { ...prev.auth?.login, ...patch } },
+    }))
+    setDirty(true)
+  }
+
+  /** 微信用与手机号登录配置（各自独立对象） */
+  const setWechat = (patch: Partial<NonNullable<SiteAuthConfig['wechat']>>) => {
+    setSite((prev) => ({
+      ...prev,
+      auth: { captcha: true, thirdParty: false, ...prev.auth, wechat: { enabled: false, ...prev.auth?.wechat, ...patch } },
+    }))
+    setDirty(true)
+  }
+  const setPhoneLogin = (enabled: boolean) => {
+    setSite((prev) => ({
+      ...prev,
+      auth: { captcha: true, thirdParty: false, ...prev.auth, phone: { enabled } },
+    }))
+    setDirty(true)
+  }
+
   const setWarranty = (patch: Partial<SiteWarrantyConfig>) => {
     setSite((prev) => ({ ...prev, warranty: { years: 3, remindDays: 30, snParse: false, ...prev.warranty, ...patch } }))
     setDirty(true)
@@ -491,6 +516,18 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             <b>最多 {MAX_FOOTER_GROUPS} 组</b>：前台手机端为固定三列并排，超过 {MAX_FOOTER_GROUPS} 组会在第二行出现孤行、把页脚拉高。
           </p>
           <FooterEditor groups={site.footer} onChange={setFooter} />
+          <div className="site-link" style={{ marginTop: 'var(--gh-space-5)' }}>
+            <label className="site-link__shake">
+              <input
+                type="checkbox"
+                checked={site.footerMotion === true}
+                onChange={(event) =>
+                  setSite((prev) => ({ ...prev, footerMotion: event.target.checked }))
+                }
+              />
+              开启页脚流动方块动画（默认关闭，保持纯色页脚）
+            </label>
+          </div>
         </section>
 
         {/* —— 公告条：顶栏上方细条，可定时上下线、可关闭 —— */}
@@ -674,6 +711,138 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </div>
         </section>
 
+        {/* —— 账号与登录：登录页文案 / 验证码策略 / 第三方入口 —— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">账号与登录</h2>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            登录 / 注册页的文案与左侧品牌区、验证码出现时机、第三方登录入口都在这里配置；留空则使用内置文案。
+            <br />
+            左侧海报建议 1600×2000 px（4:5 竖图）、主体居中偏下，文件 ≤ 2 MB；留空则保留点阵动效。
+          </p>
+
+          <div className="site-links">
+            <div className="site-link">
+              <input
+                className="input"
+                placeholder="表单标题（如 登录光魂账号）"
+                value={site.auth?.login?.title ?? ''}
+                onChange={(event) => setLogin({ title: event.target.value })}
+              />
+            </div>
+            <div className="site-link">
+              <input
+                className="input"
+                placeholder="标题下的说明文案"
+                value={site.auth?.login?.subtitle ?? ''}
+                onChange={(event) => setLogin({ subtitle: event.target.value })}
+              />
+            </div>
+            <div className="site-link">
+              <input
+                className="input"
+                placeholder="左侧品牌区标题"
+                value={site.auth?.login?.headline ?? ''}
+                onChange={(event) => setLogin({ headline: event.target.value })}
+              />
+              <input
+                className="input"
+                placeholder="左侧品牌区说明"
+                value={site.auth?.login?.description ?? ''}
+                onChange={(event) => setLogin({ description: event.target.value })}
+              />
+            </div>
+            <div className="site-link">
+              <input
+                className="input"
+                placeholder="左侧海报地址（/media/... 或 /uploads/...）"
+                value={site.auth?.login?.poster ?? ''}
+                onChange={(event) => setLogin({ poster: event.target.value })}
+              />
+            </div>
+            <div className="site-link">
+              {[0, 1, 2].map((index) => (
+                <input
+                  key={index}
+                  className="input"
+                  placeholder={`权益要点 ${index + 1}`}
+                  value={site.auth?.login?.points?.[index] ?? ''}
+                  onChange={(event) => {
+                    const next = [...(site.auth?.login?.points ?? [])]
+                    next[index] = event.target.value
+                    setLogin({ points: next.filter(Boolean) })
+                  }}
+                />
+              ))}
+            </div>
+            <div className="site-link">
+              <input
+                className="input"
+                placeholder="底部协议提示（如 登录即表示同意《服务条款》与《隐私政策》）"
+                value={site.auth?.login?.agreement ?? ''}
+                onChange={(event) => setLogin({ agreement: event.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="site-links" style={{ marginTop: 'var(--gh-space-3)' }}>
+            <div className="site-link">
+              <span className="admin-filters__label">验证码策略</span>
+              <Select
+                value={site.auth?.captchaMode ?? (site.auth?.captcha === false ? 'off' : 'always')}
+                aria-label="验证码策略"
+                onChange={(value) => setAuth({ captchaMode: value as 'off' | 'always' | 'after3' })}
+                options={[
+                  { value: 'after3', label: '连续失败 3 次后出现（推荐）' },
+                  { value: 'always', label: '每次提交都要求' },
+                  { value: 'off', label: '关闭验证码' },
+                ]}
+              />
+              <label className="site-link__shake">
+                <input
+                  type="checkbox"
+                  checked={site.auth?.registerEnabled !== false}
+                  onChange={(event) => setAuth({ registerEnabled: event.target.checked })}
+                />
+                开放注册
+              </label>
+            </div>
+            <div className="site-link">
+              <label className="site-link__shake">
+                <input
+                  type="checkbox"
+                  checked={Boolean(site.auth?.wechat?.enabled)}
+                  onChange={(event) => setWechat({ enabled: event.target.checked })}
+                />
+                微信扫码登录
+              </label>
+              <input
+                className="input"
+                placeholder="微信 AppID（留空则前台不显示入口）"
+                value={site.auth?.wechat?.appId ?? ''}
+                onChange={(event) => setWechat({ appId: event.target.value })}
+              />
+              <input
+                className="input"
+                placeholder="微信二维码图片地址（/uploads/...）"
+                value={site.auth?.wechat?.qr ?? ''}
+                onChange={(event) => setWechat({ qr: event.target.value })}
+              />
+            </div>
+            <div className="site-link">
+              <label className="site-link__shake">
+                <input
+                  type="checkbox"
+                  checked={Boolean(site.auth?.phone?.enabled)}
+                  onChange={(event) => setPhoneLogin(event.target.checked)}
+                />
+                手机号登录（需短信服务，未开通前不会显示入口）
+              </label>
+            </div>
+          </div>
+        </section>
+
         {/* —— 页脚社交（§1.9）：每个平台一条（二维码 / 账号 / 链接三项选填）—— */}
         <section className="admin-panel">
           <div className="admin-panel__head">
@@ -683,6 +852,8 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
             每个平台一条：只填「二维码」→ 悬停 / 点击浮层展示二维码与名称；只填「账号」→ 浮层展示「账号 + 一句提示」；
             只填「链接」→ 直接跳转、不弹层。二维码地址在「素材库」上传后复制填入。
+            <br />
+            尺寸建议：正方形 PNG，最低 480×480 px，推荐 600×600 px 或 800×800 px；白底、四周留白 ≥ 24 px，不要拉伸或压缩，保证扫码识别。链接请填官方主页完整地址。
           </p>
           <div className="site-groups">
             {(site.social?.items ?? []).map((item, index) => {

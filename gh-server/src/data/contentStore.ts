@@ -484,3 +484,13 @@ export function setDefaultTheme(defaultTheme: 'auto' | 'light' | 'dark'): SiteCo
   })
   return next
 }
+
+/** 设置 Center 页背景装饰开关（浅合并，仅改 centerBackdrop）；写入后立即事务落库 */
+export function setCenterBackdrop(centerBackdrop: boolean): SiteConfig {
+  initStore()
+  const next: SiteConfig = { ...getSiteConfig(), centerBackdrop }
+  runInTransaction((db) => {
+    db.prepare('UPDATE site_config SET data = ? WHERE id = 1').run(JSON.stringify(next))
+  })
+  return next
+}

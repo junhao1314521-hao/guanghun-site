@@ -233,6 +233,17 @@ export function saveDefaultTheme(
 }
 
 /**
+ * 保存 Center 页背景装饰开关（样式栏目）：PUT /api/admin/center-backdrop
+ * 关闭后 Center 独立页只保留纯色底与首屏星球。
+ */
+export function saveCenterBackdrop(enabled: boolean): Promise<boolean> {
+  return transport<{ centerBackdrop: boolean }>(
+    { path: '/api/admin/center-backdrop', method: 'PUT', body: { enabled }, token: adminToken() },
+    () => ({ centerBackdrop: enabled }),
+  ).then((res) => res.centerBackdrop)
+}
+
+/**
  * 读取站点配置：GET /api/content/site（契约 §6.1）。
  * 后台无独立 GET /api/admin/site，编辑器读取公开端点以获取当前值（供加载与「恢复为初始」重拉）。
  */

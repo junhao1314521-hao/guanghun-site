@@ -38,7 +38,6 @@ function normalize(items: VenueSummary[]): VenueSummary[] {
 
 /** 产品体验点探索区块：渲染筛选器、门店列表与地图，支持定位就近排序与详情切换 */
 export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }) {
-  const eyebrow = asString(props.eyebrow, 'PRODUCT EXPERIENCE')
   const title = asString(props.title, '产品体验点')
   const subtitle = asString(props.subtitle, '先摸到那台机器，再决定。全国合作门店提供光魂与极创全系显示器实机体验。')
   const showMap = props.showMap === undefined ? true : asBool(props.showMap)
@@ -346,7 +345,6 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       <section className="vx-hero">
         <div className="vx-hero__inner">
           <div className="vx-hero__copy">
-            <div className="vx-eyebrow">{eyebrow}</div>
             <h2 className="vx-title">{title}</h2>
             <p className="vx-lead">{subtitle}</p>
           </div>

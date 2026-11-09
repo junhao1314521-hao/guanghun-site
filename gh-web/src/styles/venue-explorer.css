@@ -19,14 +19,8 @@
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: end;
 }
 .vx-hero__copy { min-width: 0; }
-.vx-eyebrow {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
-  color: #2447ff;
-}
-.vx-eyebrow::before { content: ""; width: 26px; height: 1px; background: #2447ff; opacity: 0.6; }
 .vx-title {
-  margin: 14px 0 0; font-size: clamp(38px, 4.2vw, 52px); line-height: 1.05;
+  margin: 0; font-size: clamp(38px, 4.2vw, 52px); line-height: 1.05;
   letter-spacing: -0.035em; font-weight: 700; color: #111827;
 }
 .vx-lead {
@@ -602,3 +596,281 @@ a.cc__row .cc__action { color: #0071e3; }
 @media (prefers-reduced-motion: reduce) {
   .vx-modal__dialog { animation: none; }
 }
+
+/* ============================================================
+   暗色皮肤
+   上面的亮色规则写死了 #fff / #1d1d1f / 黑色描边，暗色下来整页发白。
+   这里用站点暗色令牌逐一覆盖：面 = #17171A / #26262C，字 = 50/300/400。
+   ============================================================ */
+[data-theme='dark'] .blk[data-block='venueExplorer'],
+[data-theme='dark'] .blk[data-block='contactChannels'],
+[data-theme='dark'] .vx-shell { background: var(--color-bg-page); }
+
+/* —— Hero —— */
+[data-theme='dark'] .vx-hero {
+  background: linear-gradient(180deg, #141419 0%, #101013 58%, var(--color-bg-page) 100%);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] .vx-title,
+[data-theme='dark'] .vx-stat-num { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-lead,
+[data-theme='dark'] .vx-stats > div > span:last-child { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-stats {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+[data-theme='dark'] .vx-stats > div + div { border-left-color: rgba(255, 255, 255, 0.08); }
+
+/* —— 工具条 —— */
+[data-theme='dark'] .vx-toolbar {
+  background: rgba(14, 14, 16, 0.88);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] .vx-search {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: transparent;
+}
+[data-theme='dark'] .vx-search:focus-within {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(91, 117, 245, 0.55);
+  box-shadow: 0 0 0 4px rgba(91, 117, 245, 0.16);
+}
+[data-theme='dark'] .vx-search > svg,
+[data-theme='dark'] .vx-search input::placeholder { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-search input { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-search__clear { background: var(--gh-neutral-700); color: var(--color-text-primary); }
+[data-theme='dark'] .vx-tool {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: var(--color-text-secondary);
+}
+[data-theme='dark'] .vx-tool:hover { background: rgba(255, 255, 255, 0.10); }
+[data-theme='dark'] .vx-tool.is-active {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg-page);
+}
+[data-theme='dark'] .vx-toolbar__count,
+[data-theme='dark'] .vx-toolbar__label { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: var(--color-text-tertiary);
+}
+[data-theme='dark'] .vx-chip:hover { border-color: rgba(255, 255, 255, 0.24); color: var(--color-text-primary); }
+[data-theme='dark'] .vx-chip.is-active {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg-page);
+}
+
+/* —— 筛选状态 —— */
+[data-theme='dark'] .vx-notice { background: rgba(255, 255, 255, 0.05); color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-active__label { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-token { background: rgba(91, 117, 245, 0.18); color: var(--gh-blue-300); }
+[data-theme='dark'] .vx-token button { background: rgba(91, 117, 245, 0.24); color: var(--gh-blue-300); }
+[data-theme='dark'] .vx-token button:hover { background: rgba(91, 117, 245, 0.36); }
+[data-theme='dark'] .vx-clear { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-notice__action { color: var(--gh-blue-300); }
+
+/* —— 地图卡 —— */
+[data-theme='dark'] .vx-map-card {
+  background: var(--color-bg-surface);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
+}
+[data-theme='dark'] .vx-map-pill,
+[data-theme='dark'] .vx-map-reset {
+  background: rgba(23, 23, 26, 0.88);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  color: var(--color-text-secondary);
+}
+[data-theme='dark'] .vx-map-pill b { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-map-reset:hover { background: var(--gh-neutral-800); }
+[data-theme='dark'] .venue-explorer-map__loading,
+[data-theme='dark'] .venue-explorer-map__empty {
+  color: var(--color-text-tertiary);
+  background: color-mix(in srgb, var(--color-bg-surface) 76%, transparent);
+}
+[data-theme='dark'] .venue-explorer-map__fallback-title { color: var(--color-text-secondary); }
+[data-theme='dark'] .venue-explorer-map__fallback-desc { color: var(--color-text-tertiary); }
+/* 高德瓦片本身是亮色底图，且 setMapStyle 依赖内置样式名，切主题并不可靠。
+   只反相「底图瓦片 + 矢量层」；气泡在 .amap-markers 里（虽挂在 .amap-layers 下，
+   但不是 .amap-layer-tile），必须排除，否则白底气泡会被反成亮的。 */
+[data-theme='dark'] .venue-explorer-map .amap-layer-tile,
+[data-theme='dark'] .venue-explorer-map .amap-layer-overlay {
+  filter: invert(1) hue-rotate(180deg) brightness(0.94) contrast(0.92) saturate(0.45);
+}
+
+/* 地图气泡与点位 */
+[data-theme='dark'] .venue-cluster {
+  background: var(--gh-neutral-800);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.8);
+  color: var(--color-text-primary);
+}
+[data-theme='dark'] .venue-cluster__count { background: var(--color-text-primary); color: var(--color-bg-page); }
+[data-theme='dark'] .venue-cluster--lg .venue-cluster__count { background: var(--gh-blue-400); color: #fff; }
+[data-theme='dark'] .venue-pin { background: var(--color-text-primary); border-color: var(--color-bg-page); }
+[data-theme='dark'] .venue-pin.is-active { background: var(--gh-blue-400); }
+[data-theme='dark'] .venue-me { background: var(--gh-blue-400); border-color: var(--color-bg-page); }
+[data-theme='dark'] .venue-map__info {
+  background: rgba(23, 23, 26, 0.96);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.85);
+}
+[data-theme='dark'] .venue-map__info b { color: var(--color-text-primary); }
+[data-theme='dark'] .venue-map__info > span { color: var(--color-text-tertiary); }
+[data-theme='dark'] .venue-map__model { border-color: rgba(255, 255, 255, 0.14); color: var(--color-text-secondary); }
+[data-theme='dark'] .venue-map__nav { color: var(--gh-blue-300); }
+[data-theme='dark'] .venue-map__detail { color: var(--color-text-tertiary); }
+
+/* —— 详情浮层 / 按钮 —— */
+[data-theme='dark'] .vx-detail {
+  background: rgba(23, 23, 26, 0.94);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.85);
+}
+[data-theme='dark'] .vx-detail__close,
+[data-theme='dark'] .vx-modal__close { background: rgba(255, 255, 255, 0.08); color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-detail__tag { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-detail__name { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-detail__addr,
+[data-theme='dark'] .vx-detail__addr.is-todo { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-secondary);
+}
+[data-theme='dark'] .vx-btn:hover { background: rgba(255, 255, 255, 0.10); }
+[data-theme='dark'] .vx-btn--dark,
+[data-theme='dark'] .vx-btn--dark:hover {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg-page);
+}
+
+/* —— 列表 —— */
+[data-theme='dark'] .vx-list-card {
+  background: var(--color-bg-surface);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
+}
+[data-theme='dark'] .vx-list-head { border-bottom-color: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .vx-list-title { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-list-hint { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-list { scrollbar-color: rgba(255, 255, 255, 0.18) transparent; }
+[data-theme='dark'] .vx-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); }
+[data-theme='dark'] .vx-group__head { background: rgba(23, 23, 26, 0.94); color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-group__head::after { background: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .vx-row:hover { background: rgba(255, 255, 255, 0.05); }
+[data-theme='dark'] .vx-row.is-active { background: rgba(91, 117, 245, 0.14); }
+[data-theme='dark'] .vx-row__name { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-row__badge { background: rgba(255, 255, 255, 0.07); color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-row__addr,
+[data-theme='dark'] .vx-row__addr.is-todo { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-model { border-color: rgba(255, 255, 255, 0.14); color: var(--color-text-secondary); }
+[data-theme='dark'] .vx-row__dist { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-row__arrow { color: var(--gh-neutral-600); }
+[data-theme='dark'] .vx-row:hover .vx-row__arrow { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-empty__icon { background: rgba(255, 255, 255, 0.06); color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-empty__title { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-empty__desc { color: var(--color-text-tertiary); }
+
+/* —— 城市弹层 —— */
+[data-theme='dark'] .vx-modal__backdrop { background: rgba(0, 0, 0, 0.62); }
+[data-theme='dark'] .vx-modal__dialog,
+[data-theme='dark'] .vx-city-dialog {
+  background: var(--color-bg-surface);
+  box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
+}
+[data-theme='dark'] .vx-city-head { border-bottom-color: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .vx-city-title { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-city-search {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: transparent;
+}
+[data-theme='dark'] .vx-city-search:focus-within { background: rgba(255, 255, 255, 0.10); border-color: rgba(91, 117, 245, 0.5); }
+[data-theme='dark'] .vx-city-search svg { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-search input { color: var(--color-text-primary); }
+[data-theme='dark'] .vx-city-search input::placeholder { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-regions { border-right-color: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .vx-city-region { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-region:hover { background: rgba(255, 255, 255, 0.05); color: var(--color-text-primary); }
+[data-theme='dark'] .vx-city-region.is-active { background: rgba(91, 117, 245, 0.18); color: var(--gh-blue-300); }
+[data-theme='dark'] .vx-city-region span { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-all { background: rgba(255, 255, 255, 0.05); color: var(--color-text-primary); }
+[data-theme='dark'] .vx-city-all span { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-group__name { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-item {
+  border-color: rgba(255, 255, 255, 0.10);
+  color: var(--color-text-secondary);
+}
+[data-theme='dark'] .vx-city-item:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.18); }
+[data-theme='dark'] .vx-city-item.is-active { background: var(--gh-blue-400); border-color: var(--gh-blue-400); color: #fff; }
+[data-theme='dark'] .vx-city-item span { color: var(--color-text-tertiary); }
+[data-theme='dark'] .vx-city-item.is-active span { color: rgba(255, 255, 255, 0.7); }
+[data-theme='dark'] .vx-city-empty { color: var(--color-text-tertiary); }
+
+/* —— 嵌入模块：体验点卡片 —— */
+[data-theme='dark'] .venue-card {
+  background: var(--color-bg-surface);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .venue-card--clickable:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.8);
+}
+[data-theme='dark'] .venue-card__media {
+  background:
+    radial-gradient(420px 180px at 82% 4%, rgba(255, 255, 255, 0.10), transparent 65%),
+    linear-gradient(150deg, #24242a 0%, #1b1b20 52%, #202027 100%);
+}
+[data-theme='dark'] .venue-card__media::after {
+  background: radial-gradient(60% 60% at 70% 20%, rgba(255, 255, 255, 0.10), transparent 70%);
+}
+[data-theme='dark'] .venue-card__media-city { color: rgba(255, 255, 255, 0.86); }
+[data-theme='dark'] .venue-card__media-line { background: rgba(255, 255, 255, 0.26); }
+[data-theme='dark'] .venue-card .venue-type {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-secondary);
+}
+[data-theme='dark'] .venue-card__act {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+[data-theme='dark'] .venue-card__foot { border-top-color: rgba(255, 255, 255, 0.07); color: var(--color-text-tertiary); }
+[data-theme='dark'] .venue-card__foot span:last-child { color: var(--gh-blue-300); }
+[data-theme='dark'] .venue-detail__gallery-main,
+[data-theme='dark'] .venue-detail__thumb { background: rgba(255, 255, 255, 0.06); }
+
+/* —— 企业采购联系栏 —— */
+[data-theme='dark'] .b2b-card__icon { background: rgba(91, 117, 245, 0.16); color: var(--gh-blue-300); }
+[data-theme='dark'] .b2b-contact {
+  background: var(--color-bg-surface);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .b2b-contact__item,
+[data-theme='dark'] .b2b-contact__item:nth-child(3) { border-color: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .b2b-pill__icon { color: var(--gh-blue-300); }
+[data-theme='dark'] .b2b-pill__label { color: var(--color-text-tertiary); }
+[data-theme='dark'] .b2b-pill__value { color: var(--color-text-secondary); }
+[data-theme='dark'] .b2b-pill__copy { color: var(--color-text-tertiary); }
+[data-theme='dark'] .b2b-contact__cta { background: var(--gh-blue-500); color: #fff; }
+[data-theme='dark'] .b2b-contact__cta:hover { background: var(--gh-blue-400); }
+
+/* —— 联系渠道 —— */
+[data-theme='dark'] .cc { border-top-color: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .cc__eyebrow,
+[data-theme='dark'] .cc__label { color: var(--color-text-tertiary); }
+[data-theme='dark'] .cc__title,
+[data-theme='dark'] .cc__value { color: var(--color-text-primary); }
+[data-theme='dark'] .cc__sub { color: var(--color-text-tertiary); }
+[data-theme='dark'] .cc__row,
+[data-theme='dark'] .cc__row:last-child { border-color: rgba(255, 255, 255, 0.08); }
+[data-theme='dark'] a.cc__row:hover,
+[data-theme='dark'] button.cc__row:hover { background: rgba(255, 255, 255, 0.04); }
+[data-theme='dark'] .cc__action { color: var(--color-text-tertiary); }
+[data-theme='dark'] a.cc__row .cc__action { color: var(--gh-blue-300); }

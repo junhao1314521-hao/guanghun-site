@@ -216,6 +216,8 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   const manualIds = asStringArray(props.ids)
   const limit = Math.max(0, asNumber(props.limit, 20))
   const showFilter = asBool(props.showFilter)
+  // 跟随当前设备：服务支持页不显示筛选条，但读取 ?model= 只展示该型号资料
+  const followDevice = asBool(props.followDevice)
   // 呈现方式：表格（默认）/ 横向滑动卡片
   const railCards = asString(props.layout, 'table') === 'rail'
   const [reloadKey, setReloadKey] = useState(0)
@@ -227,7 +229,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // —— 交互态：仅 showFilter 时使用；筛选「全量进 URL」（?category=&type=&model=），
   //    便于分享 / 深链直达（如型号支持页 → /downloads?model=xxx）——
   const [params, setParams] = useSearchParams()
-  const readParam = (key: string) => (showFilter ? params.get(key) ?? '全部' : '全部')
+  const readParam = (key: string) => ((showFilter || followDevice) ? params.get(key) ?? '全部' : '全部')
   const category = readParam('category')
   const type = readParam('type')
   const rawModel = readParam('model')
@@ -304,13 +306,24 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
     setQuery('')
   }
 
+  const headProps =
+    followDevice && model !== '全部'
+      ? { ...props, title: `${modelLabelOf(model)} 的资料`, subtitle: `当前设备可用资料，共 ${filtered.length} 个文件` }
+      : props
   return (
     <div>
       <SectionHeadFromProps
-        props={props}
+        props={headProps}
         action={
-          <SafeLink className="btn btn--ghost btn--sm" to="/downloads">
-            {t('blocks.downloadCenter')} →
+          <SafeLink
+            className="btn btn--ghost btn--sm"
+            to={
+              followDevice && model !== '全部'
+                ? `/downloads?model=${encodeURIComponent(model)}`
+                : '/downloads'
+            }
+          >
+            {followDevice && model !== '全部' ? '查看该型号全部资料 →' : `${t('blocks.downloadCenter')} →`}
           </SafeLink>
         }
       />

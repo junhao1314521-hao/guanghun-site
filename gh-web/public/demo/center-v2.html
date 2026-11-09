@@ -3,25 +3,30 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Center · 完整重构 Demo</title>
-<link rel="icon" href="data:," />
+<title>Center · 光魂 SVDC</title>
+<meta name="description" content="Center 是光魂显示器的桌面控制软件。六个模块覆盖基本功能、电竞设置、专业设置、图像调节、输入源、系统设置，支持 Windows 10 / 11 64 位。" />
+<link rel="icon" href="/favicon.png" />
 <style>
   :root{
     --ink:#04050a; --ink2:#070a12; --panel:#0b0f18;
     --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.06);
     --text:#eef4fb; --sub:#9dabbe; --dim:#6d7b8e;
-    --cyan:#6fe9ff; --blue:#3f8cff; --violet:#8f7bff;
+    /* 品牌蓝（与官网 --gh-blue-500/400 同源）：页面强调色一律走品牌色阶 */
+    --cyan:#93a4f8; --blue:#2040ed; --violet:#5b75f5;
+    --brand:#2040ed; --brand-hi:#5b75f5; --brand-lo:#1a33c4; --brand-soft:#93a4f8;
+    --brand-grad:linear-gradient(135deg,#5b75f5 0%,#2040ed 52%,#1a33c4 100%);
+    --brand-grad-soft:linear-gradient(145deg,rgba(91,117,245,.30),rgba(32,64,237,.10));
     --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
     --mono:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",monospace;
     --ease:cubic-bezier(.22,.61,.36,1);
   }
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;scroll-padding-top:128px}
   body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.85;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-  ::selection{background:rgba(111,233,255,.25)}
+  ::selection{background:rgba(91,117,245,.25)}
   .wrap{width:min(1240px,calc(100% - 64px));margin:0 auto}
   .mono{font-family:var(--mono)}
-  .k{font-size:13px;letter-spacing:.08em;color:var(--cyan);font-weight:500}
+  .k{font-size:13px;letter-spacing:.08em;font-weight:500;background:linear-gradient(100deg,#c7d2ff,#93a4f8 45%,#5b75f5);-webkit-background-clip:text;background-clip:text;color:transparent}
   h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.02em}
   p{margin:0}
 
@@ -38,53 +43,108 @@
   .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
   .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(0,0,0,.55))}
+  /* 后台「样式 → Center 页背景」关闭时（<html class="no-bg">）：
+     整页只保留纯色底与首屏星球，星空 / 星云 / 颗粒 / 暗角 / 区块雾光都不绘制 */
+  html.no-bg .bg,html.no-bg .grain,html.no-bg .vignette{display:none}
+  html.no-bg .mods::before,html.no-bg #features::before{display:none}
   main{position:relative;z-index:3}
 
-  /* ---------- 顶栏 ---------- */
-  .nav{position:fixed;top:0;left:0;right:0;z-index:50;height:64px;display:flex;align-items:center;
-    background:linear-gradient(180deg,rgba(4,5,10,.78),rgba(4,5,10,0));
-    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.05)}
-  .nav .wrap{display:flex;align-items:center;justify-content:space-between}
-  .brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;letter-spacing:.02em}
-  .brand i{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--cyan),var(--violet));box-shadow:0 0 22px rgba(111,233,255,.45)}
-  .nav-links{display:flex;gap:32px;font-size:14px;color:var(--sub)}
-  .nav-links a{color:inherit;text-decoration:none;transition:color .2s}
-  .nav-links a:hover{color:var(--text)}
-  .nav-cta{font-size:14px;padding:8px 16px;border-radius:999px;background:var(--text);color:#05070c;text-decoration:none;font-weight:600}
+  /* ---------- 顶栏：全站导航 + 二级锚点 ---------- */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:50;height:70px;display:flex;align-items:center;
+    background:rgba(4,5,10,.82);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px}
+  .brand{display:flex;align-items:center;gap:12px;font-size:17px;font-weight:600;letter-spacing:.01em;white-space:nowrap;color:var(--text);text-decoration:none}
+  .brand img{width:30px;height:30px;object-fit:contain;flex:none}
+  /* 字标与首页一致：官方 SVDC.svg 经 CSS 遮罩取当前文字色，随深浅底自动适配 */
+  .logo-word{display:inline-block;width:4.27em;height:.92em;flex:none;background-color:currentColor;
+    -webkit-mask:url(/brand/svdc.svg) center/contain no-repeat;mask:url(/brand/svdc.svg) center/contain no-repeat}
+  .nav-links{display:flex;align-items:center;gap:28px;font-size:15px;font-weight:500;color:var(--sub)}
+  .nav-links a{position:relative;display:inline-flex;align-items:center;gap:4px;color:inherit;text-decoration:none;transition:color .2s;padding:6px 0;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:auto}
+  .nav-links a:hover{color:#8fb4ff}
+  .nav-links a.on{color:#8fb4ff}
+  .nav-links i{font-style:normal;font-size:9px;color:var(--dim);transform:translateY(-1px)}
+  .nav-right{display:flex;align-items:center;gap:12px}
+  /* 窄屏站点导航入口：两横线汉堡，展开为全宽抽屉 */
+  .nav-burger{display:none;width:40px;height:40px;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:10px;
+    background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+  .nav-burger i{display:block;width:16px;height:1.5px;border-radius:2px;background:currentColor;transition:transform .25s var(--ease),opacity .2s}
+  .nav-burger.open i:first-child{transform:translateY(3.25px) rotate(45deg)}
+  .nav-burger.open i:last-child{transform:translateY(-3.25px) rotate(-45deg)}
+  .nav-mobile{display:none}
+  .nav-cta{font-size:14px;padding:9px 18px;border-radius:999px;background:var(--brand-grad);color:#fff;text-decoration:none;font-weight:600;white-space:nowrap;
+    box-shadow:0 6px 22px rgba(32,64,237,.35),inset 0 1px 0 rgba(255,255,255,.22);transition:box-shadow .25s,transform .25s}
+  .nav-cta:hover{box-shadow:0 10px 30px rgba(32,64,237,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+  .nav-sub{position:fixed;top:70px;left:0;right:0;z-index:49;height:44px;display:flex;align-items:center;
+    background:rgba(6,8,14,.9);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.05)}
+  .nav-sub .wrap{display:flex;align-items:center;gap:22px;font-size:13px;color:var(--dim)}
+  .nav-sub b{font-size:13px;font-weight:500;color:var(--sub);margin-right:4px}
+  .nav-sub a{color:var(--sub);text-decoration:none;transition:color .2s}
+  .nav-sub a:hover,.nav-sub a.on{color:#8fb4ff}
+  .nav-sub .ver{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim)}
 
   /* ---------- 通用 ---------- */
   .btn{display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 24px;border-radius:999px;
     font-size:15px;font-weight:600;text-decoration:none;border:1px solid transparent;cursor:pointer;
     transition:transform .25s var(--ease),box-shadow .25s,background .25s,border-color .25s;will-change:transform}
-  .btn--primary{background:linear-gradient(135deg,#9af3ff,#5fd8ff 45%,#7f9dff);color:#04121a;
-    box-shadow:0 10px 34px rgba(95,216,255,.28)}
-  .btn--primary:hover{box-shadow:0 14px 44px rgba(95,216,255,.45)}
+  .btn--primary{background:var(--brand-grad);color:#fff;
+    box-shadow:0 12px 38px rgba(32,64,237,.36),inset 0 1px 0 rgba(255,255,255,.24)}
+  .btn--primary:hover{box-shadow:0 16px 48px rgba(32,64,237,.52),inset 0 1px 0 rgba(255,255,255,.32)}
   .btn--ghost{border-color:rgba(255,255,255,.18);color:var(--text);background:rgba(255,255,255,.03)}
-  .btn--ghost:hover{border-color:rgba(111,233,255,.55);background:rgba(111,233,255,.07)}
+  .btn--ghost:hover{border-color:rgba(91,117,245,.6);background:rgba(91,117,245,.10)}
   .btn svg{width:16px;height:16px}
   .sec{padding:150px 0;position:relative}
   .sec-head{max-width:820px;margin-bottom:56px}
   .sec-head h2{font-size:clamp(32px,3.4vw,48px);line-height:1.18}
   .sec-head p{margin-top:18px;color:var(--sub);font-size:17px;max-width:680px;line-height:1.85}
-  .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:var(--rd,0s)}
   .reveal.in{opacity:1;transform:none}
 
   /* ---------- 首屏 ---------- */
-  .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:120px 0 60px;overflow:hidden}
-  .arc{position:absolute;left:50%;top:74%;width:158vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;
-    border:1px solid rgba(140,240,255,.55);pointer-events:none;
-    box-shadow:0 0 150px 26px rgba(60,170,255,.18),inset 0 0 160px rgba(60,170,255,.20)}
-  .arc::after{content:"";position:absolute;inset:5.5%;border-radius:50%;border:1px solid rgba(140,220,255,.14)}
-  .arc-glow{position:absolute;left:50%;top:52%;width:120vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;
-    background:radial-gradient(circle at 50% 50%,rgba(70,190,255,.42),rgba(40,90,220,.16) 55%,transparent 70%);filter:blur(40px);pointer-events:none}
-  .hero .wrap{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:64px;align-items:center;position:relative}
-  .hero h1{font-size:clamp(42px,5.2vw,76px);line-height:1.06;letter-spacing:-.035em}
-  .hero h1 em{font-style:normal;background:linear-gradient(100deg,#fff 10%,#9befff 55%,#9c8bff 92%);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .hero-sub{margin-top:24px;color:var(--sub);font-size:17px;line-height:1.9;max-width:440px}
+  .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:172px 0 60px;overflow:hidden;isolation:isolate}
+  /* 首屏背景：纯代码复刻「近地轨道看星球地平线」，不使用图片 */
+  .hero::before{content:"";position:absolute;inset:0;z-index:-2;
+    background:
+      radial-gradient(120% 78% at 50% 88%,rgba(22,64,140,.42),transparent 62%),
+      linear-gradient(180deg,#02040a 0%,#030712 52%,#050c1a 100%)}
+  .planet{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+  /* 首屏左侧压暗：保证文案与数据在高亮地平线上仍有足够对比 */
+  /* 只压暗文案所在的一小块区域，不再整条左侧压黑（否则弧线会被切成两段） */
+  .hero-scrim{position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(ellipse 52% 56% at 22% 50%,rgba(4,5,10,.44) 0%,rgba(4,5,10,.20) 58%,transparent 82%),
+      linear-gradient(180deg,rgba(4,5,10,.30) 0%,transparent 20%)}
+  /* 备用层（WebGL 不可用时才可见）：薄临边 + 克制的内散射，避免一条发光粗管 */
+  .planet-glow{position:absolute;left:50%;top:63%;width:170vw;height:16vw;transform:translateX(-50%);
+    background:radial-gradient(ellipse at 50% 100%,rgba(120,180,255,.26),rgba(40,90,220,.12) 46%,transparent 74%);
+    filter:blur(24px);animation:rimBreath 4.7s ease-in-out infinite}
+  .planet-body{position:absolute;left:50%;top:63%;width:205vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;
+    background:radial-gradient(circle at 50% 0%,#081020 0%,#040810 42%,#02040a 100%);
+    box-shadow:inset 0 18px 54px rgba(70,140,255,.12)}
+  .planet-rim{position:absolute;left:50%;top:63%;width:205vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;
+    border-top:1px solid rgba(214,246,255,.85);
+    filter:drop-shadow(0 0 4px rgba(140,215,255,.55)) drop-shadow(0 0 22px rgba(70,140,255,.28));
+    animation:rimBreath 4.7s ease-in-out infinite}
+  /* 备用层的呼吸与着色器同步：4.7s 一轮，亮度落差拉到 .5 → 1.0，肉眼一眼能看出起伏 */
+  @keyframes rimBreath{0%,100%{opacity:.5}50%{opacity:1}}
+  #horizon{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.1s var(--ease)}
+  .planet--gl #horizon{opacity:1}
+  .planet--gl .planet-glow,.planet--gl .planet-body,.planet--gl .planet-rim{opacity:0;animation:none}
+  /* 弧线已落到底部 84%，底部不再叠一整条渐隐（那会把弧线压暗），
+     改由着色器在最后 6% 高度里精确落到页面底色，与下一板块无缝衔接 */
+  .hero::after{display:none}
+  .hero .wrap{display:grid;grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);gap:48px;align-items:center;position:relative;z-index:2}
+  /* 文案列整体上提：给弧线让出高度，数据块不会压在亮带上（界面列保持原位，继续贴近弧面） */
+  .hero-copy{margin-bottom:56px}
+  .hero h1{font-size:clamp(44px,4.7vw,66px);line-height:1.04;letter-spacing:-.042em;white-space:nowrap}
+  .hero h1 em{font-style:normal;background:linear-gradient(100deg,#fff 8%,#a8b8ff 52%,#5b75f5 94%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{margin-top:24px;color:var(--sub);font-size:17px;line-height:1.9;max-width:460px}
+  .hero-sub small{display:block;margin-top:10px;font-size:14px;line-height:1.7;color:var(--dim)}
   .hero-actions{display:flex;gap:12px;margin-top:36px;flex-wrap:wrap}
   .stats{display:flex;gap:40px;margin-top:52px;padding-top:26px;border-top:1px solid var(--line)}
   .stat b{font-family:var(--mono);font-size:30px;font-weight:500;letter-spacing:-.02em;display:flex;align-items:flex-start;height:1.15em;line-height:1.15em}
-  .stat > span{display:block;font-size:13px;color:var(--dim);margin-top:4px}
+  .stat > span{display:block;font-size:13px;color:var(--sub);margin-top:4px}
   .slot{display:inline-flex;align-items:flex-start;height:1.15em;overflow:hidden;line-height:1.15em;flex:0 0 auto}
   .slot i{display:block;height:11.5em;font-style:normal;transition:transform 1.1s var(--ease);width:.62em;text-align:center;flex:0 0 auto}
   .slot i span{display:block;height:1.15em;line-height:1.15em}
@@ -94,13 +154,108 @@
     box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.4);
     transform:rotateY(var(--ry,-20deg)) rotateX(var(--rx,9deg)) scale(var(--sc,.94));
     transition:transform .2s linear;will-change:transform}
-  .window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 32%,transparent 70%,rgba(111,233,255,.06));pointer-events:none}
+  .window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 32%,transparent 70%,rgba(91,117,245,.06));pointer-events:none}
   .window--ratio{aspect-ratio:16/10}
-  .win-bar{position:absolute;top:0;left:0;right:0;height:34px;display:flex;align-items:center;gap:6px;padding:0 12px;
-    background:rgba(7,10,16,.72);border-bottom:1px solid rgba(255,255,255,.07);z-index:2}
-  .win-bar i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18)}
-  .win-bar span{margin-left:8px;font-size:12px;color:var(--dim);font-family:var(--mono)}
-  .hero-window .win-bar{height:30px}
+  /* 不再叠加假的窗口标题栏：软件截图本身自带完整的顶部结构，
+     额外盖一条 30px 的「三点 + Center 1.3.3」会把界面顶部和 LOGO 挡掉。 */
+  /* 首屏界面：取消「机身边框」与机身后壳，只保留屏幕本身 + 一圈很淡的外发光。
+     界面靠自身的发光和下方倒影与弧面分离，不再压在弧形上投黑。 */
+  .hero-device{--sc:1.04;padding:0;border:0;border-radius:12px;overflow:hidden;
+    background:#05070c;
+    /* 只有屏幕自身的外发光，不含任何黑色投影 */
+    box-shadow:
+      0 0 70px rgba(43,77,255,.20),
+      0 0 22px rgba(120,160,255,.10);
+    isolation:isolate}
+  /* 只留顶部一条 1px 受光边，不是完整描边 */
+  .hero-device::before{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;z-index:3;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+  .hero-device::after{display:none}
+  .hero-device .device-screen{position:relative;height:100%;border-radius:12px;overflow:hidden;
+    background:#05070c url('/media/center/app/basic.webp') center/cover no-repeat;
+    filter:brightness(1.30) contrast(1.05) saturate(1.05)}
+  .hero-device .device-screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(112deg,rgba(255,255,255,.09),transparent 30%,transparent 72%,rgba(91,117,245,.07))}
+  /* 首屏界面层次：只留一圈很淡的品牌蓝环境光，去掉压暗背景的黑色光晕。
+     屏下不再做镜像倒影（矩形倒影在深色底上会读成一块生硬的灰影），
+     界面与弧面只靠发光和间距拉开层次。 */
+  .hero-window{isolation:isolate;transform-style:preserve-3d;top:4px}
+  .hero-window::before{content:"";position:absolute;inset:-18% -14%;z-index:-2;pointer-events:none;
+    background:radial-gradient(ellipse at 52% 58%,rgba(32,64,237,.18),rgba(32,64,237,.05) 46%,transparent 70%);
+    filter:blur(36px)}
+
+  /* 统一透视平面：屏幕与三块浮层共用同一个旋转平面，浮层只沿 Z 轴推出。
+     之前浮层自带 rotateY/rotateX，角度和屏幕对不上，才显得「贴」在界面上。 */
+  .hero-plane{position:relative;transform-style:preserve-3d;
+    transform:rotateY(var(--ry,-14deg)) rotateX(var(--rx,6deg));
+    cursor:grab;touch-action:pan-y;will-change:transform}
+  .hero-plane.is-drag{cursor:grabbing;user-select:none}
+  .hero-plane .hero-device{transform:scale(var(--sc,1.04))}
+
+  /* 浮层卡片：与屏幕同平面，仅 translateZ；悬停再抬高 18px，形成真实的层次差 */
+  .float-card{position:absolute;z-index:4;width:184px;padding:12px 14px 13px;border-radius:11px;
+    background:linear-gradient(160deg,rgba(18,24,39,.92),rgba(8,11,19,.88));
+    border:1px solid rgba(255,255,255,.10);
+    -webkit-backdrop-filter:blur(16px) saturate(1.12);backdrop-filter:blur(16px) saturate(1.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 14px 34px rgba(0,0,0,.34),
+      0 0 26px rgba(32,64,237,.14);
+    translate:0 0 var(--z,64px);
+    transition:translate .38s var(--ease),box-shadow .38s var(--ease),border-color .3s;
+    will-change:translate}
+  .float-card:hover{translate:0 0 calc(var(--z,64px) + 18px);
+    border-color:rgba(91,117,245,.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.16),
+      0 20px 44px rgba(0,0,0,.44),
+      0 0 36px rgba(32,64,237,.28)}
+  .fc--preset{left:-6%;bottom:-2%}
+  .fc--slider{right:1%;bottom:12%}
+  .fc--source{right:1.5%;top:-4%;width:166px}
+  .fc-head{display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.04em;color:var(--dim)}
+  .fc-head b{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--brand-soft)}
+  .fc-dot{width:5px;height:5px;border-radius:50%;background:var(--brand-soft);
+    box-shadow:0 0 9px rgba(91,117,245,.9);animation:fcDot 2.2s ease-in-out infinite}
+  .fc-chips{display:flex;gap:6px;margin-top:10px}
+  .fc-chip{flex:1;height:27px;padding:0;border-radius:7px;cursor:pointer;
+    border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);color:var(--sub);
+    font-family:var(--sans);font-size:11px;font-weight:500;line-height:1;
+    transition:color .2s,background .2s,border-color .2s,box-shadow .25s}
+  .fc-chip:hover{color:var(--text);border-color:rgba(91,117,245,.5);background:rgba(91,117,245,.12)}
+  .fc-chip.on{color:#fff;border-color:transparent;background:var(--brand-grad);
+    box-shadow:0 6px 16px rgba(32,64,237,.42),inset 0 1px 0 rgba(255,255,255,.24)}
+  .fc-row+.fc-row{margin-top:11px}
+  .fc-row .lbl{display:flex;justify-content:space-between;margin-bottom:7px;
+    font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  .fc-row .lbl b{color:var(--brand-soft);font-weight:500}
+  /* 细轨 + 真 range 叠加：拖动直接改数值，拇指只在轨道上浮出一个小圆点 */
+  .fc-rail{position:relative;height:3px;border-radius:3px;background:rgba(255,255,255,.12)}
+  .fc-rail i{position:absolute;left:0;top:0;height:100%;border-radius:3px;
+    background:linear-gradient(90deg,var(--blue),var(--brand-soft));transition:width .12s linear}
+  .fc-rail input{-webkit-appearance:none;appearance:none;position:absolute;left:0;top:-9px;width:100%;height:21px;
+    margin:0;padding:0;background:transparent;cursor:pointer}
+  .fc-rail input::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+    background:#fff;border:2px solid rgba(91,117,245,.95);
+    box-shadow:0 0 8px rgba(91,117,245,.85);cursor:grab}
+  .fc-rail input::-moz-range-thumb{width:9px;height:9px;border-radius:50%;background:#fff;
+    border:2px solid rgba(91,117,245,.95);box-shadow:0 0 8px rgba(91,117,245,.85);cursor:grab}
+  .fc-rail input::-moz-range-track{height:3px;background:transparent}
+  .fc-rail input:focus-visible{outline:2px solid rgba(147,164,248,.9);outline-offset:4px;border-radius:4px}
+  @keyframes fcDot{0%,100%{opacity:.45}50%{opacity:1}}
+  /* 浮层入场：等首屏 .reveal 生效后再依次浮出，Z 轴落位 */
+  @keyframes fcIn{from{opacity:0;transform:scale(.93) translateY(10px)}to{opacity:1;transform:none}}
+  .hero-window.in .float-card{animation:fcIn .8s var(--ease) backwards}
+  .hero-window.in .fc--preset{animation-delay:.22s}
+  .hero-window.in .fc--slider{animation-delay:.36s}
+  .hero-window.in .fc--source{animation-delay:.5s}
+
+  /* ---------- 主张句 ---------- */
+  .statement{padding:170px 0 150px;text-align:center;position:relative}
+  /* 首屏底部与主张句之间用一层同色渐隐过渡，避免出现一条横向接缝 */
+  .statement::before{content:"";position:absolute;left:0;right:0;top:0;height:240px;pointer-events:none;
+    background:linear-gradient(180deg,var(--ink),rgba(4,5,10,.35) 52%,transparent)}
+  .statement h2{font-size:clamp(34px,4.4vw,62px);line-height:1.12;letter-spacing:-.04em;margin:0 auto;white-space:nowrap}
   .scroll-cue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);font-size:12px;color:var(--dim);
     display:flex;flex-direction:column;align-items:center;gap:8px;letter-spacing:.12em}
   .scroll-cue i{width:1px;height:38px;background:linear-gradient(180deg,var(--cyan),transparent);animation:cue 2.2s ease-in-out infinite}
@@ -108,16 +263,15 @@
 
   /* ---------- 六模块（平铺起立） ---------- */
   .mods{perspective:1400px}
-  .mods::before,#features::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;
-    background:
-      linear-gradient(rgba(120,170,255,.06) 1px,transparent 1px) 0 0/100% 48px,
-      linear-gradient(90deg,rgba(120,170,255,.06) 1px,transparent 1px) 0 0/48px 100%,
-      radial-gradient(60% 50% at 72% 18%,rgba(40,110,220,.14),transparent 70%);
+  /* 六模块区不再叠方格网：整页星空已经是一层背景，再叠网格会读成「两套背景」。
+     这里只留一层很淡的蓝色雾光，负责把卡片托起来。 */
+  .mods::before,#features::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+    background:radial-gradient(60% 50% at 72% 18%,rgba(40,110,220,.14),transparent 70%);
     -webkit-mask-image:linear-gradient(180deg,transparent,#000 14%,#000 86%,transparent);
     mask-image:linear-gradient(180deg,transparent,#000 14%,#000 86%,transparent)}
   .mods .wrap,#features .wrap{position:relative}
   .mod-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;perspective:1200px}
-  .mod{position:relative;min-height:310px;padding:28px;border-radius:16px;overflow:hidden;
+  .mod{position:relative;min-height:280px;padding:28px;border-radius:16px;overflow:hidden;
     background:linear-gradient(180deg,rgba(19,25,38,.92),rgba(9,12,18,.96));
     border:1px solid var(--line);
     transform:rotateX(var(--rx,62deg)) translateY(var(--ty,46px)) scale(var(--s,.97));
@@ -125,23 +279,21 @@
     transition:transform .18s linear,opacity .3s linear,border-color .3s,box-shadow .3s;
     will-change:transform,opacity}
   .mod::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .35s;pointer-events:none;
-    background:radial-gradient(280px 220px at var(--mx,50%) var(--my,0%),rgba(111,233,255,.16),transparent 65%)}
+    background:radial-gradient(280px 220px at var(--mx,50%) var(--my,0%),rgba(91,117,245,.16),transparent 65%)}
   .mod:hover::before{opacity:1}
-  .mod:hover{border-color:rgba(111,233,255,.35);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(111,233,255,.12)}
+  .mod:hover{border-color:rgba(91,117,245,.42);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(91,117,245,.16)}
   .mod-icon{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;
-    background:linear-gradient(145deg,rgba(111,233,255,.16),rgba(143,123,255,.10));
-    border:1px solid rgba(111,233,255,.22);color:var(--cyan);margin-bottom:26px}
+    background:var(--brand-grad-soft);border:1px solid rgba(91,117,245,.34);color:var(--cyan);margin-bottom:26px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 6px 18px rgba(32,64,237,.14)}
   .mod-icon svg{width:22px;height:22px}
   .mod h3{font-size:24px;line-height:1.3;margin-bottom:10px}
   .mod p{font-size:15px;line-height:1.8;color:var(--sub)}
   .mod-no{position:absolute;right:24px;top:22px;font-family:var(--mono);font-size:13px;color:var(--dim)}
-  .mod-link{position:absolute;left:28px;bottom:24px;font-size:13px;color:var(--dim);display:flex;align-items:center;gap:6px;transition:color .25s,gap .25s}
-  .mod:hover .mod-link{color:var(--cyan);gap:10px}
 
   /* ---------- 固定镜头 ---------- */
-  .stage{height:340vh;position:relative}
+  .stage{height:400vh;position:relative}
   .stage-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
-  .stage-inner{display:grid;grid-template-columns:minmax(0,.40fr) minmax(0,.60fr);gap:56px;align-items:center}
+  .stage-inner{display:grid;grid-template-columns:minmax(0,.36fr) minmax(0,.64fr);gap:56px;align-items:center}
   .stage-copy h2{font-size:clamp(30px,3.2vw,46px);line-height:1.2}
   .stage-copy p{margin-top:18px;color:var(--sub);font-size:16px;max-width:340px}
   .steps{display:flex;flex-direction:column;gap:18px;margin-top:34px}
@@ -152,70 +304,158 @@
   .stage-view{perspective:1200px;position:relative}
   .stage-window{border-radius:12px;border:1px solid rgba(255,255,255,.14);overflow:hidden;position:relative;
     aspect-ratio:16/10;background:#06080d url('/media/center/app/basic.webp') center/cover no-repeat;
-    box-shadow:0 60px 140px rgba(0,0,0,.75),0 0 90px rgba(60,150,255,.10);
-    transform:rotateX(var(--rx,58deg)) rotateY(var(--ry,-22deg)) scale(var(--sc,.82));
-    transform-origin:50% 100%;will-change:transform}
-  .stage-window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 30%,transparent 72%,rgba(111,233,255,.08));pointer-events:none}
+    box-shadow:0 44px 110px rgba(0,0,0,.72),0 0 80px rgba(60,150,255,.12);
+    transform:rotateX(var(--rx,9deg)) rotateY(var(--ry,-15deg)) scale(var(--sc,.93));
+    transform-origin:50% 50%;will-change:transform}
+  .stage-window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 30%,transparent 72%,rgba(91,117,245,.08));pointer-events:none}
   .callouts{position:absolute;inset:0;pointer-events:none;z-index:5}
   .callout{position:absolute;right:2%;display:flex;align-items:center;gap:10px;opacity:0;transform:translateX(14px);transition:opacity .5s,transform .5s}
-  .callout::before{content:"";width:56px;height:1px;background:linear-gradient(90deg,transparent,rgba(111,233,255,.7))}
-  .callout span{font-size:13px;color:var(--text);background:rgba(6,10,18,.72);border:1px solid rgba(111,233,255,.22);padding:7px 12px;border-radius:8px;backdrop-filter:blur(8px)}
+  .callout::before{content:"";width:56px;height:1px;background:linear-gradient(90deg,transparent,rgba(91,117,245,.7))}
+  .callout span{font-size:15px;color:var(--text);background:rgba(6,10,18,.78);border:1px solid rgba(91,117,245,.22);padding:8px 13px;border-radius:8px;backdrop-filter:blur(8px)}
   .callout.on{opacity:1;transform:none}
+  /* 当前一条保持高亮，已经过去的标注降为背景，避免三条同时抢视线 */
+  .callout.on.dim{opacity:.28}
   .callout:nth-child(1){top:22%}
   .callout:nth-child(2){top:48%}
   .callout:nth-child(3){top:72%}
 
+  /* ---------- 界面细节（滚动放大） ---------- */
+  .zoom{height:320vh;position:relative}
+  .zoom-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+  .zoom-inner{display:grid;grid-template-columns:minmax(0,.32fr) minmax(0,.68fr);gap:56px;align-items:center}
+  .zoom-copy h2{font-size:clamp(30px,3.2vw,46px);line-height:1.2}
+  .zoom-copy > p{margin-top:16px;color:var(--sub);font-size:16px;max-width:330px}
+  .zoom-notes{margin-top:34px;display:flex;flex-direction:column;gap:16px;max-width:360px}
+  /* 三个层级本身就是可点的按钮：点哪一级，画面就推到那一级的取景 */
+  .zn{display:block;width:100%;padding:0 0 0 16px;border:0;border-left:1px solid var(--line);
+    background:none;text-align:left;font:inherit;color:inherit;cursor:pointer;
+    opacity:.36;transition:opacity .45s,border-color .45s;
+    -webkit-tap-highlight-color:transparent}
+  .zn:hover{opacity:.72;border-color:rgba(91,117,245,.35)}
+  .zn:focus-visible{outline:2px solid rgba(147,164,248,.85);outline-offset:6px;border-radius:4px}
+  .zn b{font-family:var(--mono);font-size:12px;color:var(--dim);font-weight:400}
+  .zn .zn-h{display:block;font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.45;margin:4px 0 6px}
+  .zn .zn-p{display:block;font-size:14px;line-height:1.75;color:var(--sub)}
+  .zn.on{opacity:1;border-color:rgba(91,117,245,.55)}
+  .zn.on b{color:var(--cyan)}
+  .zoom-frame{position:relative;width:100%;aspect-ratio:16/10;border-radius:14px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.14);background:#06080d;
+    box-shadow:0 50px 120px rgba(0,0,0,.7),0 0 70px rgba(60,150,255,.10)}
+  .zoom-stage{position:absolute;inset:0;transform:scale(var(--z,1.02));transform-origin:var(--ox,42%) var(--oy,50%);will-change:transform}
+  .zoom-stage img{display:block;width:100%;height:100%;object-fit:cover}
+  .zoom-frame::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 30%,transparent 75%,rgba(91,117,245,.06))}
+  .zoom-tag{position:absolute;left:14px;bottom:12px;z-index:2;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.66);
+    background:rgba(5,9,16,.62);border:1px solid rgba(255,255,255,.10);padding:5px 9px;border-radius:6px;backdrop-filter:blur(6px)}
+  /* 真实滑块叠层：与截图同步缩放，直接覆盖在截图里的彩色轨道上做拖动动效 */
+  .zoom-sliders{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .45s}
+  .zoom-sliders.on{opacity:1}
+  .zs{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:2px;transform:translateY(-50%);border-radius:2px}
+  .zs::before{content:"";position:absolute;left:0;top:0;height:100%;width:var(--v,50%);border-radius:2px;
+    background:var(--c);box-shadow:0 0 7px var(--c);opacity:.95}
+  .zs::after{content:"";position:absolute;left:var(--v,50%);top:50%;width:6px;height:6px;border-radius:50%;
+    background:#fff;box-shadow:0 0 9px var(--c),0 0 0 2px rgba(255,255,255,.18);transform:translate(-50%,-50%);
+    opacity:0;transition:opacity .35s}
+  .zoom-sliders.on .zs::after{opacity:1}
+
   /* ---------- 调校台 ---------- */
-  .console{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px;align-items:center}
-  .shot{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#06080d;position:relative}
-  .shot img{display:block;width:100%;height:auto}
-  .shot::after{content:"";position:absolute;inset:0;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
-  .panel{border-radius:16px;border:1px solid var(--line);background:rgba(10,14,22,.78);backdrop-filter:blur(14px);padding:26px}
-  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .console{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:24px;align-items:stretch;perspective:1400px}
+  /* 两张卡片从后仰状态翻起：进入视口后立正，形成“卡片翻起来”的立体感 */
+  .console .shot,.console .panel{transform:rotateX(18deg) translateY(44px);transform-origin:50% 100%;opacity:.35;
+    transition:transform .95s var(--ease),opacity .7s var(--ease);will-change:transform}
+  .console .shot.in,.console .panel.in{transform:none;opacity:1}
+  .console .panel{transition-delay:.08s}
+  .shot{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#06080d;position:relative;display:flex;flex-direction:column;min-height:470px;margin:0}
+  .shot img{display:block;width:100%;height:100%;object-fit:contain;flex:1;min-height:0}
+  .shot figcaption{position:relative;z-index:2;padding:12px 16px;font-size:12px;color:var(--dim);border-top:1px solid var(--line2);background:rgba(6,9,15,.86)}
+  .shot::after{content:"";position:absolute;inset:0;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);pointer-events:none}
+  .panel{border-radius:16px;border:1px solid var(--line);background:rgba(10,14,22,.78);backdrop-filter:blur(14px);padding:24px;display:flex;flex-direction:column;width:100%;min-height:470px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
   .panel-head h3{font-size:18px}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .chip{font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--sub);cursor:pointer;transition:.25s}
-  .chip:hover{border-color:rgba(111,233,255,.4);color:var(--text)}
-  .chip.on{background:rgba(111,233,255,.12);border-color:rgba(111,233,255,.5);color:var(--cyan)}
-  .row{display:grid;grid-template-columns:64px 1fr 48px;gap:12px;align-items:center;margin:14px 0;font-size:13px;color:var(--sub)}
+  .chip:hover{border-color:rgba(91,117,245,.4);color:var(--text)}
+  .chip.on{background:rgba(91,117,245,.12);border-color:rgba(91,117,245,.5);color:var(--cyan)}
+  .panel-body{display:flex;flex-direction:column;justify-content:center;flex:1}
+  .row{display:grid;grid-template-columns:56px 1fr 44px;gap:11px;align-items:center;margin:11px 0;font-size:13px;color:var(--sub)}
   .row output{font-family:var(--mono);text-align:right;color:var(--text)}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:rgba(255,255,255,.14);border-radius:2px;outline:none}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px rgba(111,233,255,.14);cursor:pointer;transition:box-shadow .2s}
-  input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(111,233,255,.18)}
-  .preview{margin-top:20px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--line)}
-  .preview img{display:block;width:100%;height:210px;object-fit:cover;filter:brightness(var(--br,1)) contrast(var(--co,1)) saturate(var(--sa,1)) sepia(var(--se,0)) hue-rotate(var(--hu,0deg))}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px rgba(91,117,245,.14);cursor:pointer;transition:box-shadow .2s}
+  input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(91,117,245,.18)}
+  .preview{margin:0 0 16px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--line);height:190px;flex:none}
+  .preview img{display:block;width:100%;height:100%;object-fit:cover;filter:brightness(var(--br,1)) contrast(var(--co,1)) saturate(var(--sa,1)) sepia(var(--se,0)) hue-rotate(var(--hu,0deg))}
   .preview::after{content:"";position:absolute;inset:0;background:var(--tint,transparent);mix-blend-mode:soft-light;pointer-events:none}
   .preview b{position:absolute;left:10px;bottom:8px;font-size:11px;font-family:var(--mono);color:rgba(255,255,255,.7);letter-spacing:.08em}
 
   /* ---------- 功能 ---------- */
-  .feat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center;padding:56px 0;border-top:1px solid var(--line2)}
+  .feat{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:56px;align-items:center;padding:64px 0;border-top:1px solid var(--line2)}
+  .feat:nth-child(even){grid-template-columns:minmax(0,1.28fr) minmax(0,.72fr)}
   .feat:nth-child(even) .feat-media{order:-1}
   .feat-no{font-family:var(--mono);font-size:13px;color:var(--dim)}
   .feat h3{font-size:clamp(26px,2.6vw,36px);line-height:1.25;margin:12px 0 14px}
   .feat p{color:var(--sub);font-size:16px;line-height:1.9;max-width:460px}
-  .feat-media{border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;background:#070a10}
-  .feat-media img{display:block;width:100%;transition:transform .8s var(--ease)}
-  .feat:hover .feat-media img{transform:scale(1.025)}
+  .feat-media{border-radius:16px;overflow:hidden;border:1px solid var(--line);position:relative;background:#070a10;
+    min-height:400px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 60px rgba(60,150,255,.08)}
+  .feat-media::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(5,8,14,0) 40%,rgba(5,8,14,.72) 100%),
+      linear-gradient(115deg,rgba(255,255,255,.08),transparent 32%,transparent 74%,rgba(91,117,245,.06))}
+  .feat-media img{display:block;width:100%;height:100%;min-height:400px;object-fit:cover;
+    transform:scale(1.06);transition:transform 1.15s var(--ease)}
+  .feat.in .feat-media img{transform:scale(1)}
+  .feat:hover .feat-media img{transform:scale(1.035)}
+  .feat-live{position:absolute;left:18px;bottom:18px;z-index:2;display:flex;align-items:center;gap:10px;
+    padding:10px 14px;border-radius:10px;background:rgba(6,10,18,.82);border:1px solid rgba(91,117,245,.22);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);font-size:12px;color:var(--sub);
+    box-shadow:0 14px 36px rgba(0,0,0,.5)}
+  .feat-live b{color:var(--text);font-weight:500}
+  .feat-live em{font-style:normal;color:var(--cyan)}
+  .feat-live .fl-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px rgba(91,117,245,.9);animation:fcDot 2.2s ease-in-out infinite}
+  .feat-live .fl-bar{width:120px;height:3px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+  .feat-live .fl-bar i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));animation:fwBar 4.2s ease-in-out infinite}
+  .feat-live .fl-toggle{width:34px;height:18px;border-radius:999px;background:rgba(91,117,245,.22);position:relative;flex:none}
+  .feat-live .fl-toggle b{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--cyan);animation:bootToggle 4.2s ease-in-out infinite}
+  @keyframes fwBar{0%{width:8%}55%{width:78%}75%,100%{width:100%}}
+  @keyframes bootToggle{0%,18%{left:2px;background:rgba(255,255,255,.55)}55%,100%{left:18px;background:var(--cyan)}}
 
   /* ---------- 设备 ---------- */
-  .devices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+  .devices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
   .device{border:1px solid var(--line);border-radius:14px;padding:22px;background:rgba(10,14,22,.6);transition:.35s}
-  .device:hover{transform:translateY(-6px);border-color:rgba(111,233,255,.35);box-shadow:0 24px 60px rgba(0,0,0,.5)}
-  .monitor{height:96px;border:1px solid rgba(255,255,255,.16);border-radius:6px;margin-bottom:20px;position:relative;
-    background:linear-gradient(160deg,rgba(111,233,255,.10),rgba(143,123,255,.08))}
+  .device:hover{transform:translateY(-6px);border-color:rgba(91,117,245,.35);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .monitor{height:186px;border:1px solid rgba(255,255,255,.16);border-radius:6px;margin-bottom:20px;position:relative;
+    background:linear-gradient(160deg,rgba(91,117,245,.10),rgba(143,123,255,.08))}
+  .monitor img{width:100%;height:100%;object-fit:contain;display:block;padding:10px}
+  /* 已上传主图时去掉占位边框与支架，改为商品图舞台；
+     白底 JPG 走白底舞台，透明图（png / webp，.is-alpha）直接落在深色卡上 */
+  .monitor.has-img{border:0;background:#fff;border-radius:10px;overflow:hidden}
+  .monitor.has-img.is-alpha{background:none}
+  .monitor.has-img.is-alpha img{padding:0}
+  .monitor.has-img::after{display:none}
   .monitor::after{content:"";position:absolute;left:50%;bottom:-14px;width:36px;height:14px;transform:translateX(-50%);border-left:1px solid rgba(255,255,255,.16);border-right:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);border-radius:0 0 3px 3px}
-  .device b{display:block;font-size:16px;margin-bottom:6px}
+  .device b{display:block;font-size:17px;margin-bottom:6px}
   .device span{font-size:13px;color:var(--dim);line-height:1.7;display:block}
 
   /* ---------- 下载 ---------- */
-  .download{border:1px solid rgba(111,233,255,.22);border-radius:20px;padding:56px;position:relative;overflow:hidden;
+  .download{border:1px solid rgba(91,117,245,.22);border-radius:20px;padding:56px;position:relative;overflow:hidden;
+    display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:48px;align-items:center;
     background:radial-gradient(ellipse at 78% 20%,rgba(70,150,255,.18),transparent 60%),rgba(9,13,21,.8)}
-  .download h2{font-size:clamp(30px,3.2vw,44px);line-height:1.2}
-  .download p{color:var(--sub);margin-top:14px;font-size:16px}
-  .os{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
-  .os a{font-size:14px;padding:12px 20px;border-radius:10px;border:1px solid var(--line);color:var(--text);text-decoration:none;background:rgba(255,255,255,.03);transition:.25s}
-  .os a:hover{border-color:rgba(111,233,255,.5);background:rgba(111,233,255,.08)}
-  .dl-meta{display:flex;gap:28px;margin-top:28px;font-size:12px;color:var(--dim);font-family:var(--mono);flex-wrap:wrap}
+  .dl-kicker{font-size:13px;color:var(--dim);letter-spacing:.1em}
+  .download h2{font-size:clamp(34px,4vw,56px);line-height:1.12;margin-top:10px;letter-spacing:-.03em}
+  .download p{color:var(--sub);margin-top:16px;font-size:16px;max-width:420px;line-height:1.85}
+  .dl-side{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+  .dl-os{font-size:12px;color:var(--dim);font-family:var(--mono)}
+  .dl-ver{font-family:var(--mono);font-size:36px;font-weight:500;line-height:1;letter-spacing:-.02em}
+  .dl-side .btn{width:100%;justify-content:center;margin-top:6px}
+  .dl-size{font-size:12px;color:var(--dim);font-family:var(--mono)}
+  .dl-meta{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--dim);font-family:var(--mono);flex-wrap:wrap}
+  .dl-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-top:44px;padding-top:34px;border-top:1px solid var(--line2)}
+  .dl-steps b{font-family:var(--mono);font-size:13px;font-weight:400;color:var(--cyan)}
+  .dl-steps h3{font-size:17px;margin:8px 0}
+  .dl-steps p{font-size:14px;color:var(--sub);line-height:1.8}
+
+  /* ---------- 收尾 ---------- */
+  .closing{padding:120px 0 160px;text-align:center;position:relative}
+  .closing h2{font-size:clamp(38px,5vw,68px);line-height:1.1;letter-spacing:-.04em}
+  .closing .btn{margin-top:34px}
 
   /* ---------- 版本 / FAQ ---------- */
   .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px}
@@ -232,29 +472,118 @@
   .faq p{font-size:14px;color:var(--sub);margin-top:12px;line-height:1.8;max-width:520px}
 
   /* ---------- 页脚 ---------- */
-  .footer{position:relative;padding:120px 0 48px;overflow:hidden;border-top:1px solid var(--line2)}
+  .footer{position:relative;padding:100px 0 40px;overflow:hidden;border-top:1px solid var(--line2)}
   .footer::before{content:"";position:absolute;left:50%;bottom:-52%;width:150%;aspect-ratio:2.4/1;transform:translateX(-50%);
-    background:radial-gradient(ellipse at 50% 100%,rgba(90,215,255,.55),rgba(40,90,220,.24) 42%,transparent 70%);filter:blur(34px)}
+    background:radial-gradient(ellipse at 50% 100%,rgba(90,215,255,.45),rgba(40,90,220,.20) 42%,transparent 70%);filter:blur(34px)}
   .footer .wrap{position:relative}
-  .foot-top{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,.6fr));gap:40px}
-  .foot-brand b{font-size:20px}
-  .foot-brand p{color:var(--sub);font-size:14px;margin-top:12px;max-width:280px}
-  .foot-col b{display:block;font-size:13px;color:var(--dim);margin-bottom:14px}
+  .foot-top{display:grid;grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,.62fr)) auto;gap:32px;align-items:start}
+  .foot-brand .logo{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:600;text-decoration:none;color:var(--text)}
+  .foot-brand .logo img{width:32px;height:32px;flex:none}
+  .foot-brand p{color:var(--sub);font-size:14px;margin-top:12px;max-width:30ch;line-height:1.8}
+  /* 社交：与通用页脚同一组平台 / 同一套官方 LOGO 路径；图标按钮 + 微信 / 抖音二维码浮层 */
+  .foot-social{display:flex;align-items:center;gap:2px;margin-top:14px;margin-left:-7px}
+  .foot-social__cell{position:relative;display:inline-flex}
+  .foot-social__item{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border:0;background:transparent;color:var(--sub);cursor:pointer;text-decoration:none;transition:color .2s,transform .2s}
+  .foot-social__item:hover{color:var(--text);transform:translateY(-2px)}
+  .foot-social__item:active{transform:translateY(-1px)}
+  .foot-social__item svg{width:21px;height:21px;display:block}
+  /* 小红书字标为横排三字（宽高比约 2.8:1），给更宽槽位并按墨迹高度放大，视觉重量与其他图标齐平 */
+  .foot-social__item[aria-label="官方小红书"]{width:48px}
+  .foot-social__item[aria-label="官方小红书"] svg{width:46px;height:46px}
+  .foot-social__item:focus-visible{outline:2px solid var(--cyan);outline-offset:1px;border-radius:9px}
+  .foot-social__pop{position:absolute;left:-4px;bottom:calc(100% + 12px);z-index:9;width:172px;padding:12px;border-radius:14px;background:rgba(10,13,22,.96);border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 44px rgba(0,0,0,.5);text-align:center;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(4px);transition:opacity .18s,transform .18s,visibility .18s}
+  .foot-social__cell:hover .foot-social__pop,.foot-social__cell:focus-within .foot-social__pop,.foot-social__cell.is-open .foot-social__pop{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+  .foot-social__pop img{display:block;width:120px;height:120px;padding:4px;border-radius:10px;background:#fff;margin:0 auto 8px}
+  .foot-social__pop b{display:block;font-size:12px;font-weight:500;color:#fff}
+  .foot-social__pop em{display:block;margin-top:4px;font-style:normal;font-size:11px;line-height:1.6;color:rgba(255,255,255,.58)}
+  .foot-social__tip{position:absolute;left:0;bottom:calc(100% + 10px);z-index:8;padding:6px 10px;border-radius:8px;background:#14161f;border:1px solid rgba(255,255,255,.12);color:#fff;font-size:11px;line-height:1.3;white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(4px);transition:opacity .18s,transform .18s,visibility .18s}
+  .foot-social__item:hover .foot-social__tip,.foot-social__item:focus-visible .foot-social__tip{opacity:1;visibility:visible;transform:translateY(0)}
+  .foot-col b{display:block;font-size:13px;color:var(--dim);margin-bottom:12px;font-weight:500}
   .foot-col a{display:block;font-size:14px;color:var(--sub);text-decoration:none;padding:5px 0;transition:color .2s}
   .foot-col a:hover{color:var(--text)}
-  .wordmark{font-size:clamp(90px,17vw,250px);line-height:.82;letter-spacing:.04em;font-weight:600;
-    color:rgba(255,255,255,.055);text-align:center;margin-top:64px;user-select:none;pointer-events:none}
-  .foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:8px}
+  .foot-qr{text-align:center;font-size:11px;color:var(--dim)}
+  .foot-qr img{width:86px;height:86px;border-radius:8px;background:#fff;padding:4px;margin:0 auto 8px}
+  .foot-qr b{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-bottom:2px}
+  .foot-logo{display:block;width:min(960px,92%);margin:56px auto 38px;filter:invert(1);opacity:.07;pointer-events:none;user-select:none}
+  .foot-bot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--dim);padding-top:20px;border-top:1px solid var(--line2)}
+  .foot-bot .l{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .foot-bot .l i{font-style:normal;opacity:.4}
+  .foot-bot a{color:var(--dim);text-decoration:none;transition:color .2s}
+  .foot-bot a:hover{color:var(--text)}
+
+  /* ---------- 右下角悬浮按钮：与全站一致（返回顶部 / 联系客服） ---------- */
+  .fab{position:fixed;right:22px;bottom:24px;z-index:80;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+  .fab__btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(12,16,26,.78);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);color:rgba(235,242,255,.78);box-shadow:0 12px 30px rgba(0,0,0,.45);cursor:pointer;transition:border-color .2s,color .2s,background .2s,box-shadow .2s,opacity .2s,transform .2s}
+  .fab__btn:hover{border-color:var(--brand-hi);color:#fff;box-shadow:0 16px 36px rgba(0,0,0,.55)}
+  .fab__btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .fab__btn--primary{border-color:transparent;background:var(--brand-grad);color:#fff;box-shadow:0 12px 30px rgba(32,64,237,.42)}
+  .fab__btn--primary:hover{background:linear-gradient(135deg,#6d86ff,#2c53ff 52%,#1f3ce0);border-color:transparent;color:#fff;box-shadow:0 14px 34px rgba(32,64,237,.52)}
+  .fab__btn--top{opacity:0;visibility:hidden;transform:translateY(8px);pointer-events:none}
+  .fab.is-visible .fab__btn--top{opacity:1;visibility:visible;transform:none;pointer-events:auto}
+  .fab__contact{position:relative;display:flex}
+  .fab__panel{position:absolute;right:calc(100% + 12px);bottom:0;width:304px;padding:20px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(10,13,22,.94);-webkit-backdrop-filter:saturate(180%) blur(18px);backdrop-filter:saturate(180%) blur(18px);box-shadow:0 24px 60px rgba(0,0,0,.6);transform-origin:100% 100%;opacity:0;visibility:hidden;transform:translateY(6px) scale(.97);transition:opacity .2s,transform .2s,visibility .2s}
+  .fab__panel::after{content:"";position:absolute;right:-12px;top:0;width:12px;height:100%}
+  .fab__contact:hover .fab__panel,.fab__contact:focus-within .fab__panel,.fab__contact.is-open .fab__panel{opacity:1;visibility:visible;transform:none}
+  .fab__panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .fab__panel-title{font-size:18px;font-weight:600;letter-spacing:-.01em;color:#fff}
+  .fab__panel-sub{margin-top:4px;font-size:12px;line-height:1.5;color:var(--dim)}
+  .fab__panel-live{display:inline-flex;align-items:center;gap:6px;flex:none;height:24px;padding:0 10px;border-radius:999px;background:rgba(91,117,245,.16);color:var(--cyan);font-size:12px;font-weight:500}
+  .fab__panel-live i{width:6px;height:6px;border-radius:50%;background:var(--brand-hi)}
+  .fab__panel-qr{display:flex;align-items:center;gap:14px;margin-top:16px;padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.04)}
+  .fab__panel-qr img{flex:none;display:block;width:88px;height:88px;padding:5px;border-radius:10px;background:#fff}
+  .fab__panel-qrcopy{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .fab__panel-qrcopy b{font-size:14px;font-weight:600;color:#fff}
+  .fab__panel-qrcopy span{font-size:12px;line-height:1.55;color:var(--dim)}
+  .fab__panel-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08);color:var(--text);font-size:13px;text-decoration:none;white-space:nowrap}
+  .fab__panel-row:first-of-type{margin-top:12px}
+  .fab__panel-row:hover{color:var(--cyan)}
+  .fab__panel-row svg{flex:none;color:var(--dim)}
+  .fab__panel-row b{margin-left:auto;font-family:var(--mono);font-size:12px;letter-spacing:.01em}
+  .fab__panel-row .chev{margin-left:auto}
+  @media (max-width:560px){.fab{right:14px;bottom:16px}.fab__panel{width:min(304px,calc(100vw - 76px))}}
+  @media (prefers-reduced-motion:reduce){.fab__btn,.fab__panel{transition:none}}
 
   /* ---------- 移动 ---------- */
+  /* 1366 及以下：收紧首屏纵向节奏，让文案、数据、界面都完整落在弧线之上 */
+  @media (max-width:1366px){
+    .hero{padding-top:140px;padding-bottom:48px}
+    .hero-copy{margin-bottom:90px}
+    .hero-sub{margin-top:18px}
+    .hero-actions{margin-top:26px}
+    .stats{margin-top:32px;padding-top:20px}
+  }
+  @media (max-width:1366px){
+    .float-card{width:172px;padding:10px 12px 11px}
+    .fc--preset{left:-4%}
+    .fc--slider{right:4%;bottom:10%}
+    .fc--source{right:4%;width:156px}
+  }
+  @media (max-width:1100px){
+    .devices{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
   @media (max-width:980px){
     .wrap{width:calc(100% - 40px)}
     .nav-links{display:none}
-    .hero{padding-top:100px;min-height:auto}
+    .nav-burger{display:flex}
+    .nav-mobile{display:block;position:fixed;top:70px;left:0;right:0;z-index:60;padding:6px 0 12px;
+      background:rgba(5,7,12,.98);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(255,255,255,.07);
+      opacity:0;transform:translateY(-10px);pointer-events:none;
+      transition:opacity .24s var(--ease),transform .24s var(--ease);max-height:calc(100svh - 70px);overflow:auto}
+    .nav-mobile.open{opacity:1;transform:none;pointer-events:auto}
+    .nav-mobile a{display:block;padding:13px 20px;color:var(--sub);text-decoration:none;font-size:15px;
+      border-bottom:1px solid rgba(255,255,255,.05)}
+    .nav-mobile a:last-child{border-bottom:0;color:#8fb4ff}
+    .nav-sub .wrap{gap:16px;overflow-x:auto;scrollbar-width:none}
+    .nav-sub .wrap::-webkit-scrollbar{display:none}
+    .nav-sub b,.nav-sub .ver{display:none}
+    .hero{padding-top:140px;min-height:auto}
+    .hero-copy{margin-bottom:0}
     .hero .wrap{grid-template-columns:1fr;gap:48px}
     .hero-sub{max-width:none}
     .stats{gap:26px}
     .sec{padding:96px 0}
+    .statement{padding:120px 0 100px}
     .mod-grid{grid-template-columns:1fr 1fr}
     .mod{min-height:280px}
     .stage{height:auto}
@@ -262,17 +591,36 @@
     .stage-inner{grid-template-columns:1fr;gap:40px}
     .stage-window{transform:none}
     .callouts{display:none}
+    .zoom{height:auto}
+    .zoom-sticky{position:static;height:auto;padding:80px 0}
+    .zoom-inner{grid-template-columns:1fr;gap:32px}
+    .zoom-stage{transform:none}
     .console,.cols,.feat{grid-template-columns:1fr;gap:36px}
+    .console .shot,.console .panel{transform:none}
+    .shot{min-height:0}
+    .shot img{height:auto;flex:none}
+    .panel{min-height:0}
+    .preview{height:200px}
+    .feat-media,.feat-media img{min-height:240px}
+    .float-card{display:none}
+    .hero-window{top:0}
     .feat:nth-child(even) .feat-media{order:0}
     .devices{grid-template-columns:1fr 1fr}
-    .download{padding:34px}
+    .download{padding:34px;grid-template-columns:1fr;gap:30px}
+    .dl-steps{grid-template-columns:1fr;gap:24px}
+    .closing{padding:80px 0 110px}
     .foot-top{grid-template-columns:1fr 1fr}
+    .foot-qr{grid-column:span 2}
   }
   @media (max-width:620px){
+    .hero h1,.statement h2{white-space:normal}
     .mod-grid{grid-template-columns:1fr}
     .devices{grid-template-columns:1fr}
     .stats{flex-wrap:wrap;gap:18px 30px}
     .hero-actions .btn{width:100%;justify-content:center}
+    .foot-top{grid-template-columns:1fr}
+    .foot-qr{grid-column:auto}
+    .preview img{height:190px}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
@@ -289,95 +637,181 @@
 <div class="vignette"></div>
 <div class="grain"></div>
 
+<!-- 品牌渐变描边（供六模块图标复用）：userSpaceOnUse 让同一枚图标内的多个图形共用一条渐变 -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <linearGradient id="ghBrandStroke" gradientUnits="userSpaceOnUse" x1="2" y1="2" x2="22" y2="22">
+      <stop offset="0" stop-color="#a8b8ff" />
+      <stop offset=".5" stop-color="#5b75f5" />
+      <stop offset="1" stop-color="#2040ed" />
+    </linearGradient>
+  </defs>
+</svg>
+
 <nav class="nav">
   <div class="wrap">
-    <div class="brand"><i></i>光魂 Center</div>
+    <a class="brand" href="/" aria-label="返回光魂首页"><img src="/brand/mark.png" alt="" /><span class="logo-word" role="img" aria-label="SVDC 光魂"></span></a>
     <div class="nav-links">
-      <a href="#mods">功能</a><a href="#stage">调校</a><a href="#devices">设备</a><a href="#download">下载</a>
+      <a href="/products">产品<i>▾</i></a>
+      <a href="/center" class="on">光魂 Center</a>
+      <a href="/ladder">天梯榜</a>
+      <a href="/support">服务与支持<i>▾</i></a>
+      <a href="/about">探索光魂<i>▾</i></a>
+      <a href="/products">商城</a>
     </div>
-    <a class="nav-cta" href="#download">下载 Center</a>
+    <div class="nav-right">
+      <a class="nav-cta" href="/downloads/center-win">下载 Center</a>
+      <button class="nav-burger" type="button" aria-label="打开站点菜单" aria-expanded="false" aria-controls="navMobile"><i></i><i></i></button>
+    </div>
   </div>
 </nav>
+<div class="nav-mobile" id="navMobile">
+  <a href="/products">产品</a>
+  <a href="/center">光魂 Center</a>
+  <a href="/ladder">天梯榜</a>
+  <a href="/support">服务与支持</a>
+  <a href="/about">探索光魂</a>
+  <a href="/products">商城</a>
+  <a href="/downloads/center-win">下载 Center</a>
+</div>
+<div class="nav-sub">
+  <div class="wrap">
+    <b>Center</b>
+    <a href="#mods">功能</a>
+    <a href="#zoom">界面</a>
+    <a href="#console">调校</a>
+    <a href="#devices">设备</a>
+    <a href="#download">下载</a>
+    <span class="ver">v1.3.3</span>
+  </div>
+</div>
 
 <main>
   <!-- 首屏 -->
   <header class="hero">
-    <div class="arc"></div>
-    <div class="arc-glow"></div>
+    <!-- 星球地平线：纯 CSS 复刻，暗色球体 + 极细亮弧 + 大气辉光，弧线带呼吸 -->
+    <div class="planet" aria-hidden="true">
+      <div class="planet-glow"></div>
+      <div class="planet-body"></div>
+      <div class="planet-rim"></div>
+      <canvas id="horizon"></canvas>
+    </div>
+    <div class="hero-scrim" aria-hidden="true"></div>
     <div class="wrap">
-      <div>
-        <h1>把每一帧<br /><em>调到你要的样子</em></h1>
-        <p class="hero-sub">亮度、色温、HDR、分区背光，全部收进一个界面。改一个参数，画面立刻给你回应。</p>
+      <div class="reveal hero-copy">
+        <h1>全新 <em>Center</em> 软件</h1>
+        <p class="hero-sub">调显示器，不用再翻 OSD 菜单。亮度、色彩、刷新率、输入源都在一个窗口里，预设还能跟着程序自动切换。<small>支持 Windows 10 / 11 64 位。安装包 4.5 MB，通过 DDC/CI 调节显示器。</small></p>
         <div class="hero-actions">
-          <a class="btn btn--primary magnet" href="#download">下载 Center
+          <a class="btn btn--primary magnet" href="/downloads/center-win">下载 Windows 版
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
           </a>
-          <a class="btn btn--ghost" href="#stage">看它怎么工作</a>
+          <a class="btn btn--ghost" href="#mods">查看功能</a>
         </div>
         <div class="stats">
-          <div class="stat"><b><span class="slot" data-value="6"></span></b><span>场景预设</span></div>
-          <div class="stat"><b><span class="slot" data-value="8"></span></b><span>可调参数</span></div>
-          <div class="stat"><b><span class="slot" data-value="40"></span><span style="font-size:20px;align-self:flex-start;line-height:1.4">+</span></b><span>支持机型</span></div>
+          <div class="stat"><b><span class="slot" data-value="6"></span></b><span>功能模块</span></div>
+          <div class="stat"><b><span class="slot" data-value="8"></span></b><span>预设模式</span></div>
+          <div class="stat"><b><span class="slot" data-value="38"></span></b><span>可调参数</span></div>
         </div>
       </div>
-      <div class="stage-view hero-window" id="heroWindow">
-        <div class="window window--ratio" id="heroWin">
-          <div class="win-bar"><i></i><i></i><i></i><span>Center 2.6.0</span></div>
+      <div class="stage-view hero-window reveal" id="heroWindow" style="--rd:.12s">
+        <div class="hero-plane" id="heroPlane">
+          <div class="window window--ratio hero-device" id="heroWin">
+            <div class="device-screen" role="img" aria-label="Center 软件主界面：左侧为功能分组，右侧为当前分组的参数">
+            </div>
+          </div>
+
+          <!-- 浮层一：预设切换（可点，切换后联动右下角的亮度 / 对比度） -->
+          <div class="float-card fc--preset" style="--z:66px" role="group" aria-label="预设模式">
+            <div class="fc-head"><span class="fc-dot"></span>预设<b id="fcPreset">FPS</b></div>
+            <div class="fc-chips" id="fcPresetChips">
+              <button class="fc-chip" type="button" data-preset="std">标准</button>
+              <button class="fc-chip on" type="button" data-preset="fps">FPS</button>
+              <button class="fc-chip" type="button" data-preset="rts">RTS</button>
+            </div>
+          </div>
+
+          <!-- 浮层二：亮度 / 对比度，真滑杆，实时改屏幕的显示效果 -->
+          <div class="float-card fc--slider" style="--z:94px" role="group" aria-label="画面参数">
+            <div class="fc-head"><span class="fc-dot"></span>画面<b id="fcMode">FPS</b></div>
+            <div class="fc-row">
+              <div class="lbl"><span>亮度</span><b id="fcBriV">82</b></div>
+              <div class="fc-rail"><i id="fcBriBar" style="width:82%"></i>
+                <input id="fcBri" type="range" min="0" max="100" value="82" aria-label="亮度" />
+              </div>
+            </div>
+            <div class="fc-row">
+              <div class="lbl"><span>对比度</span><b id="fcConV">56</b></div>
+              <div class="fc-rail"><i id="fcConBar" style="width:56%"></i>
+                <input id="fcCon" type="range" min="0" max="100" value="56" aria-label="对比度" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 浮层三：输入源切换 -->
+          <div class="float-card fc--source" style="--z:74px" role="group" aria-label="输入源">
+            <div class="fc-head"><span class="fc-dot"></span>输入源<b id="fcSrcHz">5 路</b></div>
+            <div class="fc-chips" id="fcSrcs">
+              <button class="fc-chip on" type="button" data-src="dp">DP1</button>
+              <button class="fc-chip" type="button" data-src="hdmi">HDMI1</button>
+              <button class="fc-chip" type="button" data-src="usbc">USB-C</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <div class="scroll-cue"><i></i>向下滚动</div>
   </header>
 
+  <!-- 主张句 -->
+  <section class="statement" id="statement">
+    <div class="wrap">
+      <h2 class="reveal">屏幕不该只有一种样子。</h2>
+    </div>
+  </section>
+
   <!-- 六模块 -->
   <section class="sec mods" id="mods">
     <div class="wrap">
       <div class="sec-head reveal">
-        <h2>六件事，一个界面做完</h2>
-        <p>从开箱预设到逐帧微调，不需要在多个工具之间来回切换。向下滚动，卡片会从平铺状态立起来。</p>
+        <h2>六个模块，一块屏。</h2>
+        <p>从亮度、对比度到输入源和设备信息，六个分组各管一块。点开哪一组，界面就只显示这一组参数。</p>
       </div>
       <div class="mod-grid" id="modGrid">
-        <article class="mod" tabindex="0">
+        <article class="mod">
           <span class="mod-no">01</span>
-          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg></div>
-          <h3>场景预设</h3>
-          <p>游戏、观影、修图、办公，一键切到对应亮度与色温，不用每次重调。</p>
-          <span class="mod-link">了解预设 →</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ghBrandStroke)" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg></div>
+          <h3>基本功能</h3>
+          <p>分辨率、刷新率、画面方向、亮度与对比度，再加 8 档预设。常用项都排在同一页。</p>
         </article>
-        <article class="mod" tabindex="0">
+        <article class="mod">
           <span class="mod-no">02</span>
-          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16 9 9l4 5 3-4 4 6"/><path d="M4 20h16"/></svg></div>
-          <h3>逐帧调校</h3>
-          <p>亮度、对比、饱和度、色温、锐度五条曲线，拖动时画面同步变化。</p>
-          <span class="mod-link">打开调校 →</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ghBrandStroke)" stroke-width="1.5"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+          <h3>电竞设置</h3>
+          <p>暗部增强、色彩增强、清晰度、VRR+、辅助准心与刷新率显示；双模机型在这里一键换挡。</p>
         </article>
-        <article class="mod" tabindex="0">
+        <article class="mod">
           <span class="mod-no">03</span>
-          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></div>
-          <h3>HDR 映射</h3>
-          <p>根据内容自动选择 HDR / SDR 曲线，暗部不糊，高光不过曝。</p>
-          <span class="mod-link">查看映射 →</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ghBrandStroke)" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>专业设置</h3>
+          <p>六轴色调与六轴饱和度，红、黄、绿、青、蓝、品红逐轴校正偏色。</p>
         </article>
-        <article class="mod" tabindex="0">
+        <article class="mod">
           <span class="mod-no">04</span>
-          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></div>
-          <h3>分区背光</h3>
-          <p>分区亮度实时预览，光晕与黑位可控，深夜看片不刺眼。</p>
-          <span class="mod-link">调整分区 →</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ghBrandStroke)" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg></div>
+          <h3>图像调节</h3>
+          <p>色域空间、HDR 模式、色温、伽马与低蓝光调节，可用项按面板与当前模式开放。</p>
         </article>
-        <article class="mod" tabindex="0">
+        <article class="mod">
           <span class="mod-no">05</span>
-          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-          <h3>多屏同步</h3>
-          <p>一套参数同步到同型号副屏，色彩和亮度不会一块亮一块暗。</p>
-          <span class="mod-link">管理多屏 →</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ghBrandStroke)" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h6M15 10l2 2-2 2"/></svg></div>
+          <h3>输入源</h3>
+          <p>DP1、DP2、HDMI1、HDMI2 与 USB-C，五路输入一点即切。</p>
         </article>
-        <article class="mod" tabindex="0">
+        <article class="mod">
           <span class="mod-no">06</span>
-          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3 4 7v6c0 5 3.5 7.5 8 8 4.5-.5 8-3 8-8V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg></div>
-          <h3>配置记忆</h3>
-          <p>每台显示器独立保存配置，接上就恢复，换机不用重新设。</p>
-          <span class="mod-link">查看配置 →</span>
+          <div class="mod-icon"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ghBrandStroke)" stroke-width="1.5"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>系统设置</h3>
+          <p>音量、静音、RGB 灯效、显示器语言与接口规格，以及检查软件更新和恢复出厂。</p>
         </article>
       </div>
     </div>
@@ -387,21 +821,60 @@
   <section class="stage" id="stage">
     <div class="stage-sticky">
       <div class="wrap stage-inner">
-        <div class="stage-copy">
-          <h2>先平铺，<br />再立起来</h2>
-          <p>同一个窗口，随着滚动从桌面角度立起、转正、推近。不是播放视频，是界面本身在动。</p>
+        <div class="stage-copy reveal">
+          <h2>六组参数，<br />一条路径。</h2>
+          <p>从基本功能开始，往下是电竞设置、专业设置、图像调节、输入源与系统设置。切到哪一组，右侧就只排这一组参数。</p>
           <div class="steps">
-            <div class="step" data-step="0"><b>01</b><span>平铺：看清整体布局</span></div>
-            <div class="step" data-step="1"><b>02</b><span>立起：进入工作视角</span></div>
-            <div class="step" data-step="2"><b>03</b><span>推近：对准调校面板</span></div>
+            <div class="step" data-step="0"><b>01</b><span>基本功能：分辨率、亮度与预设</span></div>
+            <div class="step" data-step="1"><b>02</b><span>专业设置：六轴色调与饱和度</span></div>
+            <div class="step" data-step="2"><b>03</b><span>系统设置：音量、语言与更新</span></div>
           </div>
         </div>
         <div class="stage-view">
-          <div class="stage-window" id="stageWin"><div class="win-bar"><i></i><i></i><i></i><span>Center 2.6.0</span></div></div>
+          <div class="stage-window" id="stageWin"></div>
           <div class="callouts">
-            <div class="callout" data-at="0.16"><span>左侧导航 · 六个模块</span></div>
-            <div class="callout" data-at="0.46"><span>中部滑杆 · 实时生效</span></div>
-            <div class="callout" data-at="0.74"><span>底部状态 · 机型与固件</span></div>
+            <div class="callout" data-at="0.72"><span>6 个模块，覆盖显示到设备</span></div>
+            <div class="callout" data-at="0.85"><span>改动即时写入，没有保存按钮</span></div>
+            <div class="callout" data-at="0.97"><span>机型与当前输入源自动读取</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 界面细节：滚动放大 -->
+  <section class="zoom" id="zoom">
+    <div class="zoom-sticky">
+      <div class="wrap zoom-inner">
+        <div class="zoom-copy">
+          <h2 class="reveal">每一处，<br />都看得清。</h2>
+          <p class="reveal" style="--rd:.08s">六轴色调与六轴饱和度同屏排开，12 条滑杆，每一条都有独立读数。</p>
+          <div class="zoom-notes">
+            <button class="zn" type="button" data-at="0.16"><b>01</b><span class="zn-h">六轴一屏看全</span><span class="zn-p">红、黄、绿、青、蓝、品红，色调与饱和度两组都在同一屏。</span></button>
+            <button class="zn" type="button" data-at="0.48"><b>02</b><span class="zn-h">滑块实时预览</span><span class="zn-p">拖动任一轴，画面同步变化，松手即生效。</span></button>
+            <button class="zn" type="button" data-at="0.80"><b>03</b><span class="zn-h">数值看得清</span><span class="zn-p">每个参数都有明确读数，右上角「重置此页」一次还原。</span></button>
+          </div>
+        </div>
+        <div class="zoom-view">
+          <div class="zoom-frame" id="zoomFrame">
+            <div class="zoom-stage" id="zoomStage">
+              <img src="/media/center/app/pro.webp" alt="Center 专业设置界面局部" loading="lazy" />
+              <div class="zoom-sliders" id="zoomSliders" aria-hidden="true">
+                <i class="zs" style="--x:19.1%;--y:26.9%;--w:23.7%;--c:#ff4d4d;--v:50%" data-base="50" data-amp="7" data-phase="0"></i>
+                <i class="zs" style="--x:45%;--y:26.9%;--w:23.7%;--c:#f2d24b;--v:50%" data-base="50" data-amp="6" data-phase=".9"></i>
+                <i class="zs" style="--x:70.9%;--y:26.9%;--w:23.7%;--c:#4ade80;--v:50%" data-base="50" data-amp="8" data-phase="1.8"></i>
+                <i class="zs" style="--x:19.1%;--y:33.1%;--w:23.7%;--c:#22d3ee;--v:50%" data-base="50" data-amp="7" data-phase="2.7"></i>
+                <i class="zs" style="--x:45%;--y:33.1%;--w:23.7%;--c:#4f8cff;--v:50%" data-base="50" data-amp="6" data-phase="3.6"></i>
+                <i class="zs" style="--x:70.9%;--y:33.1%;--w:23.7%;--c:#e879f9;--v:50%" data-base="50" data-amp="8" data-phase="4.5"></i>
+                <i class="zs" style="--x:19.1%;--y:49.5%;--w:23.7%;--c:#ff4d4d;--v:55%" data-base="55" data-amp="6" data-phase=".4"></i>
+                <i class="zs" style="--x:45%;--y:49.5%;--w:23.7%;--c:#f2d24b;--v:50%" data-base="50" data-amp="7" data-phase="1.3"></i>
+                <i class="zs" style="--x:70.9%;--y:49.5%;--w:23.7%;--c:#4ade80;--v:52%" data-base="52" data-amp="6" data-phase="2.2"></i>
+                <i class="zs" style="--x:19.1%;--y:55.8%;--w:23.7%;--c:#22d3ee;--v:50%" data-base="50" data-amp="7" data-phase="3.1"></i>
+                <i class="zs" style="--x:45%;--y:55.8%;--w:23.7%;--c:#4f8cff;--v:54%" data-base="54" data-amp="6" data-phase="4.0"></i>
+                <i class="zs" style="--x:70.9%;--y:55.8%;--w:23.7%;--c:#e879f9;--v:50%" data-base="50" data-amp="8" data-phase="4.9"></i>
+              </div>
+            </div>
+            <span class="zoom-tag">Center 1.3.3 · 专业设置</span>
           </div>
         </div>
       </div>
@@ -412,29 +885,31 @@
   <section class="sec" id="console">
     <div class="wrap">
       <div class="sec-head reveal">
-        <h2>拖动滑杆，右边立刻变</h2>
-        <p>这是真实界面的截图，右侧是同一张画面经过参数处理后的效果。你可以直接拖，感受 Center 的调校逻辑。</p>
+        <h2>四项常用参数，拖动就看变化。</h2>
+        <p>亮度、对比度、饱和度与色温。左图是 Center 专业设置的实际界面；右侧是同一张画面的效果演示，拖动即可预览。</p>
       </div>
       <div class="console">
-        <div class="shot reveal">
-          <img src="/media/center/app/pro.webp" alt="Center 调校界面实拍" loading="lazy" />
-        </div>
+        <figure class="shot reveal">
+          <img src="/media/center/app/pro.webp" alt="Center 专业设置界面实拍" loading="lazy" />
+          <figcaption>Center 1.3.3 · 专业设置</figcaption>
+        </figure>
         <div class="panel reveal">
-          <div class="panel-head"><h3>画面调校</h3><span class="mono" style="font-size:12px;color:var(--dim)">LIVE</span></div>
-          <div class="chips" id="presets">
-            <button class="chip on" data-preset="standard">标准</button>
-            <button class="chip" data-preset="game">游戏</button>
-            <button class="chip" data-preset="movie">观影</button>
-            <button class="chip" data-preset="photo">修图</button>
-          </div>
-          <div class="row"><span>亮度</span><input type="range" id="br" min="60" max="140" value="100" /><output id="brv">100</output></div>
-          <div class="row"><span>对比</span><input type="range" id="co" min="70" max="140" value="100" /><output id="cov">100</output></div>
-          <div class="row"><span>饱和</span><input type="range" id="sa" min="40" max="160" value="100" /><output id="sav">100</output></div>
-          <div class="row"><span>色温</span><input type="range" id="te" min="-40" max="40" value="0" /><output id="tev">0</output></div>
-          <div class="row"><span>锐度</span><input type="range" id="sh" min="0" max="100" value="40" /><output id="shv">40</output></div>
           <div class="preview" id="preview">
-            <img src="/media/home/hero-3.jpg" alt="调色预览" loading="lazy" />
-            <b>PREVIEW · 实时输出</b>
+            <img src="/media/home/hero-3.jpg" alt="参数预览" loading="lazy" />
+            <b>PREVIEW · 参数预览</b>
+          </div>
+          <div class="panel-body">
+            <div class="panel-head"><h3>画面调校</h3><span class="mono" style="font-size:12px;color:var(--dim)">LIVE</span></div>
+            <div class="chips" id="presets">
+              <button class="chip on" data-preset="standard">标准</button>
+              <button class="chip" data-preset="fps">FPS</button>
+              <button class="chip" data-preset="rts">RTS</button>
+              <button class="chip" data-preset="lowblue">低蓝光</button>
+            </div>
+            <div class="row"><span>亮度</span><input type="range" id="br" min="60" max="140" value="100" /><output id="brv">100</output></div>
+            <div class="row"><span>对比</span><input type="range" id="co" min="70" max="140" value="100" /><output id="cov">100</output></div>
+            <div class="row"><span>饱和</span><input type="range" id="sa" min="40" max="160" value="100" /><output id="sav">100</output></div>
+            <div class="row"><span>色温</span><input type="range" id="te" min="-40" max="40" value="0" /><output id="tev">0</output></div>
           </div>
         </div>
       </div>
@@ -445,32 +920,41 @@
   <section class="sec" id="features">
     <div class="wrap">
       <div class="sec-head reveal">
-        <h2>把复杂留在后台</h2>
-        <p>你只需要看到结果：画面对了、眼睛不累、换机不用重设。</p>
+        <h2>把重复的操作，交给它。</h2>
+        <p>三件事不用每次手动：应用联动、软件更新、预设切换。</p>
       </div>
       <div class="feat reveal">
         <div>
-          <span class="feat-no">01 / 自动</span>
-          <h3>认出你在看什么，自动切预设</h3>
-          <p>检测到游戏、影片或修图软件，Center 会切到对应模式；也可以锁定当前配置，不被打断。</p>
+          <span class="feat-no">01 / 应用联动</span>
+          <h3>一个进程，一套预设</h3>
+          <p>把程序和预设绑定。进入前台自动切到 FPS 或 RTS，退出后恢复原来的模式。</p>
         </div>
-        <div class="feat-media"><img src="/media/center/app/image.webp" alt="自动场景识别" loading="lazy" /></div>
+        <div class="feat-media">
+          <img src="/media/center/app/basic.webp" alt="Center 基本功能界面，底部为应用联动状态" loading="lazy" style="object-position:center 82%" />
+          <div class="feat-live"><span class="fl-dot"></span><b>GAME.exe</b><span>→</span><em>FPS</em></div>
+        </div>
       </div>
       <div class="feat reveal">
         <div>
-          <span class="feat-no">02 / 护眼</span>
-          <h3>低蓝光不等于发黄</h3>
-          <p>按环境光调整色温曲线，保留肤色和白色的准确度，长时间工作眼睛不酸。</p>
+          <span class="feat-no">02 / 软件更新</span>
+          <h3>有新版本，就在 Center 里更新</h3>
+          <p>在 Center 里检查新版本，并按提示完成更新。升级过程中请保持显示器连接与供电。</p>
         </div>
-        <div class="feat-media"><img src="/media/center/app/input.webp" alt="护眼模式" loading="lazy" /></div>
+        <div class="feat-media">
+          <img src="/media/center/app/system.webp" alt="Center 系统设置界面，右侧为检查软件更新入口" loading="lazy" />
+          <div class="feat-live"><b>Center v1.3.3</b><div class="fl-bar"><i></i></div><span>检查更新</span></div>
+        </div>
       </div>
       <div class="feat reveal">
         <div>
-          <span class="feat-no">03 / 记忆</span>
-          <h3>每台显示器，都有自己的配置</h3>
-          <p>型号、固件、分区数自动识别；配置跟着设备走，换主机也不用重新调。</p>
+          <span class="feat-no">03 / 预设</span>
+          <h3>八档预设，一键套用整套参数</h3>
+          <p>标准、E-SPORTS、FPS、RTS、MAC、低蓝光，以及两组玩家预设。切换时整套画面参数一起套用。</p>
         </div>
-        <div class="feat-media"><img src="/media/center/app/system.webp" alt="设备配置记忆" loading="lazy" /></div>
+        <div class="feat-media">
+          <img src="/media/center/app/basic.webp" alt="Center 基本功能界面，展示预设模式与画面参数" loading="lazy" style="object-position:center 52%" />
+          <div class="feat-live"><span>预设</span><b>FPS</b><span>·</span><em>8 档</em></div>
+        </div>
       </div>
     </div>
   </section>
@@ -480,13 +964,13 @@
     <div class="wrap">
       <div class="sec-head reveal">
         <h2>接上就能认出来</h2>
-        <p>覆盖光魂在售的 40+ 机型，插上即读型号、固件与分区能力。</p>
+        <p>目前支持 3 款光魂主力机型。连接后读取型号与当前输入源，型号也可以手动切换。</p>
       </div>
-      <div class="devices reveal">
-        <div class="device"><div class="monitor"></div><b>光魂 27 Pro</b><span>4K · 160Hz · 1152 分区</span></div>
-        <div class="device"><div class="monitor"></div><b>光魂 32 Ultra</b><span>4K · 144Hz · 2304 分区</span></div>
-        <div class="device"><div class="monitor"></div><b>光魂 34 Curve</b><span>2K · 165Hz · 原生 10bit</span></div>
-        <div class="device"><div class="monitor"></div><b>光魂 24 ES</b><span>2K · 180Hz · 硬件低蓝光</span></div>
+      <!-- 型号与主图取产品库（相册首图 = 详情页主图），由下方脚本填充；静态内容为无脚本兜底 -->
+      <div class="devices reveal" id="devicesGrid">
+        <div class="device"><div class="monitor has-img is-alpha"><img src="/media/products/transparent/gh-54027x1qe.webp" alt="27X1QE-W54" loading="lazy"></div><b>27X1QE-W54</b><span>已适配 · 26.5 英寸 · 2K 540Hz / HD 720Hz</span></div>
+        <div class="device"><div class="monitor has-img is-alpha"><img src="/media/products/transparent/gh-32x1ue.webp" alt="32X1UE-W16" loading="lazy"></div><b>32X1UE-W16</b><span>已适配 · 31.5 英寸 · 4K@165 / FHD@330</span></div>
+        <div class="device"><div class="monitor has-img is-alpha"><img src="/media/products/transparent/gh-28027x1qe.webp" alt="27X1QE-W28" loading="lazy"></div><b>27X1QE-W28</b><span>已适配 · 26.5 英寸 · 2K 280Hz</span></div>
       </div>
     </div>
   </section>
@@ -495,14 +979,24 @@
   <section class="sec" id="download">
     <div class="wrap">
       <div class="download reveal">
-        <h2>Center 2.6.0</h2>
-        <p>支持 Windows 10 / 11 与 macOS 13 及以上。安装包约 86 MB。</p>
-        <div class="os">
-          <a href="#">Windows 版 · x64</a>
-          <a href="#">macOS · Apple Silicon</a>
-          <a href="#">macOS · Intel</a>
+        <div>
+          <span class="dl-kicker">下载</span>
+          <h2>先装 Center，<br />再调这块屏。</h2>
+          <p>安装包 4.5 MB，安装后通过 DDC/CI 调校显示器。</p>
         </div>
-        <div class="dl-meta"><span>SHA256 9F2A…C41D</span><span>更新于 2026-10-28</span><span>86.4 MB</span></div>
+        <div class="dl-side">
+          <span class="dl-os">Windows 10 / 11（64 位）</span>
+          <b class="dl-ver">v1.3.3</b>
+          <a class="btn btn--primary" href="/downloads/center-win">下载 Center
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+          <span class="dl-size">4.5 MB · 更新于 2026-11-04</span>
+        </div>
+      </div>
+      <div class="dl-steps">
+        <div class="reveal"><b>01</b><h3>下载并安装</h3><p>运行安装包，按提示完成安装。暂不提供 macOS 版本，Windows 10 / 11 需为 64 位系统。</p></div>
+        <div class="reveal" style="--rd:.1s"><b>02</b><h3>连接显示器</h3><p>用 DP 或 USB-C 直连，确认输入源。</p></div>
+        <div class="reveal" style="--rd:.2s"><b>03</b><h3>开始调校</h3><p>识别到型号后，参数改动即时写入。</p></div>
       </div>
     </div>
   </section>
@@ -511,22 +1005,32 @@
   <section class="sec" id="more">
     <div class="wrap cols">
       <div class="reveal">
-        <h2 style="font-size:32px;margin:0 0 18px">最近更新</h2>
+        <h2 style="font-size:32px;margin:0 0 18px">版本信息</h2>
         <ul class="log">
-          <li><time>2026-10-28</time><div><b>2.6.0</b><span>新增分区背光预览；重写 HDR 曲线，暗部细节提升。</span></div></li>
-          <li><time>2026-09-12</time><div><b>2.5.2</b><span>修复多屏同步偶发失效；降低待机占用。</span></div></li>
-          <li><time>2026-08-03</time><div><b>2.5.0</b><span>全新调校面板；支持配置导入导出。</span></div></li>
+          <li><time>版本</time><div><b>v1.3.3</b><span>当前正式版</span></div></li>
+          <li><time>系统</time><div><b>Windows 10 / 11</b><span>64 位；暂不提供 macOS 版本</span></div></li>
+          <li><time>安装包</time><div><b>4.5 MB</b><span>更新于 2026-11-04</span></div></li>
         </ul>
       </div>
       <div class="reveal">
         <h2 style="font-size:32px;margin:0 0 18px">你可能想问</h2>
         <div class="faq">
-          <details open><summary>需要显示器支持吗？</summary><p>主流光魂在售机型均可识别；部分老型号仅支持亮度与色温调节。</p></details>
-          <details><summary>配置会丢失吗？</summary><p>配置保存在本地，并按显示器序列号区分；重装系统后可导入备份。</p></details>
-          <details><summary>为什么拖动后画面变化不明显？</summary><p>预览使用压缩图像模拟，实际显示器上的变化会更直接。</p></details>
-          <details><summary>支持 macOS 吗？</summary><p>支持 macOS 13 及以上，Apple Silicon 与 Intel 均有安装包。</p></details>
+          <details open><summary>显示器接上后没有识别到，怎么办？</summary><p>请用 DP 或 USB-C 直连，不要经转接坞；确认显示器处于对应输入源，并在显示器菜单里开启 DDC/CI，然后回到 Center 点一次刷新。</p></details>
+          <details><summary>支持哪些操作系统？</summary><p>Windows 10 / 11 64 位。当前暂不提供 macOS 版本，更早的 Windows 版本不保证可用。</p></details>
+          <details><summary>应用联动是怎么工作的？</summary><p>选择一个 Windows 进程和对应预设后，该程序进入前台时自动切换模式，离开或退出后恢复原模式；也可以只在程序运行时切换。</p></details>
+          <details><summary>固件升级中途失败怎么办？</summary><p>升级过程中请保持显示器连接与供电，避免断电或拔线。若升级异常，重新连接后可在 Center 里再次检查更新；仍无法恢复时请联系售后支持。</p></details>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- 收尾 -->
+  <section class="closing">
+    <div class="wrap">
+      <h2 class="reveal">现在，开始调校。</h2>
+      <a class="btn btn--primary magnet reveal" style="--rd:.1s" href="/downloads/center-win">下载 Windows 版
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
     </div>
   </section>
 
@@ -535,17 +1039,99 @@
     <div class="wrap">
       <div class="foot-top">
         <div class="foot-brand">
-          <b>光魂科技（深圳）有限公司</b>
-          <p>为创作者与玩家，做看得清的显示器。</p>
+          <a class="logo" href="/"><img src="/brand/mark.png" alt="" /><span class="logo-word" role="img" aria-label="SVDC 光魂"></span></a>
+          <p>每一帧的光，都经得起实测。专注电竞显示的面板、固件与调校，让清晰有据可查。</p>
+          <div class="foot-social" role="group" aria-label="关注光魂">
+            <span class="foot-social__cell">
+              <button class="foot-social__item" type="button" aria-label="微信" aria-expanded="false" data-social>
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.27-.027-.407-.03zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/></svg>
+              </button>
+              <span class="foot-social__pop" role="tooltip">
+                <img src="/media/site/wechat-qr-placeholder.svg" alt="微信二维码" loading="lazy" />
+                <b>微信</b><em>微信号：xxrsm001 · 在微信内搜索关注</em>
+              </span>
+            </span>
+            <a class="foot-social__item" href="https://www.xiaohongshu.com/" target="_blank" rel="noreferrer" aria-label="官方小红书">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.405 9.879c.002.016.01.02.07.019h.725a.797.797 0 0 0 .780-.972.794.794 0 0 0-.884-.618.795.795 0 0 0-.692.794c0 .101-.002.666.001.777zm-11.509 4.808c-.203.001-1.353.004-1.685.003a2.528 2.528 0 0 1-.766-.126.025.025 0 0 0-.03.014L7.7 16.127a.025.025 0 0 0 .01.032c.111.06.336.124.495.124.66.01 1.32.002 1.981 0 .01 0 .02-.006.023-.015l.712-1.545a.025.025 0 0 0-.024-.036zM.477 9.91c-.071 0-.076.002-.076.01a.834.834 0 0 0-.01.08c-.027.397-.038.495-.234 3.06-.012.24-.034.389-.135.607-.026.057-.033.042.003.112.046.092.681 1.523.787 1.74.008.015.011.02.017.02.008 0 .033-.026.047-.044.147-.187.268-.391.371-.606.306-.635.44-1.325.486-1.706.014-.11.021-.22.03-.33l.204-2.616.022-.293c.003-.029 0-.033-.03-.034zm7.203 3.757a1.427 1.427 0 0 1-.135-.607c-.004-.084-.031-.39-.235-3.06a.443.443 0 0 0-.01-.082c-.004-.011-.052-.008-.076-.008h-1.48c-.03.001-.034.005-.03.034l.021.293c.076.982.153 1.964.233 2.946.05.4.186 1.085.487 1.706.103.215.223.419.37.606.015.018.037.051.048.049.02-.003.742-1.642.804-1.765.036-.07.03-.055.003-.112zm3.861-.913h-.872a.126.126 0 0 1-.116-.178l1.178-2.625a.025.025 0 0 0-.023-.035l-1.318-.003a.148.148 0 0 1-.135-.210l.876-1.954a.025.025 0 0 0-.023-.035h-1.56c-.01 0-.02.006-.024.015l-.926 2.068c-.085.169-.314.634-.399.938a.534.534 0 0 0-.020.191.46.46 0 0 0 .23.378.981.981 0 0 0 .460.119h.59c.041 0-.688 1.482-.834 1.972a.53.53 0 0 0-.023.172.465.465 0 0 0 .23.398c.15.092.342.12.475.120l1.66-.001c.01 0 .02-.006.023-.015l.575-1.280a.025.025 0 0 0-.024-.035zm-6.93-4.937H3.1a.032.032 0 0 0-.034.033c0 1.048-.010 2.795-.010 6.829 0 .288-.269.262-.280.262h-.740c-.040.001-.044.004-.040.047.001.037.465 1.064.555 1.263.010.020.030.033.051.033.157.003.767.009.938-.014.153-.020.3-.060.438-.132.3-.156.49-.419.595-.765.052-.172.075-.353.075-.533.002-2.33 0-4.66-.007-6.991a.032.032 0 0 0-.032-.032zm11.784 6.896c0-.014-.010-.021-.024-.022h-1.465c-.048-.001-.049-.002-.050-.049v-4.66c0-.072-.005-.070.070-.070h.863c.080 0 .075.004.075-.074V8.393c0-.082.006-.076-.080-.076h-3.50c-.064 0-.075-.006-.075.073v1.445c0 .083-.006.077.080.077h.854c.075 0 .070-.004.070.070v4.624c0 .095.008.084-.085.084-.370 0-1.110-.002-1.304 0-.048.001-.060.030-.060.030l-.697 1.519s-.014.025-.008.036c.006.010.013.008.058.008 1.748.003 3.495.002 5.243.002.030-.001.034-.006.035-.033v-1.539zm4.177-3.430c0 .013-.007.023-.020.024-.346.006-.692.004-1.037.004-.014-.002-.022-.010-.022-.024-.005-.434-.007-.869-.010-1.303 0-.072-.006-.071.070-.070l.733-.003c.041 0 .081.002.120.015.093.025.160.107.165.204.006.431.002 1.153.001 1.153zm2.670.244a1.953 1.953 0 0 0-.883-.222h-.180c-.040-.001-.040-.003-.042-.040V10.21c0-.132-.007-.263-.025-.394a1.823 1.823 0 0 0-.153-.530 1.533 1.533 0 0 0-.677-.710 2.167 2.167 0 0 0-1-.258c-.153-.003-.567 0-.720 0-.070 0-.068.004-.068-.065V7.760c0-.031-.010-.041-.046-.039H17.93s-.016 0-.023.007c-.006.006-.008.012-.008.023v.546c-.008.036-.057.015-.082.022h-.950c-.022.002-.028.008-.030.032v1.481c0 .090-.004.082.082.082h.913c.082 0 .072.128.072.128V11.190s.003.117-.060.117h-1.482c-.068 0-.060.082-.060.082v1.445s-.010.068.064.068h1.457c.082 0 .076-.006.076.079v3.225c0 .088-.007.081.082.081h1.430c.090 0 .082.007.082-.080v-3.270c0-.029.006-.035.033-.035l2.323-.003c.098 0 .191.020.280.061a.460.460 0 0 1 .274.407c.008.395.003.790.003 1.185 0 .259-.107.367-.330.367h-1.218c-.023.002-.029.008-.028.033.184.437.374.871.570 1.303a.045.045 0 0 0 .040.026c.170.005.340.002.510.003.150-.002.517.004.666-.010a2.030 2.030 0 0 0 .408-.075c.590-.180.975-.698.976-1.313v-1.981c0-.128-.010-.254-.034-.380 0 .078-.029-.641-.724-.998z"/></svg>
+              <span class="foot-social__tip" role="tooltip">官方小红书</span>
+            </a>
+            <a class="foot-social__item" href="https://space.bilibili.com/51365206" target="_blank" rel="noreferrer" aria-label="官方 B 站">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.813 4.653h.854c1.510.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.560 3.760v7.360c-.036 1.510-.556 2.769-1.560 3.773s-2.262 1.524-3.773 1.560H5.333c-1.510-.036-2.769-.556-3.773-1.560S.036 18.858 0 17.347v-7.360c.036-1.511.556-2.765 1.560-3.760 1.004-.996 2.262-1.520 3.773-1.574h.774l-1.174-1.120a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.920-.373.347 0 .653.124.920.373L9.653 4.440c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .160-.213l2.853-2.747c.267-.249.573-.373.920-.373.347 0 .662.151.929.400.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.240c-.746.018-1.373.276-1.880.773-.506.498-.769 1.130-.786 1.894v7.520c.017.764.280 1.395.786 1.893.507.498 1.134.756 1.880.773h13.334c.746-.017 1.373-.275 1.880-.773.506-.498.769-1.129.786-1.893v-7.520c-.017-.765-.280-1.396-.786-1.894-.507-.497-1.134-.755-1.880-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.400.960v1.173c-.017.391-.150.711-.400.960-.249.250-.560.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.400-.960V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.400.960v1.173c-.017.391-.150.711-.400.960-.249.250-.560.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.400-.960V12.44c.017-.391.150-.711.400-.960.249-.249.560-.373.933-.373Z"/></svg>
+              <span class="foot-social__tip" role="tooltip">官方 B 站</span>
+            </a>
+            <span class="foot-social__cell">
+              <button class="foot-social__item" type="button" aria-label="抖音" aria-expanded="false" data-social>
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+              </button>
+              <span class="foot-social__pop" role="tooltip">
+                <img src="/media/site/douyin-qr-placeholder.svg" alt="抖音二维码" loading="lazy" />
+                <b>抖音</b><em>抖音号：光魂官方旗舰店 · 在抖音内搜索关注</em>
+              </span>
+            </span>
+          </div>
         </div>
-        <div class="foot-col"><b>产品</b><a href="#">Center</a><a href="#">显示器</a><a href="#">配件</a></div>
-        <div class="foot-col"><b>支持</b><a href="#">下载</a><a href="#">说明书</a><a href="#">联系客服</a></div>
-        <div class="foot-col"><b>公司</b><a href="#">关于我们</a><a href="#">新闻</a><a href="#">加入我们</a></div>
+        <div class="foot-col">
+          <b>产品</b>
+          <a href="/products">全部产品</a><a href="/compare">产品对比</a><a href="/ladder">天梯榜</a>
+        </div>
+        <div class="foot-col">
+          <b>服务与支持</b>
+          <a href="/downloads">下载中心</a><a href="/support/models">型号与兼容</a><a href="/faq">常见问题</a><a href="/inquiry">提交咨询</a>
+        </div>
+        <div class="foot-col">
+          <b>探索光魂</b>
+          <a href="/about">探索光魂</a><a href="/business">商业合作</a><a href="/business/cases">合作案例</a><a href="/brand/esports">电竞合作</a><a href="/legal/privacy">合规与协议</a>
+        </div>
+        <div class="foot-qr">
+          <img src="/media/site/miniprogram-qr.png" alt="光魂微信小程序商城二维码" loading="lazy" />
+          <b>微信小程序</b><span>扫码进入商城</span>
+        </div>
       </div>
-      <div class="wordmark">SVDC</div>
-      <div class="foot-bot"><span>© 2026 光魂科技（深圳）有限公司</span><span>粤ICP备00000000号</span></div>
+      <img class="foot-logo" src="/brand/svdc.svg" alt="SVDC 光魂" />
+      <div class="foot-bot">
+        <div class="l">
+          <span>©2026 广州小雪人信息科技有限公司 · 版权所有</span><i>|</i>
+          <a href="/legal/terms">用户协议</a><i>|</i>
+          <a href="/legal/privacy">隐私政策</a>
+        </div>
+        <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">粤ICP备19156321号</a>
+      </div>
     </div>
   </footer>
+
+  <!-- 右下角悬浮按钮：返回顶部 / 联系客服（与全站一致） -->
+  <div class="fab" id="fab">
+    <button type="button" class="fab__btn fab__btn--top" aria-label="返回顶部" data-top>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+    </button>
+    <div class="fab__contact" id="fabContact">
+      <button type="button" class="fab__btn fab__btn--primary" aria-label="联系客服" aria-haspopup="true" aria-expanded="false" aria-controls="fabPanel" data-contact>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 14a7.5 7.5 0 0 1 15 0v3"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg>
+      </button>
+      <div class="fab__panel" id="fabPanel" aria-label="联系我们">
+        <div class="fab__panel-head">
+          <div>
+            <p class="fab__panel-title">联系我们</p>
+            <p class="fab__panel-sub">批量采购 · 渠道合作 · 技术支持</p>
+          </div>
+          <span class="fab__panel-live"><i></i>在线</span>
+        </div>
+        <div class="fab__panel-qr">
+          <img src="/media/site/fab-wechat-qr.svg" alt="微信公众号二维码" loading="lazy" />
+          <div class="fab__panel-qrcopy"><b>微信公众号</b><span>扫码关注 / 售后咨询</span></div>
+        </div>
+        <a class="fab__panel-row" href="tel:15913908438">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h3l2 5-2.5 2a15 15 0 0 0 6.5 6.5l2-2.5 5 2v3a2 2 0 0 1-2 2C10.6 21 3 13.4 3 5a2 2 0 0 1 2-2z"/></svg>
+          <span>采购与合作热线</span><b>15913908438</b>
+        </a>
+        <a class="fab__panel-row" href="/inquiry">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H10l-4 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>
+          <span>在线留言</span>
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -553,40 +1139,106 @@
   'use strict';
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ---------- 站点开关：Center 页背景装饰 ----------
+     后台「样式 → Center 页背景」关闭时，整页不再绘制星空 / 星云 / 颗粒 / 暗角；
+     接口不可用时按「开启」处理，不影响页面其余部分。 */
+  if (window.fetch) {
+    fetch('/api/content/site', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null })
+      .then(function (data) {
+        if (data && data.centerBackdrop === false) document.documentElement.classList.add('no-bg');
+      })
+      .catch(function () {});
+  }
+
   /* ---------- 星空 ---------- */
   var cvs = document.getElementById('stars');
   if (cvs && cvs.getContext && !reduce) {
     var ctx = cvs.getContext('2d');
-    var stars = [], w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var layers = [], w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
     var mouse = { x: 0, y: 0 }, sy = 0;
+    var palette = [[198, 226, 255], [226, 240, 255], [255, 242, 224]];
+    /** 生成一层星点：按幂律控制亮度（大量暗星、少量亮星），并用簇状分布打散网格感 */
+    function makeLayer(count, rMin, rMax, aMin, aMax, depth, speed) {
+      var arr = [];
+      var clusters = [[.16, .22], [.74, .3], [.46, .78], [.88, .14]];
+      for (var i = 0; i < count; i++) {
+        var x, y;
+        if (Math.random() < .38) {
+          var c = clusters[(Math.random() * clusters.length) | 0];
+          x = (c[0] + (Math.random() - .5) * .16) * w;
+          y = (c[1] + (Math.random() - .5) * .16) * h;
+        } else {
+          x = Math.random() * w;
+          y = Math.random() * h;
+        }
+        x = ((x % w) + w) % w;
+        y = ((y % h) + h) % h;
+        var t = Math.random();
+        arr.push({
+          x: x, y: y,
+          r: rMin + Math.random() * (rMax - rMin),
+          a: aMin + Math.pow(t, 1.7) * (aMax - aMin),
+          p: Math.random() * 6.283,
+          s: speed * (.6 + Math.random() * .9),
+          c: palette[(Math.random() * palette.length) | 0],
+          glow: Math.random() > .94
+        });
+      }
+      return { items: arr, depth: depth };
+    }
+    /** 重置星空画布尺寸并按视口面积重建三层星点（DPR 上限 2） */
     function resize() {
       w = cvs.clientWidth; h = cvs.clientHeight;
       cvs.width = w * dpr; cvs.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var n = Math.round(Math.min(420, w * h / 3800));
-      stars = [];
-      for (var i = 0; i < n; i++) {
-        stars.push({
-          x: Math.random() * w, y: Math.random() * h,
-          r: Math.random() * 1.5 + .35,
-          a: Math.random() * .55 + .35,
-          p: Math.random() * Math.PI * 2,
-          d: Math.random() * .6 + .2
-        });
-      }
+      var area = w * h;
+      layers = [
+        makeLayer(Math.round(Math.min(560, area / 2600)), .25, .75, .16, .42, .35, 700),
+        makeLayer(Math.round(Math.min(240, area / 6200)), .55, 1.15, .28, .62, .7, 560),
+        makeLayer(Math.round(Math.min(90, area / 16500)), .9, 1.75, .42, .85, 1, 440)
+      ];
     }
+    /** 逐帧绘制三层星空：每颗星独立「忽闪」+ 分层视差 + 极轻的整体呼吸 */
     function draw(t) {
       ctx.clearRect(0, 0, w, h);
-      for (var i = 0; i < stars.length; i++) {
-        var s = stars[i];
-        var tw = .65 + Math.sin(t / 1400 + s.p) * .35;
-        var x = s.x + mouse.x * s.d * 14;
-        var y = s.y + mouse.y * s.d * 8 - sy * s.d * .06;
-        y = ((y % h) + h) % h;
-        ctx.beginPath();
-        ctx.arc(x, y, s.r, 0, 6.283);
-        ctx.fillStyle = 'rgba(190,235,255,' + (s.a * tw) + ')';
-        ctx.fill();
+      var breath = .98 + .02 * Math.sin(t / 5200);
+      for (var li = 0; li < layers.length; li++) {
+        var layer = layers[li];
+        var items = layer.items, depth = layer.depth;
+        var layerBreath = .99 + .01 * Math.sin(t / 5200 + li * 1.7);
+        for (var i = 0; i < items.length; i++) {
+          var s = items[i];
+          // 二次幂压窄亮峰：大部分时间偏暗、偶尔一下亮起来，像远处的星灯
+          var raw = .5 + .5 * Math.sin(t / s.s + s.p);
+          var tw = .42 + .58 * raw * raw;
+          var x = s.x + mouse.x * depth * 18;
+          var y = s.y + mouse.y * depth * 10 - sy * depth * .05;
+          y = ((y % h) + h) % h;
+          x = ((x % w) + w) % w;
+          var alpha = s.a * tw * breath * layerBreath;
+          var rgb = s.c[0] + ',' + s.c[1] + ',' + s.c[2];
+          if (s.glow) {
+            ctx.beginPath();
+            ctx.arc(x, y, s.r * 3.2, 0, 6.283);
+            ctx.fillStyle = 'rgba(' + rgb + ',' + (alpha * .07).toFixed(3) + ')';
+            ctx.fill();
+            // 亮到顶点时给一点极淡的四向星芒，避免「只会变亮的白点」
+            if (tw > .9) {
+              var flare = (tw - .9) / .1;
+              ctx.strokeStyle = 'rgba(' + rgb + ',' + (alpha * .22 * flare).toFixed(3) + ')';
+              ctx.lineWidth = .6;
+              ctx.beginPath();
+              ctx.moveTo(x - s.r * 5, y); ctx.lineTo(x + s.r * 5, y);
+              ctx.moveTo(x, y - s.r * 5); ctx.lineTo(x, y + s.r * 5);
+              ctx.stroke();
+            }
+          }
+          ctx.beginPath();
+          ctx.arc(x, y, s.r, 0, 6.283);
+          ctx.fillStyle = 'rgba(' + rgb + ',' + alpha.toFixed(3) + ')';
+          ctx.fill();
+        }
       }
       requestAnimationFrame(draw);
     }
@@ -618,9 +1270,10 @@
 
   /* ---------- 入场 ---------- */
   if ('IntersectionObserver' in window) {
+    // 文案随滚动淡入淡出：进入视口加 .in，离开视口移除，滚回来可重播
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+        en.target.classList.toggle('in', en.isIntersecting);
       });
     }, { threshold: .12, rootMargin: '0px 0px -8% 0px' });
     document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
@@ -631,6 +1284,7 @@
   /* ---------- 卡片平铺 → 起立 ---------- */
   var mods = Array.prototype.slice.call(document.querySelectorAll('.mod'));
   var modTops = [];
+  /** 记录六张模块卡片的绝对文档坐标，供滚动起立时换算进度 */
   function measureMods() {
     modTops = mods.map(function (el) {
       var t = 0, n = el;
@@ -638,6 +1292,7 @@
       return t;
     });
   }
+  /** 按滚动位置把卡片从「平铺」渐变到「立起」，写入 CSS 变量 --rx / --ty / --op */
   function standUp() {
     if (reduce) return;
     var vh = window.innerHeight;
@@ -654,25 +1309,165 @@
   }
   measureMods();
 
-  /* ---------- 首屏窗口视差 ---------- */
-  var win = document.getElementById('heroWin');
-  var hero = document.querySelector('.hero');
+  /* ---------- 首屏：统一平面 + 鼠标拖动 + 浮层联动 ---------- */
+  var plane = document.getElementById('heroPlane');
+  var heroWin = document.getElementById('heroWin');
+  var screenEl = heroWin ? heroWin.querySelector('.device-screen') : null;
+  var BASE_Y = -14, BASE_X = 6, LIM_Y = 9, LIM_X = 6;
+  var rotY = 0, rotX = 0, velY = 0, velX = 0, parW = 1;
+  var dragging = false, engaged = false, dragId = null;
+  var dStartX = 0, dStartY = 0, dBaseY = 0, dBaseX = 0;
+  var lastX = 0, lastY = 0, lastT = 0;
   var hx = 0, hy = 0, tx = 0, ty = 0;
+
   window.addEventListener('mousemove', function (e) {
     hx = e.clientX / window.innerWidth - .5;
     hy = e.clientY / window.innerHeight - .5;
   }, { passive: true });
-  function heroLoop() {
-    if (!reduce && win) {
-      tx += (hx - tx) * .06; ty += (hy - ty) * .06;
-      var sc = Math.max(0, 1 - window.scrollY / 900);
-      var ry = -20 + tx * 10;
-      var rx = 9 - ty * 8;
-      win.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-      win.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-      win.style.setProperty('--sc', (0.94 + sc * .04).toFixed(3));
+
+  // 预设参数与界面截图一致：FPS 为 亮度 82 / 对比度 56
+  var PRESET = {
+    std:  { bri: 65, con: 50, sat: 1.00, hue: 0,  name: '标准' },
+    fps:  { bri: 82, con: 56, sat: 1.05, hue: 0,  name: 'FPS' },
+    rts:  { bri: 58, con: 62, sat: 1.10, hue: 0,  name: 'RTS' }
+  };
+  var curPreset = 'fps', curBri = 82, curCon = 56;
+  var presetChips = Array.prototype.slice.call(document.querySelectorAll('#fcPresetChips .fc-chip'));
+  var srcChips = Array.prototype.slice.call(document.querySelectorAll('#fcSrcs .fc-chip'));
+  var presetOut = document.getElementById('fcPreset');
+  var modeOut = document.getElementById('fcMode');
+  var briEl = document.getElementById('fcBri');
+  var conEl = document.getElementById('fcCon');
+  var briBar = document.getElementById('fcBriBar');
+  var conBar = document.getElementById('fcConBar');
+  var briOut = document.getElementById('fcBriV');
+  var conOut = document.getElementById('fcConV');
+
+  /** 把浮层上的参数写进屏幕滤镜：数值按截图观感标定，82 / 56 正好是 brightness 1.30 */
+  function paintScreen() {
+    if (!screenEl) return;
+    var p = PRESET[curPreset];
+    var b = .55 + curBri * .00915;
+    var c = .65 + curCon * .00714;
+    var s = p ? p.sat : 1.02;
+    var h = p ? p.hue : 0;
+    screenEl.style.filter = 'brightness(' + b.toFixed(3) + ') contrast(' + c.toFixed(3) +
+      ') saturate(' + s.toFixed(2) + ')' + (h ? ' hue-rotate(' + h + 'deg)' : '');
+  }
+  function paintUI() {
+    if (briBar) briBar.style.width = curBri + '%';
+    if (conBar) conBar.style.width = curCon + '%';
+    if (briOut) briOut.textContent = curBri;
+    if (conOut) conOut.textContent = curCon;
+    if (briEl) briEl.value = curBri;
+    if (conEl) conEl.value = curCon;
+    if (modeOut) modeOut.textContent = PRESET[curPreset] ? PRESET[curPreset].name : '自定义';
+  }
+  /** 点预设：数值、进度条、屏幕观感一起切换 */
+  function setPreset(key) {
+    var p = PRESET[key];
+    if (!p) return;
+    curPreset = key;
+    curBri = p.bri; curCon = p.con;
+    presetChips.forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-preset') === key); });
+    if (presetOut) presetOut.textContent = p.name;
+    paintUI(); paintScreen();
+  }
+  presetChips.forEach(function (btn) {
+    btn.addEventListener('click', function () { setPreset(btn.getAttribute('data-preset')); });
+  });
+  /** 手动拖滑杆即「自定义」：取消预设高亮，色温取向沿用上一档 */
+  function onParam() {
+    curBri = Number(briEl.value); curCon = Number(conEl.value);
+    curPreset = 'custom';
+    presetChips.forEach(function (b) { b.classList.remove('on'); });
+    if (presetOut) presetOut.textContent = '自定义';
+    paintUI(); paintScreen();
+  }
+  if (briEl) briEl.addEventListener('input', onParam);
+  if (conEl) conEl.addEventListener('input', onParam);
+  srcChips.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      srcChips.forEach(function (b) { b.classList.toggle('on', b === btn); });
+    });
+  });
+  paintUI(); paintScreen();
+
+  /** 超出限位后的橡皮筋：继续拖只按 28% 外扩，松手回弹 */
+  function rubber(v, lim) {
+    var a = Math.abs(v);
+    if (a <= lim) return v;
+    return (v < 0 ? -1 : 1) * (lim + (a - lim) * .28);
+  }
+  function onDown(e) {
+    if (!plane || reduce || e.pointerType === 'touch' || e.button !== 0) return;
+    // 滑杆与按钮要自己收事件，不能在它们身上启动整块平面的拖动
+    if (e.target.closest('input,button')) return;
+    dragging = true; engaged = false; dragId = e.pointerId;
+    dStartX = e.clientX; dStartY = e.clientY;
+    dBaseY = rotY; dBaseX = rotX;
+    lastX = e.clientX; lastY = e.clientY; lastT = performance.now();
+    velY = 0; velX = 0;
+  }
+  function onMove(e) {
+    if (!dragging || e.pointerId !== dragId) return;
+    var dx = e.clientX - dStartX, dy = e.clientY - dStartY;
+    // 4px 死区：小于这个距离仍算点击，不影响浮层按钮与滑杆
+    if (!engaged) {
+      if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      engaged = true;
+      plane.classList.add('is-drag');
+      // 指针捕获：拖出首屏/窗口外松手也能收到 pointerup，不会卡在「一直按着」的状态
+      try { plane.setPointerCapture(e.pointerId); } catch (err) {}
     }
+    rotY = rubber(dBaseY + dx * .035, LIM_Y);
+    rotX = rubber(dBaseX - dy * .030, LIM_X);
+    var now = performance.now(), dt = Math.max(8, now - lastT) / 1000;
+    velY = (e.clientX - lastX) * .035 / dt;
+    velX = -(e.clientY - lastY) * .030 / dt;
+    lastX = e.clientX; lastY = e.clientY; lastT = now;
+    if (e.cancelable) e.preventDefault();
+  }
+  function onUp(e) {
+    if (!dragging || e.pointerId !== dragId) return;
+    dragging = false; dragId = null;
+    plane.classList.remove('is-drag');
+    if (engaged) {
+      // 松手速度带进回弹（度/秒），限制上限，避免甩出画面
+      velY = Math.max(-140, Math.min(140, velY));
+      velX = Math.max(-120, Math.min(120, velX));
+    } else { velY = 0; velX = 0; }
+    engaged = false;
+  }
+  if (plane) {
+    plane.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+
+  /** 首屏渲染：指针视差 + 松手弹簧回弹 + 滚动微缩放，全部写在同一块平面上 */
+  var frameT = 0;
+  function heroLoop(now) {
     requestAnimationFrame(heroLoop);
+    if (!plane || reduce) return;
+    var dt = frameT ? Math.min(.05, (now - frameT) / 1000) : .016;
+    frameT = now;
+    tx += (hx - tx) * .06; ty += (hy - ty) * .06;
+    if (!dragging) {
+      // 弹簧回弹按时间积分（k=100 / c=10，ζ≈.5）：约 0.6s 归位，落点带一次很轻的过冲
+      velY += (-rotY * 100 - velY * 10) * dt;
+      velX += (-rotX * 100 - velX * 10) * dt;
+      rotY += velY * dt; rotX += velX * dt;
+      if (Math.abs(rotY) < .01 && Math.abs(velY) < .05) { rotY = 0; velY = 0; }
+      if (Math.abs(rotX) < .01 && Math.abs(velX) < .05) { rotX = 0; velX = 0; }
+    }
+    // 拖动时视差淡出，松手后再淡入，避免指针刚落下时画面先跳一下
+    parW += ((dragging || engaged ? 0 : 1) - parW) * .1;
+    plane.style.setProperty('--ry', (BASE_Y + rotY + tx * 3.0 * parW).toFixed(2) + 'deg');
+    plane.style.setProperty('--rx', (BASE_X + rotX - ty * 2.4 * parW).toFixed(2) + 'deg');
+    var sc = Math.max(0, 1 - window.scrollY / 900);
+    if (heroWin) heroWin.style.setProperty('--sc', (1.04 + sc * .02).toFixed(3));
   }
   requestAnimationFrame(heroLoop);
 
@@ -681,39 +1476,133 @@
   var stageWin = document.getElementById('stageWin');
   var callouts = Array.prototype.slice.call(document.querySelectorAll('.callout'));
   var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  /** 固定镜头段：按滚动进度翻转窗口，并同步点亮对应标注与步骤 */
   function stageLoop() {
     if (!stage || !stageWin) return;
     var r = stage.getBoundingClientRect();
     var total = r.height - window.innerHeight;
     var p = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 0;
-    var rx = 58 * (1 - p), ry = -22 + 24 * p, sc = .82 + .30 * p;
+    // 旋转在 p=0.72 前完成：之后界面已完全摆正，标注才允许出现
+    var rot = Math.min(1, p / .72);
+    // 初始 3/4 侧视（轻微俯仰 + 向左转 15°），滚动过程中摆正并推近；
+    // 不再用 58° 大角度翻转——那种角度会把界面压成难以辨认的深色平行四边形
+    var rx = 9 * (1 - rot), ry = -15 + 15 * rot, sc = .93 + .15 * rot;
     stageWin.style.setProperty('--rx', rx.toFixed(2) + 'deg');
     stageWin.style.setProperty('--ry', ry.toFixed(2) + 'deg');
     stageWin.style.setProperty('--sc', sc.toFixed(3));
-    callouts.forEach(function (el) {
+    callouts.forEach(function (el, i) {
       var at = Number(el.getAttribute('data-at'));
-      el.classList.toggle('on', p >= at && p <= at + .22);
+      var next = callouts[i + 1] ? Number(callouts[i + 1].getAttribute('data-at')) : 2;
+      var on = p >= at;
+      // 仅在界面摆正后按顺序出现；进入下一条后，上一条降为背景
+      el.classList.toggle('on', on);
+      el.classList.toggle('dim', on && p >= next);
     });
     steps.forEach(function (el) {
       var i = Number(el.getAttribute('data-step'));
-      var on = (i === 0 && p < .28) || (i === 1 && p >= .28 && p < .62) || (i === 2 && p >= .62);
+      var on = (i === 0 && p < .40) || (i === 1 && p >= .40 && p < .72) || (i === 2 && p >= .72);
       el.classList.toggle('on', on);
     });
   }
 
+  /* ---------- 界面细节：滚动推近 ---------- */
+  var zoom = document.querySelector('.zoom');
+  var zoomStage = document.getElementById('zoomStage');
+  var zns = Array.prototype.slice.call(document.querySelectorAll('.zn'));
+  var zsl = document.getElementById('zoomSliders');
+  var zsTracks = Array.prototype.slice.call(document.querySelectorAll('.zs'));
+  var zsOn = false, zsStart = 0;
+  /** 点击左侧任一层级：滚到该层对应的取景进度，画面推近仍由滚动位置统一驱动 */
+  zns.forEach(function (el) {
+    el.addEventListener('click', function () {
+      if (!zoom) return;
+      var total = zoom.offsetHeight - window.innerHeight;
+      if (total <= 0) return;
+      var at = Number(el.getAttribute('data-at')) || 0;
+      var r = zoom.getBoundingClientRect();
+      window.scrollTo({
+        top: r.top + window.scrollY + total * Math.min(.96, at + .06),
+        behavior: reduce ? 'auto' : 'smooth'
+      });
+    });
+  });
+  // 关键帧：滚动进度 → 缩放倍数 / 聚焦点（相对图片的百分比）
+  var zKeys = [
+    { p: 0, z: 1.02, x: 34, y: 38 },
+    { p: .5, z: 1.30, x: 54, y: 55 },
+    { p: 1, z: 1.56, x: 74, y: 66 }
+  ];
+  /** 线性插值 */
+  function lerp(a, b, t) { return a + (b - a) * t }
+  /** 按滚动进度平滑推近界面并点亮对应说明 */
+  function zoomLoop() {
+    if (!zoom || !zoomStage) return;
+    var r = zoom.getBoundingClientRect();
+    var total = r.height - window.innerHeight;
+    var p = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 0;
+    var a = zKeys[0], b = zKeys[zKeys.length - 1];
+    for (var i = 0; i < zKeys.length - 1; i++) {
+      if (p <= zKeys[i + 1].p) { a = zKeys[i]; b = zKeys[i + 1]; break; }
+    }
+    var t = b.p === a.p ? 0 : (p - a.p) / (b.p - a.p);
+    t = Math.max(0, Math.min(1, t));
+    var e = t * t * (3 - 2 * t);
+    zoomStage.style.setProperty('--z', lerp(a.z, b.z, e).toFixed(3));
+    zoomStage.style.setProperty('--ox', lerp(a.x, b.x, e).toFixed(1) + '%');
+    zoomStage.style.setProperty('--oy', lerp(a.y, b.y, e).toFixed(1) + '%');
+    zns.forEach(function (el) {
+      el.classList.toggle('on', p >= Number(el.getAttribute('data-at')));
+    });
+    if (zsl) {
+      var on = p >= .42 && p < .78;
+      if (on && !zsOn) zsStart = performance.now();
+      zsOn = on;
+      zsl.classList.toggle('on', on);
+    }
+  }
+  /** 真实滑块叠层：仅在第二条说明激活时，让截图里的彩色轨道缓慢来回拖动 */
+  function zsLoop(t) {
+    if (zsOn) {
+      for (var i = 0; i < zsTracks.length; i++) {
+        var el = zsTracks[i];
+        var base = Number(el.getAttribute('data-base') || 50);
+        var amp = Number(el.getAttribute('data-amp') || 6);
+        var phase = Number(el.getAttribute('data-phase') || 0);
+        var v = base + amp * Math.sin((t - zsStart) / 720 + phase);
+        el.style.setProperty('--v', Math.max(0, Math.min(100, v)).toFixed(1) + '%');
+      }
+    }
+    requestAnimationFrame(zsLoop);
+  }
+  requestAnimationFrame(zsLoop);
+
+  /* ---------- 二级索引高亮 ---------- */
+  var subLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-sub a'));
+  var subSections = subLinks.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  /** 根据当前滚动位置点亮对应的二级导航项 */
+  function syncIndex() {
+    var probe = window.scrollY + 150;
+    var active = -1;
+    subSections.forEach(function (sec, i) { if (sec && sec.offsetTop <= probe) active = i; });
+    subLinks.forEach(function (a, i) { a.classList.toggle('on', i === active); });
+  }
+
   var ticking = false;
+  /** 滚动节流：同一帧内只执行一次起立与镜头计算，避免重复布局读取 */
   function onScroll() {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(function () {
       standUp();
       stageLoop();
+      zoomLoop();
+      syncIndex();
       ticking = false;
     });
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', function () { measureMods(); onScroll(); });
-  standUp(); stageLoop();
+  standUp(); stageLoop(); zoomLoop(); syncIndex();
 
   /* ---------- 卡片聚光 ---------- */
   document.querySelectorAll('.mod').forEach(function (el) {
@@ -736,15 +1625,16 @@
   });
 
   /* ---------- 调校台 ---------- */
-  var ids = ['br', 'co', 'sa', 'te', 'sh'];
-  var vals = { br: 100, co: 100, sa: 100, te: 0, sh: 40 };
+  var ids = ['br', 'co', 'sa', 'te'];
+  var vals = { br: 100, co: 100, sa: 100, te: 0 };
   var presets = {
-    standard: { br: 100, co: 100, sa: 100, te: 0, sh: 40 },
-    game: { br: 112, co: 118, sa: 124, te: -8, sh: 62 },
-    movie: { br: 92, co: 108, sa: 96, te: 12, sh: 30 },
-    photo: { br: 100, co: 102, sa: 90, te: 0, sh: 20 }
+    standard: { br: 100, co: 100, sa: 100, te: 0 },
+    fps: { br: 112, co: 118, sa: 124, te: -8 },
+    rts: { br: 104, co: 110, sa: 112, te: -4 },
+    lowblue: { br: 94, co: 104, sa: 96, te: 24 }
   };
   var preview = document.getElementById('preview');
+  /** 把手动调节的四项参数写入预览区 CSS 变量，并同步数值读数 */
   function apply() {
     if (!preview) return;
     preview.style.setProperty('--br', (vals.br / 100).toFixed(3));
@@ -784,5 +1674,478 @@
   apply();
 })();
 </script>
-</body>
-</html>
+
+<!-- 首屏星球地平线：全屏 raymarch 片元着色器（解析球体 + 大气散射 + 后处理） -->
+<script type="x-shader/x-fragment" id="horizon-fs">
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes;
+uniform float uTime;
+uniform vec2 uPointer;
+uniform float uScroll;
+// 地平线俯仰角：由 JS 根据「数据块底部」动态给出，保证弧线始终落在所有文字与界面之下
+uniform float uPitch;
+
+const float R = 1.0;
+/* 轨道高度：略低一些，地平线弧度更平缓，接近参考图的“远处海平面”曲率 */
+const float ALT = 0.0085;
+
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+/** 二维值噪声：给星云密度与星球表面提供低频起伏 */
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+vec3 aces(vec3 x) {
+  return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+}
+
+/**
+ * 单层星空：
+ * - 低频域扭曲打散规则网格，避免「等距点阵」的假感；
+ * - 亮度按 4 次幂律分布（大量暗星、极少量亮星），并给亮星一层柔光而不是十字；
+ * - 每颗星独立慢闪，整层再叠一条长周期呼吸（约 30s），幅度可感知但不闪。
+ */
+vec3 starLayer(vec2 uv, float scale, float density, float size, float seed, float t, vec2 par, float phase) {
+  vec2 warp = vec2(vnoise(uv * 2.3 + seed * 0.31), vnoise(uv * 2.3 + seed * 0.31 + 19.7)) - 0.5;
+  vec2 p = uv * scale + seed + par + warp * 0.9;
+  vec2 cell = floor(p);
+  vec2 f = fract(p);
+  float rnd = hash21(cell + seed);
+  float mask = vnoise(uv * 2.0 + seed * 0.13);
+  float dens = clamp(density * (0.18 + 1.85 * mask), 0.0, 0.90);
+  float spawn = step(1.0 - dens, rnd);
+  vec2 sp = vec2(hash21(cell + 11.3 + seed), hash21(cell + 47.9 + seed));
+  float d = length(f - sp);
+  float bright = pow(hash21(cell + 3.7 + seed), 4.0);
+  // 闪烁：每颗星独立相位与速率（周期约 2~7s），并用二次幂压窄亮峰，
+  // 读起来是「忽闪忽闪」的星灯，而不是整片星空同步渐亮渐暗。
+  float twSpeed = 0.85 + hash21(cell + 9.1 + seed) * 2.35;
+  float tw = 0.32 + 0.68 * pow(0.5 + 0.5 * sin(t * twSpeed + rnd * 40.0), 2.0);
+  float core = 1.0 - smoothstep(0.0, size, d);
+  float glow = 1.0 - smoothstep(0.0, size * 3.2, d);
+  float b = spawn * (core * (0.12 + 0.88 * bright) * tw + glow * bright * 0.30);
+  // 整层只留很轻的呼吸（4%），否则会和单星闪烁叠成一片「呼吸的雾」
+  b *= 1.0 + 0.04 * sin(t * 0.45 + phase);
+  // 色温分布：冷白为主，少量暖白与琥珀，避免清一色蓝白
+  vec3 cool = vec3(0.72, 0.84, 1.00);
+  vec3 warm = vec3(1.00, 0.93, 0.82);
+  vec3 amber = vec3(1.00, 0.82, 0.66);
+  float hue = hash21(cell + 21.7);
+  vec3 sc = hue < 0.72 ? mix(cool, warm, hue / 0.72) : mix(warm, amber, (hue - 0.72) / 0.28);
+  // 只有极少数最亮的星有柔和星芒（取消此前大量十字，消除「贴图感」）
+  if (bright > 0.988) {
+    vec2 q = f - sp;
+    float gx = 1.0 - smoothstep(0.0, size * 0.55, abs(q.x));
+    float gy = 1.0 - smoothstep(0.0, size * 0.55, abs(q.y));
+    float lx = 1.0 - smoothstep(0.0, size * 3.4, abs(q.y));
+    float ly = 1.0 - smoothstep(0.0, size * 3.4, abs(q.x));
+    b += (gx * lx + gy * ly) * 0.10 * bright;
+  }
+  return sc * b;
+}
+
+/**
+ * 单颗流星：
+ * - 高斯剖面而不是硬边 smoothstep：细线在亚像素移动时不会一格一格闪（之前的「不流畅」就来自这里）；
+ * - 头部小而亮、尾部按指数渐隐，整体亮度压到「不经意才看到」的程度；
+ * - 起点、角度、速度由当前轮次（slot）与 seed 哈希决定，每轮都不一样。
+ */
+float meteor(vec2 uv, float slot, float lt, float seed, float delay, float angBias) {
+  float t0 = delay + hash21(vec2(slot, seed * 7.13)) * 2.8;
+  float dur = 1.25;
+  float p = (lt - t0) / dur;
+  if (p < 0.0 || p > 1.0) return 0.0;
+
+  float h1 = hash21(vec2(slot * 1.7 + 3.1, seed));
+  float h2 = hash21(vec2(seed * 3.7, slot * 2.3 + 8.4));
+  // 落点偏画面右上方：左边是标题区，流星从文字上划过会抢读
+  vec2 start = vec2(-0.20 + h1 * 0.85, 0.30 + h2 * 0.32);
+  float ang = -0.24 - angBias * 0.10;            // 向右下，约 -14°~-20°
+  vec2 dir = vec2(cos(ang), sin(ang));
+  float travel = 1.10 + h1 * 0.40;
+  vec2 head = start + dir * travel * p;
+  vec2 tail = head - dir * (0.10 + 0.30 * p);
+
+  vec2 pa = uv - tail, ba = head - tail;
+  float hh = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-5), 0.0, 1.0);
+  float dist = length(pa - ba * hh);
+  float sigma = 0.00105;
+  float core = exp(-pow(dist / sigma, 2.0) * 2.0);
+  float halo = exp(-pow(dist / (sigma * 8.0), 2.0) * 1.6);
+  float taper = exp(-(1.0 - hh) * 3.4);
+  float headCore = exp(-pow(length(uv - head) / 0.0038, 2.0) * 2.0);
+  float fade = smoothstep(0.0, 0.18, p) * (1.0 - smoothstep(0.45, 1.0, p));
+  return (core * 0.85 + halo * 0.10) * taper * fade + headCore * 0.40 * fade;
+}
+
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+  // 视线整体上移，让地平线落在画面约 84% 处：整块界面与左侧文案都浮在弧线之上，
+  // 弧线不再从屏幕中间穿过（此前 63% 会把界面切成上下两半，看起来像陷进星球里）。
+  float pitch = uPitch + uScroll * 0.006;
+  vec3 rd = normalize(vec3(uv.x + uPointer.x * 0.006, uv.y + pitch + uPointer.y * 0.004, -1.25));
+  vec3 ro = vec3(0.0, R + ALT, 0.0);
+
+  // 相机到球体的解析求交
+  vec3 oc = ro;
+  float b = dot(oc, rd);
+  float c = dot(oc, oc) - R * R;
+  float disc = b * b - c;
+  float t = -1.0;
+  if (disc > 0.0) t = -b - sqrt(disc);
+  float hit = step(0.0, t);
+
+  // 射线到球心的最近距离：同时用于大气厚度与星空遮挡。
+  // 关键：只有最近点落在相机前方（tca > 0）才算大气厚度；朝上看的射线最近点在身后，
+  // 若也用相机高度会把整片天空染成灰蓝，失去参考图那种「越往上越黑」的层次。
+  float tca = -b;
+  float sdf = 1.0;
+  vec3 cp = ro;
+  if (tca > 0.0) {
+    cp = ro + rd * tca;
+    sdf = length(cp) - R;
+  }
+
+  // 深空底色：按「射线高出地平线的角度」取色，而不是按屏幕高度。
+  // 这样无论抛物线上下移动、窗口多高，蓝色都始终贴着弧线，往上迅速变黑。
+  float elev = max(rd.y + 0.130, 0.0);
+  vec3 sky = mix(vec3(0.0040, 0.0300, 0.0950), vec3(0.0009, 0.0018, 0.0045), smoothstep(0.0, 0.60, elev));
+
+  // 三层星空：远层密而小、近层疏而亮；贴地平线被大气遮蔽，整体克制不抢弧线
+  vec3 stars = vec3(0.0);
+  stars += starLayer(uv, 300.0, 0.048, 0.10, 1.0, uTime, uPointer * 0.5 + vec2(uTime * 0.0012, 0.0), 0.0) * 0.36;
+  stars += starLayer(uv, 150.0, 0.034, 0.13, 7.0, uTime * 1.05, uPointer * 1.0, 2.1) * 0.62;
+  stars += starLayer(uv, 74.0, 0.018, 0.17, 13.0, uTime * 1.15, uPointer * 1.8, 4.2) * 1.00;
+  sky += stars * smoothstep(0.02, 0.10, sdf);
+
+  // 流星雨：约 17 秒一轮，每轮 2 颗（第二颗稍晚），其余时间天空安静
+  float mslot = floor(uTime / 17.0);
+  float mlt = uTime - mslot * 17.0;
+  float meteors = 0.0;
+  meteors += meteor(uv, mslot, mlt, 1.0, 0.0, 0.0);
+  meteors += meteor(uv, mslot, mlt, 2.0, 0.46, 0.4);
+  sky += vec3(0.80, 0.90, 1.00) * meteors * 0.70 * smoothstep(0.02, 0.10, sdf);
+  vec3 col = sky;
+
+  // 大气辉光：以地平线为轴，向两侧对称衰减。
+  // 外侧进入天空，内侧以较低强度渗进星球表面——边界不再是「一刀切」的白线，
+  // 而是有厚度、会往球体内部晕开的过渡带（这是之前最生硬的地方）。
+  // 结构按参考图逐像素拟合：中心列亮度剖面（峰值归一化，偏移按画面高度）
+  //   上侧  -0.7% →0.61  -1.4%→0.44  -2.8%→0.26  -4.2%→0.17  -7%→0.05
+  //   峰值  0 →1.00（近白）   下侧 +1.4%→0.25（暗谷） +7%→0.55（内侧光带） +14%→0.20
+  float fog  = vnoise(vec2(uv.x * 4.0 + uTime * 0.020, uv.y * 3.0 - uTime * 0.012));
+  float ax = abs(uv.x);
+  // 边缘适度发散：越靠近画面两侧，亮线与光晕越宽越柔；中段保持清晰
+  float soft = 1.0 + smoothstep(0.06, 0.55, ax) * 3.0;
+  // 注意：smoothstep 的边界必须从小到大（反向写法在 GLSL 里是未定义行为）
+  float edgeFade = mix(0.70, 1.0, 1.0 - smoothstep(0.10, 0.94, ax));
+  float along = (0.92 + 0.08 * fog) * edgeFade;
+
+  // 呼吸：4.7 秒一轮，亮度 ±60%、光带宽度 ±20% 同步起伏。
+  // 之前 7 秒 / ±35%，经过 ACES 压缩后仍偏含蓄，这次把节奏和落差都推上去。
+  float breath = 1.0 + 0.60 * sin(uTime * 1.337);
+  float pulse  = 1.0 + 0.20 * sin(uTime * 1.337 + 1.1);
+
+  float s = rd.y + 0.130;          // >0 天空侧，<0 球面侧
+  float dUp = max(s, 0.0);
+  float dDn = max(-s, 0.0);
+
+  // 上/下两侧必须各自遮蔽：dUp、dDn 在对侧都等于 0，
+  // 若不乘 side 掩码，上侧光晕会整片压在球面上（此前暗谷消失就是这个原因）
+  float skySide = 1.0 - hit;
+  float surfSide = hit;
+
+  float wLine  = exp(-pow(abs(s) / (0.0016 * soft), 2.0));
+  float wHaloU = exp(-pow(dUp / (0.020 * soft), 2.0)) * skySide;
+  // 下侧只有很薄的一层白边（参考图 50% 亮度宽度仅 11px，比上侧窄得多）
+  float wHaloD = exp(-pow(dDn / (0.010 * soft), 2.0)) * surfSide;
+  float wTailU = exp(-pow(dUp / 0.110, 2.0)) * skySide;
+  // 内侧光带：先暗后亮，峰在临边下 7% 高度；近侧收得很陡，形成参考图那条暗谷
+  float centre = pow(max(0.0, 1.0 - abs(uv.x) * 1.05), 1.6);
+  float bw = (dDn < 0.056 ? 0.018 : 0.058) * (1.0 + 0.10 * sin(uTime * 0.90 + 0.6));
+  float wBand  = exp(-pow((dDn - 0.056) / bw, 2.0)) * centre * surfSide;
+
+  if (hit > 0.5) {
+    // 星球表面：接近纯黑，亮部与过渡全部交给上面的结构层
+    col = vec3(0.0022, 0.0045, 0.0100);
+  }
+  // 暗谷底：临边下方 0–40px 的一层薄光，避免掉成纯黑（参考图 +1.4% 处仍有 45）
+  float wFloor = exp(-dDn / 0.050) * surfSide;
+  col += vec3(0.880, 1.000, 1.100) * wLine  * 3.400 * along * pulse;
+  col += vec3(0.550, 0.720, 1.080) * wHaloU * 0.500 * along * breath;
+  col += vec3(0.500, 0.680, 1.050) * wHaloD * 0.380 * along * breath;
+  col += vec3(0.220, 0.420, 1.000) * wTailU * 0.380 * along * breath;
+  col += vec3(0.300, 0.500, 1.000) * wFloor * 0.300 * along * breath;
+  // 内侧光带越往球心越蓝（参考图远端只剩蓝通道）
+  vec3 bandCol = mix(vec3(0.350, 0.550, 1.100), vec3(0.050, 0.220, 0.950), smoothstep(0.060, 0.150, dDn));
+  col += bandCol * wBand * 0.900 * breath;
+
+  // 后处理：ACES 色调映射 + 暗角 + 极轻颗粒 + 抖动去色带
+  col = aces(col * 1.28);
+  vec2 vv = gl_FragCoord.xy / uRes - 0.5;
+  col *= 1.0 - dot(vv, vv) * 0.42;
+  col += (hash21(gl_FragCoord.xy + fract(uTime) * 137.0) - 0.5) * 0.007;
+  col += (hash21(gl_FragCoord.xy + 7.0) - 0.5) / 255.0;
+  // 底部精确落到页面底色 --ink(#04050a)，与下一板块无缝衔接。
+  // 注意 smoothstep 的边界必须从小到大（此前写成反向，属于未定义行为，部分显卡上会提前压黑）。
+  vec3 ink = vec3(0.0157, 0.0196, 0.0392);
+  col = mix(col, ink, 1.0 - smoothstep(-0.497, -0.430, uv.y));
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+<script>
+(function () {
+  'use strict';
+  var cvs = document.getElementById('horizon');
+  var hero = document.querySelector('.hero');
+  var planet = document.querySelector('.planet');
+  var fsSrc = document.getElementById('horizon-fs');
+  if (!cvs || !hero || !planet || !fsSrc) return;
+
+  var gl = cvs.getContext('webgl', { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'high-performance' });
+  if (!gl) return;
+
+  /** 编译着色器，失败时返回 null 以便回退到 CSS 版本 */
+  function compile(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      if (window.console) console.warn('[horizon] shader error:', gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+
+  var vs = compile(gl.VERTEX_SHADER, 'attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}');
+  var fs = compile(gl.FRAGMENT_SHADER, fsSrc.textContent);
+  if (!vs || !fs) return;
+
+  var prog = gl.createProgram();
+  gl.attachShader(prog, vs);
+  gl.attachShader(prog, fs);
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+  gl.useProgram(prog);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(prog, 'aPos');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  var uRes = gl.getUniformLocation(prog, 'uRes');
+  var uTime = gl.getUniformLocation(prog, 'uTime');
+  var uPointer = gl.getUniformLocation(prog, 'uPointer');
+  var uScroll = gl.getUniformLocation(prog, 'uScroll');
+  var uPitch = gl.getUniformLocation(prog, 'uPitch');
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var px = 0, py = 0, tx = 0, ty = 0, raf = 0, active = true;
+  var statsEl = document.querySelector('.stats');
+  // 俯仰角为正 = 视线整体上移 = 地平线在画面里更靠下。0.152 对应首屏 84% 处。
+  var pitchVal = 0.152;
+
+  /**
+   * 弧线高度：默认落在首屏 84% 处；若左侧数据块更低（窄屏 / 矮窗口），
+   * 就按「数据块底部 + 18px」继续下移，最多到 90%，保证弧线永远在所有文字之下。
+   */
+  function horizonPitch() {
+    var hh = hero.offsetHeight || 1;
+    if (!statsEl) return 0.152;
+    var sb = statsEl.getBoundingClientRect().bottom - hero.getBoundingClientRect().top;
+    // 默认 84%；只有当数据块确实压到弧线附近时，才继续下移（最多 90%）
+    var ratio = 0.84;
+    if (sb + 18 > ratio * hh) ratio = Math.min(0.90, (sb + 18) / hh);
+    return 0.152 + (ratio - 0.84);
+  }
+
+  /** 按 DPR（移动端 1.25 / 桌面 1.5）同步画布像素尺寸，保证清晰度同时控制 GPU 开销 */
+  function resize() {
+    var cap = window.innerWidth < 820 ? 1.25 : 1.5;
+    var dpr = Math.min(window.devicePixelRatio || 1, cap);
+    var w = Math.max(1, Math.round(cvs.clientWidth * dpr));
+    var h = Math.max(1, Math.round(cvs.clientHeight * dpr));
+    if (cvs.width !== w || cvs.height !== h) {
+      cvs.width = w;
+      cvs.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+    pitchVal = horizonPitch();
+  }
+
+  /** 渲染一帧：相机指针视差 + 滚动驱动俯仰 + 时间驱动大气呼吸 */
+  function draw(now) {
+    resize();
+    px += (tx - px) * 0.05;
+    py += (ty - py) * 0.05;
+    gl.uniform2f(uRes, cvs.width, cvs.height);
+    gl.uniform1f(uTime, reduce ? 0 : now * 0.001);
+    gl.uniform2f(uPointer, px, py);
+    gl.uniform1f(uScroll, Math.min(1, window.scrollY / Math.max(1, hero.offsetHeight)));
+    gl.uniform1f(uPitch, pitchVal);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  function loop(now) {
+    raf = 0;
+    if (!active) return;
+    draw(now);
+    raf = requestAnimationFrame(loop);
+  }
+
+  function start() {
+    if (reduce || raf) return;
+    raf = requestAnimationFrame(loop);
+  }
+
+  function stop() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  }
+
+  window.addEventListener('mousemove', function (e) {
+    tx = e.clientX / window.innerWidth * 2 - 1;
+    ty = -(e.clientY / window.innerHeight * 2 - 1);
+  }, { passive: true });
+  window.addEventListener('resize', resize, { passive: true });
+
+  // 首屏离开视口或页面隐藏时暂停渲染，避免无意义 GPU 占用
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      active = entries[0].isIntersecting;
+      if (active) start(); else stop();
+    }, { threshold: 0 }).observe(hero);
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else if (active) start();
+  });
+
+  planet.classList.add('planet--gl');
+  if (reduce) { resize(); draw(0); } else { start(); }
+})();
+</script>
+<script>
+/* 窄屏站点菜单：汉堡展开 / 点击链接或 Esc 收起 / 回到桌面宽度自动收起 */
+(function () {
+  var burger = document.querySelector('.nav-burger');
+  var drawer = document.getElementById('navMobile');
+  if (!burger || !drawer) return;
+  function set(open) {
+    burger.classList.toggle('open', open);
+    drawer.classList.toggle('open', open);
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    burger.setAttribute('aria-label', open ? '关闭站点菜单' : '打开站点菜单');
+  }
+  burger.addEventListener('click', function () { set(!drawer.classList.contains('open')); });
+  drawer.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+  window.addEventListener('resize', function () { if (window.innerWidth > 980) set(false); });
+})();
+</script>
+<script>
+/* 右下角悬浮按钮 + 社交二维码浮层：滚动显示返回顶部、点击展开联系面板、点外部 / Esc 收起 */
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fab = document.getElementById('fab');
+  var contact = document.getElementById('fabContact');
+  var trigger = contact && contact.querySelector('[data-contact]');
+  var topBtn = document.querySelector('[data-top]');
+  var socialBtns = document.querySelectorAll('[data-social]');
+
+  if (fab) {
+    var onScroll = function () { fab.classList.toggle('is-visible', window.scrollY > 420); };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+  if (topBtn) {
+    topBtn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+  }
+  function setContact(open) {
+    if (!contact || !trigger) return;
+    contact.classList.toggle('is-open', open);
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function closeSocial() {
+    for (var i = 0; i < socialBtns.length; i++) {
+      socialBtns[i].parentElement.classList.remove('is-open');
+      socialBtns[i].setAttribute('aria-expanded', 'false');
+    }
+  }
+  if (trigger) {
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setContact(!contact.classList.contains('is-open'));
+    });
+  }
+  for (var i = 0; i < socialBtns.length; i++) {
+    socialBtns[i].addEventListener('click', function (e) {
+      e.stopPropagation();
+      var cell = this.parentElement;
+      var willOpen = !cell.classList.contains('is-open');
+      closeSocial();
+      setContact(false);
+      cell.classList.toggle('is-open', willOpen);
+      this.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('#fabContact')) return;
+    setContact(false);
+    closeSocial();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { setContact(false); closeSocial(); }
+  });
+})();
+</script>
+<script>
+/* 已适配机型：型号与主图统一取产品库（相册首图 = 详情页主图），
+   运营在产品相册换图后本页自动跟随，无需在此配置图片。
+   接口不可用时保留静态兜底，不改变版面。 */
+(function () {
+  var grid = document.getElementById('devicesGrid');
+  if (!grid || !window.fetch) return;
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  fetch('/api/center', { headers: { Accept: 'application/json' } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      var items = data && data.CENTER_DEVICES;
+      if (!items || !items.length) return;
+      grid.innerHTML = items.map(function (it) {
+        var src = it.image || '/media/products/' + it.productId + '.jpg';
+        // 透明图（png / webp）去掉白底舞台，让产品直接落在深色卡上；白底 JPG 保留白底舞台
+        var staging = /\.(png|webp)(\?|$)/i.test(src) ? 'monitor has-img is-alpha' : 'monitor has-img';
+        return '<div class="device">' +
+          '<div class="' + staging + '"><img src="' + esc(src) + '" alt="' + esc(it.model) + '" loading="lazy"></div>' +
+          '<b>' + esc(it.model) + '</b>' +
+          '<span>已适配 · ' + esc(it.specs) + '</span>' +
+          '</div>';
+      }).join('');
+    })
+    .catch(function () {});
+})();
+</script>

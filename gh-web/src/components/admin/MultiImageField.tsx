@@ -6,6 +6,8 @@
  * 值为图片地址数组，保存时由表单组装（去除空项）。
  */
 import { ImageField } from './ImageField'
+import type { CropPreviewSpec } from './ImageCropPreview'
+import type { MediaHint } from './mediaHints'
 
 export type MultiImageFieldProps = {
   /** 图片地址数组（受控） */
@@ -14,10 +16,14 @@ export type MultiImageFieldProps = {
   onChange: (next: string[]) => void
   /** 字段名（用于预览 alt / 无障碍标签） */
   label?: string
+  /** 该槽位的图片规格；逐张按规格校验 */
+  hint?: MediaHint
+  /** 下游裁切预览：逐张按真实出现位置渲染缩略框 */
+  crops?: CropPreviewSpec[]
 }
 
 /** 组件：多图相册字段，支持逐张编辑、增删与排序。 */
-export function MultiImageField({ value, onChange, label }: MultiImageFieldProps) {
+export function MultiImageField({ value, onChange, label, hint, crops }: MultiImageFieldProps) {
   const items = Array.isArray(value) ? value : []
 
   const setItem = (index: number, url: string) => onChange(items.map((item, i) => (i === index ? url : item)))
@@ -55,7 +61,13 @@ export function MultiImageField({ value, onChange, label }: MultiImageFieldProps
               </button>
             </div>
           </div>
-          <ImageField value={src} label={`${label ?? '相册图片'} ${index + 1}`} onChange={(url) => setItem(index, url)} />
+          <ImageField
+            value={src}
+            label={`${label ?? '相册图片'} ${index + 1}`}
+            hint={hint}
+            crops={index === 0 ? crops : undefined}
+            onChange={(url) => setItem(index, url)}
+          />
         </div>
       ))}
       <div>

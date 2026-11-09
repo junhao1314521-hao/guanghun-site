@@ -1,0 +1,1 @@
+var e=`gh-admin-token`;function t(){try{return window.localStorage.getItem(e)}catch{return null}}function n(){try{window.localStorage.removeItem(e)}catch{}}export{t as n,n as t};

@@ -46,6 +46,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     secondary: '查看天梯榜',
     primaryTo: '/products',
     secondaryTo: '/ladder',
+    // 深色主视觉：顶栏浮于其上时保持白字（顶栏会跟随当前海报主题）
+    theme: 'dark',
     stats: [
       { value: '540 Hz', label: '最高刷新率' },
       { value: '0.03 ms', label: 'GTG 响应' },
@@ -80,6 +82,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     primary: '查看产品详情',
     secondary: '加入对比',
     primaryTo: '/products/gh-54027x1qe',
+    // 代码动画主视觉为深色底
+    theme: 'dark',
     stats: [
       { value: '2K 540Hz', label: '分辨率 / 刷新率' },
       { value: '0.03 ms', label: 'GTG 响应' },

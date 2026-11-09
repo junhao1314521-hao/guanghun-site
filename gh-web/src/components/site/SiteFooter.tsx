@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { FALLBACK_SOCIAL, SITE_COMPANY, SITE_RECORD, normalizeSocial } from '../../data/site'
+import { FALLBACK_SOCIAL, SITE_RECORD, normalizeSocial } from '../../data/site'
 import { useSiteConfig, useSiteFooterGroups } from '../../hooks/useSiteConfig'
 import { useI18n } from '../../i18n'
 import { useTheme } from '../../lib/useTheme'
 import { BrandMark } from './BrandMark'
 import { CodeBackdrop } from './CodeBackdrop'
-import { IconBilibili, IconDouyin, IconWeChat, IconWeibo } from '../ui/Icon'
+import { IconBilibili, IconDouyin, IconWeChat, IconXiaohongshu } from '../ui/Icon'
 import type { SiteSocialItem } from '../../data/contentTypes'
 
 /** 未知平台的兜底字符标：取平台名首字（如「小宇宙」→「小」） */
@@ -14,14 +14,28 @@ function socialShort(label: string): string {
   return label.trim().slice(0, 1) || '·'
 }
 
-/** 平台名 → 线性图标（微信 / 微博 / B 站 / 抖音）；未知平台回退首字字符标 */
+/** 小红书：官方字形是横排三字的字标，宽高比约 2.8:1，需要单独的宽槽位 */
+function isXhsLabel(label: string): boolean {
+  const key = label.trim().toLowerCase()
+  return key.includes('小红书') || key.includes('xiaohongshu') || key.includes('rednote')
+}
+
+/** 平台名 → 官方 LOGO 图标（微信 / 小红书 / B 站 / 抖音）；未知平台回退首字字符标 */
 function socialIcon(label: string, size = 22) {
   const key = label.trim().toLowerCase()
   if (key.includes('微信') || key.includes('wechat')) return <IconWeChat size={size} />
-  if (key.includes('微博') || key.includes('weibo')) return <IconWeibo size={size} />
+  // 小红书官方字形是横排三字的字标（24×24 视框内仅占 8.6 高），与方形图标同尺寸会明显偏小；
+  // 用 46px 宽的字标 + 48px 宽热区，墨迹高度才和微信 / B 站 / 抖音接近
+  if (isXhsLabel(label)) return <IconXiaohongshu size={46} />
+
   if (key.includes('b站') || key.includes('b 站') || key.includes('哔哩') || key.includes('bilibili')) return <IconBilibili size={size} />
   if (key.includes('抖音') || key.includes('douyin') || key.includes('tiktok')) return <IconDouyin size={size} />
   return <span>{socialShort(label)}</span>
+}
+
+/** 「官方B站 / 官方小红书」：平台名去掉空格，避免出现「官方B 站」 */
+function officialName(label: string): string {
+  return label.replace(/\s+/g, '')
 }
 
 type SocialEntryProps = {
@@ -48,6 +62,8 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
   const [align, setAlign] = useState<{ shift: number; arrow: number }>({ shift: 0, arrow: 0 })
 
   const icon = socialIcon(item.label)
+  // 小红书字标较宽，单独给更宽的热区，避免图标被 38px 槽位压缩
+  const wide = isXhsLabel(item.label)
 
   /** 浮层随图标移动：靠近视口左右边缘时自动内收，箭头始终指向图标 */
   useLayoutEffect(() => {
@@ -82,18 +98,26 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
   if (!item.qr && !item.account) {
     if (!item.href) {
       return (
-        <span className="site-footer__social-item is-placeholder" title={`${item.label}（待配置）`}>
+        <span className={`site-footer__social-item is-placeholder${wide ? ' is-wide' : ''}`} title={`${item.label}（待配置）`}>
           {icon}
         </span>
       )
     }
     return (
-      <a className="site-footer__social-item" href={item.href} aria-label={item.label} target="_blank" rel="noreferrer">
+      <a
+        className={`site-footer__social-item site-footer__social-link${wide ? ' is-wide' : ''}`}
+        href={item.href}
+        aria-label={`官方${officialName(item.label)}`}
+        target="_blank"
+        rel="noreferrer"
+      >
         {icon}
+        <span className="site-footer__social-tip" role="tooltip">官方{officialName(item.label)}</span>
       </a>
     )
   }
-  const hint = item.qr ? item.label : `${item.label}：${item.account} · 打开${item.label}搜索关注`
+  // 账号兜底文案：微信 / 抖音用平台惯用叫法，其余平台用「账号」
+  const accountLabel = item.label.includes('微信') ? '微信号' : item.label.includes('抖音') ? '抖音号' : '账号'
   return (
     <span
       className={`site-footer__social-wrap${open ? ' is-open' : ''}`}
@@ -106,7 +130,7 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
     >
       <button
         type="button"
-        className="site-footer__social-item"
+        className={`site-footer__social-item${wide ? ' is-wide' : ''}`}
         aria-label={item.label}
         aria-haspopup="true"
         aria-expanded={open}
@@ -135,7 +159,10 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
             <span className="site-footer__popover-name">{item.label}</span>
           </>
         ) : (
-          <span className="site-footer__popover-hint">{hint}</span>
+          <span className="site-footer__popover-hint">
+            <b>{accountLabel}：{item.account}</b>
+            <span>在{item.label}内搜索关注</span>
+          </span>
         )}
       </span>
     </span>
@@ -211,12 +238,14 @@ export function SiteFooter() {
   const site = useSiteConfig()
   // 社交：新数据「每平台一条」；旧数据（图标+链接 / 二维码两条列表）由 normalizeSocial 兜底合并
   const social = normalizeSocial(site?.social ?? FALLBACK_SOCIAL)
+  // 页脚动画默认关闭：保持纯色干净底（后台「站点配置 · 页脚」可开启）
+  const motion = site?.footerMotion === true
 
   return (
     <footer className="site-footer" style={{ position: 'relative' }}>
-      {/* 页脚背景：与首屏海报同款「流动方块」代码动画（随主题切换深浅 + 遮罩保证文字可读） */}
-      <CodeBackdrop className="site-footer__canvas" theme={theme} />
-      <div className="site-footer__scrim" aria-hidden="true" />
+      {/* 页脚背景：开启时才渲染「流动方块」代码动画 + 可读性遮罩 */}
+      {motion && <CodeBackdrop className="site-footer__canvas" theme={theme} />}
+      {motion && <div className="site-footer__scrim" aria-hidden="true" />}
       <div className="container site-footer__content">
         <div className="site-footer__top">
           {/* 左：品牌 + slogan + 社交图标（官网地址已按客户要求移除） */}
@@ -245,19 +274,20 @@ export function SiteFooter() {
             ))}
           </nav>
 
-          {/* 小程序商城：占位二维码，正式上线前替换为真实小程序码 */}
+          {/* 小程序商城：白卡 + 微信绿角标，悬停轻微上浮 */}
           <div className="site-footer__qr">
-            <img src="/media/site/miniprogram-qr.png" alt="光魂小程序商城二维码" loading="lazy" />
-            <b>小程序商城</b>
-            <span>扫码进入</span>
+            <span className="site-footer__qr-frame">
+              <img src="/media/site/miniprogram-qr.png" alt="光魂微信小程序商城二维码" loading="lazy" />
+              <i className="site-footer__qr-badge" aria-hidden="true"><IconWeChat size={13} /></i>
+            </span>
+            <b>微信小程序</b>
+            <span>扫码进入商城</span>
           </div>
         </div>
 
-        {/* 底部：左 = 公司名 + Copyright + 用户协议 | 用户隐私；右 = ICP 备案号 */}
+        {/* 底部：左 = Copyright + 用户协议 | 用户隐私；右 = ICP 备案号 */}
         <div className="site-footer__bottom">
           <div className="site-footer__bottom-left">
-            <span className="site-footer__company">{SITE_COMPANY}</span>
-            <span className="site-footer__sep" aria-hidden="true">|</span>
             <span className="site-footer__copyright">{t('footer.copyright')}</span>
             <span className="site-footer__sep" aria-hidden="true">|</span>
             <Link to="/legal/terms">{t('footer.terms')}</Link>

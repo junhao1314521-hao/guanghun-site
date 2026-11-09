@@ -58,6 +58,14 @@ export type BlockType =
   | 'fullscreenVisual'
   // 长图无缝拼接（R6：多张切片垂直拼接，桌面 / 移动可分别指定）
   | 'longImage'
+  // 服务支持页头（搜索 / 热门词 / 登录引导；替代原先硬编码的 hero）
+  | 'supportHero'
+  // 服务支持设备选择（读取 models 集合，选中后联动下载与 FAQ）
+  | 'supportDevicePicker'
+  // 首页资料坞（固件 / 驱动 / 软件最新版，直接下载）
+  | 'downloadDock'
+  // 首页咨询分流（售前 / 售后 / 商务，跳转咨询表单预选类型）
+  | 'inquiryDock'
 
 /** 区块样式（契约 §3） */
 export type BlockStyle = {
@@ -161,7 +169,7 @@ export type BlockFieldMeta = {
 export type BlockTypeMeta = {
   type: BlockType
   name: string
-  group: '内容' | '数据' | '结构'
+  group: '内容' | '数据' | '结构' | '服务支持'
   fields: BlockFieldMeta[]
   /** 数组型字段（items/slides）的条目字段定义 */
   listFields?: BlockFieldMeta[]
@@ -211,8 +219,29 @@ export type ShopChannel = {
   order?: number
 }
 
-/** 表单与账号安全开关（图形验证码；第三方登录仅留开关位，暂不开放外部入口） */
-export type SiteAuthConfig = { captcha: boolean; thirdParty: boolean }
+/** 表单与账号安全开关（图形验证码 / 登录页文案 / 第三方登录） */
+export type SiteAuthConfig = {
+  captcha: boolean
+  thirdParty: boolean
+  /** 验证码策略：关闭 / 始终 / 失败 3 次后（缺省按 captcha 推导） */
+  captchaMode?: 'off' | 'always' | 'after3'
+  /** 登录 / 注册页文案与视觉（缺省使用内置文案） */
+  login?: {
+    title?: string
+    subtitle?: string
+    headline?: string
+    description?: string
+    poster?: string
+    points?: string[]
+    agreement?: string
+  }
+  /** 微信扫码登录（未填 AppID 时前台不渲染入口） */
+  wechat?: { enabled: boolean; appId?: string; qr?: string }
+  /** 手机号登录（未开启时前台不渲染入口） */
+  phone?: { enabled: boolean }
+  /** 是否开放注册（缺省 true） */
+  registerEnabled?: boolean
+}
 
 /** 保修参数（前台保修说明与个人中心到期提醒共用） */
 export type SiteWarrantyConfig = { years: number; remindDays: number; snParse: boolean }
@@ -263,6 +292,8 @@ export type SiteConfig = {
   shopChannels?: ShopChannel[]
   /** 下拉面板推荐卡开关（扩展字段；缺省 false = 不渲染） */
   navFeatureEnabled?: boolean
+  /** 页脚流动方块动画开关（扩展字段；缺省 false = 纯色干净页脚，后台可开） */
+  footerMotion?: boolean
   /**
    * 留言轻量分流开关（§1.6 扩展字段；缺省 = 开启）。
    * 开启时表单顶部先选「售前咨询 / 售后报修 / 商务合作」，咨询主题随后联动，提交按类型分派。
@@ -274,4 +305,9 @@ export type SiteConfig = {
    * - 访客在顶栏的手动选择（localStorage）始终优先于站点默认。
    */
   defaultTheme?: 'auto' | 'light' | 'dark'
+  /**
+   * Center 独立页的背景装饰开关（扩展字段；缺省 = 开启）。
+   * 关闭后 Center 页只保留纯色底 + 首屏星球，不再绘制整页星空 / 星云 / 颗粒 / 暗角。
+   */
+  centerBackdrop?: boolean
 }

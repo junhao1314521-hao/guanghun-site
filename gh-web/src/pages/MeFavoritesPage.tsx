@@ -6,9 +6,10 @@ import { trackEvent } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { MePageHeader } from '../components/site/MePageHeader'
 
 /**
- * 个人中心 · 收藏（二级页面）：收藏产品列表（数据来自真实接口，按用户隔离）。
+ * 个人中心 · 收藏（二级页面）：以产品卡形态展示收藏，带主图与详情入口。
  * 「取消收藏」为真实接口 `DELETE /api/account/favorites/:name`。
  */
 export function MeFavoritesPage() {
@@ -18,13 +19,12 @@ export function MeFavoritesPage() {
   const { data, loading, error } = useApi((signal) => fetchMyFavorites(signal), [reloadKey])
   const favorites = data?.items ?? []
 
-  // 型号 → 产品 id：收藏项的 name 以「型号 + 名称」拼接，取首个空格前的型号段匹配产品
-  const modelToId = useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const product of PRODUCTS) map[product.model] = product.id
-    return map
-  }, [])
-  const productIdOf = (name: string) => modelToId[name.trim().split(/\s+/)[0]] ?? ''
+  // 收藏项名称以「型号 + 描述」拼接；历史数据的型号可能带前缀（如 54027X1QE-W54），
+  // 因此用「名称包含产品型号」匹配，兼容新旧命名。
+  const productOf = useMemo(
+    () => (name: string) => PRODUCTS.find((product) => name.includes(product.model)),
+    [],
+  )
 
   const readyKey = `${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
@@ -41,19 +41,15 @@ export function MeFavoritesPage() {
 
   return (
     <div ref={rootRef}>
-      <div className="section__head">
-        <div>
-          <h2 className="section__title">
-            收藏
-          </h2>
-          <p className="section__desc">
-            取消收藏后移出列表；如需重新收藏，可在产品页点击收藏。
-          </p>
-        </div>
-        <Link className="btn btn--ghost btn--sm" to="/products">
-          浏览产品 →
-        </Link>
-      </div>
+      <MePageHeader
+        title="收藏"
+        description="收藏的型号会保留在这里；进入详情页可查看完整参数与购买信息。"
+        action={
+          <Link className="btn btn--ghost btn--sm" to="/products">
+            浏览产品 →
+          </Link>
+        }
+      />
 
       {error ? (
         <div className="empty">
@@ -64,9 +60,9 @@ export function MeFavoritesPage() {
           </button>
         </div>
       ) : loading || !data ? (
-        <div className="card" aria-busy="true" aria-label="收藏加载中">
+        <div aria-busy="true" aria-label="收藏加载中" className="me-favs">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div className="skeleton" key={index} style={{ height: 40, marginTop: index === 0 ? 0 : 'var(--gh-space-3)' }} />
+            <div className="skeleton" key={index} style={{ height: 88 }} />
           ))}
         </div>
       ) : favorites.length === 0 ? (
@@ -78,40 +74,51 @@ export function MeFavoritesPage() {
           </Link>
         </div>
       ) : (
-        <div className="card reveal">
-          {favorites.map((item, index) => (
-            <div
-              className="row"
-              key={item.name}
-              style={{
-                justifyContent: 'space-between',
-                paddingTop: index === 0 ? 0 : 'var(--gh-space-3)',
-                paddingBottom: index === favorites.length - 1 ? 0 : 'var(--gh-space-3)',
-                borderBottom: index === favorites.length - 1 ? undefined : '1px solid var(--color-border-subtle)',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 'var(--gh-weight-medium)' }}>{item.name}</div>
-                <div className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                  {item.spec}
+        <div className="me-favs reveal">
+          {favorites.map((item) => {
+            const product = productOf(item.name)
+            const image = product?.gallery?.[0]
+            return (
+              <div className="me-fav" key={item.name}>
+                {product && image ? (
+                  <Link className="me-fav__media" to={`/products/${product.id}`} tabIndex={-1} aria-hidden="true">
+                    <img src={image} alt="" loading="lazy" />
+                  </Link>
+                ) : (
+                  <span className="me-fav__media me-fav__media--empty" aria-hidden="true" />
+                )}
+                <div className="me-fav__body">
+                  {product ? (
+                    <Link className="me-fav__name" to={`/products/${product.id}`}>
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <div className="me-fav__name">{item.name}</div>
+                  )}
+                  <div className="me-fav__spec">{item.spec}</div>
+                </div>
+                <div className="me-fav__actions">
+                  {product ? (
+                    <>
+                      <Link className="btn btn--sm btn--secondary" to={`/products/${product.id}`}>
+                        查看详情
+                      </Link>
+                      <Link
+                        className="btn btn--sm btn--ghost"
+                        to={`/compare?ids=${encodeURIComponent(product.id)}`}
+                        onClick={() => trackEvent('compare', product.id)}
+                      >
+                        加入对比
+                      </Link>
+                    </>
+                  ) : null}
+                  <button className="btn btn--sm btn--ghost" type="button" onClick={() => remove(item.name)}>
+                    取消收藏
+                  </button>
                 </div>
               </div>
-              <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
-                {productIdOf(item.name) && (
-                  <Link
-                    className="btn btn--sm btn--secondary"
-                    to={`/compare?ids=${encodeURIComponent(productIdOf(item.name))}`}
-                    onClick={() => trackEvent('compare', productIdOf(item.name))}
-                  >
-                    加入对比
-                  </Link>
-                )}
-                <button className="btn btn--sm btn--ghost" type="button" onClick={() => remove(item.name)}>
-                  取消收藏
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

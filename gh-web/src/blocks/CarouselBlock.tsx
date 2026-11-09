@@ -5,7 +5,7 @@
  * 单张 slide 与 hero 全宽海报**共用同一套字段**（见 `blockCatalog.ts` 的 `POSTER_FIELDS`），
  * 渲染同样复用 `PosterSlide`（文案按 contentPosition 定位、视频带 poster + preload）。
  *
- * 控件：**只留底部圆点**（箭头与页码都不显示）；自动播放 + 悬停暂停 + 左右方向键；
+ * 控件：底部圆点 + 左右低存在感箭头（带呼吸光）；自动播放 + 悬停暂停 + 左右方向键；
  * 尊重「减少动态效果」偏好。高度固定满屏。
  */
 import { useEffect, useState } from 'react'
@@ -58,6 +58,8 @@ const MOTION_FALLBACK: PosterData = toPoster({
 export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
   const slides = asArray(props.slides).map(toPoster)
   const autoplay = asBool(props.autoplay, true)
+  // 大疆商城式轮播默认不显示左右箭头，只保留底部圆点（后台可开启）
+  const showArrows = asBool(props.arrows)
   // 高度档位（块级）：默认满屏；设为 r219 时整组幻灯片统一 21:9，上传图不会被裁切或拉伸
   const height = props.height
   const heightStyleValue = heightStyle(height, props.heightValue)
@@ -94,6 +96,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
   return (
     <div
       className={`blk-hero ${heightClass('blk-hero', height)}${theme === 'light' ? ' blk-hero--light' : ''}${deck.length > 0 && deck.every((item) => !item.scrim) ? ' is-no-scrim' : ''}${paused ? ' is-paused' : ''}`}
+      data-poster-theme={theme}
       style={heightStyleValue}
       tabIndex={0}
       role="group"
@@ -105,9 +108,8 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
         if (event.key === 'ArrowLeft') go(index - 1)
       }}
     >
-      {/* 首屏共享的「流动方块」代码动效：单一画布，避免每张幻灯片各起一个动画循环。
-          第一张海报固定用它（不受媒体槽规则限制）；其余幻灯片无真实素材时同样透出它。 */}
-      <CodeBackdrop className="blk-hero__anim" theme={theme} />
+      {/* 代码动画只属于「代码动画」这一张：放进该 slide 内部，
+          不再作为所有 slide 的公共底层，避免图片切换时从半透明处透出。 */}
       <div className="blk-hero__slides">
         {deck.map((slide, i) => {
           const active = i === index
@@ -117,13 +119,15 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
           return (
             <article
               key={`${slide.mediaTag}-${i}`}
-              className={`blk-hero__slide${active ? ' is-active' : ''}`}
+              className={`blk-hero__slide${active ? ' is-active' : ''}${i === motionIndex ? ' is-motion' : ''}`}
               aria-hidden={!active}
             >
+              {i === motionIndex && active && <CodeBackdrop className="blk-hero__anim" theme={theme} />}
               <div
                 className={`blk-hero__bg${renderable ? ' has-media' : ''}${renderable && slide.mediaContain ? ' is-contain' : ''}${renderable && !slide.scrim ? ' is-no-scrim' : ''}`}
               >
-                {renderable && <PosterMedia data={slide} src={src} eager={i === 0} />}
+                {/* 轮播所有素材提前以 eager 加载：切换时只做透明度交叉淡化，避免当场解码造成卡顿 */}
+                {renderable && <PosterMedia data={slide} src={src} eager />}
               </div>
               {/* 区块内标题统一 h2：页面级唯一 h1 由 PageView 的 sr-only h1 提供（R11 无障碍） */}
               <PosterOverlay data={slide} titleTag="h2" />
@@ -133,7 +137,33 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
         })}
       </div>
 
-      {/* 控件：只留底部圆点（箭头与页码都不显示） */}
+      {/* 左右切换：低存在感玻璃按钮，带缓慢呼吸光；移动端保留但缩小 */}
+      {total > 1 && showArrows && (
+        <>
+          <button
+            className="blk-hero__arrow blk-hero__arrow--prev"
+            type="button"
+            aria-label="上一张海报"
+            onClick={() => go(index - 1)}
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            className="blk-hero__arrow blk-hero__arrow--next"
+            type="button"
+            aria-label="下一张海报"
+            onClick={() => go(index + 1)}
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <path d="m6 3 5 5-5 5" />
+            </svg>
+          </button>
+        </>
+      )}
+
+      {/* 控件：底部圆点（进度随自动播放推进） */}
       {total > 1 && (
         <div className="blk-hero__nav">
           <div className="blk-hero__controls" role="tablist" aria-label="海报选择">

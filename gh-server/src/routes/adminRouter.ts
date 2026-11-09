@@ -21,6 +21,7 @@ import {
   getCollectionItem,
   isCollectionKey,
   listCollection,
+  listProductCategories,
   updateCollectionItem,
 } from '../data/collectionStore'
 import {
@@ -383,7 +384,8 @@ adminRouter.get('/resources/:key', requireSession, requireResourceScope, (req, r
     return
   }
   if (isCollectionKey(key)) {
-    const items = listCollection(key)
+    // 分类与参数：关联产品数按产品库实况计算，不用库里手写的 count
+    const items = key === 'product-categories' ? listProductCategories() : listCollection(key)
     res.json({ items, total: items.length })
     return
   }

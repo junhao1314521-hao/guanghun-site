@@ -2,7 +2,7 @@
  * 30. trustBar 信任条（需求 §1.7 新建区块）。
  * ============================================================
  * 形式（方案 A）：**分隔线横排**——每项均分、项间竖分割线、上下细线收边、**无卡片底**。
- * 图标：每项配 22px 线性图标（1.5px 描边、圆头圆角、中性色、不发光）：
+ * 图标：24px 线性图标 + app-icon 式圆角底盘（浅色白瓷 / 深色玻璃两种材质，随主题切换）：
  *   flask 烧瓶（实测实验室，本模块专用）/ shield 盾牌（质保）/ check 勾选（正品）/ box 包裹（物流）。
  *
  * props: title? / columns?(2|3|4，默认 4) / items:[{ icon, text, href? }]
@@ -14,7 +14,7 @@ import { IconCheckCircle, IconCube, IconFlask, IconShield } from '../components/
 import { useSitePages } from '../hooks/useSitePages'
 import { asArray, asNumber, asRecord, asString } from './blockUtils'
 
-type TrustItem = { icon: string; text: string; href: string }
+type TrustItem = { icon: string; text: string; desc: string; href: string }
 
 /** 把后台原始条目规范化为信任条数据，缺省图标回退为 check */
 function toItem(value: unknown): TrustItem {
@@ -22,23 +22,24 @@ function toItem(value: unknown): TrustItem {
   return {
     icon: asString(record.icon, 'check'),
     text: asString(record.text),
+    desc: asString(record.desc),
     href: asString(record.href),
   }
 }
 
-/** 图标名 → 28px 线性图标组件（未知名称回退勾选）；accent 启用双色机制（一笔用品牌色） */
+/** 图标名 → 24px 线性图标组件（未知名称回退勾选）；app-icon 底盘统一由 CSS 给色 */
 function TrustIcon({ name }: { name: string }): ReactNode {
-  const size = 28
+  const size = 24
   switch (name) {
     case 'flask':
-      return <IconFlask size={size} accent />
+      return <IconFlask size={size} />
     case 'shield':
-      return <IconShield size={size} accent />
+      return <IconShield size={size} />
     case 'box':
-      return <IconCube size={size} accent />
+      return <IconCube size={size} />
     case 'check':
     default:
-      return <IconCheckCircle size={size} accent />
+      return <IconCheckCircle size={size} />
   }
 }
 
@@ -65,7 +66,10 @@ export function TrustBarBlock({ props }: { props: Record<string, unknown> }) {
               <span className="blk-trustbar__icon" aria-hidden="true">
                 <TrustIcon name={item.icon} />
               </span>
-              <span className="blk-trustbar__text">{item.text}</span>
+              <span className="blk-trustbar__text">
+                <b className="blk-trustbar__title">{item.text}</b>
+                {item.desc && <small className="blk-trustbar__desc">{item.desc}</small>}
+              </span>
             </>
           )
           const key = `${item.text}-${index}`

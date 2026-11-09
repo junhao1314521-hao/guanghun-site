@@ -124,6 +124,34 @@ export function buildCenterVersion(downloads: DownloadItem[]): string {
   return downloads.find((item) => item.type === 'software')?.version ?? CENTER_VERSION
 }
 
+/**
+ * Center 页「已适配机型」：固定展示 3 款主推机型（型号 + 详情页主图）。
+ * 主图取产品相册第一张（与详情页主图同源），未上传时回退到内置影棚图，
+ * 因此运营只需在产品相册首图换图，Center 页自动跟随，无需单独配置图片。
+ */
+export const CENTER_DEVICE_IDS = ['gh-54027x1qe', 'gh-32x1ue', 'gh-28027x1qe'] as const
+
+export type CenterDevice = {
+  productId: string
+  model: string
+  name: string
+  /** 产品详情页主图（相册第一张）；空表示尚未上传，前台走内置影棚图兜底 */
+  image: string
+  specs: string
+}
+
+export function buildCenterDevices(products: Product[]): CenterDevice[] {
+  return CENTER_DEVICE_IDS.map((id) => products.find((item) => item.id === id))
+    .filter((item): item is Product => Boolean(item))
+    .map((item) => ({
+      productId: item.id,
+      model: item.model,
+      name: item.name,
+      image: item.gallery?.[0] ?? '',
+      specs: item.specs.slice(0, 2).join(' · '),
+    }))
+}
+
 /* ---------------- 品牌 ---------------- */
 
 /** 品牌关联产品：以档案既有 id 列表为选取配置，名称取自产品集合 */

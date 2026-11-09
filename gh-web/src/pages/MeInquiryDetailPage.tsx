@@ -4,6 +4,7 @@ import { fetchMyInquiry, replyMyInquiry } from '../api/account'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { MePageHeader } from '../components/site/MePageHeader'
 
 /**
  * 个人中心 · 工单详情（三级页面 · 骨架层）：客户侧时间线 + 补充回复。
@@ -46,11 +47,7 @@ export function MeInquiryDetailPage() {
 
   return (
     <div ref={rootRef}>
-      <nav className="breadcrumb" aria-label="面包屑">
-        <Link to="/me/inquiries">我的咨询</Link>
-        <span>/</span>
-        <span>工单详情</span>
-      </nav>
+      <MePageHeader title="工单详情" description="查看处理时间线并补充材料，内部备注不会展示给你。" />
 
       {error ? (
         <div className="empty" style={{ marginTop: 'var(--gh-space-5)' }}>

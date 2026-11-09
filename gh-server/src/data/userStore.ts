@@ -277,24 +277,14 @@ export function changeUserPassword(userId: string, currentPassword: string, newP
    个人中心数据（按用户隔离）
    ============================================================ */
 
-/** 我的设备（形状与前台 `data/account.ts` 的 AccountDevice 一致） */
-export type AccountDevice = {
-  model: string
-  sn: string
-  status: 'success' | 'muted'
-  statusText: string
-  warranty: string
-  action: { label: string; variant: 'secondary' | 'ghost'; to?: string }
-}
-
 /** 收藏项 */
 export type FavoriteItem = { name: string; spec: string; subscribed: boolean }
 
 /** 订阅与通知开关 */
 export type NotificationSetting = { id: string; label: string; desc: string; enabled: boolean }
 
-/** 某用户的个人中心数据分区 */
-type AccountSection = 'devices' | 'favorites' | 'notifications'
+/** 某用户的个人中心数据分区（设备登记已独立落 `device_registrations`，不在此分区） */
+type AccountSection = 'favorites' | 'notifications'
 
 /** 读某分区；缺失或损坏时用 fallback 兜底 */
 function readSection<T>(userId: string, section: AccountSection, fallback: () => T): T {
@@ -319,21 +309,6 @@ function writeSection(userId: string, section: AccountSection, value: unknown): 
     .run(userId, section, JSON.stringify(value), new Date().toISOString())
 }
 
-/** 生成默认「我的设备」演示数据；序列号后缀取自用户名，便于区分用户 */
-function defaultDevices(profile: UserProfile): AccountDevice[] {
-  const suffix = profile.username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'MEMBER'
-  return [
-    {
-      model: '54027X1QE-W54',
-      sn: `54027X1QE-DEMO-${suffix}`,
-      status: 'success',
-      statusText: '在保',
-      warranty: '365 天',
-      action: { label: '申请售后', variant: 'secondary', to: '/inquiry' },
-    },
-  ]
-}
-
 /** 生成默认收藏项（演示数据） */
 function defaultFavorites(): FavoriteItem[] {
   return [
@@ -353,18 +328,12 @@ function defaultNotifications(): NotificationSetting[] {
   ]
 }
 
-/** 注册时初始化该用户的个人中心数据（少量演示数据；devices 序列号含用户名以便区分用户） */
+/** 注册时初始化该用户的个人中心数据（收藏 / 通知演示数据；设备不预置，需用户实名登记） */
 function seedAccountData(tx: DatabaseSync, profile: UserProfile): void {
   const insert = tx.prepare('INSERT INTO user_account_data(user_id, section, data, updated_at) VALUES(?, ?, ?, ?)')
   const now = new Date().toISOString()
-  insert.run(profile.id, 'devices', JSON.stringify(defaultDevices(profile)), now)
   insert.run(profile.id, 'favorites', JSON.stringify(defaultFavorites()), now)
   insert.run(profile.id, 'notifications', JSON.stringify(defaultNotifications()), now)
-}
-
-/** 我的设备 */
-export function getAccountDevices(profile: UserProfile): AccountDevice[] {
-  return readSection<AccountDevice[]>(profile.id, 'devices', () => defaultDevices(profile))
 }
 
 /** 我的收藏 */
@@ -391,45 +360,6 @@ export function saveAccountNotifications(userId: string, items: unknown): Notifi
     .filter((item) => item.id !== '')
   writeSection(userId, 'notifications', normalized)
   return normalized
-}
-
-/* ============================================================
-   设备登记（增 / 删）——个人中心「我的设备」真实可用
-   ============================================================ */
-
-export type DeviceOutcome = { ok: true; devices: AccountDevice[] } | { ok: false; error: string }
-
-/** 登记设备：型号必填、序列号在本账号内唯一；新登记默认「未验证 / 待激活」 */
-export function addAccountDevice(profile: UserProfile, input: { model: string; sn: string }): DeviceOutcome {
-  const model = input.model.trim()
-  const sn = input.sn.trim()
-  if (!model || !sn) return { ok: false, error: '请填写型号与序列号' }
-  const devices = getAccountDevices(profile)
-  if (devices.some((device) => device.sn === sn)) return { ok: false, error: '该序列号已登记' }
-  const next: AccountDevice[] = [
-    {
-      model,
-      sn,
-      status: 'muted',
-      statusText: '未验证',
-      warranty: '待激活',
-      action: { label: '申请售后', variant: 'secondary', to: '/inquiry' },
-    },
-    ...devices,
-  ]
-  writeSection(profile.id, 'devices', next)
-  return { ok: true, devices: next }
-}
-
-/** 删除设备（按序列号）；未命中返回失败 */
-export function removeAccountDevice(userId: string, sn: string): DeviceOutcome {
-  const profile = findUserById(userId)
-  if (!profile) return { ok: false, error: '账号不存在' }
-  const devices = getAccountDevices(profile)
-  const next = devices.filter((device) => device.sn !== sn)
-  if (next.length === devices.length) return { ok: false, error: '未找到该设备' }
-  writeSection(userId, 'devices', next)
-  return { ok: true, devices: next }
 }
 
 /** 删除收藏（按名称）；未命中返回失败 */

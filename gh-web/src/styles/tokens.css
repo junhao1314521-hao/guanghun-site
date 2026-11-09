@@ -135,8 +135,10 @@
        锚点 scroll-margin-top（site.css）／首屏顶入的负 margin／海报文案避让 padding／
        登录·注册页整屏高度（100vh - 顶栏高）。
      ⚠️ 另有一处非 CSS 依赖：`components/site/SiteHeader.tsx` 的 HEADER_HEIGHT 常量
-     （over-hero 磨砂判定阈值），必须与本值同步。 */
-  --gh-header-h: 60px;
+     （over-hero 磨砂判定阈值），必须与本值同步。
+     按客户屏幕校准：在原有 47px 基础上加高 7px（导航上下呼吸更宽松），
+     现为 54 CSS px；客户环境为 1.5 倍显示缩放。 */
+  --gh-header-h: 54px;
   --gh-sidebar-width:     240px;
   --gh-sidebar-width-collapsed: 64px;
   --gh-topbar-height:     56px;

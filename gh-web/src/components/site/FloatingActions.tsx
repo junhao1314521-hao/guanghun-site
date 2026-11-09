@@ -62,7 +62,7 @@ export function FloatingActions() {
           aria-controls="fab-contact-panel"
           onClick={() => setOpen((v) => !v)}
         >
-          <IconSupport size={20} />
+          <IconSupport size={18} />
         </button>
 
         <div className="fab__panel" id="fab-contact-panel" aria-label={t('fab.panelTitle')}>

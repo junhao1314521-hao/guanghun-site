@@ -24,14 +24,34 @@ export const LAB_POINTS = [
   '方法升级后，历史文章引用旧版数值保持不变',
 ]
 
-/** 发展历程（倒序） */
-export type TimelineItem = { year: string; tag: string; title: string }
+/** 发展历程（倒序）：title 写「做了什么」，desc 补一句影响，不写分类标签 */
+export type TimelineItem = { year: string; tag: string; title: string; desc?: string }
 
 export const TIMELINE: TimelineItem[] = [
-  { year: '2026', tag: '产品', title: '闪电 540Hz OLED 电竞显示器发布，天梯榜测试方法升级至 v2' },
-  { year: '2024', tag: '软件', title: '光魂 Center 调校软件上线，统一管理全部显示器' },
-  { year: '2022', tag: '实验室', title: '自有测试实验室投入使用，开始公开测试方法' },
-  { year: '2019', tag: '品牌', title: '光魂品牌成立，首款电竞显示器上市' },
+  {
+    year: '2026',
+    tag: '产品',
+    title: '540Hz OLED 旗舰发布',
+    desc: '天梯榜测试方法同步升级至 v2，历史数据保留原版本。',
+  },
+  {
+    year: '2024',
+    tag: '软件',
+    title: '光魂 Center 上线',
+    desc: '按键、色彩与固件更新收进同一个软件。',
+  },
+  {
+    year: '2022',
+    tag: '方法',
+    title: '公开测试方法与版本',
+    desc: '同一套脚本跑全部型号，条件与版本号随结果一起发布。',
+  },
+  {
+    year: '2019',
+    tag: '品牌',
+    title: '品牌成立，首款电竞显示器上市',
+    desc: '从参数实测开始做产品，而不是先做包装。',
+  },
 ]
 
 /** 新闻中心 */

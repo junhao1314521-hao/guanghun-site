@@ -36,9 +36,13 @@ export function useLadderFill(
         // 尊重减弱动效偏好：直接显示最终态，不做生长动画
         fills.forEach((fill) => fill.classList.add('is-grown'))
       } else {
+        // 长榜单（全量榜单可达上百行）：逐行观察，避免整组高度远超视口导致 threshold 永不满足
+        const longList = fills.length > 30
         const groups: Element[] = []
         fills.forEach((fill) => {
-          const group = fill.closest('.ladder') || fill.parentElement
+          const group = longList
+            ? fill.closest('.ladder__row') || fill.parentElement
+            : fill.closest('.ladder') || fill.parentElement
           if (group && !groups.includes(group)) groups.push(group)
         })
         fillObserver = new IntersectionObserver(
@@ -46,12 +50,12 @@ export function useLadderFill(
             entries.forEach((entry) => {
               if (!entry.isIntersecting) return
               entry.target.querySelectorAll('.ladder__fill').forEach((fill, index) => {
-                setTimeout(() => fill.classList.add('is-grown'), index * 90)
+                setTimeout(() => fill.classList.add('is-grown'), index * (longList ? 20 : 90))
               })
               fillObserver?.unobserve(entry.target)
             })
           },
-          { rootMargin: '0px 0px -12% 0px', threshold: 0.18 },
+          { rootMargin: '0px 0px -12% 0px', threshold: longList ? 0.5 : 0.18 },
         )
         groups.forEach((group) => fillObserver?.observe(group))
       }

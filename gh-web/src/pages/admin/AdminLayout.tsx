@@ -51,6 +51,13 @@ function adminTrail(pathname: string): { label: string; to?: string }[] {
   if (first === 'analytics') {
     return [{ label: '工作台', to: '/admin' }, { label: SCOPE_LABEL[second ?? ''] ?? '数据分析' }]
   }
+  // 自定义页（非资源栏目），无二级路径
+  if (first === 'device-reviews') {
+    return [{ label: '工作台', to: '/admin' }, { label: '设备审核' }]
+  }
+  if (first === 'rankings-import') {
+    return [{ label: '工作台', to: '/admin' }, { label: '天梯榜导入' }]
+  }
 
   const res = adminResource(first)
   const trail: { label: string; to?: string }[] = [{ label: '工作台', to: '/admin' }]
@@ -72,6 +79,8 @@ function adminTitle(pathname: string): string {
   if (rest.length === 0) return '工作台'
   const [first, second] = rest
   if (first === 'analytics') return SCOPE_LABEL[second ?? ''] ?? '数据分析'
+  if (first === 'device-reviews') return '设备审核'
+  if (first === 'rankings-import') return '天梯榜导入'
   const res = adminResource(first)
   if (!res) return '页面不存在'
   if (!second) return res.label
@@ -279,7 +288,9 @@ export function AdminLayout() {
   const scopes = loading ? null : profile?.scopes ?? null
   // 当前路由所需权限：直接输 URL 也不能越过菜单裁剪；未就绪时乐观放行，待 /auth/me 返回再收敛
   const routeKey = pathname.split('/').filter(Boolean)[1] ?? ''
-  const routeScope = routeKey && routeKey !== 'analytics' && adminResource(routeKey) ? requiredScope(routeKey) : null
+  const extraPage = routeKey === 'device-reviews' || routeKey === 'rankings-import'
+  const routeScope =
+    routeKey && routeKey !== 'analytics' && (adminResource(routeKey) || extraPage) ? requiredScope(routeKey) : null
   const routeAllowed = !routeScope || !scopes ? true : hasScope(scopes, routeScope)
   // 先按权限裁剪（隐藏无权栏目；组内子项全隐藏 → 整组标题一并隐藏），再按搜索词过滤
   const groups = useMemo(() => {

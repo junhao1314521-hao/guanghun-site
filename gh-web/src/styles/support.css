@@ -1,0 +1,267 @@
+/**
+ * 服务与支持页（仅本页）。
+ *
+ * 页头走大疆式「居中标题 + 通栏搜索」：没有小字眉题，层级只靠字号、留白与一根底线；
+ * 设备选择是页面的核心交互：选中型号写入 ?model=，下方资料与下载自动跟随。
+ */
+.support-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background:
+    radial-gradient(ellipse 62% 76% at 50% -34%, color-mix(in srgb, var(--gh-blue-500) 9%, transparent), transparent 72%),
+    var(--color-bg-subtle);
+}
+.support-hero__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(52px, 7vw, 88px);
+  padding-bottom: clamp(44px, 6vw, 68px);
+  text-align: center;
+}
+.support-hero__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: var(--gh-weight-semibold);
+  line-height: 1.1;
+  letter-spacing: -.03em;
+}
+.support-hero__desc {
+  max-width: 620px;
+  margin: var(--gh-space-4) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-lg);
+  line-height: 1.75;
+}
+/* 搜索：胶囊容器 + 内嵌实心按钮；聚焦时品牌色描边 + 光环 */
+.support-hero__search {
+  display: flex;
+  align-items: center;
+  gap: var(--gh-space-2);
+  width: min(600px, 100%);
+  margin-top: var(--gh-space-7);
+  padding: 5px 5px 5px var(--gh-space-5);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.support-hero__search:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+.support-hero__search > svg {
+  flex: none;
+  color: var(--color-text-tertiary);
+}
+.support-hero__search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--gh-font-size-body);
+  outline: none;
+}
+.support-hero__search input::placeholder {
+  color: var(--color-text-tertiary);
+}
+.support-hero__search button {
+  flex: none;
+  height: 42px;
+  padding: 0 var(--gh-space-6);
+  border: 0;
+  border-radius: var(--gh-radius-full);
+  background: var(--color-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--gh-font-size-body-sm);
+  font-weight: var(--gh-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.support-hero__search button:hover {
+  background: var(--color-accent-strong, var(--color-accent));
+  filter: brightness(1.08);
+}
+/* 热门词：一行轻量文字链，不抢搜索框视线 */
+.support-hero__hot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gh-space-2) var(--gh-space-4);
+  margin-top: var(--gh-space-4);
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-body-sm);
+}
+.support-hero__hot a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.support-hero__hot a:hover {
+  color: var(--color-accent-text);
+}
+.support-hero__login {
+  margin: var(--gh-space-5) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm);
+}
+.support-hero__login a {
+  color: var(--color-accent-text);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent-text) 34%, transparent);
+  transition: border-color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.support-hero__login a:hover {
+  border-bottom-color: var(--color-accent-text);
+}
+
+/* ============================ 设备选择 ============================ */
+.support-devices__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--gh-space-4);
+  margin-bottom: var(--gh-space-5);
+}
+.support-devices__head h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: -.02em;
+}
+.support-devices__head p {
+  margin: var(--gh-space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm);
+}
+.support-devices__head > a {
+  flex: none;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.support-devices__head > a:hover {
+  color: var(--color-accent-text);
+}
+.support-devices__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gh-space-4);
+}
+.support-devices__empty {
+  margin: 0;
+  padding: var(--gh-space-7) 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-body-sm);
+  text-align: center;
+}
+/* 型号卡：白底 + 细边框，图片在上、型号与系列在下；选中态换成品牌色描边 + 角标 */
+.sdev {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gh-space-2);
+  padding: var(--gh-space-4) var(--gh-space-4) var(--gh-space-5);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--gh-radius-md);
+  cursor: pointer;
+  text-align: center;
+  transition: transform var(--gh-duration-fast) var(--gh-ease-standard),
+              border-color var(--gh-duration-fast) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.sdev:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-default);
+  box-shadow: var(--shadow-sm);
+}
+.sdev img {
+  width: 100%;
+  max-height: 132px;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+.sdev b {
+  color: var(--color-text-primary);
+  font-family: var(--gh-font-mono);
+  font-size: var(--gh-font-size-body-sm);
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: -.01em;
+}
+.sdev > span:not(.sdev__check) {
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-caption);
+}
+.sdev.is-on {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+.sdev.is-on b {
+  color: var(--color-accent-text);
+}
+.sdev__check {
+  position: absolute;
+  top: var(--gh-space-3);
+  right: var(--gh-space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--gh-radius-full);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* 深色主题：只压暗页头光晕，其余卡片沿用令牌即可 */
+[data-theme="dark"] .support-hero {
+  border-bottom-color: rgba(255, 255, 255, .08);
+  background:
+    radial-gradient(ellipse 62% 76% at 50% -34%, rgba(91, 117, 245, .16), transparent 72%),
+    #070a12;
+}
+[data-theme="dark"] .sdev.is-on {
+  box-shadow: 0 0 0 3px rgba(91, 117, 245, .22);
+}
+
+@media (max-width: 900px) {
+  .support-devices__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .support-hero__desc {
+    font-size: var(--gh-font-size-body);
+  }
+  .support-hero__search {
+    padding-left: var(--gh-space-4);
+  }
+  .support-hero__search button {
+    padding: 0 var(--gh-space-4);
+  }
+  .support-devices__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gh-space-2);
+  }
+  .sdev img {
+    max-height: 104px;
+  }
+}

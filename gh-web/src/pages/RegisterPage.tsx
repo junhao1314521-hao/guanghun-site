@@ -55,6 +55,14 @@ export function RegisterPage() {
   const [captchaNonce, setCaptchaNonce] = useState(0)
   const auth = useSiteAuth()
   const strength = passwordStrength(password)
+  // 验证码档位与登录页一致：after3 默认不打扰，失败 3 次后出现
+  const captchaMode = auth.captchaMode ?? (auth.captcha ? 'always' : 'off')
+  const [failed, setFailed] = useState(0)
+  const [captchaForced, setCaptchaForced] = useState(false)
+  const captchaVisible =
+    captchaMode === 'always' || captchaForced || (captchaMode === 'after3' && failed >= 3)
+  const config = auth.login ?? {}
+  const registerEnabled = auth.registerEnabled !== false
 
   const readyKey = done ? 'done' : 'form'
   usePageEffects(rootRef, readyKey)
@@ -80,7 +88,7 @@ export function RegisterPage() {
     else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) next.password = '密码需同时包含字母与数字'
     if (confirm !== password) next.confirm = '两次输入的密码不一致'
     if (!agreed) next.agreed = '请先阅读并同意服务条款与隐私政策'
-    if (auth.captcha && !captchaCode.trim()) next.captcha = '请输入图形验证码'
+    if (auth.captcha && captchaVisible && !captchaCode.trim()) next.captcha = '请输入图形验证码'
     setErrors(next)
     if (Object.keys(next).length > 0) return
 
@@ -91,6 +99,8 @@ export function RegisterPage() {
       setDone(true)
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : '注册失败，请稍后重试')
+      setFailed((count) => count + 1)
+      if ((ex as { data?: { captchaRequired?: boolean } }).data?.captchaRequired) setCaptchaForced(true)
       // 服务端每次校验都消费令牌，失败后强制刷新验证码
       setCaptchaCode('')
       setCaptchaNonce((n) => n + 1)
@@ -106,18 +116,48 @@ export function RegisterPage() {
           variant="page"
           badge="个人中心"
           eyebrow="ACCOUNT / REGISTER"
-          headline="注册光魂账号"
-          subtitle="注册后可登记设备、跟踪工单并管理订阅通知。"
-          points={['登记与管理我的设备', '跟踪工单与预约进度', '接收固件与资料更新']}
+          headline={config.headline || '把每一块屏的参数，测给你看'}
+          subtitle={config.description || '不写形容词，只给可复现的测试记录与版本号。'}
+          points={config.points && config.points.length > 0 ? config.points : ['登记与管理我的设备', '跟踪工单与预约进度', '接收固件与资料更新']}
+          poster={config.poster || ''}
         >
           <div className="card reveal">
-            <h1 className="card__title">注册</h1>
+            {/* 登录 / 注册同页切换（路由级 tab） */}
+            <div className="auth-tabs" role="tablist" aria-label="账号">
+              <Link className="auth-tabs__item" role="tab" aria-selected="false" to="/login">
+                登录
+              </Link>
+              <span className="auth-tabs__item is-active" role="tab" aria-selected="true">
+                注册
+              </span>
+            </div>
+
+            <h1 className="card__title" style={{ marginTop: 'var(--gh-space-4)' }}>
+              注册光魂账号
+            </h1>
+            <p className="auth-form__subtitle">
+              注册后可登记设备、跟踪工单并管理订阅通知。
+              {registerEnabled && (
+                <>
+                  {' '}
+                  <Link className="auth-form__inline-link" to="/login">
+                    已有账号？直接登录
+                  </Link>
+                </>
+              )}
+            </p>
+
+            {!registerEnabled && (
+              <div className="alert alert--warning" style={{ marginTop: 'var(--gh-space-4)' }} role="status">
+                注册暂未开放，请直接登录或联系客服开通。
+              </div>
+            )}
 
             {done ? (
               <div className="alert alert--success" style={{ marginTop: 'var(--gh-space-5)' }} role="status">
                 注册成功，正在进入个人中心…
               </div>
-            ) : (
+            ) : !registerEnabled ? null : (
               <form style={{ marginTop: 'var(--gh-space-5)' }} onSubmit={submit} noValidate>
                 <div className="field">
                   <label className="field__label" htmlFor="regAccount">
@@ -196,16 +236,18 @@ export function RegisterPage() {
                   </div>
                 </div>
 
-                {/* 反垃圾：图形验证码（后台可关闭，关闭后不渲染） */}
-                <CaptchaField
-                  key={captchaNonce}
-                  inputId="regCaptcha"
-                  code={captchaCode}
-                  onCodeChange={setCaptchaCode}
-                  onTokenChange={setCaptchaToken}
-                  error={errors.captcha}
-                  disabled={submitting}
-                />
+                {/* 反垃圾：图形验证码（always 常驻；after3 失败 3 次后出现；off 不渲染） */}
+                {captchaVisible && (
+                  <CaptchaField
+                    key={captchaNonce}
+                    inputId="regCaptcha"
+                    code={captchaCode}
+                    onCodeChange={setCaptchaCode}
+                    onTokenChange={setCaptchaToken}
+                    error={errors.captcha}
+                    disabled={submitting}
+                  />
+                )}
 
                 <label className="check" style={{ marginTop: 'var(--gh-space-5)' }}>
                   <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
@@ -241,9 +283,6 @@ export function RegisterPage() {
               </form>
             )}
 
-            <p className="field__hint" style={{ marginTop: 'var(--gh-space-5)', textAlign: 'center' }}>
-              已有账号？<Link to="/login">返回登录</Link>
-            </p>
           </div>
         </AuthShell>
       </div>

@@ -32,6 +32,8 @@ export type InquiryBody = {
   message: string
   /** 轻量分流：咨询类型（售前咨询 / 售后报修 / 商务合作），随提交落库供后台分派 */
   inquiryType?: string
+  /** 首页快速提问：只校验问题描述 + 联系方式，称呼 / 型号由服务端补占位值 */
+  quick?: boolean
   captchaToken?: string
   captchaCode?: string
   website?: string

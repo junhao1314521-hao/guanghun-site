@@ -31,19 +31,19 @@ export const FOOTER_GROUPS = [
   { title: '探索光魂', links: [{ label: '关于光魂', to: '/about' }, { label: '商业合作', to: '/business' }, { label: '合作案例', to: '/business/cases' }, { label: '电竞合作', to: '/brand/esports' }, { label: '合规与协议', to: '/legal/privacy' }] },
 ]
 
-/** 站点级对外邮箱（单一真源；占位，上线前替换为真实邮箱） */
+/** 站点级对外邮箱（单一真源，取自官网对外公布信息） */
 export const SITE_EMAILS = {
   /** 商务合作 */
-  business: 'business@guanghun.example',
+  business: '1009742523@qq.com',
   /** 媒体送测 */
-  press: 'press@guanghun.example',
+  press: '1009742523@qq.com',
 } as const
 
-/** 页脚公司信息（品牌大字下方一行） */
-export const SITE_COMPANY = '光魂科技（深圳）有限公司'
+/** 页脚公司信息 */
+export const SITE_COMPANY = '广州小雪人信息科技有限公司'
 
 /** 备案号：底部显示，可点击跳备案信息页 */
-export const SITE_RECORD = { label: '粤ICP备 2026-000000 号', to: '/legal/records' }
+export const SITE_RECORD = { label: '粤ICP备19156321号', to: '/legal/records' }
 
 export const FOOTER_LEGAL = [
   { label: '隐私政策', to: '/legal/privacy' },
@@ -55,10 +55,10 @@ export const FOOTER_LEGAL = [
 /** 页脚社交兜底（后台未配置时使用）：每平台一条，无二维码则展示账号提示 */
 export const FALLBACK_SOCIAL: SiteSocialConfig = {
   items: [
-    { label: '微信', account: 'guanghun-official' },
-    { label: '微博', account: '光魂电竞' },
-    { label: 'B 站', account: '光魂官方' },
-    { label: '抖音', account: '光魂' },
+    { label: '微信', account: 'xxrsm001', qr: '/media/site/wechat-qr-placeholder.svg' },
+    { label: '小红书', href: 'https://www.xiaohongshu.com/' },
+    { label: 'B 站', href: 'https://space.bilibili.com/51365206' },
+    { label: '抖音', account: '光魂官方旗舰店', qr: '/media/site/douyin-qr-placeholder.svg' },
   ],
 }
 
@@ -139,13 +139,12 @@ function dedupeSocial(items: SiteSocialItem[]): SiteSocialItem[] {
 }
 
 /**
- * 店铺渠道兜底（后台未配置时使用）：天猫 / 京东 / 淘宝。
- * 注意：`href` 为占位外链，**上线前替换为真实店铺链接**。
+ * 店铺渠道兜底（后台未配置时使用）：京东 / 抖音 / 淘宝，链接取自官网对外公布入口。
  */
 export const FALLBACK_SHOP_CHANNELS: ShopChannel[] = [
-  { name: '天猫', href: 'https://tmall.example/' },
-  { name: '京东', href: 'https://jd.example/' },
-  { name: '淘宝', href: 'https://taobao.example/' },
+  { name: '京东', href: 'https://mall.jd.com/index-12338213.html' },
+  { name: '抖音', href: 'https://www.douyin.com/search/%E5%85%89%E9%AD%82%E5%AE%98%E6%96%B9%E6%97%97%E8%88%B0%E5%BA%97' },
+  { name: '淘宝', href: 'https://xiaoxuerenshuma.taobao.com/' },
 ]
 
 /** 店铺渠道排序：任一条配置了 `order` 时按数值升序（稳定），否则保持数组原序 */

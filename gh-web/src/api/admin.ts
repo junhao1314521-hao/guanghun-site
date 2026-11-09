@@ -210,3 +210,104 @@ export function purgeAdminTrash(id: string): Promise<{ ok: boolean }> {
     () => ({ ok: true }),
   )
 }
+
+/* ---------------- 天梯榜批量导入 ---------------- */
+
+/** 榜单指标摘要（导入页下拉） */
+export type RankingMetricSummary = {
+  id: string
+  label: string
+  unit: string
+  better: 'high' | 'low'
+  digits: number
+  count: number
+}
+
+/** 榜单指标列表：GET /api/admin/rankings/metrics */
+export function fetchRankingMetrics(signal?: AbortSignal): Promise<{ items: RankingMetricSummary[] }> {
+  return transport(
+    { path: '/api/admin/rankings/metrics', signal, token: getAdminToken() ?? undefined },
+    () => ({ items: [] }),
+  )
+}
+
+/** 导入行（与后端 `ImportRow` 对齐） */
+export type RankingImportRow = {
+  model: string
+  name: string
+  score?: string | number | null
+  inf?: string | number | boolean
+  productId?: string
+}
+
+/** 批量导入：POST /api/admin/rankings/import */
+export function importRankingRows(body: {
+  metric: string
+  mode: 'replace' | 'append'
+  rows: RankingImportRow[]
+}): Promise<{ ok: boolean; imported: number; metric: { id: string; label: string; total: number } }> {
+  return transport(
+    {
+      path: '/api/admin/rankings/import',
+      method: 'POST',
+      body,
+      token: getAdminToken() ?? undefined,
+    },
+    () => ({ ok: true, imported: 0, metric: { id: '', label: '', total: 0 } }),
+  )
+}
+
+/* ---------------- 会员设备登记审核 ---------------- */
+
+/** 会员设备登记（后台视图，形状对齐后端 `AdminDeviceView`） */
+export type AdminDeviceRegistration = {
+  id: string
+  model: string
+  sn: string
+  purchasedAt: string
+  channel: string
+  receiptUrl: string
+  status: 'pending' | 'active' | 'rejected'
+  statusText: string
+  warrantyEnd: string
+  remainingDays: number
+  rejectReason: string
+  createdAt: string
+  userId: string
+  username: string
+  reviewedBy: string
+  reviewedAt: string
+}
+
+/** 设备登记列表：GET /api/admin/device-registrations?status= */
+export function fetchDeviceRegistrations(
+  status?: string,
+  signal?: AbortSignal,
+): Promise<{ items: AdminDeviceRegistration[] }> {
+  return transport(
+    {
+      path: '/api/admin/device-registrations',
+      query: { status: status || undefined },
+      signal,
+      token: getAdminToken() ?? undefined,
+    },
+    () => ({ items: [] }),
+  )
+}
+
+/** 审核：POST /api/admin/device-registrations/:id/review */
+export function reviewDeviceRegistration(
+  id: string,
+  action: 'approve' | 'reject',
+  reason?: string,
+): Promise<{ ok: boolean; item: AdminDeviceRegistration }> {
+  return transport(
+    {
+      path: `/api/admin/device-registrations/${encodeURIComponent(id)}/review`,
+      method: 'POST',
+      body: { action, reason },
+      token: getAdminToken() ?? undefined,
+    },
+    () => ({ ok: true, item: {} as AdminDeviceRegistration }),
+  )
+}

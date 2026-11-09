@@ -29,8 +29,10 @@ import { logger } from '../lib/logger'
  * v7：新增 publish_schedules（定时发布：到点自动应用创建时捕获的内容快照，支持取消）。
  * v8：新增 admin_roles（后台角色可新建 / 编辑 / 删除；取代代码内固定两角色）。
  * v9：新增 content_drafts（页面草稿：后台保存写草稿，发布时才覆盖线上）。
+ * v10：新增 device_registrations（会员设备登记：SN 全局唯一，购买凭证待后台审核，
+ *     保修期 = 购买日期 + 36 个月，由服务端计算到期日与剩余天数）。
  */
-export const SCHEMA_VERSION = '9'
+export const SCHEMA_VERSION = '10'
 
 /** meta 键：是否已完成「旧 JSON → SQLite」一次性迁移 */
 const META_MIGRATED = 'migrated_json'
@@ -209,6 +211,26 @@ CREATE TABLE IF NOT EXISTS content_drafts (
   data       TEXT NOT NULL,
   updated_at TEXT
 );
+-- 会员设备登记：sn 全局唯一（跨账号）；购买凭证经后台上传审核后状态才转 active。
+-- 保修期固定 36 个月（不区分面板 / 整机），到期日与剩余天数由服务端按 purchased_at 计算。
+CREATE TABLE IF NOT EXISTS device_registrations (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL,
+  model         TEXT NOT NULL,
+  sn            TEXT NOT NULL,
+  purchased_at  TEXT NOT NULL,
+  channel       TEXT,
+  receipt_url   TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending',
+  reject_reason TEXT,
+  reviewed_by   TEXT,
+  reviewed_at   TEXT,
+  created_at    TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_device_reg_user ON device_registrations(user_id);
+CREATE INDEX IF NOT EXISTS idx_device_reg_status ON device_registrations(status);
+-- 序列号全局唯一：已驳回的记录不占用（允许用户修正凭证后重新提交）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_device_reg_sn ON device_registrations(sn) WHERE status <> 'rejected';
 `
 
 /** 单例连接与其对应的路径（路径变化时重开，兼容测试 / 多实例场景） */

@@ -9,6 +9,7 @@ import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
 import {
   buildBusinessCases,
+  buildCenterDevices,
   buildCenterDownloads,
   buildCenterVersion,
   buildFeaturedProducts,
@@ -100,6 +101,8 @@ contentRouter.get('/center', (req, res) => {
     CAPABILITIES: center.CAPABILITIES,
     FEATURES: center.FEATURES,
     DEVICE_SUPPORT: center.DEVICE_SUPPORT,
+    // 已适配机型（3 款主推）：型号与主图取产品库，相册首图即详情页主图
+    CENTER_DEVICES: buildCenterDevices(listCollection('products', readLocale(req))),
     DOWNLOADS: buildCenterDownloads(downloads),
     INSTALL_STEPS: center.INSTALL_STEPS,
     REQUIREMENTS: center.REQUIREMENTS,

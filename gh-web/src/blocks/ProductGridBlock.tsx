@@ -46,6 +46,29 @@ const SCENE_CATEGORY_MAP: Record<string, string[]> = {
   'scene-04': ['OLED旗舰', '双模高刷'], // 沉浸 · 影音
 }
 
+/** 系列入口文案（按类别）：后台新增类别时缺省只显示名称与型号数量 */
+const SERIES_DESC: Record<string, string> = {
+  'OLED旗舰': '540Hz 满速刷新，为极限竞技准备。',
+  '双模高刷': '4K 与高刷一机两用，一屏通吃。',
+  '电竞IPS': '稳定、耐用、护眼，日常与竞技兼顾。',
+  '周边': '支架、配件与桌面装备，把体验补齐。',
+}
+
+/** 角标配色：热销 / 双模 / 入门 有专属色，其余（旗舰 / 4K / 高刷…）统一品牌蓝 */
+function flagClass(flag: string): string {
+  if (flag === '热销') return 'pcard__badge--hot'
+  if (flag === '双模') return 'pcard__badge--dual'
+  if (flag === '入门') return 'pcard__badge--entry'
+  return ''
+}
+
+/** 价格文案：后台填了 price 优先；否则用结构化价格；两者皆空显示「询价」 */
+function priceText(item: Product): string {
+  if (item.price) return item.price
+  if (item.priceValue > 0) return `¥${item.priceValue.toLocaleString('zh-CN')}`
+  return '询价'
+}
+
 /** 按所选排序方式排序；「综合排序」保持接口返回的原始顺序 */
 function sortProducts(list: Product[], sortBy: string): Product[] {
   if (sortBy === '价格从低到高') return [...list].sort((a, b) => a.priceValue - b.priceValue)
@@ -60,14 +83,14 @@ function GridSkeleton({ count }: { count: number }) {
     <div className="p-grid" aria-busy="true" aria-label="产品加载中">
       {Array.from({ length: Math.min(count || 4, 8) }).map((_, index) => (
         <div className="pcard pcard--auto" key={index}>
-          <div className="pcard__head">
-            <div className="skeleton" style={{ height: 12, width: '38%' }} />
-            <div className="skeleton" style={{ height: 22, width: '76%', marginTop: 10 }} />
+          <div className="pcard__media skeleton" style={{ borderRadius: 17 }} />
+          <div className="pcard__body">
+            <div className="skeleton" style={{ height: 10, width: '34%' }} />
+            <div className="skeleton" style={{ height: 20, width: '82%', marginTop: 6 }} />
+            <div className="skeleton" style={{ height: 13, width: '64%', marginTop: 4 }} />
           </div>
-          <div className="pcard__media skeleton" style={{ borderRadius: 0 }} />
           <div className="pcard__foot">
-            <div className="skeleton" style={{ height: 14, width: '28%' }} />
-            <div className="skeleton" style={{ height: 38, width: 96, borderRadius: 999 }} />
+            <div className="skeleton" style={{ height: 14, width: 56 }} />
           </div>
         </div>
       ))}
@@ -87,10 +110,14 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const columns = asNumber(props.columns, 3)
   const layout = asString(props.layout, 'grid') // grid | rail
   const showFilter = asBool(props.showFilter)
-  // 展示字段开关（缺省：保留状态 / 型号，隐藏价格与参数，对齐新版产品卡）
-  const showSpecs = props.showSpecs === undefined ? false : asBool(props.showSpecs)
+  // 展示字段开关（缺省：型号 / 角标 / 状态 / 参数开启，价格与文字 CTA 关闭 → 极简卡）
+  const showSpecs = props.showSpecs === undefined ? true : asBool(props.showSpecs)
   const showStatus = props.showStatus === undefined ? true : asBool(props.showStatus)
   const showPrice = props.showPrice === undefined ? false : asBool(props.showPrice)
+  const showModel = props.showModel === undefined ? true : asBool(props.showModel)
+  const showFlag = props.showFlag === undefined ? true : asBool(props.showFlag)
+  const showCta = props.showCta === undefined ? false : asBool(props.showCta)
+  const showSeriesNav = asBool(props.showSeriesNav)
   // 卡片底色：默认白卡（对齐参考图）；auto 跟随主题；dark 适配深底图
   const cardTone = asString(props.cardTone, 'light')
   // 3 列沿用既有自适应产品网格 .p-grid；2 / 4 列用区块网格类固定列数
@@ -184,6 +211,17 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
 
   const shown = limit > 0 ? filtered.slice(0, limit) : filtered
 
+  /** 系列入口：按类别生成，数量取全量产品（不受当前筛选影响）；无在售型号的类别不展示 */
+  const seriesEntries = categoryOptions
+    .filter((name) => name !== '全部')
+    .map((name) => ({
+      name,
+      count: all.filter((item) => item.category === name).length,
+      desc: SERIES_DESC[name] ?? '按类别查看该系列的全部型号。',
+      href: `/products?category=${encodeURIComponent(name)}`,
+    }))
+    .filter((entry) => entry.count > 0)
+
   // 列表页分页：页码同样承载于 URL（?page=）；筛选变化由 writeParams 统一清空页码
   const page = Math.max(1, Math.floor(Number(readParam('page')) || 1))
   const setPage = (next: number) => writeParams({ page: next > 1 ? String(next) : '' }, false)
@@ -258,35 +296,40 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           </label>
         )}
         <div
-          className="pcard__media"
+          className={`pcard__media${item.status.level === 'warning' ? ' is-oos' : ''}`}
           style={{ '--vt': vtId === item.id ? `vh-${item.id}` : undefined } as CSSProperties}
         >
           <MediaImg src={cardImage} alt={item.name} variant={item.variant} label={item.name} />
+          {showFlag && (item.flag || item.status.level === 'warning') && (
+            <span
+              className={`pcard__badge${
+                item.flag ? ` ${flagClass(item.flag)}` : ' pcard__badge--oos'
+              }`}
+            >
+              {item.flag || '缺货'}
+            </span>
+          )}
         </div>
-        <div className="pcard__head">
+        <div className="pcard__body">
+          {showModel && <p className="pcard__model">{item.model}</p>}
           <h3 className="pcard__name">{item.name}</h3>
+          {showSpecs && item.specs.length > 0 && (
+            <p className="pcard__specs">{item.specs.slice(0, 3).join(' · ')}</p>
+          )}
         </div>
         <div className="pcard__foot">
-          <div className="pcard__meta">
-            <span className="pcard__category">{item.category}</span>
-            {showStatus && (
-              <span className={`pcard__status pcard__status--${item.status.level}`}>{item.status.text}</span>
-            )}
-            {showSpecs && (
-              <div className="pcard__specs">
-                {item.specs.map((spec) => (
-                  <span key={spec}>{spec}</span>
-                ))}
-              </div>
-            )}
-            {showPrice && <span className="pcard__price">{item.price || '询价'}</span>}
-          </div>
-          <span className="pcard__cta" aria-hidden="true">
-            查看详情
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14m-5-5 5 5-5 5" />
-            </svg>
-          </span>
+          {showStatus && (
+            <span className={`pcard__status pcard__status--${item.status.level}`}>{item.status.text}</span>
+          )}
+          {showPrice && <span className="pcard__price">{priceText(item)}</span>}
+          {showCta && (
+            <span className="pcard__cta" aria-hidden="true">
+              查看详情
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14m-5-5 5 5-5 5" />
+              </svg>
+            </span>
+          )}
         </div>
         {/* 整卡可点：悬停卡片任意位置即可进入详情，不必再找按钮 */}
         {live && (
@@ -319,6 +362,28 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
           {/* 列表页：左侧筛选栏 + 右侧大图卡片 */}
           {showFilter ? (
             <div className="catalog">
+              {/* 通栏工具条：数量贴页面左脊线、排序贴产品区右缘，下一行左右两栏同顶 */}
+              <div className="catalog__toolbar">
+                <p className="catalog__count">
+                  共 <strong>{shown.length}</strong> 款产品
+                  {scene && <span className="catalog__scene">场景：{scene.title}</span>}
+                </p>
+                <label className="sr-only" htmlFor="sort-products">
+                  排序方式
+                </label>
+                <select
+                  className="select catalog__sort"
+                  id="sort-products"
+                  value={sortBy}
+                  onChange={(event) =>
+                    writeParams({ sort: event.target.value === SORT_OPTIONS[0] ? '' : event.target.value })
+                  }
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
               {/* 移动端：筛选面板默认收起，避免首屏被四组筛选挤满 */}
               <button
                 className="catalog__filter-toggle"
@@ -424,28 +489,6 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
               </aside>
 
               <div className="catalog__main">
-                <div className="catalog__toolbar">
-                  <p className="catalog__count">
-                    共 <strong>{shown.length}</strong> 款产品
-                    {scene && <span className="catalog__scene">场景：{scene.title}</span>}
-                  </p>
-                  <label className="sr-only" htmlFor="sort-products">
-                    排序方式
-                  </label>
-                  <select
-                    className="select catalog__sort"
-                    id="sort-products"
-                    value={sortBy}
-                    onChange={(event) =>
-                      writeParams({ sort: event.target.value === SORT_OPTIONS[0] ? '' : event.target.value })
-                    }
-                  >
-                    {SORT_OPTIONS.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                </div>
-
                 {activeChips.length > 0 && (
                   <div className="catalog__chips">
                     {activeChips.map((chip) => (
@@ -462,7 +505,23 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 {shown.length === 0 ? (
                   <p className="catalog__empty">没有符合当前筛选条件的产品，试试调整筛选。</p>
                 ) : (
-                  <div className="p-grid catalog__grid">{paged.map(renderCard)}</div>
+                  <div className="p-grid catalog__grid">
+                    {paged.map(renderCard)}
+                    {/* 第 9 格：末行只差一格时补一张对比引导卡，避免网格留洞 */}
+                    {paged.length % columns === columns - 1 && (
+                      <Link className="p-guide" to="/compare">
+                        <span className="p-guide__k">COMPARE</span>
+                        <p className="p-guide__t">不确定选哪款？</p>
+                        <p className="p-guide__d">把候选机型加入对比，逐项看清刷新率、尺寸与接口差异。</p>
+                        <span className="p-guide__go">
+                          开始对比
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14m-5-5 5 5-5 5" />
+                          </svg>
+                        </span>
+                      </Link>
+                    )}
+                  </div>
                 )}
 
                 {totalPages > 1 && (
@@ -501,6 +560,33 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             </p>
           ) : (
             <div className={layout === 'rail' ? 'p-grid-rail' : gridClassName}>{paged.map(renderCard)}</div>
+          )}
+
+          {/* 系列入口：按产品类别进入，替代同页重复的第二组网格 */}
+          {showSeriesNav && seriesEntries.length > 0 && (
+            <div className="p-series">
+              <div className="p-series__head">
+                <div>
+                  <h2 className="p-series__title">按系列浏览</h2>
+                  <p className="p-series__desc">从产品线进入，快速收敛到你关心的区间。</p>
+                </div>
+              </div>
+              <div className="p-series__grid">
+                {seriesEntries.map((entry, index) => (
+                  <Link className="p-series__card" to={entry.href} key={entry.name}>
+                    <span className="p-series__k">SERIES {String(index + 1).padStart(2, '0')}</span>
+                    <span className="p-series__t">{entry.name}</span>
+                    <span className="p-series__d">{entry.desc}</span>
+                    <span className="p-series__n">
+                      {entry.count} 款型号
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14m-5-5 5 5-5 5" />
+                      </svg>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* 对比浮条（仅列表页开启）：数量约束与不兼容提示 */}

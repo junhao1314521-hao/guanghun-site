@@ -4,14 +4,22 @@ import type { AuthUser, InquiryDetail, InquirySummary, LoginDevice, Notification
 
 export type { AuthUser, InquiryDetail, InquirySummary, LoginDevice, NotificationSetting } from '../data/auth'
 
-/** 已登记设备（形状对齐后端 `AccountDevice`） */
+/** 已登记设备（形状对齐后端 `DeviceView`；保修信息由服务端计算） */
 export type AccountDevice = {
+  id: string
   model: string
   sn: string
-  status: 'success' | 'muted'
+  purchasedAt: string
+  channel: string
+  receiptUrl: string
+  status: 'pending' | 'active' | 'rejected'
   statusText: string
-  warranty: string
-  action: { label: string; variant: 'secondary' | 'ghost'; to?: string }
+  /** 保修到期日（YYYY-MM-DD） */
+  warrantyEnd: string
+  /** 剩余天数（过保为负数） */
+  remainingDays: number
+  rejectReason: string
+  createdAt: string
 }
 
 /** 收藏项 */
@@ -61,15 +69,21 @@ export function fetchMyDevices(signal?: AbortSignal): Promise<{ items: AccountDe
   return transport({ path: '/api/account/devices', signal }, () => ({ items: [] }))
 }
 
-/** 登记设备：POST /api/account/devices */
-export function addMyDevice(body: { model: string; sn: string }): Promise<{ items: AccountDevice[] }> {
+/** 登记设备：POST /api/account/devices（凭证以 data URL 提交，≤5MB） */
+export function addMyDevice(body: {
+  model: string
+  sn: string
+  purchasedAt: string
+  channel: string
+  receipt: string
+}): Promise<{ items: AccountDevice[] }> {
   return transport({ path: '/api/account/devices', method: 'POST', body }, () => ({ items: [] }))
 }
 
-/** 删除设备：DELETE /api/account/devices/:sn */
-export function removeMyDevice(sn: string): Promise<{ ok: boolean; items: AccountDevice[] }> {
+/** 删除设备：DELETE /api/account/devices/:id（仅限待审核 / 已驳回） */
+export function removeMyDevice(id: string): Promise<{ ok: boolean; items: AccountDevice[] }> {
   return transport(
-    { path: `/api/account/devices/${encodeURIComponent(sn)}`, method: 'DELETE' },
+    { path: `/api/account/devices/${encodeURIComponent(id)}`, method: 'DELETE' },
     () => ({ ok: true, items: [] }),
   )
 }

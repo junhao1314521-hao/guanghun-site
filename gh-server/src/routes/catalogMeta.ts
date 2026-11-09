@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { listCollection } from '../data/collectionStore'
+import { listCollection, listProductCategories } from '../data/collectionStore'
 
 /**
  * 内容与评测元数据公开端点（数据来自集合存储，后台对应栏目可维护）：
@@ -16,7 +16,7 @@ catalogMetaRouter.get('/taxonomy', (_req, res) => {
 })
 
 catalogMetaRouter.get('/product-categories', (_req, res) => {
-  res.json({ items: listCollection('product-categories') })
+  res.json({ items: listProductCategories() })
 })
 
 catalogMetaRouter.get('/test-records', (req, res) => {

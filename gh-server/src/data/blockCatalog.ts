@@ -59,8 +59,9 @@ const POSTER_CTA_STYLES: { label: string; value: string }[] = [
 /** 海报高度档位（§1.3）：满屏 / 21:9 宽幅（高度随宽度）/ 比首屏矮一档 / 自定义（首屏轮播固定满屏） */
 const POSTER_HEIGHTS: { label: string; value: string }[] = [
   { label: '满屏高度（100vh，最高 940px）', value: 'full' },
-  { label: '21:9 宽幅（高度 = 宽度 ÷ 2.33）', value: 'r219' },
+  { label: '21:9 宽幅（高度 = 宽度 ÷ 2.33，最高 660px）', value: 'r219' },
   { label: '矮一档（66vh，最高 600px）', value: 'short' },
+  { label: '商城海报（桌面约 520px / 手机约 380px）', value: 'shop' },
   { label: '自定义固定高度（px）', value: 'custom' },
 ]
 
@@ -173,6 +174,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'motion', label: '代码动画（作为第 1 张；关闭后第 1 张使用海报图片）', kind: 'switch' },
       { name: 'slides', label: '幻灯片（后续第 2、3… 张）', kind: 'list' },
       { name: 'autoplay', label: '自动播放', kind: 'switch' },
+      // 大疆商城式轮播：默认只留底部圆点，不显示左右箭头
+      { name: 'arrows', label: '显示左右切换按钮（默认关闭）', kind: 'switch' },
       // 整组幻灯片统一高度：r219 = 21:9（上传 21:9 海报按原比例展示，不裁切）
       { name: 'height', label: '海报高度', kind: 'select', options: POSTER_HEIGHTS },
       { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
@@ -370,9 +373,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'limit', label: '数量', kind: 'number' },
       { name: 'columns', label: '列数', kind: 'select', options: COLUMNS },
       { name: 'showPrice', label: '显示价格', kind: 'switch' },
-      { name: 'showSpecs', label: '显示参数', kind: 'switch' },
+      { name: 'showSpecs', label: '显示参数（3 项一行）', kind: 'switch' },
       { name: 'showStatus', label: '显示状态', kind: 'switch' },
+      { name: 'showModel', label: '显示型号', kind: 'switch' },
+      { name: 'showFlag', label: '显示角标（产品标记 / 缺货）', kind: 'switch' },
+      { name: 'showCta', label: '显示「查看详情」文字', kind: 'switch' },
       { name: 'showFilter', label: '显示筛选 / 排序', kind: 'switch' },
+      { name: 'showSeriesNav', label: '显示系列入口（按分类）', kind: 'switch' },
       // 卡片底色：跟随主题 / 适配白底图 / 适配深底图
       {
         name: 'cardTone',
@@ -510,6 +517,8 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'limit', label: '数量', kind: 'number' },
       { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
+      { name: 'showFilter', label: '显示筛选 / 搜索', kind: 'switch' },
+      { name: 'followDevice', label: '跟随当前设备（读取 ?model= 并只显示该型号资料）', kind: 'switch' },
     ],
   },
   {
@@ -545,6 +554,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       },
       { name: 'limit', label: '数量', kind: 'number' },
       { name: 'pageSize', label: '每页条数（0=不分页）', kind: 'number' },
+      { name: 'showFilter', label: '显示分类筛选 / 搜索', kind: 'switch' },
     ],
   },
   {
@@ -1064,6 +1074,83 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'buttons', label: '按钮（文字 + 链接，可增减）', kind: 'list' },
     ],
   },
+  {
+    type: 'supportHero',
+    name: '服务支持页头（搜索 / 热门词）',
+    group: '服务支持',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text', placeholder: '如：服务与支持' },
+      { name: 'desc', label: '一句话说明', kind: 'textarea' },
+      { name: 'showSearch', label: '显示搜索框', kind: 'switch' },
+      { name: 'searchPlaceholder', label: '搜索框占位词', kind: 'text', placeholder: '如：搜索型号、资料或问题关键词' },
+      { name: 'hotKeywords', label: '热门搜索词（每行一个）', kind: 'list', placeholder: '如：固件更新' },
+      { name: 'loginLabel', label: '登录引导文案（留空则不显示）', kind: 'text', placeholder: '如：登录查看我的设备、保修剩余与工单进度' },
+      { name: 'loginHref', label: '登录引导链接', kind: 'text', placeholder: '如：/me/devices' },
+    ],
+  },
+  {
+    type: 'supportDevicePicker',
+    name: '服务支持设备选择（联动下载 / FAQ）',
+    group: '服务支持',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text', placeholder: '如：先选择你的设备' },
+      { name: 'desc', label: '一句话说明', kind: 'textarea' },
+      { name: 'limit', label: '最多显示型号数', kind: 'number', placeholder: '默认 4' },
+      { name: 'allLabel', label: '「全部型号」文案', kind: 'text', placeholder: '如：全部型号' },
+      { name: 'allHref', label: '「全部型号」链接', kind: 'text', placeholder: '如：/support/models' },
+    ],
+  },
+  // —— 首页资料坞：取下载中心各类型最新一条，行内可直接下载（不再用三张营销卡） ——
+  {
+    type: 'downloadDock',
+    name: '首页资料坞（固件 / 驱动 / 软件）',
+    group: '服务支持',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text', placeholder: '如：固件与驱动' },
+      { name: 'desc', label: '一句话说明', kind: 'textarea' },
+      { name: 'showFirmware', label: '显示固件', kind: 'switch' },
+      { name: 'showDriver', label: '显示驱动', kind: 'switch' },
+      { name: 'showSoftware', label: '显示软件', kind: 'switch' },
+      { name: 'moreLabel', label: '右侧链接文案', kind: 'text', placeholder: '如：全部资料' },
+      { name: 'moreHref', label: '右侧链接地址', kind: 'text', placeholder: '如：/downloads' },
+    ],
+  },
+  // —— 首页咨询分流：三张类型卡 + 主按钮；表单仍在 /inquiry，不内嵌首页 ——
+  {
+    type: 'inquiryDock',
+    name: '首页咨询分流（售前 / 售后 / 商务）',
+    group: '服务支持',
+    fields: [
+      { name: 'title', label: '标题', kind: 'text', placeholder: '如：还有问题？找对入口，回复更快。' },
+      { name: 'desc', label: '一句话说明', kind: 'textarea' },
+      { name: 'points', label: '服务说明（每行一条）', kind: 'list', placeholder: '如：工作日 09:00–21:00 在线' },
+      { name: 'channels', label: '分流类型', kind: 'list' },
+      { name: 'quickEnabled', label: '显示快速提问框（问题 + 联系方式）', kind: 'switch' },
+      { name: 'quickPlaceholder', label: '快速提问占位文案', kind: 'text', placeholder: '如：用一句话描述你的问题' },
+      { name: 'quickCta', label: '快速提问按钮文案', kind: 'text', placeholder: '如：快速提问' },
+      { name: 'quickTip', label: '快速提问说明', kind: 'text', placeholder: '如：提交后可在「我的工单」查看进度' },
+      { name: 'primaryLabel', label: '完整表单入口文案', kind: 'text', placeholder: '如：提交咨询' },
+      { name: 'primaryHref', label: '主按钮链接', kind: 'text', placeholder: '如：/inquiry' },
+      { name: 'secondaryLabel', label: '次按钮文案', kind: 'text', placeholder: '如：常见问题' },
+      { name: 'secondaryHref', label: '次按钮链接', kind: 'text', placeholder: '如：/faq' },
+      { name: 'links', label: '辅助链接（每行一条：文案|链接）', kind: 'list', placeholder: '如：我的工单|/me/inquiries' },
+    ],
+    listFields: [
+      { name: 'label', label: '类型名称', kind: 'text', placeholder: '如：售前咨询' },
+      { name: 'desc', label: '一句话说明', kind: 'text', placeholder: '如：选型、参数、兼容' },
+      {
+        name: 'type',
+        label: '对应咨询类型',
+        kind: 'select',
+        options: [
+          { label: '售前咨询', value: 'pre' },
+          { label: '售后报修', value: 'after' },
+          { label: '商务合作', value: 'business' },
+        ],
+      },
+      { name: 'action', label: '卡片动作文案', kind: 'text', placeholder: '如：立即咨询' },
+    ],
+  },
 ]
 
 /**
@@ -1175,6 +1262,54 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
     case 'longImage':
       // R6：空切片列表；上传后按顺序垂直拼接
       return { items: [], href: '' }
+    case 'supportHero':
+      return {
+        title: '服务与支持',
+        desc: '从固件下载到保修寄修，选好你的设备，快速找到对应资料与服务入口。',
+        showSearch: true,
+        searchPlaceholder: '搜索型号、资料或问题关键词',
+        hotKeywords: ['固件更新', 'HDR', '烧屏', '保修'],
+        loginLabel: '登录查看我的设备、保修剩余与工单进度',
+        loginHref: '/me/devices',
+      }
+    case 'supportDevicePicker':
+      return {
+        title: '先选择你的设备',
+        desc: '选择型号后，下方资料与常见问题会自动跟随。',
+        limit: 4,
+        allLabel: '全部型号',
+        allHref: '/support/models',
+      }
+    case 'downloadDock':
+      return {
+        title: '固件与驱动',
+        desc: '保持最新版本，获得更好的兼容与调校。以下为该类型当前最新文件。',
+        showFirmware: true,
+        showDriver: true,
+        showSoftware: true,
+        moreLabel: '全部资料',
+        moreHref: '/downloads',
+      }
+    case 'inquiryDock':
+      return {
+        title: '还有问题？找对入口，回复更快。',
+        desc: '先选问题类型，我们会带着对应模板和负责人接手；复杂问题可在工单里补图、补日志。',
+        points: ['工作日 09:00–21:00 在线', '售前 / 售后工单 1 个工作日首次响应', '登录后可在「我的工单」查看进度'],
+        quickEnabled: true,
+        quickPlaceholder: '用一句话描述你的问题，例如：54027X1QE 更新固件后 HDR 偏暗',
+        quickCta: '快速提问',
+        quickTip: '提交后可在「我的工单」查看进度；需要填型号与截图时再用完整表单。',
+        channels: [
+          { label: '售前咨询', desc: '选型、参数、兼容', type: 'pre', action: '立即咨询' },
+          { label: '售后报修', desc: '故障、保修、换新', type: 'after', action: '提交工单' },
+          { label: '商务合作', desc: '渠道、送测、赛事', type: 'business', action: '合作申请' },
+        ],
+        primaryLabel: '提交咨询',
+        primaryHref: '/inquiry',
+        secondaryLabel: '常见问题',
+        secondaryHref: '/faq',
+        links: ['我的工单|/me/inquiries', '保修与设备|/me/devices', '服务时间说明|/support'],
+      }
     default:
       return {}
   }

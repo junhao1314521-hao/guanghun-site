@@ -25,7 +25,6 @@ const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m
 const SupportPage = lazy(() => import('./pages/SupportPage').then((m) => ({ default: m.SupportPage })))
 const BusinessPage = lazy(() => import('./pages/BusinessPage').then((m) => ({ default: m.BusinessPage })))
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })))
-const CenterPage = lazy(() => import('./pages/CenterPage').then((m) => ({ default: m.CenterPage })))
 const ProductsPage = lazy(() => import('./pages/ProductsPage').then((m) => ({ default: m.ProductsPage })))
 const ProductDetailPage = lazy(() =>
   import('./pages/ProductDetailPage').then((m) => ({ default: m.ProductDetailPage })),
@@ -92,6 +91,12 @@ const AdminPageBuilderPage = lazy(() =>
 )
 const AdminSiteConfigPage = lazy(() =>
   import('./pages/admin/AdminSiteConfigPage').then((m) => ({ default: m.AdminSiteConfigPage })),
+)
+const AdminDeviceReviewsPage = lazy(() =>
+  import('./pages/admin/AdminDeviceReviewsPage').then((m) => ({ default: m.AdminDeviceReviewsPage })),
+)
+const AdminRankingsImportPage = lazy(() =>
+  import('./pages/admin/AdminRankingsImportPage').then((m) => ({ default: m.AdminRankingsImportPage })),
 )
 const AdminNotFound = lazy(() => import('./components/admin/AdminNotFound').then((m) => ({ default: m.AdminNotFound })))
 
@@ -308,7 +313,9 @@ function AppShell() {
               <Route path="/business/venues/:id" element={<BusinessVenueDetailPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/brand/:slug" element={<BrandPage />} />
-              <Route path="/center" element={<CenterPage />} />
+              {/* Center 页由服务端直接返回独立静态页（demo/center-v2.html）。
+                  此处仅保留开发态兜底：SPA 内误入 /center 时回到首页，不再渲染已下线的旧版页面。 */}
+              <Route path="/center" element={<Navigate to="/" replace />} />
               {/* 旧的「客户中心」已并入个人中心 /me，旧路径做重定向 */}
               <Route path="/account" element={<Navigate to="/me" replace />} />
               <Route path="/legal/:slug" element={<LegalPage />} />
@@ -372,6 +379,10 @@ function AdminArea() {
                 <Route path="analytics/:scope" element={<AdminAnalyticsPage />} />
                 {/* 站点配置编辑器：静态段先于通用 `:key` 匹配（取更具体者） */}
                 <Route path="site" element={<AdminSiteConfigPage />} />
+                {/* 会员设备审核（自定义页，先于通用 `:key` 声明） */}
+                <Route path="device-reviews" element={<AdminDeviceReviewsPage />} />
+                {/* 天梯榜 CSV 导入（自定义页，先于通用 `:key` 声明） */}
+                <Route path="rankings-import" element={<AdminRankingsImportPage />} />
                 {/* 页面装修器：须先于通用 `:key/:id` 声明（三段路径，取更具体者） */}
                 <Route path="pages/:key/builder" element={<AdminPageBuilderPage />} />
                 <Route path=":key/new" element={<AdminResourceFormPage />} />

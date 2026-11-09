@@ -24,10 +24,12 @@ export type CaptchaFieldProps = {
   disabled?: boolean
   /** 输入框 id（默认 captcha-code），用于 label 关联 */
   inputId?: string
+  /** 紧凑形态：去掉标签与说明，只留「输入框 + 图形」，供首页快速提问这类窄行使用 */
+  compact?: boolean
 }
 
 /** 图形验证码字段：自动取图 + 点击刷新 + 内联错误 */
-export function CaptchaField({ code, onCodeChange, onTokenChange, error, disabled, inputId = 'captcha-code' }: CaptchaFieldProps) {
+export function CaptchaField({ code, onCodeChange, onTokenChange, error, disabled, inputId = 'captcha-code', compact }: CaptchaFieldProps) {
   const enabled = useSiteAuth().captcha
   const [challenge, setChallenge] = useState<CaptchaChallenge | null>(null)
   const [loading, setLoading] = useState(false)
@@ -56,6 +58,38 @@ export function CaptchaField({ code, onCodeChange, onTokenChange, error, disable
 
   // 后台关闭验证码时整体不渲染（与服务端跳过校验对齐）
   if (!enabled) return null
+
+  if (compact) {
+    return (
+      <div className="captcha-inline">
+        <input
+          id={inputId}
+          className={`input captcha-inline__code${error ? ' input--error' : ''}`}
+          value={code}
+          placeholder="验证码"
+          aria-label="验证码"
+          autoComplete="off"
+          disabled={disabled}
+          aria-invalid={Boolean(error)}
+          onChange={(event) => onCodeChange(event.target.value.toUpperCase())}
+        />
+        <button
+          className="btn btn--ghost btn--sm captcha-inline__figure"
+          type="button"
+          disabled={disabled || loading}
+          aria-label="点击刷新验证码"
+          title="点击刷新验证码"
+          onClick={() => void load()}
+        >
+          {challenge?.svg ? (
+            <span className="captcha-figure__svg" dangerouslySetInnerHTML={{ __html: challenge.svg }} />
+          ) : (
+            <span className="captcha-figure__ph">{loading ? '加载中…' : '获取'}</span>
+          )}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="field" style={{ marginTop: 'var(--gh-space-3)' }}>

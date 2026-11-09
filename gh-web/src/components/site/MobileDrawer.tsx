@@ -131,6 +131,8 @@ export function MobileDrawer({ open, lang, onLangChange, onClose }: Props) {
                   <Link
                     className={`drawer__group-btn${isActive ? ' is-active' : ''}`}
                     to={item.to}
+                    /* Center 为服务端静态页：移动端同样整页跳转，保证与桌面端一致 */
+                    reloadDocument={item.to === '/center'}
                     onClick={onClose}
                     aria-current={isActive ? 'page' : undefined}
                   >

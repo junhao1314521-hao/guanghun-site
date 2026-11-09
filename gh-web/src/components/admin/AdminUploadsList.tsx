@@ -10,7 +10,7 @@
  * 取数复用 useApi；新上传 / 增删后刷新列表与文件夹计数（保证与服务端筛选一致）。
  * 缩略图复用 MediaImg（加载失败不出现破图）；沿用 admin.css 的令牌与宫格样式。
  */
-import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent as ReactDragEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CATEGORY_LABELS,
@@ -224,10 +224,9 @@ export function AdminUploadsList() {
   }
 
   /* ---------- 上传 ---------- */
-  const onPickFiles = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? [])
-    event.target.value = ''
-    if (files.length === 0) return
+  /** 逐个上传（图片附带多尺寸变体）；选择文件与拖拽共用同一套逻辑 */
+  const uploadFiles = async (files: File[]) => {
+    if (files.length === 0 || uploading) return
     setUploading(true)
     let ok = 0
     let failed = 0
@@ -235,7 +234,6 @@ export function AdminUploadsList() {
     for (const file of files) {
       try {
         setUploadProgress({ name: file.name, percent: 0 })
-        // 图片会附带多尺寸变体（位图），其余文件等同普通上传
         await uploadImage(file, uploadTargetId || null, (percent) =>
           setUploadProgress({ name: file.name, percent }),
         )
@@ -253,6 +251,50 @@ export function AdminUploadsList() {
     else if (ok === 0) toast.error(`上传失败：${lastError}`)
     else toast.toast(`成功 ${ok} 个，失败 ${failed} 个（${lastError}）`, 'info')
   }
+
+  const onPickFiles = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ''
+    void uploadFiles(files)
+  }
+
+  /** 拖拽上传：整页接收文件；用计数器抵消子元素触发的 dragenter/dragleave 抖动 */
+  const dragDepth = useRef(0)
+  const [dragging, setDragging] = useState(false)
+  const isFileDrag = (event: ReactDragEvent) => Array.from(event.dataTransfer?.types ?? []).includes('Files')
+
+  const onDragEnter = (event: ReactDragEvent) => {
+    if (!isFileDrag(event)) return
+    event.preventDefault()
+    dragDepth.current += 1
+    setDragging(true)
+  }
+
+  const onDragOver = (event: ReactDragEvent) => {
+    if (!isFileDrag(event)) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+  }
+
+  const onDragLeave = (event: ReactDragEvent) => {
+    if (!isFileDrag(event)) return
+    event.preventDefault()
+    dragDepth.current = Math.max(0, dragDepth.current - 1)
+    if (dragDepth.current === 0) setDragging(false)
+  }
+
+  const onDrop = (event: ReactDragEvent) => {
+    if (!isFileDrag(event)) return
+    event.preventDefault()
+    dragDepth.current = 0
+    setDragging(false)
+    void uploadFiles(Array.from(event.dataTransfer.files))
+  }
+
+  /** 拖拽浮层里的目标文件夹名 */
+  const uploadTargetName = uploadTargetId
+    ? folders.find((folder) => folder.id === uploadTargetId)?.name ?? '未分类'
+    : '未分类'
 
   /* ---------- 素材操作 ---------- */
   /** 打开引用位置弹窗：列出页面 / 站点配置 / 集合记录，并可跳到对应编辑页 */
@@ -545,10 +587,26 @@ export function AdminUploadsList() {
   const isEmpty = !loading && !mediaState.error && items.length === 0
 
   return (
-    <div className="admin-page admin-media">
+    <div
+      className={`admin-page admin-media${dragging ? ' is-dragging' : ''}`}
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {dragging && (
+        <div className="admin-media__drop" role="presentation" aria-hidden="true">
+          <div className="admin-media__drop-card">
+            <AdminIcon name="cloud" size={30} />
+            <strong>松开即可上传</strong>
+            <span>{uploading ? '正在上传，请稍候…' : `将保存到「${uploadTargetName}」`}</span>
+            <small>支持图片 / 视频 / PDF / Office / 压缩包，可一次拖入多个文件</small>
+          </div>
+        </div>
+      )}
       <AdminPageHead
         title="素材库"
-        desc="按文件夹与分类集中管理素材；点击卡片复制公开地址，可多选批量移动 / 删除。"
+        desc="按文件夹与分类集中管理素材；支持拖拽文件上传，点击卡片复制公开地址，可多选批量移动 / 删除。"
         actions={
           <button
             type="button"
@@ -796,7 +854,7 @@ export function AdminUploadsList() {
                   title="暂无素材"
                   desc={
                     folderId === ALL && !category && !typeFilter && !q
-                      ? '点击右上角「上传素材」添加第一个文件。'
+                      ? '点击右上角「上传素材」，或直接把文件拖到这里。'
                       : '当前筛选条件下没有素材，试试切换文件夹或清空筛选。'
                   }
                 />

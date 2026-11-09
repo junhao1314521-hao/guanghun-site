@@ -89,6 +89,8 @@ export const MEGA_PANELS: MegaPanel[] = [
         eyebrow: '品牌',
         links: [
           { label: '关于光魂', to: '/about' },
+          // 合作网点：指向商业合作下的线下体验点/授权网点页（内容库 business-venues）
+          { label: '合作网点', to: '/business/venues' },
           { label: '电竞合作', to: '/brand/esports' },
         ],
       },

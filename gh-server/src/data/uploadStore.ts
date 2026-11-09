@@ -64,6 +64,9 @@ const EXT_MIME: Record<string, string[]> = {
   webp: ['image/webp'],
   gif: ['image/gif'],
   svg: ['image/svg+xml'],
+  // 3D 模型（详情页主图 3D 预览）：仅收单文件 .glb（贴图内嵌），
+  // 不收 .gltf + 外链 .bin/贴图，避免素材搬家后模型缺贴图。
+  glb: ['model/gltf-binary', OCTET],
   // 视频
   mp4: ['video/mp4'],
   webm: ['video/webm'],
@@ -104,6 +107,7 @@ const EXT_DEFAULT_MIME: Record<string, string> = {
   webp: 'image/webp',
   gif: 'image/gif',
   svg: 'image/svg+xml',
+  glb: 'model/gltf-binary',
   mp4: 'video/mp4',
   webm: 'video/webm',
   mov: 'video/quicktime',
@@ -135,15 +139,16 @@ const EXT_DEFAULT_MIME: Record<string, string> = {
  */
 const MB = 1024 * 1024
 
-/** 尺寸分类：图片 / 视频 / 文档 / 安装包（其余归文档） */
-export type SizeKind = 'image' | 'video' | 'doc' | 'installer'
+/** 尺寸分类：图片 / 视频 / 文档 / 安装包 / 3D 模型（其余归文档） */
+export type SizeKind = 'image' | 'video' | 'doc' | 'installer' | 'model'
 
-/** 各分类默认限额（字节） */
+/** 各分类默认限额（字节）：3D 模型单独一档，避免与百兆视频共用解析上限 */
 const DEFAULT_LIMITS: Record<SizeKind, number> = {
   image: 10 * MB,
   doc: 50 * MB,
   video: 200 * MB,
   installer: 300 * MB,
+  model: 30 * MB,
 }
 
 /** 分档限额对应的环境变量名 */
@@ -152,10 +157,11 @@ const LIMIT_ENV: Record<SizeKind, string> = {
   doc: 'UPLOAD_MAX_SIZE_DOC',
   video: 'UPLOAD_MAX_SIZE_VIDEO',
   installer: 'UPLOAD_MAX_SIZE_INSTALLER',
+  model: 'UPLOAD_MAX_SIZE_MODEL',
 }
 
 /** 分类中文标签（错误提示用） */
-const LIMIT_LABEL: Record<SizeKind, string> = { image: '图片', doc: '文档', video: '视频', installer: '安装包' }
+const LIMIT_LABEL: Record<SizeKind, string> = { image: '图片', doc: '文档', video: '视频', installer: '安装包', model: '3D 模型' }
 
 /** 解析尺寸串（如 '10mb' / '1kb' / '2097152'）为字节数；无法解析返回 null */
 function parseSize(raw: string | undefined): number | null {
@@ -174,6 +180,7 @@ export function sizeKindOf(ext: string): SizeKind {
   if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext)) return 'image'
   if (['mp4', 'webm', 'mov'].includes(ext)) return 'video'
   if (['exe', 'msi', 'dmg', 'pkg'].includes(ext)) return 'installer'
+  if (ext === 'glb') return 'model'
   return 'doc'
 }
 
@@ -184,7 +191,13 @@ export function limitForKind(kind: SizeKind): number {
 
 /** 各档中的最大限额（字节）；供上传解析器设置整体上限，使各类型都能到达按类型校验 */
 export function maxUploadLimit(): number {
-  return Math.max(limitForKind('image'), limitForKind('doc'), limitForKind('video'), limitForKind('installer'))
+  return Math.max(
+    limitForKind('image'),
+    limitForKind('doc'),
+    limitForKind('video'),
+    limitForKind('installer'),
+    limitForKind('model'),
+  )
 }
 
 /** 字节数 → 可读限额（< 1MB 用 KB，否则用 MB；保留 1 位小数） */

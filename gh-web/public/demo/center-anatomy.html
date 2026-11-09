@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Center / 解剖 · 光魂</title>
+<meta name="description" content="Center 的 38 项可调参数如何组织：导航、参数区与状态栏的三层结构，六组设置逐项拆开。" />
+<link rel="stylesheet" href="/demo/center-proto.css" />
+<style>
+  .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:150px 0 70px;overflow:hidden;isolation:isolate}
+  .hero::before{content:"";position:absolute;inset:0;z-index:-2;
+    background:radial-gradient(120% 78% at 62% 88%,rgba(22,64,140,.26),transparent 62%),
+      linear-gradient(180deg,#02040a 0%,#030712 52%,#050c1a 100%)}
+  .hero .wrap{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:40px;align-items:center;position:relative;z-index:3}
+  .hero h1{font-size:clamp(46px,5vw,74px);line-height:1.03;letter-spacing:-.045em}
+  .hero h1 em{font-style:normal;background:linear-gradient(100deg,#fff 8%,#a8b8ff 52%,#5b75f5 94%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{margin:24px 0 0;color:var(--sub);font-size:17px;line-height:1.9;max-width:440px}
+  .hero-actions{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+  .stats{display:flex;gap:44px;margin-top:48px;padding-top:24px;border-top:1px solid var(--line)}
+  .stats b{display:block;font-family:var(--mono);font-size:30px;font-weight:500;letter-spacing:-.02em}
+  .stats span{display:block;margin-top:4px;font-size:13px;color:var(--sub)}
+  .bleed-wrap{position:relative;height:520px}
+  .bleed{position:absolute;left:6%;top:26px;width:150%;height:430px;border-radius:16px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.10);background:#05070c url('/media/center/app/basic.webp') center/cover no-repeat;
+    box-shadow:0 0 80px rgba(43,77,255,.16)}
+  .bleed::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(112deg,rgba(255,255,255,.09),transparent 30%,transparent 72%,rgba(91,117,245,.07))}
+  .hero-note{position:absolute;left:6%;bottom:8px;font-size:12px;color:var(--dim);font-family:var(--mono)}
+  .hero .arc-glow,.hero .arc-rim,.hero .arc-body{top:74%}
+  .scroll-cue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:12px;color:var(--dim);letter-spacing:.12em}
+
+  /* 结构：解构展开 */
+  .structure{height:320vh;position:relative;background:linear-gradient(180deg,#04050a,#05080f 60%,#04050a)}
+  .structure .sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+  .structure .wrap{display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,.58fr);gap:40px;align-items:center}
+  .st-copy h2{font-size:clamp(30px,3vw,42px);line-height:1.15}
+  .st-copy p{margin:18px 0 0;color:var(--sub);font-size:15px;line-height:1.85;max-width:360px}
+  .st-list{margin-top:34px;display:flex;flex-direction:column;gap:18px}
+  .st-item{display:flex;align-items:baseline;gap:14px;opacity:.32;transition:opacity .35s}
+  .st-item.on{opacity:1}
+  .st-item b{font-family:var(--mono);font-size:13px;color:#8fa6ff;font-weight:500}
+  .st-item span{font-size:15px;color:var(--text)}
+  .st-item i{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:13px;color:var(--sub)}
+  .ex{position:relative;height:520px;perspective:1200px}
+  .layer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:14px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.12);background-color:#070a10;box-shadow:0 30px 70px rgba(0,0,0,.5);will-change:transform}
+  .layer--nav{width:270px;height:340px;background-image:url('/media/center/app/basic.webp');background-size:280% auto;background-position:2% 26%}
+  .layer--main{width:560px;height:340px;background-image:url('/media/center/app/basic.webp');background-size:165% auto;background-position:62% 60%}
+  .layer--status{width:560px;height:86px;background-image:url('/media/center/app/basic.webp');background-size:150% auto;background-position:50% 100%}
+  .layer .tag{position:absolute;left:12px;top:12px;font-family:var(--mono);font-size:11px;color:#cfe0ff;
+    background:rgba(6,10,18,.8);border:1px solid rgba(91,117,245,.3);padding:4px 8px;border-radius:6px}
+  .ex-hint{position:absolute;right:0;bottom:0;font-size:12px;color:var(--dim);font-family:var(--mono)}
+
+  /* 六组 */
+  .groups{background:#04050a}
+  .rail{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 0 26px;scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .gcard{flex:0 0 330px;scroll-snap-align:start;border-radius:14px;border:1px solid var(--line);overflow:hidden;
+    background:rgba(255,255,255,.02);transition:border-color .25s,transform .25s}
+  .gcard:hover{border-color:rgba(91,117,245,.4);transform:translateY(-3px)}
+  .gmedia{height:190px;background-color:#070a10;background-size:cover;background-position:center top;border-bottom:1px solid var(--line)}
+  .gbody{padding:20px 22px 24px}
+  .gbody .row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .gbody h3{font-size:18px}
+  .gbody .n{font-family:var(--mono);font-size:12px;color:#8fa6ff}
+  .gbody p{margin:10px 0 0;font-size:13px;line-height:1.75;color:var(--sub)}
+  .rail-hint{margin-top:6px;font-size:12px;color:var(--dim);font-family:var(--mono)}
+
+  /* 实测 */
+  .lab{background:linear-gradient(180deg,#04050a,#060a14 60%,#04050a)}
+  .lab .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
+  .lab-shot{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#06080d}
+  .lab-shot img{width:100%;height:420px;object-fit:cover;transition:filter .12s linear}
+  .lab-panel{border:1px solid var(--line);border-radius:14px;padding:26px;background:rgba(255,255,255,.02)}
+  .lab-panel .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .lab-panel .head b{font-size:16px;font-weight:600}
+  .lab-panel .head span{font-family:var(--mono);font-size:11px;color:#8fa6ff}
+  .row{display:grid;grid-template-columns:52px 1fr 40px;align-items:center;gap:14px;margin-bottom:18px}
+  .row label{font-size:13px;color:var(--sub)}
+  .row output{font-family:var(--mono);font-size:12px;color:var(--text);text-align:right}
+  input[type=range]{width:100%;accent-color:#4c6bff;height:2px;cursor:pointer}
+  .lab-tip{font-size:12px;color:var(--dim);line-height:1.7}
+
+  .cta{padding:120px 0 140px;text-align:center;background:#04050a}
+  .cta h2{font-size:clamp(30px,3.6vw,48px)}
+  .cta .btn{margin-top:30px}
+
+  @media (max-width:1100px){
+    .hero .wrap{grid-template-columns:1fr;gap:40px}
+    .bleed-wrap{height:420px}
+    .bleed{width:130%;left:0}
+    .layer--main,.layer--status{width:440px}
+    .structure .wrap{grid-template-columns:1fr;gap:24px}
+    .structure .sticky{height:auto;position:static;padding:90px 0}
+    .structure{height:auto}
+    .ex{height:440px}
+    .lab .wrap{grid-template-columns:1fr}
+  }
+  @media (max-width:620px){
+    .hero h1{font-size:42px}
+    .stats{gap:26px}
+    .bleed-wrap{height:320px}
+    .bleed{height:280px}
+    .layer--main,.layer--status{width:320px}
+    .layer--nav{width:180px;height:280px}
+    .gcard{flex-basis:280px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="返回光魂首页"><img src="/brand/mark.png" alt="" /><span class="logo-word" role="img" aria-label="SVDC 光魂"></span></a>
+    <div class="nav-links">
+      <a href="/products">产品</a>
+      <a href="/center" class="on">光魂 Center</a>
+      <a href="/ladder">天梯榜</a>
+      <a href="/support">服务与支持</a>
+      <a href="/about">探索光魂</a>
+      <a href="/products">商城</a>
+    </div>
+    <div class="nav-right"><a class="nav-cta" href="/downloads/center-win">下载 Center</a></div>
+  </div>
+</nav>
+<div class="nav-sub">
+  <div class="wrap"><b>Center / 解剖</b><a href="#structure">结构</a><a href="#groups">六组</a><a href="#lab">实测</a><a href="#download">下载</a><span class="ver">v1.3.3</span></div>
+</div>
+
+<main>
+  <header class="hero">
+    <div class="arc arc-glow"></div>
+    <div class="arc arc-rim"></div>
+    <div class="arc arc-body"></div>
+    <div class="wrap">
+      <div class="reveal">
+        <span class="kicker">Center · 解剖</span>
+        <h1>38 项，<br /><em>逐项可调。</em></h1>
+        <p>不是把菜单搬上电脑，而是把每一组参数摊开。先看结构，再看每一项。</p>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="/downloads/center-win">下载 Windows 版</a>
+          <a class="btn btn--ghost" href="#structure">看结构</a>
+        </div>
+        <div class="stats">
+          <div><b>6</b><span>功能分组</span></div>
+          <div><b>38</b><span>可调参数</span></div>
+          <div><b>8</b><span>预设模式</span></div>
+        </div>
+      </div>
+      <div class="bleed-wrap reveal" style="transition-delay:.1s">
+        <div class="bleed" role="img" aria-label="Center 主界面，右侧被视口裁切"></div>
+      </div>
+    </div>
+    <div class="scroll-cue">向下滚动，拆开看</div>
+  </header>
+
+  <section class="structure" id="structure">
+    <div class="sticky">
+      <div class="wrap">
+        <div class="st-copy">
+          <h2>一块屏，<br />三层结构。</h2>
+          <p>左侧导航、中间参数、底部状态栏。滚动时它们分开，你能看清每一层负责什么。</p>
+          <div class="st-list">
+            <div class="st-item" data-step="0"><b>01</b><span>导航：六组设置</span><i>6 组</i></div>
+            <div class="st-item" data-step="1"><b>02</b><span>参数：当前分组</span><i>38 项</i></div>
+            <div class="st-item" data-step="2"><b>03</b><span>状态：分辨率 / 刷新 / HDR</span><i>实时</i></div>
+          </div>
+        </div>
+        <div class="ex" id="ex">
+          <div class="layer layer--nav"><span class="tag">nav</span></div>
+          <div class="layer layer--main"><span class="tag">panel</span></div>
+          <div class="layer layer--status"><span class="tag">status</span></div>
+          <span class="ex-hint">scroll</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec groups" id="groups">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2>六个分组，各管一块。</h2>
+        <p>从亮度到固件，每一项都归在一个明确的分组里。横向滚动查看每一组包含什么。</p>
+      </div>
+      <div class="rail reveal">
+        <article class="gcard"><div class="gmedia" style="background-image:url('/media/center/app/basic.webp');background-position:center 12%"></div><div class="gbody"><div class="row"><h3>基础显示</h3><span class="n">6 项</span></div><p>亮度、对比度、画面方向，和 8 档预设。</p></div></article>
+        <article class="gcard"><div class="gmedia" style="background-image:url('/media/center/app/gaming.webp');background-position:center 20%"></div><div class="gbody"><div class="row"><h3>电竞增强</h3><span class="n">8 项</span></div><p>暗部增强、色彩增强、清晰度、VRR、辅助准心、刷新率显示、缩放与双模。</p></div></article>
+        <article class="gcard"><div class="gmedia" style="background-image:url('/media/center/app/pro.webp');background-position:center 30%"></div><div class="gbody"><div class="row"><h3>专业色彩</h3><span class="n">12 项</span></div><p>六轴色调与六轴饱和度，逐轴校正偏色。</p></div></article>
+        <article class="gcard"><div class="gmedia" style="background-image:url('/media/center/app/image.webp');background-position:center 26%"></div><div class="gbody"><div class="row"><h3>图像调节</h3><span class="n">5 项</span></div><p>色域空间、HDR 模式、色温、伽马与低蓝光。</p></div></article>
+        <article class="gcard"><div class="gmedia" style="background-image:url('/media/center/app/input.webp');background-position:center 30%"></div><div class="gbody"><div class="row"><h3>输入源</h3><span class="n">5 路</span></div><p>DP1 / DP2 / HDMI1 / HDMI2 / USB-C，手动或自动切换。</p></div></article>
+        <article class="gcard"><div class="gmedia" style="background-image:url('/media/center/app/system.webp');background-position:center 26%"></div><div class="gbody"><div class="row"><h3>设备与升级</h3><span class="n">7 项</span></div><p>灯效、语言、音量、接口规格、软件更新与恢复出厂。</p></div></article>
+      </div>
+      <div class="rail-hint">← 横向滚动 →</div>
+    </div>
+  </section>
+
+  <section class="sec lab" id="lab">
+    <div class="wrap">
+      <div class="sec-head reveal" style="grid-column:1/-1">
+        <h2>改一项，画面立刻变。</h2>
+        <p>右边五个滑杆直接作用于左边画面。参数写入显示器，不需要保存按钮。</p>
+      </div>
+      <figure class="lab-shot reveal" style="margin:0">
+        <img id="labImg" src="/media/home/hero-3.jpg" alt="参数预览画面" loading="lazy" />
+      </figure>
+      <div class="lab-panel reveal" style="transition-delay:.08s">
+        <div class="head"><b>画面调校</b><span>LIVE</span></div>
+        <div class="row"><label for="r1">亮度</label><input id="r1" type="range" min="70" max="130" value="100"><output id="o1">100</output></div>
+        <div class="row"><label for="r2">对比</label><input id="r2" type="range" min="70" max="130" value="100"><output id="o2">100</output></div>
+        <div class="row"><label for="r3">饱和</label><input id="r3" type="range" min="60" max="150" value="100"><output id="o3">100</output></div>
+        <div class="row"><label for="r4">色温</label><input id="r4" type="range" min="-40" max="40" value="0"><output id="o4">0</output></div>
+        <div class="row"><label for="r5">锐度</label><input id="r5" type="range" min="0" max="100" value="40"><output id="o5">40</output></div>
+        <p class="lab-tip">演示值，用于说明参数与画面的关系。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="download">
+    <div class="wrap">
+      <h2 class="reveal">从第一项开始调。</h2>
+      <a class="btn btn--primary reveal" style="transition-delay:.08s" href="/downloads/center-win">下载 Windows 版</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <a class="brand" href="/"><img src="/brand/mark.png" alt="" /><span class="logo-word" role="img" aria-label="SVDC 光魂"></span></a>
+          <p>以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。</p>
+        </div>
+        <div class="foot-col"><b>产品</b><a href="/products">全部产品</a><a href="/compare">产品对比</a><a href="/ladder">天梯榜</a></div>
+        <div class="foot-col"><b>服务与支持</b><a href="/downloads">下载中心</a><a href="/support/models">型号与兼容</a><a href="/faq">常见问题</a></div>
+        <div class="foot-col"><b>探索光魂</b><a href="/about">关于光魂</a><a href="/business">商业合作</a><a href="/business/venues">合作网点</a></div>
+      </div>
+      <div class="foot-bot"><div class="l"><span>光魂科技（深圳）有限公司</span><i>|</i><span>© 2026 保留所有权利</span></div><span>Center / 解剖 · 原型</span></div>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){
+    es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .16 }) : null;
+  Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function(el){
+    if (io) io.observe(el); else el.classList.add('in');
+  });
+
+  var sec = document.getElementById('structure');
+  var ex = document.getElementById('ex');
+  var layers = ex ? ex.querySelectorAll('.layer') : [];
+  var items = document.querySelectorAll('.st-item');
+  function clamp(v){ return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function ease(p){ return 1 - Math.pow(1 - p, 3); }
+  function frame(){
+    if (!sec || !ex || !layers.length) return;
+    var r = sec.getBoundingClientRect();
+    var total = sec.offsetHeight - window.innerHeight;
+    var p = total > 0 ? clamp(-r.top / total) : 0;
+    var e = ease(clamp((p - .12) / .55));
+    var nav = layers[0], main = layers[1], status = layers[2];
+    var narrow = window.innerWidth < 1100;
+    var dx = narrow ? 96 : -320;
+    nav.style.transform = 'translate(-50%,-50%) translate(' + (dx * e) + 'px,' + (-30 * e) + 'px) rotate(' + (-3 * e) + 'deg)';
+    main.style.transform = 'translate(-50%,-50%) translate(' + (narrow ? 0 : 100 * e) + 'px,' + (narrow ? 40 * e : 0) + 'px)';
+    status.style.transform = 'translate(-50%,-50%) translate(' + (narrow ? 0 : 100 * e) + 'px,' + (narrow ? 210 * e : 270 * e) + 'px)';
+    nav.style.opacity = .55 + .45 * e;
+    main.style.opacity = .7 + .3 * e;
+    status.style.opacity = .5 + .5 * e;
+    var step = e < .34 ? 0 : e < .7 ? 1 : 2;
+    Array.prototype.forEach.call(items, function(el, i){ el.classList.toggle('on', i === step); });
+  }
+  if (!reduce && sec) {
+    var ticking = false;
+    window.addEventListener('scroll', function(){
+      if (!ticking) { ticking = true; requestAnimationFrame(function(){ frame(); ticking = false; }); }
+    }, { passive: true });
+    window.addEventListener('resize', frame);
+    frame();
+  } else {
+    Array.prototype.forEach.call(items, function(el){ el.classList.add('on'); });
+  }
+
+  var img = document.getElementById('labImg');
+  var ids = [['r1','o1'],['r2','o2'],['r3','o3'],['r4','o4'],['r5','o5']];
+  function apply(){
+    if (!img) return;
+    var b = +document.getElementById('r1').value;
+    var c = +document.getElementById('r2').value;
+    var s = +document.getElementById('r3').value;
+    var t = +document.getElementById('r4').value;
+    var sh = +document.getElementById('r5').value;
+    img.style.filter = 'brightness(' + (b/100) + ') contrast(' + (c/100) + ') saturate(' + (s/100) + ') hue-rotate(' + (-t/4) + 'deg) ' + (sh > 20 ? 'contrast(' + (1 + sh/400) + ')' : '');
+    ids.forEach(function(pair){
+      var el = document.getElementById(pair[1]);
+      if (el) el.textContent = document.getElementById(pair[0]).value;
+    });
+  }
+  ids.forEach(function(pair){
+    var el = document.getElementById(pair[0]);
+    if (el) el.addEventListener('input', apply);
+  });
+  apply();
+})();
+</script>
+</body>
+</html>

@@ -57,13 +57,16 @@ export const COOP_CONTACTS = [
   {
     icon: 'cube' as const,
     title: '商务合作',
-    rows: [{ k: '邮箱', v: 'business@guanghun.example' }],
+    rows: [
+      { k: '邮箱', v: '1009742523@qq.com' },
+      { k: '热线', v: '15913908438（李经理）' },
+    ],
   },
   {
     icon: 'pin' as const,
     title: '办公地址',
     rows: [
-      { k: '地址', v: '广东省深圳市 · 光魂' },
+      { k: '地址', v: '广东省广州市（详细地址以官方公布为准）' },
       { k: '到访', v: '需提前预约' },
     ],
   },

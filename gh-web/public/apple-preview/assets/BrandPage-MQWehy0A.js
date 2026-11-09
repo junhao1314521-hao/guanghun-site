@@ -1,0 +1,1 @@
+import{d as e,t}from"./vendor-bM4LRIQF.js";import{n}from"./PageView-D4U_J6hT.js";var r=t();function i(){let{slug:t=``}=e();return(0,r.jsx)(n,{pageKey:`brand-${t}`})}export{i as BrandPage};

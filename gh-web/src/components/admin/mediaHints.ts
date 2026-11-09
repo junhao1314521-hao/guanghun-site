@@ -14,10 +14,11 @@
  * 其余命中静态映射表，未命中回退 `DEFAULT_MEDIA_HINT`。
  */
 import type { BlockType } from '../../data/contentTypes'
+import type { CropPreviewSpec } from './ImageCropPreview'
 
-/** 尺寸提示（结构化：便于安全区预览复用比例 + 建议尺寸） */
+/** 尺寸提示（结构化：便于上传校验、安全区预览复用比例 + 建议尺寸） */
 export type MediaHint = {
-  /** 建议尺寸，如 2560×1440 */
+  /** 建议尺寸，如 2560×1440；不限制高度的长图写「宽 1240」 */
   size: string
   /** 宽高比，如 16:9 */
   ratio: string
@@ -25,23 +26,36 @@ export type MediaHint = {
   maxSize?: string
   /** 支持格式说明（可选；缺省「支持 jpg/png/webp」） */
   formats?: string
+  /** 背景要求（可选）：transparent 透明底 / white 白底 / any 不限 */
+  background?: 'transparent' | 'white' | 'any'
+  /** 构图要求（可选），如「主体占画面 70–75%，底部留 15%」 */
+  subject?: string
   /** 额外说明（可选，如「建议 ≤20 张」） */
   extra?: string
 }
 
 const DEFAULT_FORMATS = '支持 jpg/png/webp'
 
+/** 背景要求 → 提示文案 */
+const BACKGROUND_TEXT: Record<NonNullable<MediaHint['background']>, string> = {
+  transparent: '透明底 PNG',
+  white: '白底',
+  any: '背景不限',
+}
+
 /** 兜底默认值：未命中任何映射的图片字段 */
 export const DEFAULT_MEDIA_HINT: MediaHint = { size: '1600×900', ratio: '16:9', maxSize: '≤2MB' }
 
 /**
  * 渲染成一行提示文案，例：
- * `建议上传 2560×1440（16:9）· ≤2MB · 支持 jpg/png/webp`
+ * `建议上传 2000×2000（1:1）· ≤10MB · 透明底 PNG · 支持 png（透明底）/ jpg · 主体占画面 70–75%`
  */
 export function mediaHintText(hint: MediaHint): string {
-  const parts = [`建议上传 ${hint.size}（${hint.ratio}）`]
+  const parts = [`建议上传 ${hint.size}${hint.ratio === '不限高' ? '' : `（${hint.ratio}）`}`]
   if (hint.maxSize) parts.push(hint.maxSize)
+  if (hint.background && hint.background !== 'any') parts.push(BACKGROUND_TEXT[hint.background])
   parts.push(hint.formats ?? DEFAULT_FORMATS)
+  if (hint.subject) parts.push(hint.subject)
   if (hint.extra) parts.push(hint.extra)
   return parts.join(' · ')
 }
@@ -76,16 +90,53 @@ const BLOCK_MEDIA_HINTS: Record<string, MediaHint> = {
   'embed.poster': { size: '1920×1080', ratio: '16:9', maxSize: '≤2MB' },
 }
 
+/** 产品主图：1:1 透明底，首图即详情页主图，Center 页同源 */
+const PRODUCT_MAIN: MediaHint = {
+  size: '2000×2000',
+  ratio: '1:1',
+  maxSize: '≤10MB',
+  formats: '支持 png / jpg',
+  background: 'transparent',
+  subject: '主体占画面 70–75%，底部留 15%',
+}
+
 /** 资源表单字段 → 尺寸提示（key = `资源 key.字段 key`） */
 const RESOURCE_MEDIA_HINTS: Record<string, MediaHint> = {
-  // 产品相册
-  'products.gallery': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', extra: '建议 ≤20 张' },
+  // 产品相册：第一张 = 详情页主图 = 产品网格首图 = Center 页卡片图
+  'products.gallery': { ...PRODUCT_MAIN, extra: '第一张即详情页主图' },
+  // 产品详情页 H5 长图：所有切片必须同宽，否则拼接错位
+  'products.h5LongImages': {
+    size: '宽 1240',
+    ratio: '不限高',
+    maxSize: '≤2MB',
+    formats: '支持 jpg/png',
+    extra: '所有切片宽度必须一致，按从上到下的顺序上传',
+  },
+  'products.h5LongImagesMobile': {
+    size: '宽 750',
+    ratio: '不限高',
+    maxSize: '≤2MB',
+    formats: '支持 jpg/png',
+    extra: '所有切片宽度必须一致，按从上到下的顺序上传',
+  },
+  // 产品 3D 预览封面
+  'products.model3dPoster': {
+    size: '2000×2000',
+    ratio: '1:1',
+    maxSize: '≤10MB',
+    formats: '支持 png（透明底）/ jpg',
+    background: 'transparent',
+    subject: '与 3D 模型的拍摄视角保持一致',
+  },
   // 文章 / 新闻封面
-  'articles.coverImage': { size: '1600×900', ratio: '16:9', maxSize: '≤2MB' },
-  // 品牌资料 / 合作案例 / 体验点等：通用值
-  'biz-content.cover': DEFAULT_MEDIA_HINT,
-  'biz-cases.cover': DEFAULT_MEDIA_HINT,
-  'biz-venues.cover': DEFAULT_MEDIA_HINT,
+  'articles.coverImage': { size: '1600×900', ratio: '16:9', maxSize: '≤2MB', subject: '主体居中，四周留 8% 安全区' },
+  // 品牌资料
+  'biz-content.cover': { size: '1600×900', ratio: '16:9', maxSize: '≤2MB', subject: '主体居中，四周留 8% 安全区' },
+  // 合作案例
+  'biz-cases.cover': { size: '1600×900', ratio: '16:9', maxSize: '≤2MB', subject: '主体居中，四周留 8% 安全区' },
+  // 体验点（门店）
+  'biz-venues.cover': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', subject: '门店主体居中，避免贴边' },
+  'biz-venues.gallery': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', subject: '门店主体居中，避免贴边', extra: '第一张也会作为封面' },
 }
 
 /** 海报高度档位 → 提示（r219 为 21:9 宽幅，其余按 16:9 参考） */
@@ -152,4 +203,26 @@ export function isSafetyAreaField(blockType: BlockType | undefined, fieldName: s
 /** '16:9' → '16 / 9'（CSS aspect-ratio 取值） */
 export function ratioToAspect(ratio: string): string {
   return ratio.replace(':', ' / ')
+}
+
+/**
+ * 下游裁切预览位（与前台真实版式对齐）：
+ * - 产品相册首图同时出现在「产品列表卡 4:3」「详情页主图 1:1」「Center 卡 2.4:1」三处，
+ *   所以给三个预览框，运营能直接看到会不会被裁；
+ * - 其余图片位按自身的建议比例给一个页面裁切预览。
+ */
+export function resolveMediaCrops(
+  resourceKey: string,
+  fieldKey: string,
+  hint: MediaHint,
+): CropPreviewSpec[] | undefined {
+  if (resourceKey === 'products' && fieldKey === 'gallery') {
+    return [
+      { label: '产品列表卡 4:3', ratio: '4 / 3', fit: 'cover', tone: 'dark' },
+      { label: '详情页主图 1:1', ratio: '1 / 1', fit: 'contain', tone: 'dark' },
+      { label: 'Center 卡（约 2.4:1）', ratio: '2.37 / 1', fit: 'contain', tone: 'dark' },
+    ]
+  }
+  if (!/^\d+(\.\d+)?:\d+(\.\d+)?$/.test(hint.ratio)) return undefined
+  return [{ label: `页面裁切 ${hint.ratio}`, ratio: ratioToAspect(hint.ratio), fit: 'cover' }]
 }

@@ -161,6 +161,20 @@ export function createApp(): Express {
         },
       }),
     )
+    // Center 页面按 v2 稿原样托管：独立静态页，不走 SPA 渲染
+    app.get('/center', (_req: Request, res: Response) => {
+      res.setHeader('Cache-Control', 'no-cache')
+      res.sendFile(path.join(staticDir, 'demo/center-v2.html'))
+    })
+    // Center 的两个新叙事原型：解剖（结构）与光场（场景），独立静态页，暂不进导航
+    app.get('/center/anatomy', (_req: Request, res: Response) => {
+      res.setHeader('Cache-Control', 'no-cache')
+      res.sendFile(path.join(staticDir, 'demo/center-anatomy.html'))
+    })
+    app.get('/center/light', (_req: Request, res: Response) => {
+      res.setHeader('Cache-Control', 'no-cache')
+      res.sendFile(path.join(staticDir, 'demo/center-light.html'))
+    })
     // SPA 回退：仅业务页面回退到 index.html；静态资源前缀未命中时直接 404，
     // 避免 /uploads、/media 等缺失文件被误判为 200 HTML（会让下载看起来成功）。
     app.get(

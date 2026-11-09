@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Center / 光场 · 光魂</title>
+<meta name="description" content="Center 软件在真实房间里的样子：屏幕是光源，预设跟着场景走，暗部、色准与低蓝光各自对应一块屏的用法。" />
+<link rel="stylesheet" href="/demo/center-proto.css" />
+<style>
+  :root{--glow:43,77,255}
+  .room-hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:150px 0 70px;overflow:hidden;background:#04060a}
+  .room-hero::before{content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(58% 52% at 66% 48%,rgba(var(--glow),.30),rgba(var(--glow),.07) 46%,transparent 72%),
+      radial-gradient(120% 90% at 50% 115%,rgba(var(--glow),.12),transparent 60%),
+      linear-gradient(180deg,#03050a,#04070d 60%,#03050a)}
+  .room-hero .wrap{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:40px;align-items:center;position:relative;z-index:2}
+  .room-hero h1{font-size:clamp(44px,4.6vw,68px);line-height:1.06;letter-spacing:-.045em}
+  .room-hero h1 em{font-style:normal;background:linear-gradient(100deg,#fff 10%,#b9c8ff 60%,#7f98ff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .room-hero p{margin:24px 0 0;color:var(--sub);font-size:17px;line-height:1.9;max-width:430px}
+  .room-hero .hero-actions{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+  .hero-meta{display:flex;gap:34px;margin-top:44px;color:var(--dim);font-size:12px;font-family:var(--mono);flex-wrap:wrap}
+  .hero-meta b{display:block;color:var(--sub);font-weight:500;margin-bottom:6px}
+
+  .room{position:relative;height:600px}
+  .monitor{position:absolute;left:2%;top:44px;width:96%;max-width:760px;border-radius:10px;padding:12px;
+    background:linear-gradient(160deg,#20242c,#0a0d12 55%,#05070a);
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 0 90px rgba(var(--glow),.30),0 40px 80px -40px rgba(0,0,0,.7);
+    transition:box-shadow .5s var(--ease)}
+  .monitor::after{content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16)}
+  .screen{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:16/10;background:#05070c}
+  .screen img{width:100%;height:100%;object-fit:cover;filter:brightness(1.22) contrast(1.04)}
+  .screen::after{content:"";position:absolute;inset:0;background:linear-gradient(112deg,rgba(255,255,255,.08),transparent 32%,transparent 74%,rgba(255,255,255,.03))}
+  .reflection{position:absolute;left:5%;right:5%;top:calc(100% + 16px);height:120px;overflow:hidden;opacity:.17;
+    transform:scaleY(-1);filter:blur(7px);border-radius:6px;
+    -webkit-mask-image:linear-gradient(180deg,transparent,#000 80%);
+    mask-image:linear-gradient(180deg,transparent,#000 80%)}
+  .reflection img{width:100%;height:100%;object-fit:cover;object-position:center bottom}
+  .desk{position:absolute;left:-6%;right:-6%;bottom:-40px;height:150px;
+    background:linear-gradient(180deg,rgba(var(--glow),.14),transparent 78%);
+    filter:blur(18px);pointer-events:none}
+  .dust{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:
+      radial-gradient(circle at 18% 32%,rgba(255,255,255,.55) 0 1px,transparent 1.5px),
+      radial-gradient(circle at 74% 22%,rgba(255,255,255,.4) 0 1px,transparent 1.5px),
+      radial-gradient(circle at 62% 74%,rgba(255,255,255,.35) 0 1px,transparent 1.5px),
+      radial-gradient(circle at 34% 62%,rgba(255,255,255,.3) 0 1px,transparent 1.5px),
+      radial-gradient(circle at 86% 56%,rgba(255,255,255,.3) 0 1px,transparent 1.5px)}
+
+  .scenes{background:#04060a;position:relative}
+  .scene-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+  .scene-head h2{font-size:clamp(30px,3.2vw,44px);line-height:1.15}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{border:1px solid rgba(255,255,255,.14);background:transparent;color:var(--sub);
+    font-size:13px;padding:8px 16px;border-radius:999px;cursor:pointer;transition:.2s}
+  .tab.on{color:#fff;border-color:rgba(91,117,245,.7);background:rgba(91,117,245,.14)}
+  .scene-grid{display:grid;grid-template-columns:minmax(0,.36fr) minmax(0,.64fr);gap:44px;align-items:center}
+  .scene-copy h3{font-size:26px;line-height:1.3}
+  .scene-copy p{margin:16px 0 0;color:var(--sub);font-size:15px;line-height:1.85}
+  .scene-copy .kv{display:flex;gap:26px;margin-top:28px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .scene-copy .kv b{display:block;color:var(--text);font-weight:500;font-size:13px;margin-top:6px}
+  .scene-stage{position:relative;border-radius:18px;overflow:hidden;height:520px;
+    background:
+      radial-gradient(60% 55% at 55% 46%,rgba(var(--glow),.26),rgba(var(--glow),.05) 48%,transparent 74%),
+      #05070c;
+    border:1px solid rgba(255,255,255,.08);transition:background .6s var(--ease)}
+  .scene-stage .monitor{left:6%;top:56px;width:88%;max-width:none}
+  .scene-stage .reflection{height:90px;top:calc(100% + 12px)}
+  .scene-tag{position:absolute;right:16px;bottom:14px;font-family:var(--mono);font-size:11px;color:var(--dim);
+    background:rgba(6,9,14,.72);border:1px solid rgba(255,255,255,.1);padding:5px 9px;border-radius:999px}
+
+  .dim{background:linear-gradient(180deg,#04060a,#060a12 55%,#04060a)}
+  .dim .wrap{display:grid;grid-template-columns:1fr .9fr;gap:44px;align-items:center}
+  .dim-shot{border-radius:14px;border:1px solid var(--line);overflow:hidden;background:#05070c}
+  .dim-shot img{width:100%;height:420px;object-fit:cover;object-position:center 30%;
+    transition:filter .15s linear}
+  .dim-panel{border:1px solid var(--line);border-radius:14px;padding:28px;background:rgba(255,255,255,.02)}
+  .dim-panel .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .dim-panel .head b{font-size:16px}
+  .dim-panel .head span{font-family:var(--mono);font-size:11px;color:#8fa6ff}
+  .dim-row{display:grid;grid-template-columns:56px 1fr 44px;gap:14px;align-items:center;margin-bottom:20px}
+  .dim-row label{font-size:13px;color:var(--sub)}
+  .dim-row output{font-family:var(--mono);font-size:12px;text-align:right}
+  .dim-panel input[type=range]{width:100%;accent-color:#4c6bff}
+  .dim-tip{font-size:12px;color:var(--dim);line-height:1.7}
+
+  .cta{padding:120px 0 140px;text-align:center;background:#04060a}
+  .cta h2{font-size:clamp(30px,3.6vw,48px)}
+  .cta .btn{margin-top:30px}
+
+  @media (max-width:1100px){
+    .room-hero .wrap{grid-template-columns:1fr;gap:40px}
+    .room{height:460px}
+    .scene-grid{grid-template-columns:1fr;gap:30px}
+    .scene-stage{height:420px}
+    .dim .wrap{grid-template-columns:1fr}
+  }
+  @media (max-width:620px){
+    .room-hero h1{font-size:40px}
+    .room{height:340px}
+    .monitor{left:0;width:100%;top:20px;padding:8px}
+    .scene-stage{height:320px}
+    .scene-stage .monitor{left:0;top:28px;width:100%}
+    .dim-shot img{height:280px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="返回光魂首页"><img src="/brand/mark.png" alt="" /><span class="logo-word" role="img" aria-label="SVDC 光魂"></span></a>
+    <div class="nav-links">
+      <a href="/products">产品</a>
+      <a href="/center" class="on">光魂 Center</a>
+      <a href="/ladder">天梯榜</a>
+      <a href="/support">服务与支持</a>
+      <a href="/about">探索光魂</a>
+      <a href="/products">商城</a>
+    </div>
+    <div class="nav-right"><a class="nav-cta" href="/downloads/center-win">下载 Center</a></div>
+  </div>
+</nav>
+<div class="nav-sub">
+  <div class="wrap"><b>Center / 光场</b><a href="#scenes">场景</a><a href="#dim">调光</a><a href="#download">下载</a><span class="ver">v1.3.3</span></div>
+</div>
+
+<main>
+  <header class="room-hero">
+    <div class="wrap">
+      <div class="reveal">
+        <span class="kicker">Center · 光场</span>
+        <h1>屏幕亮起，<br /><em>房间才有了光。</em></h1>
+        <p>Center 决定这块屏在白天、深夜和游戏里分别是什么样子。不是参数表，是它在你桌上的样子。</p>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="/downloads/center-win">下载 Windows 版</a>
+          <a class="btn btn--ghost" href="#scenes">看三个场景</a>
+        </div>
+        <div class="hero-meta">
+          <div><b>4 款机型</b>自动识别</div>
+          <div><b>8 档预设</b>跟着程序切换</div>
+          <div><b>本地运行</b>不采集数据</div>
+        </div>
+      </div>
+      <div class="room reveal" style="transition-delay:.1s">
+        <div class="dust"></div>
+        <div class="desk"></div>
+        <div class="monitor">
+          <div class="screen"><img src="/media/center/app/basic.webp" alt="Center 软件界面" /></div>
+          <div class="reflection"><img src="/media/center/app/basic.webp" alt="" /></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="sec scenes" id="scenes">
+    <div class="wrap">
+      <div class="scene-head reveal">
+        <h2>同一块屏，<br />三种光。</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab on" data-scene="game" role="tab" aria-selected="true">游戏</button>
+          <button class="tab" data-scene="edit" role="tab" aria-selected="false">剪辑</button>
+          <button class="tab" data-scene="night" role="tab" aria-selected="false">夜晚</button>
+        </div>
+      </div>
+      <div class="scene-grid reveal">
+        <div class="scene-copy">
+          <h3 id="scTitle">切到游戏，暗部先亮起来。</h3>
+          <p id="scDesc">暗部增强拉开阴影细节，辅助准心与刷新率显示一起就位；退出游戏，回到原来的预设。</p>
+          <div class="kv"><div>模式<b id="scMode">暗部增强</b></div><div>色温<b id="scTemp">6500K</b></div><div>亮度<b id="scBright">82</b></div></div>
+        </div>
+        <div class="scene-stage" id="scStage">
+          <div class="monitor"><div class="screen"><img id="scImg" src="/media/center/app/gaming.webp" alt="Center 游戏场景界面" /></div><div class="reflection"><img id="scRef" src="/media/center/app/gaming.webp" alt="" /></div></div>
+          <span class="scene-tag" id="scTag">FPS · 暗部增强</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec dim" id="dim">
+    <div class="wrap">
+      <div class="sec-head reveal" style="grid-column:1/-1;margin-bottom:40px">
+        <h2>拖一下，光就变。</h2>
+        <p>亮度不是一条数字，是画面里的明暗。拖动滑杆，亮度和色温一起变化，右边的读数同步更新。</p>
+      </div>
+      <figure class="dim-shot reveal" style="margin:0">
+        <img id="dimImg" src="/media/center/app/basic.webp" alt="Center 亮度调节界面" />
+      </figure>
+      <div class="dim-panel reveal" style="transition-delay:.08s">
+        <div class="head"><b>房间亮度</b><span>LIVE</span></div>
+        <div class="dim-row"><label for="db">亮度</label><input id="db" type="range" min="20" max="100" value="82"><output id="dbo">82</output></div>
+        <div class="dim-row"><label for="dt">色温</label><input id="dt" type="range" min="-40" max="40" value="0"><output id="dto">0</output></div>
+        <p class="dim-tip">演示值，用于说明亮度与房间光感的关系。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="download">
+    <div class="wrap">
+      <h2 class="reveal">让这块屏，先亮起来。</h2>
+      <a class="btn btn--primary reveal" style="transition-delay:.08s" href="/downloads/center-win">下载 Windows 版</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <a class="brand" href="/"><img src="/brand/mark.png" alt="" /><span class="logo-word" role="img" aria-label="SVDC 光魂"></span></a>
+          <p>以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。</p>
+        </div>
+        <div class="foot-col"><b>产品</b><a href="/products">全部产品</a><a href="/compare">产品对比</a><a href="/ladder">天梯榜</a></div>
+        <div class="foot-col"><b>服务与支持</b><a href="/downloads">下载中心</a><a href="/support/models">型号与兼容</a><a href="/faq">常见问题</a></div>
+        <div class="foot-col"><b>探索光魂</b><a href="/about">关于光魂</a><a href="/business">商业合作</a><a href="/business/venues">合作网点</a></div>
+      </div>
+      <div class="foot-bot"><div class="l"><span>光魂科技（深圳）有限公司</span><i>|</i><span>© 2026 保留所有权利</span></div><span>Center / 光场 · 原型</span></div>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){
+    es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .16 }) : null;
+  Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function(el){
+    if (io) io.observe(el); else el.classList.add('in');
+  });
+
+  var data = {
+    game: { img:'/media/center/app/gaming.webp', glow:'43,77,255', title:'切到游戏，暗部先亮起来。', desc:'暗部增强拉开阴影细节，辅助准心与刷新率显示一起就位；退出游戏，回到原来的预设。', mode:'暗部增强', temp:'6500K', bright:'82', tag:'FPS · 暗部增强' },
+    edit: { img:'/media/center/app/pro.webp', glow:'120,150,255', title:'剪片时，颜色要准。', desc:'六轴色调与六轴饱和度逐轴校正，色温与伽马按项目固定；换项目再切一套。', mode:'六轴校正', temp:'6500K', bright:'68', tag:'专业设置 · 六轴' },
+    night: { img:'/media/center/app/image.webp', glow:'255,168,96', title:'深夜，把蓝光收一点。', desc:'低蓝光调低、色温偏暖，亮度跟着环境降下来；白天再切回标准。', mode:'低蓝光', temp:'4200K', bright:'35', tag:'夜间 · 低蓝光' }
+  };
+  var tabs = document.querySelectorAll('.tab');
+  function setScene(key){
+    var d = data[key];
+    if (!d) return;
+    Array.prototype.forEach.call(tabs, function(t){
+      var on = t.getAttribute('data-scene') === key;
+      t.classList.toggle('on', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.documentElement.style.setProperty('--glow', d.glow);
+    var img = document.getElementById('scImg'), ref = document.getElementById('scRef');
+    img.src = d.img; ref.src = d.img;
+    document.getElementById('scTitle').textContent = d.title;
+    document.getElementById('scDesc').textContent = d.desc;
+    document.getElementById('scMode').textContent = d.mode;
+    document.getElementById('scTemp').textContent = d.temp;
+    document.getElementById('scBright').textContent = d.bright;
+    document.getElementById('scTag').textContent = d.tag;
+  }
+  Array.prototype.forEach.call(tabs, function(t){
+    t.addEventListener('click', function(){ setScene(t.getAttribute('data-scene')); });
+  });
+
+  var dimImg = document.getElementById('dimImg');
+  var db = document.getElementById('db'), dt = document.getElementById('dt');
+  function applyDim(){
+    var b = +db.value, t = +dt.value;
+    if (dimImg) dimImg.style.filter = 'brightness(' + (.55 + b / 145) + ') contrast(' + (1 - Math.abs(t) / 260) + ') saturate(' + (1 - Math.max(0, t) / 160) + ') hue-rotate(' + (-t / 6) + 'deg)';
+    document.getElementById('dbo').textContent = b;
+    document.getElementById('dto').textContent = t;
+    var g = t > 0 ? '255,190,130' : '43,77,255';
+    document.documentElement.style.setProperty('--glow', g);
+  }
+  if (db) db.addEventListener('input', applyDim);
+  if (dt) dt.addEventListener('input', applyDim);
+  applyDim();
+})();
+</script>
+</body>
+</html>

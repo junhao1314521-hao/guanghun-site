@@ -11,6 +11,8 @@ import { captchaRouter } from './captchaRouter'
 import { catalogRouter } from './catalog'
 import { contentRouter } from './content'
 import { contentStoreRouter } from './contentStoreRouter'
+import { deviceReviewRouter } from './deviceReviewRouter'
+import { rankingsImportRouter } from './rankingsImportRouter'
 import { ladderRouter } from './ladder'
 import { legalRouter } from './legal'
 import { mediaRouter } from './mediaRouter'
@@ -54,6 +56,8 @@ export function registerRoutes(app: Express): void {
   app.use('/api/admin', backupsRouter) // 后台「备份 / 恢复 / 重置」
   app.use('/api/admin', publishRouter) // 后台「发布记录与回滚」
   app.use('/api/admin', adminRouter) // 后台管理系统（本地鉴权 / 资源 / 分析）
+  app.use('/api/admin', deviceReviewRouter) // 会员设备登记审核
+  app.use('/api/admin', rankingsImportRouter) // 天梯榜 CSV 批量导入
   app.use('/api/admin', uploadsRouter) // 后台文件上传 / 素材库
   app.use('/api/search', searchRouter)
   app.use('/api/media', mediaRouter) // 公开素材变体查询（/media/variants?url=...），先于泛化 /api

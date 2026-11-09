@@ -9,6 +9,8 @@
  * 通用实现与素材库弹窗见 `FileField.tsx`（支持任意允许类型文件），此处不再重复。
  */
 import { FileField } from './FileField'
+import type { CropPreviewSpec } from './ImageCropPreview'
+import type { MediaHint } from './mediaHints'
 
 export type ImageFieldProps = {
   /** 当前图片地址（受控） */
@@ -23,6 +25,10 @@ export type ImageFieldProps = {
   placeholder?: string
   /** 预览图额外 class（如区块编辑器的既有预览样式） */
   previewClassName?: string
+  /** 该槽位的图片规格；传入后按规格校验并提示实际尺寸 */
+  hint?: MediaHint
+  /** 下游裁切预览：按真实出现位置的宽高比渲染缩略框 */
+  crops?: CropPreviewSpec[]
 }
 
 /** 组件：图片字段，FileField 的图片模式封装，仅接受图片并提供预览。 */

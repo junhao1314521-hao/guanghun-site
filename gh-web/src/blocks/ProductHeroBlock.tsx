@@ -17,7 +17,7 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as R
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
-import { IconHeart } from '../components/ui/Icon'
+import { IconChat, IconHeart } from '../components/ui/Icon'
 import { MEDIA } from '../data/media'
 import { PRODUCTS } from '../data/products'
 import { MediaImg } from '../components/ui/MediaImg'
@@ -27,6 +27,7 @@ import { useSession } from '../hooks/useSession'
 import { useProductDetail } from './ProductDetailContext'
 import { useI18n } from '../i18n'
 import { asBool, asString } from './blockUtils'
+import { ProductModel3D, supports3D } from '../components/product/ProductModel3D'
 
 /** 后台 SKU 规格值支持「数组」或「逗号分隔文本」两种录入方式 */
 function splitSkuValues(value: string | string[] | undefined): string[] {
@@ -95,6 +96,27 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   /** 缩略图横滑 */
   const stripRef = useRef<HTMLDivElement>(null)
   const [strip, setStrip] = useState({ overflow: false, start: false, end: false })
+
+  /* —— 3D 预览（后台开关 + 已上传 .glb 才出现入口）—— */
+  const [mode, setMode] = useState<'photo' | 'model'>('photo')
+  const [modelReady, setModelReady] = useState(false)
+  const [modelFailed, setModelFailed] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
+  const modelSrc = detail?.model3d ?? ''
+  // WebGL 可用性只在首次渲染探测一次；不支持 WebGL 的设备不显示 3D 入口
+  const [webglOk] = useState(() => supports3D())
+  const can3d = Boolean(detail?.model3dEnabled && modelSrc) && webglOk && !modelFailed
+  // 切换产品时回到实拍，避免上一个产品的 3D 状态残留
+  useEffect(() => {
+    setMode('photo')
+    setModelReady(false)
+    setModelFailed(false)
+    setResetSignal(0)
+  }, [detail?.id])
+  // 进入 3D 时收起悬停放大，避免取景框压在画布上
+  useEffect(() => {
+    if (mode === 'model') setZoom(null)
+  }, [mode])
 
   const variant = PRODUCTS.find((item) => item.id === detail?.id)?.variant ?? 'mouse'
   const fallbackViews = MEDIA.views[variant] ?? MEDIA.views.mouse
@@ -332,23 +354,25 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
   const showPrice = props.showPrice === undefined ? true : asBool(props.showPrice)
   const showSummary = props.showSummary === undefined ? true : asBool(props.showSummary)
 
-  // §4.22 3-2：主 CTA「立即购买」优先取**当前产品**的购买链接（buyUrl）；
-  // 次 CTA「预约体验」→ 体验点。区块 props 仍可配置：关闭 primaryFromProduct 后回退模板级统一配置。
+  // §4.22 3-2：主 CTA 优先取**当前产品**的购买链接（buyUrl，直跳淘宝）；
+  // 次 CTA 默认「加入对比」→ /compare?ids=<当前产品>。区块 props 仍可覆盖文案与链接。
   const primaryFromProduct = props.primaryFromProduct === undefined ? true : asBool(props.primaryFromProduct)
-  const primaryLabel = asString(props.primaryLabel, primaryFromProduct ? '立即购买' : t('blocks.pd.defaultPrimary'))
-  const secondaryLabel = asString(props.secondaryLabel, primaryFromProduct ? '预约体验' : t('blocks.pd.defaultSecondary'))
   const productBuyUrl = primaryFromProduct ? detail.buyUrl ?? '' : ''
+  const primaryLabel = asString(props.primaryLabel, productBuyUrl ? '去淘宝购买' : '立即购买')
+  const secondaryLabel = asString(props.secondaryLabel, '加入对比')
   // 未填购买链接时主按钮回退到 props 配置的链接（留空则回到 /inquiry）
   const primaryHref = productBuyUrl || asString(props.primaryHref) || '/inquiry'
-  const secondaryHref =
-    (() => {
-      const configured = asString(props.secondaryHref)
-      if (configured && configured !== '/business/venues') return configured
-      const family = ['闪电', '枪神', '鹰眼', '极创', '光魂', '超凡剑圣'].find(
-        (name) => detail?.name?.includes(name) || detail?.model?.includes(name),
-      )
-      return family ? `/business/venues?model=${encodeURIComponent(family)}` : '/business/venues'
-    })()
+  const secondaryHref = asString(props.secondaryHref) || `/compare?ids=${detail.id}`
+
+  /* —— 首屏竖脊：规格标签 / 一句话卖点 / 参考价 / 关键指标 —— */
+  const specTags = (detail.specs ?? []).slice(0, 4)
+  // 第一条 feature 往往就是规格串，去掉空格与分隔点做归一化后比较，避免和下方标签重复
+  const normalize = (text: string) => text.replace(/[\s·]/g, '')
+  const specLine = normalize((detail.specs ?? []).join(''))
+  const pitch = (detail.features ?? []).find((item) => item && normalize(item) !== specLine) ?? ''
+  const metrics = (detail.summary?.[0]?.rows ?? []).slice(0, 3)
+  const priceNumber = typeof detail.priceValue === 'number' && detail.priceValue > 0 ? detail.priceValue : 0
+  const priceMain = displayPrice || (priceNumber ? `¥${priceNumber.toLocaleString('zh-CN')}` : '')
 
   const stepLightbox = (offset: number) => {
     setLightboxZoom(false)
@@ -380,50 +404,110 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
 
   return (
     <>
-      <div className="detail-top">
-        {/* 展台（大图 + 多视角缩略图） */}
+      <div className="detail-top detail-top--spine">
         <div>
           {/* 共享元素过渡：与产品卡同名（vh-<id>），进入详情页时卡片图「飞」到大图位 */}
-          <div className="stage detail-media media-ph" style={{ '--vt': `vh-${detail.id}` } as CSSProperties}>
+          <div
+            className={`stage detail-media media-ph${mode === 'model' ? ' stage--3d' : ''}`}
+            style={{ '--vt': `vh-${detail.id}` } as CSSProperties}
+          >
             <div className="stage__glow" />
-            <div
-              className="stage__content"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
-            >
-              <button
-                type="button"
-                className="pd-zoom-host"
-                aria-label="查看大图"
-                onPointerMove={onZoomMove}
-                onPointerLeave={() => setZoom(null)}
-                onBlur={() => setZoom(null)}
-                onClick={() => {
-                  setLightboxZoom(false)
-                  setLightbox(active)
-                }}
-              >
-                <MediaImg
-                  className="detail-img"
-                  src={activeSrc}
-                  alt={`${detail.model} ${detail.name}`}
-                  variant={variant}
-                  label={`${detail.model} 产品图`}
-                  loading="eager"
+            {mode === 'model' && can3d ? (
+              <>
+                <ProductModel3D
+                  src={modelSrc}
+                  label={`${detail.model} 3D 预览`}
+                  resetSignal={resetSignal}
+                  onReady={() => setModelReady(true)}
+                  onError={() => {
+                    setModelFailed(true)
+                    setMode('photo')
+                  }}
                 />
-                {zoom && (
-                  <span
-                    className="pd-zoom-box"
-                    aria-hidden="true"
-                    style={{
-                      left: zoom.boxLeft,
-                      top: zoom.boxTop,
-                      width: zoom.boxW,
-                      height: zoom.boxH,
-                    }}
+                {/* 模型加载完成前先显示封面图，完成后淡出，避免空舞台 */}
+                <img
+                  className={`pd3d__poster${modelReady ? ' is-hidden' : ''}`}
+                  src={detail.model3dPoster || activeSrc}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <p className="pd3d__hint">拖动旋转 · 双击复位</p>
+              </>
+            ) : (
+              <div
+                className="stage__content"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
+              >
+                <button
+                  type="button"
+                  className="pd-zoom-host"
+                  aria-label="查看大图"
+                  onPointerMove={onZoomMove}
+                  onPointerLeave={() => setZoom(null)}
+                  onBlur={() => setZoom(null)}
+                  onClick={() => {
+                    setLightboxZoom(false)
+                    setLightbox(active)
+                  }}
+                >
+                  <MediaImg
+                    className="detail-img"
+                    src={activeSrc}
+                    alt={`${detail.model} ${detail.name}`}
+                    variant={variant}
+                    label={`${detail.model} 产品图`}
+                    loading="eager"
                   />
+                  {zoom && (
+                    <span
+                      className="pd-zoom-box"
+                      aria-hidden="true"
+                      style={{
+                        left: zoom.boxLeft,
+                        top: zoom.boxTop,
+                        width: zoom.boxW,
+                        height: zoom.boxH,
+                      }}
+                    />
+                  )}
+                </button>
+              </div>
+            )}
+            {/* 工具条：只在有模型时出现；3D 态额外给一个「复位视角」 */}
+            {can3d && (
+              <div className="pd-stage-tools">
+                <button
+                  type="button"
+                  className={`pd-stage-tools__btn pd-stage-tools__btn--3d${mode === 'model' ? ' is-on' : ''}`}
+                  aria-pressed={mode === 'model'}
+                  aria-label={mode === 'model' ? '返回实拍图' : '查看 3D 模型'}
+                  onClick={() => {
+                    if (mode === 'model') {
+                      setMode('photo')
+                      return
+                    }
+                    setModelReady(false)
+                    setMode('model')
+                  }}
+                >
+                  3D
+                </button>
+                {mode === 'model' && (
+                  <button
+                    type="button"
+                    className="pd-stage-tools__btn"
+                    aria-label="复位视角"
+                    title="复位视角"
+                    onClick={() => setResetSignal((value) => value + 1)}
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 12a9 9 0 1 0 3.2-6.9" />
+                      <path d="M3 4.5V9h4.5" />
+                    </svg>
+                  </button>
                 )}
-              </button>
-            </div>
+              </div>
+            )}
           </div>
           <div className="pd-thumbs">
             {strip.overflow && (
@@ -441,10 +525,14 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                 <button
                   key={`${src}-${index}`}
                   type="button"
-                  className={`thumb${index === active ? ' is-active' : ''}`}
+                  className={`thumb${mode === 'photo' && index === active ? ' is-active' : ''}`}
                   aria-label={t('blocks.pd.view', { n: index + 1 })}
-                  aria-pressed={index === active}
-                  onClick={() => setThumb(index)}
+                  aria-pressed={mode === 'photo' && index === active}
+                  onClick={() => {
+                    setThumb(index)
+                    // 点任意实拍缩略图即退出 3D，回到对应视角
+                    if (mode === 'model') setMode('photo')
+                  }}
                 >
                   <MediaImg src={src} alt="" variant={variant} />
                 </button>
@@ -465,16 +553,15 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
 
         {/* 产品信息 */}
         <div className="detail-info">
-          <h1 className="detail-info__title">
-            <span className="detail-info__model">{detail.model}</span>{' '}
-            <span className="detail-info__name">{detail.name}</span>
-          </h1>
+          <div className="pd-spine__model">{detail.model}</div>
+          <h1 className="pd-spine__title">{detail.name}</h1>
+          {pitch && <p className="pd-spine__pitch">{pitch}</p>}
 
           {showBadges && (
-            <div className="row" style={{ marginBottom: 'var(--gh-space-4)' }}>
-              {detail.badges.map((badge) => (
-                <span className="tag tag--accent" key={badge}>
-                  {badge}
+            <div className="pd-spine__tags">
+              {specTags.map((tag) => (
+                <span className="pd-spine__tag" key={tag}>
+                  {tag}
                 </span>
               ))}
               <span className={`status status--${detail.status.level}`}>{detail.status.text}</span>
@@ -482,24 +569,19 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
           )}
 
           {showPrice && (
-            <div className="detail-price">
-              {displayPrice ? (
+            <div className="pd-spine__price">
+              <span className="pd-spine__price-label">{t('blocks.pd.refPrice')}</span>
+              {priceMain ? (
                 <>
-                  {displayPrice}{' '}
-                  <small
-                    style={{
-                      fontFamily: 'var(--gh-font-sans)',
-                      fontSize: 'var(--gh-font-size-body-sm)',
-                      color: 'var(--color-text-tertiary)',
-                      fontWeight: 'var(--gh-weight-regular)',
-                    }}
-                  >
-                    {t('blocks.pd.refPrice')}
-                  </small>
+                  <span className="pd-spine__price-row">
+                    <span className="pd-spine__price-value">{priceMain}</span>
+                    {!displayPrice && <span className="pd-spine__price-suffix">起</span>}
+                  </span>
+                  <span className="pd-spine__price-note">以平台实时价为准</span>
                 </>
               ) : (
                 // 未定参考价时不臆造数字：文案与「参考价，实际以各平台为准」口径一致
-                <span className="detail-price__pending">价格以各电商平台为准</span>
+                <span className="pd-spine__price-pending">价格以各电商平台为准</span>
               )}
             </div>
           )}
@@ -543,14 +625,14 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
             </div>
           )}
 
-          <div className="detail-buy">
+          <div className="detail-buy pd-spine__cta">
             {primaryLabel &&
               (primaryHref.startsWith('/') ? (
                 <SafeLink className="btn btn--primary btn--lg" to={primaryHref}>
                   {primaryLabel}
                 </SafeLink>
               ) : (
-                <a className="btn btn--primary btn--lg" href={primaryHref}>
+                <a className="btn btn--primary btn--lg" href={primaryHref} target="_blank" rel="noopener noreferrer">
                   {primaryLabel}
                 </a>
               ))}
@@ -560,7 +642,7 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
                   {secondaryLabel}
                 </SafeLink>
               ) : (
-                <a className="btn btn--secondary btn--lg" href={secondaryHref}>
+                <a className="btn btn--secondary btn--lg" href={secondaryHref} target="_blank" rel="noopener noreferrer">
                   {secondaryLabel}
                 </a>
               ))}
@@ -575,40 +657,31 @@ export function ProductHeroBlock({ props }: { props: Record<string, unknown> }) 
             >
               <IconHeart size={18} />
             </button>
+            <SafeLink className="icon-btn" to="/inquiry" aria-label="咨询">
+              <IconChat size={18} />
+            </SafeLink>
           </div>
 
-          {showSummary && (
-            <>
-              {/* 首屏只放 3 条关键指标（实测优先）；完整摘要与规格在下方产品规格区块。
-                  dl 结构遵循 HTML 规范：dl 的直接子元素是 div，div 内是 dt + dd；
-                  分组标题放在 dl 外层，避免出现「只有 dt 没有 dd」的无效结构。 */}
-              {detail.summary.slice(0, 1).map((group) => (
-                <div className="summary-block" key={group.title}>
-                  <div className="summary__group-title">{t('blocks.pd.keyMetrics')}</div>
-                  <dl className="summary">
-                    {group.rows.slice(0, 3).map((row) => (
-                      <div className="summary__row" key={row.label}>
-                        <dt>{row.label}</dt>
-                        <dd className={row.missing ? 'missing' : undefined}>
-                          {row.measured ?? row.value ?? row.nominal ?? '—'}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
+          {/* 关键指标：3 条真实参数（实测优先），label 左、值右对齐 */}
+          {showSummary && metrics.length > 0 && (
+            <dl className="pd-spine__metrics">
+              {metrics.map((row) => (
+                <div className="pd-spine__metric" key={row.label}>
+                  <dt>{row.label}</dt>
+                  <dd className={row.missing ? 'missing' : undefined}>
+                    {row.measured ?? row.value ?? row.nominal ?? '—'}
+                  </dd>
                 </div>
               ))}
-              <p
-                className="field__hint"
-                style={{
-                  marginTop: 'var(--gh-space-3)',
-                  fontSize: 'var(--gh-font-size-caption)',
-                  color: 'var(--color-text-tertiary)',
-                }}
-              >
-                {t('blocks.pd.missingNote')}
-              </p>
-            </>
+            </dl>
           )}
+
+          {/* 保障行：与官方保修口径一致，不另造承诺 */}
+          <ul className="pd-spine__assurance">
+            <li>{t('blocks.pd.point1')}</li>
+            <li>{t('blocks.pd.point2')}</li>
+            <li>{t('blocks.pd.point3')}</li>
+          </ul>
         </div>
       </div>
 

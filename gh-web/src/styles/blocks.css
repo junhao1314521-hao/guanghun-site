@@ -79,20 +79,44 @@
   border: 1px solid var(--color-border-default);
   color: var(--gh-neutral-50);
 }
-.blk-hero__slides { position: relative; z-index: 1; min-height: min(62vh, 520px); }
-.blk-hero__slide { display: none; position: relative; }
-.blk-hero__slide.is-active { display: block; animation: blkFadeUp .6s var(--gh-ease-accent) both; }
-@keyframes blkFadeUp { from { opacity: 0; } to { opacity: 1; } }
+.blk-hero__slides { position: relative; z-index: 1; min-height: min(62vh, 520px); display: grid; }
+/* 所有幻灯片叠放在同一网格单元中，切换只做透明度交叉淡化：
+   不会出现 display:none 导致的整块重排，也不会在淡入空档露出背后的代码动画。 */
+.blk-hero__slide {
+  grid-area: 1 / 1;
+  position: relative; display: flex; flex-direction: column; justify-content: center;
+  width: 100%; min-width: 0;
+  background: #070a12;
+  opacity: 0; pointer-events: none;
+  transition: opacity .7s var(--gh-ease-standard);
+  will-change: opacity;
+}
+.blk-hero__slide.is-active { opacity: 1; pointer-events: auto; z-index: 1; }
+/* 代码动画那张保持实底：画布只在该 slide 内部，卸载后不会露出动画 */
+.blk-hero__slide.is-motion { background: #070a12; }
+/* 文案单独做快速淡出 / 错峰淡入，避免两张海报的标题在交叉淡化时叠在一起 */
+.blk-hero__slide .blk-hero__grid { opacity: 0; transition: opacity .25s var(--gh-ease-standard); }
+.blk-hero__slide.is-active .blk-hero__grid { opacity: 1; transition: opacity .45s .1s var(--gh-ease-standard); }
 
 /* 背景图：铺满整张海报（宽屏 / 手机竖版由 <picture> 切换）。
-   不做 Ken Burns 缓慢放大、不做悬停放大：海报构图与上传素材保持 1:1，
-   避免同一张图在不同时间/交互下看起来“被无故拉大”。 */
+   轮播内不做悬停放大；单张全宽海报（.blk-hero--single）悬停时缓慢推近 4.5%，
+   只在支持 hover 且未开启「减少动态效果」时生效。 */
 .blk-hero__bg {
   position: absolute; inset: 0; overflow: hidden;
 }
 .blk-hero__bg picture { display: block; width: 100%; height: 100%; }
 .blk-hero__bg img {
   width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.blk-hero--single .blk-hero__bg img {
+  transition: transform 1.1s var(--gh-ease-standard);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .blk-hero--single:hover .blk-hero__bg:not(.is-contain) img { transform: scale(1.075); }
+}
+@media (max-width: 900px) {
+  .blk-hero--single:hover .blk-hero__bg:not(.is-contain) img { transform: none; }
 }
 /* 视频海报（自动循环、静音、内联播放） */
 .blk-hero__bg video { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -160,16 +184,22 @@
 }
 .blk-hero__count b { font-size: 15px; font-weight: var(--gh-weight-medium); color: var(--gh-neutral-50); }
 .blk-hero__controls { position: static; display: flex; gap: var(--gh-space-2); }
+/* 大疆商城式圆点：8px 圆形，未选中空心、选中实心；不再显示进度条 */
 .blk-hero__dot {
-  position: relative; overflow: hidden;
-  width: 30px; height: 3px; padding: 0; border: 0; border-radius: 2px;
-  background: rgba(255, 255, 255, .26); cursor: pointer;
-  transition: background var(--gh-duration-fast) var(--gh-ease-standard);
+  position: relative;
+  width: 8px; height: 8px; padding: 0; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .55);
+  background: transparent; cursor: pointer;
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard),
+              border-color var(--gh-duration-fast) var(--gh-ease-standard);
 }
-.blk-hero__dot.is-active { background: rgba(255, 255, 255, .34); }
+.blk-hero__dot:hover { border-color: rgba(255, 255, 255, .9); }
+.blk-hero__dot.is-active { background: rgba(255, 255, 255, .92); border-color: transparent; }
+/* 浅色海报：圆点转深色 */
+.blk-hero--light .blk-hero__dot { border-color: rgba(15, 23, 42, .4); }
+.blk-hero--light .blk-hero__dot.is-active { background: rgba(15, 23, 42, .82); }
 .blk-hero__dot-fill {
-  position: absolute; inset: 0; transform-origin: 50% 50%; transform: scaleX(0);
-  background: linear-gradient(90deg, var(--gh-blue-400), var(--gh-cyan-400));
+  display: none;
 }
 /* 与组件内 DURATION(=6000ms) 保持一致 */
 .blk-hero__dot.is-active .blk-hero__dot-fill { animation: ghHeroProgress 6s linear both; }
@@ -178,17 +208,29 @@
 @media (prefers-reduced-motion: reduce) {
   .blk-hero__dot.is-active .blk-hero__dot-fill { animation: none; transform: scaleX(1); }
 }
+/* 大疆式左右切换：贴边的竖向长条，静态显示、不做呼吸动画，悬停才提亮 */
 .blk-hero__arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
-  width: 42px; height: 42px; display: grid; place-items: center;
-  border-radius: var(--gh-radius-btn); border: 1px solid rgba(255, 255, 255, .2);
-  background: rgba(9, 10, 16, .35); color: var(--gh-neutral-50); cursor: pointer;
-  transition: background var(--gh-duration-fast) var(--gh-ease-standard);
+  width: 44px; height: 88px; display: grid; place-items: center;
+  border-radius: 6px; border: 0;
+  background: rgba(9, 10, 16, .28); color: var(--gh-neutral-50); cursor: pointer;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  opacity: .8;
+  transition: background var(--gh-duration-fast) var(--gh-ease-standard), opacity var(--gh-duration-fast) var(--gh-ease-standard);
 }
-.blk-hero__arrow--prev { left: var(--gh-space-4); }
-.blk-hero__arrow--next { right: var(--gh-space-4); }
-.blk-hero__arrow:hover { background: rgba(9, 10, 16, .6); }
-@media (max-width: 767px) { .blk-hero__arrow { display: none; } }
+.blk-hero__arrow--prev { left: 0; }
+.blk-hero__arrow--next { right: 0; }
+.blk-hero__arrow:hover,
+.blk-hero__arrow:focus-visible {
+  background: rgba(9, 10, 16, .55); opacity: 1;
+}
+/* 手机端沿用滑动操作，隐藏箭头避免压住文案 */
+@media (max-width: 767px) {
+  .blk-hero__arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blk-hero__arrow { transition: none; }
+}
 
 /* —— 海报底部悬浮下载条（后台勾选下载中心条目，字段 downloadIds）——
    对标 Razer Synapse / MSI Center 的软件下载位：
@@ -409,41 +451,54 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
      通栏满宽后仍保留「矮一档」等档位，且相邻海报之间不留任何上下留白或间隙。 */
 }
 /* 滑动区撑满海报高度，背景图才能真正「满屏」 */
-.blk--full .blk-hero__slides { min-height: inherit; display: flex; }
-.blk--full .blk-hero__slide.is-active {
+.blk--full .blk-hero__slides { min-height: inherit; display: grid; }
+.blk--full .blk-hero__slide {
   width: 100%;
   display: flex; flex-direction: column; justify-content: center;
 }
 
 /* —— 海报高度档位（§1.3）：满屏 / 21:9 宽幅 / 比首屏矮一档 / 自定义（首屏轮播固定满屏）—— */
 .blk-hero--h-full { min-height: min(100svh, 940px); }
-/* 21:9 宽幅：海报通栏满宽，高度**由宽度决定**（1440 宽 → 617 高、1920 宽 → 823 高） */
-.blk-hero--h-r219 { aspect-ratio: 21 / 9; }
+/* 21:9 宽幅：海报通栏满宽，高度**由宽度决定**，但封顶 660px。
+   不封顶时 1920 宽 → 823 高、2560 宽 → 1097 高，会反超首屏；封顶后与首屏形成「首屏最高、内页海报更矮」的层级。
+   必须显式 width:100%：只写 aspect-ratio + max-height 时，浏览器会反过来按 660px 限高收缩宽度
+   （1920 宽下缩成 1540px 左对齐，右侧露出底色，表现为整体错位）。 */
+.blk-hero--h-r219 { width: 100%; aspect-ratio: 21 / 9; max-height: 660px; }
 .blk-hero--h-short { min-height: min(66vh, 600px); }
+/* 大疆商城式海报：桌面约 520px，不占满整屏；手机降到 380px，保证下一屏内容露出 */
+.blk-hero--h-shop { min-height: 520px; }
+@media (max-width: 900px) { .blk-hero--h-shop { min-height: 440px; } }
+@media (max-width: 767px) { .blk-hero--h-shop { min-height: 380px; } }
 /* 窄屏兜底：≤900px 时 21:9 过扁，回退到「矮一档」高度，保证文案与产品主体都放得下 */
 @media (max-width: 900px) {
   .blk-hero--h-r219 { aspect-ratio: auto; min-height: min(66vh, 600px); }
 }
 .blk-hero--h-full .blk-hero__slides,
 .blk-hero--h-short .blk-hero__slides,
-.blk-hero--h-custom .blk-hero__slides { min-height: inherit; display: flex; }
+.blk-hero--h-shop .blk-hero__slides,
+.blk-hero--h-custom .blk-hero__slides { min-height: inherit; display: grid; }
 /* 21:9 档位有两种取高方式：宽屏用 aspect-ratio（确定高度），≤900px 兜底用 min-height（不确定高度）。
    两种都要能撑满内层，否则 slides/slide 会塌成内容高度、`contentPosition` 的百分比按错误参照系计算（文案贴顶）：
    - 确定高度（aspect-ratio）→ `height: 100%` 生效；
    - 不确定高度（min-height）→ `min-height: inherit` 生效（flex:1 在不确定高度下分不到空间）。 */
 .blk-hero--h-r219 { display: flex; flex-direction: column; }
-.blk-hero--h-r219 .blk-hero__slides,
-.blk-hero--h-r219 .blk-hero__slide.is-active {
+.blk-hero--h-r219 .blk-hero__slides {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: inherit;
+  display: grid;
+}
+.blk-hero--h-r219 .blk-hero__slide {
   flex: 1 1 auto;
   height: 100%;
   min-height: inherit;
   display: flex;
 }
-.blk-hero--h-full .blk-hero__slide.is-active,
-.blk-hero--h-r219 .blk-hero__slide.is-active,
-.blk-hero--h-short .blk-hero__slide.is-active,
-.blk-hero--h-custom .blk-hero__slide.is-active {
+.blk-hero--h-full .blk-hero__slide,
+.blk-hero--h-short .blk-hero__slide,
+.blk-hero--h-custom .blk-hero__slide {
   width: 100%;
+  min-height: inherit;
   display: flex; flex-direction: column; justify-content: center;
 }
 
@@ -1255,6 +1310,8 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   background: var(--veil-surface);
   border: 1px solid var(--color-border-default);
   border-radius: var(--gh-radius-2xl);
+  color: var(--color-text-primary);
+  text-decoration: none;
   transition: transform var(--gh-duration-base) var(--gh-ease-standard),
               border-color var(--gh-duration-base) var(--gh-ease-standard),
               box-shadow var(--gh-duration-base) var(--gh-ease-standard);
@@ -1439,6 +1496,13 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
    这里显式重置为透明，让 .showcase__media 的浅底 / CodeMedia 代码兜底正常透出（否则会呈现「黑框」）。 */
 .showcase__media-inner { position: absolute; inset: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0; }
 .showcase__media-inner img, .showcase__media-inner video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 透明产品图按完整轮廓展示：铺满裁切会切掉机身与支架 */
+.showcase__media-inner img[src*="/media/products/transparent/"],
+.blk-pmatrix__img[src*="/media/products/transparent/"] {
+  object-fit: contain;
+  padding: 4%;
+  background: var(--color-bg-subtle);
+}
 .showcase__info {
   margin-top: var(--gh-space-5);
   background: var(--color-bg-subtle);
@@ -1461,7 +1525,7 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .showcase__dots i { width: 6px; height: 6px; border-radius: 99px; background: var(--color-border-default); }
 .showcase__dots i.is-on { width: 18px; background: var(--color-accent-solid); }
 .showcase__arrow {
-  width: 28px; height: 28px; border-radius: var(--gh-radius-btn); cursor: pointer;
+  width: 28px; height: 28px; border-radius: var(--gh-radius-full); cursor: pointer;
   border: 1px solid var(--color-border-default); background: var(--color-bg-surface);
   color: var(--color-text-secondary); display: inline-flex; align-items: center; justify-content: center;
 }
@@ -2037,6 +2101,10 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   justify-content: center;
   overflow: auto;
   overscroll-behavior: contain;
+  /* 透明产品图需要浅色承托：深色遮罩上直接铺图会「黑吃黑」 */
+  padding: var(--gh-space-6);
+  border-radius: var(--gh-radius-2xl);
+  background: radial-gradient(120% 90% at 50% 0%, #fbfbfd 0%, #f4f5f8 52%, #edeff4 100%);
 }
 .pd-lightbox__img {
   max-width: 100%;
@@ -2116,38 +2184,102 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 
 /* ============================================================
-   trustBar 信任条（§1.7 新建）：分隔线横排，无卡片底、上下细线收边、项间竖分割线
+   trustBar 信任条（§1.7）：左对齐「图标底盘 + 主文案 + 副文案」，上下细线收边
    ============================================================ */
+/* 四等分横排：项间竖分割线；不再画上下通栏细线——那两条线在浅色底上会像
+   「页面上多了一条暴露的底色」，观感割裂（按客户反馈移除） */
 .blk-trustbar__row {
   display: grid;
   grid-template-columns: repeat(var(--trustbar-cols, 4), minmax(0, 1fr));
-  border-top: 1px solid var(--color-border-subtle);
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-top: 0;
+  border-bottom: 0;
 }
 .blk-trustbar__item {
-  display: flex; align-items: center; justify-content: center; gap: var(--gh-space-4);
-  padding: var(--gh-space-5) var(--gh-space-4);
-  color: var(--color-text-secondary); text-decoration: none;
-  transition: color var(--gh-duration-fast) var(--gh-ease-standard);
+  position: relative;
+  display: flex; align-items: flex-start; gap: var(--gh-space-3);
+  padding: 40px var(--gh-space-5);
+  color: inherit; text-decoration: none;
+  transition: background var(--gh-duration-base) var(--gh-ease-standard);
 }
-.blk-trustbar__item + .blk-trustbar__item { border-left: 1px solid var(--color-border-subtle); }
-.blk-trustbar__item:hover { color: var(--color-text-primary); }
-/* 图标放大到 28px：主体中性色、一笔品牌色（.ic-accent，与固件驱动图标共用机制） */
-.blk-trustbar__icon { display: inline-flex; flex: none; color: var(--color-text-tertiary); }
-.blk-trustbar__icon svg { width: 28px; height: 28px; display: block; }
-/* 条目文字放大一档（13px → 17px），与放大的图标保持配重 */
-.blk-trustbar__text { font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-medium); color: var(--color-text-primary); }
+/* 项间分隔线：只占 56% 高度，比通栏竖线更克制 */
+.blk-trustbar__item + .blk-trustbar__item::before {
+  content: ''; position: absolute; left: 0; top: 22%; bottom: 22%; width: 1px;
+  background: color-mix(in srgb, var(--color-text-primary) 7%, transparent);
+}
+.blk-trustbar__item:hover { background: color-mix(in srgb, var(--color-text-primary) 2.5%, transparent); }
+/* 图标底盘：app-icon 式圆角方块（22.5% squircle）。
+   浅色 = 干净的白瓷面（纯白 → 极浅冷白，仅一道中性柔影和 1px 描边），
+   不再叠蓝紫渐变与蓝色内阴影——那会在浅色底上显灰、显脏；
+   深色 = 黑玻璃 + 底部蓝光，同一套尺寸 / 圆角 / 内高光，切换主题只换材质。 */
+.blk-trustbar__icon {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 52px; height: 52px; border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #fdfdff 62%, #f5f8ff 100%);
+  border: 1px solid rgba(19, 32, 74, .10);
+  color: #2040ed;
+  box-shadow:
+    0 6px 14px rgba(17, 28, 68, .06),
+    0 1px 2px rgba(17, 28, 68, .05),
+    inset 0 1px 0 #ffffff;
+  transition: transform var(--gh-duration-base) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-base) var(--gh-ease-standard),
+              border-color var(--gh-duration-base) var(--gh-ease-standard);
+}
+/* 浅色不再盖釉面高光（白底上那层柔光只会让方块显灰）；仅深色保留玻璃盖板 */
+.blk-trustbar__icon::after { display: none; }
+[data-theme="dark"] .blk-trustbar__icon {
+  background:
+    radial-gradient(112% 80% at 50% 118%, rgba(52, 108, 255, .62), transparent 62%),
+    linear-gradient(180deg, #171b25 0%, #0b0e16 56%, #06102a 100%);
+  border-color: rgba(255, 255, 255, .11);
+  color: #ffffff;
+  box-shadow:
+    0 12px 26px rgba(0, 6, 24, .55),
+    inset 0 1px 0 rgba(255, 255, 255, .18),
+    inset 0 -10px 20px rgba(46, 102, 255, .42);
+}
+[data-theme="dark"] .blk-trustbar__icon::after {
+  display: block;
+  background: linear-gradient(165deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, 0) 44%);
+}
+.blk-trustbar__icon svg { width: 24px; height: 24px; display: block; }
+[data-theme="dark"] .blk-trustbar__icon svg { filter: drop-shadow(0 0 7px rgba(126, 168, 255, .55)); }
+.blk-trustbar__item:hover .blk-trustbar__icon {
+  transform: translateY(-2px);
+  border-color: rgba(32, 64, 237, .26);
+  box-shadow:
+    0 10px 22px rgba(17, 28, 68, .10),
+    0 1px 2px rgba(17, 28, 68, .05),
+    inset 0 1px 0 #ffffff;
+}
+[data-theme="dark"] .blk-trustbar__item:hover .blk-trustbar__icon {
+  box-shadow:
+    0 16px 32px rgba(0, 6, 24, .62),
+    inset 0 1px 0 rgba(255, 255, 255, .2),
+    inset 0 -10px 20px rgba(58, 118, 255, .52);
+}
+.blk-trustbar__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.blk-trustbar__title {
+  font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-medium);
+  line-height: 1.4; color: var(--color-text-primary); letter-spacing: -.01em;
+}
+.blk-trustbar__desc {
+  font-size: var(--gh-font-size-caption); line-height: 1.65;
+  color: var(--color-text-tertiary); letter-spacing: .01em;
+}
 @media (max-width: 900px) {
   .blk-trustbar__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .blk-trustbar__item:nth-child(2n + 1) { border-left: 0; }
-  .blk-trustbar__item:nth-child(n + 3) { border-top: 1px solid var(--color-border-subtle); }
+  .blk-trustbar__item + .blk-trustbar__item::before { display: none; }
+  .blk-trustbar__item:nth-child(2n) { border-left: 1px solid color-mix(in srgb, var(--color-text-primary) 7%, transparent); }
+  .blk-trustbar__item:nth-child(n + 3) { border-top: 1px solid color-mix(in srgb, var(--color-text-primary) 9%, transparent); }
 }
 @media (max-width: 560px) {
   .blk-trustbar__row { grid-template-columns: minmax(0, 1fr); }
   .blk-trustbar__item,
-  .blk-trustbar__item + .blk-trustbar__item { border-left: 0; }
-  .blk-trustbar__item + .blk-trustbar__item { border-top: 1px solid var(--color-border-subtle); }
-  .blk-trustbar__item { justify-content: flex-start; }
+  .blk-trustbar__item:nth-child(2n) { border-left: 0; }
+  .blk-trustbar__item + .blk-trustbar__item { border-top: 1px solid color-mix(in srgb, var(--color-text-primary) 9%, transparent); }
+  .blk-trustbar__item { padding: var(--gh-space-4) 0; }
 }
 
 /* ============================================================
@@ -2385,7 +2517,8 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 .catalog__aside {
   position: sticky;
-  top: calc(var(--gh-header-height, 72px) + var(--gh-space-4));
+  /* 吸顶落在顶栏下方 24px；令牌名必须是 --gh-header-h（旧写法 --gh-header-height 不存在，会误落到 72px 兜底值） */
+  top: calc(var(--gh-header-h, 47px) + var(--gh-space-6));
   padding: var(--gh-space-4);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
@@ -2428,10 +2561,16 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .catalog__check { font-size: var(--gh-font-size-caption); color: var(--color-accent-text); }
 
 .catalog__main { min-width: 0; }
+/* 通栏工具条：横跨左右两栏，决定页面顶部的分割线；
+   下一行的筛选栏与产品卡因此严格同顶（对齐基准 = 产品卡首行，而非文字/下拉菜单）。 */
 .catalog__toolbar {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-4);
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gh-space-4);
   padding-bottom: var(--gh-space-3);
-  margin-bottom: var(--gh-space-4);
+  margin-bottom: 0;
   border-bottom: 1px solid var(--color-border-subtle);
   flex-wrap: wrap;
 }

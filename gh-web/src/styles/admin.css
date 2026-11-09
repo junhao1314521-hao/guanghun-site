@@ -1256,6 +1256,22 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 /* 隐藏原生文件选择框，由「上传」按钮触发 */
 .image-field__file { display: none; }
 .image-field__error { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-danger); }
+/* 上传后的规格校验结果：符合规范用中性色，不符合用警示色（不阻断保存） */
+.image-field__audit { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+.image-field__audit--warn { color: var(--color-warning, #b45309); }
+/* 下游裁切预览：按真实版式比例给出小缩略框 */
+.image-field__crops { margin-top: var(--gh-space-2); }
+.image-field__crops-title { display: block; margin-bottom: 6px; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.image-crops { display: flex; flex-wrap: wrap; gap: var(--gh-space-3); }
+.image-crops__item { margin: 0; width: 148px; }
+.image-crops__frame {
+  width: 100%; overflow: hidden; border-radius: 8px;
+  border: 1px solid var(--color-border-default); background: var(--color-bg-muted);
+}
+.image-crops__frame--dark { background: #0b0e14; border-color: rgba(255, 255, 255, 0.14); }
+.image-crops__frame img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.image-crops__frame img.is-contain { object-fit: contain; }
+.image-crops__label { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--color-text-tertiary); }
 .image-field__preview { margin-top: var(--gh-space-1); }
 .image-field__img {
   display: block; width: 100%; max-width: 260px; aspect-ratio: 16 / 9;
@@ -1366,6 +1382,35 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 
 /* ---------- 素材库：文件夹 + 筛选 + 网格（图片空间式） ---------- */
+/* 拖拽上传浮层：覆盖整个素材库，虚线圈出可放置区域 */
+.admin-media { position: relative; }
+.admin-media__drop {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--color-bg-canvas) 72%, transparent);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+.admin-media__drop::before {
+  content: ''; position: absolute; inset: 16px;
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--gh-radius-lg);
+}
+.admin-media__drop-card {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  max-width: 380px; padding: var(--gh-space-5) var(--gh-space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+  background: var(--color-bg-surface);
+  box-shadow: 0 18px 48px rgb(9 10 16 / 18%);
+  text-align: center;
+}
+.admin-media__drop-card svg { color: var(--color-accent); }
+.admin-media__drop-card strong { font-size: var(--gh-font-size-body-lg); color: var(--color-text-primary); }
+.admin-media__drop-card span { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+.admin-media__drop-card small { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+
 .admin-media__layout {
   display: grid;
   grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);

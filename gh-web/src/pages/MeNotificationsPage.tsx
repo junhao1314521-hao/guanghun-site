@@ -4,6 +4,7 @@ import type { NotificationSetting } from '../api/account'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { MePageHeader } from '../components/site/MePageHeader'
 
 /**
  * 个人中心 · 订阅与通知（二级页面）：通知开关列表（数据来自真实接口，按用户隔离）。
@@ -45,16 +46,7 @@ export function MeNotificationsPage() {
 
   return (
     <div ref={rootRef}>
-      <div className="section__head">
-        <div>
-          <h2 className="section__title">
-            订阅与通知
-          </h2>
-          <p className="section__desc">
-            选择需要接收的通知类型；变更即时生效。
-          </p>
-        </div>
-      </div>
+      <MePageHeader title="订阅与通知" description="选择需要接收的通知类型；变更即时生效。" />
 
       {error ? (
         <div className="empty">

@@ -57,6 +57,8 @@ type Props = {
    * 完全由内容库的区块序列驱动，同时不丢失原有交互。
    */
   blockDefaults?: BlockDefaults
+  /** 页面自身已渲染可见 h1（如服务与支持页头）时，跳过仅供读屏 / SEO 的隐藏 h1，避免重复 */
+  hideSeoTitle?: boolean
 }
 
 /** 把页面级默认 props 合并进匹配类型的区块（服务端 props 覆盖默认值） */
@@ -70,7 +72,7 @@ function applyDefaults(blocks: Block[], defaults?: BlockDefaults): Block[] {
 }
 
 /** 内容页视图：取内容库单页 → 渲染 page.blocks */
-export function PageView({ pageKey, blockDefaults }: Props) {
+export function PageView({ pageKey, blockDefaults, hideSeoTitle }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const { lang } = useI18n()
@@ -143,7 +145,7 @@ export function PageView({ pageKey, blockDefaults }: Props) {
       ) : (
         <>
           {/* 仅供读屏 / SEO 的隐藏 h1：页面不再有视觉页头，标题由各页首个区块承载 */}
-          <h1 className="sr-only">{page.title}</h1>
+          {!hideSeoTitle && <h1 className="sr-only">{page.title}</h1>}
           {(() => {
             const blocks = applyDefaults(page.blocks, blockDefaults)
             // 页面存在但无启用区块（后台全部停用 / 空页面）→ 给出空态，避免白屏

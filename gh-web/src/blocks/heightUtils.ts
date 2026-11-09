@@ -10,6 +10,7 @@ import type { CSSProperties } from 'react'
 export function heightClass(prefix: string, height: unknown): string {
   if (height === 'short') return `${prefix}--h-short`
   if (height === 'r219') return `${prefix}--h-r219`
+  if (height === 'shop') return `${prefix}--h-shop`
   if (height === 'custom') return `${prefix}--h-custom`
   return `${prefix}--h-full`
 }

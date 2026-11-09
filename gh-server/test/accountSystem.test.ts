@@ -19,6 +19,11 @@ process.env.CONTENT_STORE_PATH = path.join(tmpDir, 'legacy-content-store.json')
 process.env.COLLECTION_STORE_PATH = path.join(tmpDir, 'legacy-collection-store.json')
 process.env.ADMIN_RESOURCE_STORE_PATH = path.join(tmpDir, 'legacy-admin-resources.json')
 process.env.AUDIT_LOG_PATH = path.join(tmpDir, 'legacy-audit-log.json')
+process.env.UPLOAD_DIR = path.join(tmpDir, 'uploads')
+
+/** 1×1 PNG：设备登记凭证的最小合法载荷 */
+const RECEIPT =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
 let server: Server
 let base: string
@@ -167,12 +172,31 @@ describe('前台账号体系 · 个人中心按用户隔离', () => {
     assert.equal((await get('/api/account/devices')).status, 401)
   })
 
-  it('两个用户的 devices 互不可见（序列号按用户区分）', async () => {
+  it('两个用户的 devices 互不可见（新账号不预置设备）', async () => {
+    const a = (await (await get('/api/account/devices', cookieA)).json()) as { items: unknown[] }
+    const b = (await (await get('/api/account/devices', cookieB)).json()) as { items: unknown[] }
+    assert.equal(a.items.length, 0, '注册后不应再预置演示设备')
+    assert.equal(b.items.length, 0)
+
+    const addA = await post(
+      '/api/account/devices',
+      { model: 'GH-A', sn: 'SN-ISO-A', purchasedAt: '2025-01-01', receipt: RECEIPT },
+      cookieA,
+    )
+    assert.equal(addA.status, 201)
+    const addB = await post(
+      '/api/account/devices',
+      { model: 'GH-B', sn: 'SN-ISO-B', purchasedAt: '2025-01-01', receipt: RECEIPT },
+      cookieB,
+    )
+    assert.equal(addB.status, 201)
+
     const da = (await (await get('/api/account/devices', cookieA)).json()) as { items: Array<{ sn: string }> }
     const db = (await (await get('/api/account/devices', cookieB)).json()) as { items: Array<{ sn: string }> }
-    assert.ok(da.items[0].sn.includes('USERA'))
-    assert.ok(db.items[0].sn.includes('USERB'))
-    assert.notEqual(da.items[0].sn, db.items[0].sn)
+    assert.ok(da.items.some((item) => item.sn === 'SN-ISO-A'))
+    assert.ok(!da.items.some((item) => item.sn === 'SN-ISO-B'))
+    assert.ok(db.items.some((item) => item.sn === 'SN-ISO-B'))
+    assert.ok(!db.items.some((item) => item.sn === 'SN-ISO-A'))
   })
 
   it('两个用户的 notifications 互不可见（A 改动不影响 B）', async () => {
@@ -241,24 +265,114 @@ describe('前台账号体系 · 与后台鉴权隔离', () => {
 
 describe('前台账号体系 · 个人中心写操作', () => {
   let cookie = ''
+  /** 第二个账号：验证序列号跨账号唯一 */
+  let otherCookie = ''
 
   before(async () => {
     const r = await post('/api/auth/register', { username: 'writer', email: 'writer@example.com', password: 'pass1234' })
     cookie = userCookie(r)
   })
 
-  it('登记设备 → 列表可见；重复序列号 → 400；删除 → 列表消失', async () => {
-    const add = await post('/api/account/devices', { model: 'GH-K870', sn: 'SN-TEST-001' }, cookie)
+  it('登记设备 → 待审核；保修 36 个月；重复序列号（含跨账号）→ 409；删除 → 列表消失', async () => {
+    const add = await post(
+      '/api/account/devices',
+      { model: 'GH-K870', sn: 'SN-TEST-001', purchasedAt: '2025-01-15', channel: '官方商城', receipt: RECEIPT },
+      cookie,
+    )
     assert.equal(add.status, 201)
-    let items = ((await add.json()) as { items: Array<{ sn: string }> }).items
-    assert.ok(items.some((d) => d.sn === 'SN-TEST-001'))
+    let items = ((await add.json()) as { items: Array<{ id: string; sn: string; status: string; warrantyEnd: string; remainingDays: number }> }).items
+    const created = items.find((d) => d.sn === 'SN-TEST-001')
+    assert.ok(created, '列表应包含新登记设备')
+    assert.equal(created.status, 'pending')
+    assert.equal(created.warrantyEnd, '2028-01-15', '保修到期 = 购买日期 + 36 个月')
+    assert.ok(created.remainingDays > 0)
 
-    assert.equal((await post('/api/account/devices', { model: 'GH-K870', sn: 'SN-TEST-001' }, cookie)).status, 400)
+    // 同账号重复登记 → 409
+    assert.equal(
+      (await post('/api/account/devices', { model: 'GH-K870', sn: 'SN-TEST-001', purchasedAt: '2025-01-15', receipt: RECEIPT }, cookie)).status,
+      409,
+    )
 
-    const removed = await del('/api/account/devices/SN-TEST-001', cookie)
+    // 跨账号重复登记 → 409（SN 全局唯一）
+    const other = await post('/api/auth/register', { username: 'writerb', email: 'writerb@example.com', password: 'pass1234' })
+    otherCookie = userCookie(other)
+    assert.equal(
+      (await post('/api/account/devices', { model: 'GH-K870', sn: 'SN-TEST-001', purchasedAt: '2025-01-15', receipt: RECEIPT }, otherCookie)).status,
+      409,
+    )
+
+    const removed = await del(`/api/account/devices/${created.id}`, cookie)
     assert.equal(removed.status, 200)
     items = ((await removed.json()) as { items: Array<{ sn: string }> }).items
     assert.ok(!items.some((d) => d.sn === 'SN-TEST-001'))
+  })
+
+  it('后台审核：通过后在保且用户不可删除；驳回需填原因并释放序列号', async () => {
+    const admin = await post('/api/admin/auth/login', { username: 'admin', password: 'admin123' })
+    assert.equal(admin.status, 200)
+    const adminCookie = (admin.headers.get('set-cookie') ?? '').split(';')[0]
+    assert.match(adminCookie, /gh_admin=/)
+
+    // 通过流程
+    const addA = await post(
+      '/api/account/devices',
+      { model: 'GH-K870', sn: 'SN-REVIEW-OK', purchasedAt: '2024-06-01', receipt: RECEIPT },
+      cookie,
+    )
+    assert.equal(addA.status, 201)
+    const okItem = ((await addA.json()) as { items: Array<{ id: string; sn: string }> }).items.find((d) => d.sn === 'SN-REVIEW-OK')
+    assert.ok(okItem)
+
+    const approved = await post(`/api/admin/device-registrations/${okItem.id}/review`, { action: 'approve' }, adminCookie)
+    assert.equal(approved.status, 200)
+    const approvedItem = ((await approved.json()) as { item: { status: string; statusText: string; warrantyEnd: string } }).item
+    assert.equal(approvedItem.status, 'active')
+    assert.equal(approvedItem.statusText, '在保')
+    assert.equal(approvedItem.warrantyEnd, '2027-06-01')
+
+    // 已通过 → 用户不可删除
+    assert.equal((await del(`/api/account/devices/${okItem.id}`, cookie)).status, 400)
+    // 重复审核 → 400
+    assert.equal(
+      (await post(`/api/admin/device-registrations/${okItem.id}/review`, { action: 'approve' }, adminCookie)).status,
+      400,
+    )
+
+    // 驳回流程：缺原因 → 400；填原因 → 成功，且 SN 可被他人重新登记
+    const addB = await post(
+      '/api/account/devices',
+      { model: 'GH-K870', sn: 'SN-REVIEW-NO', purchasedAt: '2024-06-01', receipt: RECEIPT },
+      otherCookie,
+    )
+    assert.equal(addB.status, 201)
+    const noItem = ((await addB.json()) as { items: Array<{ id: string; sn: string }> }).items.find((d) => d.sn === 'SN-REVIEW-NO')
+    assert.ok(noItem)
+
+    assert.equal(
+      (await post(`/api/admin/device-registrations/${noItem.id}/review`, { action: 'reject' }, adminCookie)).status,
+      400,
+    )
+    const rejected = await post(
+      `/api/admin/device-registrations/${noItem.id}/review`,
+      { action: 'reject', reason: '凭证模糊' },
+      adminCookie,
+    )
+    assert.equal(rejected.status, 200)
+    const rejectedItem = ((await rejected.json()) as { item: { status: string; rejectReason: string } }).item
+    assert.equal(rejectedItem.status, 'rejected')
+    assert.equal(rejectedItem.rejectReason, '凭证模糊')
+
+    // 驳回后序列号释放（其他账号可重新登记）
+    assert.equal(
+      (
+        await post(
+          '/api/account/devices',
+          { model: 'GH-K870', sn: 'SN-REVIEW-NO', purchasedAt: '2024-06-01', receipt: RECEIPT },
+          cookie,
+        )
+      ).status,
+      201,
+    )
   })
 
   it('新增收藏后列表包含该项（按名称去重）', async () => {

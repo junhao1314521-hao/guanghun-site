@@ -15,10 +15,13 @@ import { localeQuery } from '../lib/locale'
 /** 统一错误类型：页面据此区分「请求失败」与「空结果」两种数据状态 */
 export class ApiError extends Error {
   status: number
-  constructor(message: string, status = 500) {
+  /** 服务端返回的结构化附加信息（如 captchaRequired），供表单做二次交互 */
+  data?: Record<string, unknown>
+  constructor(message: string, status = 500, data?: Record<string, unknown>) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.data = data
   }
 }
 
@@ -91,13 +94,15 @@ export function createHttpTransport(baseUrl: string): Transport {
     if (!res.ok) {
       // 优先采用后端给出的可读错误（如「账号或密码不正确」），否则回退到状态码文案
       let message = res.status >= 500 ? '服务暂时不可用' : `请求失败（${res.status}）`
+      let data: Record<string, unknown> | undefined
       try {
-        const payload = (await res.json()) as { error?: unknown }
+        const payload = (await res.json()) as Record<string, unknown>
         if (typeof payload?.error === 'string' && payload.error.trim()) message = payload.error
+        data = payload
       } catch {
         // 响应非 JSON：保留状态码文案
       }
-      throw new ApiError(message, res.status)
+      throw new ApiError(message, res.status, data)
     }
     return (await res.json()) as T
   }

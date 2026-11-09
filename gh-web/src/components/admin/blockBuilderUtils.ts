@@ -297,6 +297,12 @@ const BLOCK_ICON: Record<BlockType, string> = {
   // 全屏视觉模块 / 长图拼接（R3 / R6）
   fullscreenVisual: 'monitor',
   longImage: 'doc',
+  // 服务支持页头 / 设备选择
+  supportHero: 'support',
+  supportDevicePicker: 'monitor',
+  // 首页资料坞 / 咨询分流
+  downloadDock: 'download',
+  inquiryDock: 'chat',
 }
 
 /** 返回区块类型对应的图标键，未知类型回退为 grid。 */

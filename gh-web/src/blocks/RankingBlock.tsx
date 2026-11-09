@@ -7,14 +7,15 @@
  * 复用既有 .ladder 榜单行形态。历史数据里的 weight / dpi 无对应指标，回退综合榜（overall）。
  *
  * 当 `showFilter` 开启（列表页由 PageView 注入）时，在区块内保留原天梯榜页的
- * 指标切换 + 产品线筛选（含 URL `?metric=` / `?type=` 深链，且范围内名次重算）。
+ * 指标切换（含 URL `?metric=` 深链）、品牌筛选（`?brand=`）与范围内名次重算；
+ * 列表页展示全量榜单（忽略区块 limit），首页 teaser 仍按 limit 截断。
  */
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
 import { useSitePages } from '../hooks/useSitePages'
 import { fetchLadder } from '../api/ladder'
-import { fillWidth, type LadderMetric, type LadderRow } from '../data/ladder'
+import { fillWidth, formatScore, type LadderMetric, type LadderRow } from '../data/ladder'
 import { MEDIA } from '../data/media'
 import { useApi } from '../hooks/useApi'
 import { useLadderFill } from '../hooks/useLadderFill'
@@ -26,48 +27,30 @@ import { asBool, asNumber, asString } from './blockUtils'
 /** 契约指标 → 测试数据的指标 id（与榜单页同一份 rankings 集合） */
 const METRIC_ALIAS: Record<string, string> = {
   overall: 'overall',
-  sensor: 'sensor',
-  latency: 'latency',
-  battery: 'battery',
-  // 历史数据兼容：weight / dpi 无对应指标，回退综合榜（不再作为可选项暴露）
+  contrast: 'contrast',
+  gamut: 'gamut',
+  brightness: 'brightness',
+  uniformity: 'uniformity',
+  hdr: 'hdr',
+  motion: 'motion',
+  // 历史数据兼容：无对应指标时回退综合榜
+  sensor: 'uniformity',
+  latency: 'motion',
+  battery: 'brightness',
   weight: 'overall',
   dpi: 'overall',
 }
 
-/** 导航菜单参数 → 榜单系列关键词（?type=oled 等，按型号名称匹配） */
-const TYPE_KEYWORDS: Record<string, string> = {
-  oled: 'OLED',
-  dual: '双模',
-  ips: 'IPS',
-}
-
-/** 判断榜单行名称是否包含关键词；关键词为空时视为命中 */
-function matchesType(row: LadderRow, keyword?: string): boolean {
-  if (!keyword) return true
-  return row.name.includes(keyword)
-}
-
-/** 按当前范围重算名次：仅对已测试行编号，同分并列共用名次，未测试行保持「—」 */
+/** 按当前范围重算名次：范围筛选后按展示顺序重新编号（对比度 ∞ 参与排名） */
 function rankWithinScope(rows: LadderRow[]): { row: LadderRow; rank: string; tied: boolean }[] {
-  let counted = 0
-  let current = 0
-  let prev: number | null = null
-  return rows.map((row) => {
-    if (row.score === null) return { row, rank: '—', tied: false }
-    counted += 1
-    const tied = prev !== null && row.score === prev
-    if (!tied) current = counted
-    prev = row.score
-    return { row, rank: String(current).padStart(2, '0'), tied }
-  })
+  return rows.map((row, index) => ({ row, rank: String(index + 1).padStart(2, '0'), tied: false }))
 }
 
 /** 领奖台：取前三名（仅已测试），以「2 - 1 - 3」视觉顺序排列，冠军居中抬高 */
 function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
   const { isHrefLive } = useSitePages()
-  const top = rows.filter((row) => row.score !== null).slice(0, 3)
+  const top = rows.filter((row) => row.score !== null || row.inf).slice(0, 3)
   if (top.length < 3) return null
-  const fmt = (score: number) => score.toFixed(metric.unit === '分' || score < 10 ? 1 : 0)
   const order: { row: LadderRow; place: '1' | '2' | '3' }[] = [
     { row: top[1], place: '2' },
     { row: top[0], place: '1' },
@@ -90,7 +73,7 @@ function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
             )}
             <span className="podium__name">{row.name}</span>
             <span className="podium__score">
-              {fmt(row.score as number)}
+              {formatScore(metric, row)}
               <em>{metric.unit}</em>
             </span>
           </div>
@@ -120,35 +103,28 @@ function LadderRows({
 }) {
   const { t } = useI18n()
   const { isHrefLive } = useSitePages()
-  const ranked = scoped ? rankWithinScope(rows) : rows.map((row) => ({ row, rank: row.rank, tied: row.tied }))
-  const topScore = ranked.reduce<number | null>(
-    (acc, { row }) => (row.score !== null && (acc === null || row.score > acc) ? row.score : acc),
-    null,
-  )
-  const deltaText = (score: number) => {
-    if (topScore === null) return ''
-    return score === topScore ? t('blocks.rk.leader') : `−${(topScore - score).toFixed(1)}`
-  }
+  const ranked = scoped ? rankWithinScope(rows) : rows.map((row) => ({ row, rank: row.rank, tied: false }))
   const keyword = highlight.trim().toLowerCase()
   return (
     <div className={`ladder${teaser ? ' ladder--teaser' : ''}`}>
       <div className="ladder__head">
-        <span className={`ladder__rank${scoped ? '' : ''}`}>{scoped ? t('blocks.rk.scope') : t('blocks.rk.rank')}</span>
+        <span className="ladder__rank">{scoped ? t('blocks.rk.scope') : t('blocks.rk.rank')}</span>
         <span className="ladder__thumb-head" aria-hidden="true" />
         <span className="ladder__model">{t('blocks.rk.model')}</span>
         <span className="ladder__name">{t('blocks.rk.group')}</span>
         <span style={{ flex: 1 }}>{t('blocks.rk.score', { label: metric.label })}</span>
         <span className="ladder__value">{t('blocks.rk.value')}</span>
       </div>
-      {ranked.map(({ row, rank, tied }) => {
+      {ranked.map(({ row, rank }) => {
         const top = /^0[123]$/.test(rank)
         const hit = keyword !== '' && row.model.toLowerCase().includes(keyword)
-        // 名次变化：当前名次 vs 上期名次（prevRank），正 = 名次上升
-        const currentRank = Number(rank)
-        const prev = row.prevRank ? Number(row.prevRank) : Number.NaN
-        const move = Number.isFinite(currentRank) && Number.isFinite(prev) ? prev - currentRank : 0
+        // 光魂自家型号：整行高亮，便于在本品牌榜中定位
+        const soul = row.model.includes('光魂')
         return (
-          <div className={`ladder__row${top ? ' ladder__row--top' : ''}${hit ? ' is-hit' : ''}`} key={row.model}>
+          <div
+            className={`ladder__row${top ? ' ladder__row--top' : ''}${hit ? ' is-hit' : ''}${soul ? ' is-soul' : ''}`}
+            key={row.model}
+          >
             <span className={`ladder__rank${top ? ' ladder__rank--top' : ''}`}>{rank}</span>
             <span className="ladder__thumb" aria-hidden="true">
               <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
@@ -158,44 +134,21 @@ function LadderRows({
                 {row.model}
               </Link>
             ) : (
-              <span className="ladder__model">{row.model}</span>
+              <span className="ladder__model">
+                {row.model}
+                {soul && <span className="tag tag--soul">光魂</span>}
+              </span>
             )}
             <span className="ladder__name">{row.name}</span>
-            {row.score === null ? (
-              <span className="ladder__track" style={{ background: 'transparent', border: '1px dashed var(--color-border-default)' }}>
-                <i className="ladder__fill" style={{ ['--fill-target' as string]: '0%' }} />
-              </span>
-            ) : (
-              <span className="ladder__track">
-                <i className="ladder__fill" style={{ ['--fill-target' as string]: `${fillWidth(metric, row.score)}%` }} />
-              </span>
-            )}
+            <span className="ladder__track">
+              <i className="ladder__fill" style={{ ['--fill-target' as string]: `${fillWidth(metric, row)}%` }} />
+            </span>
             <span className="ladder__value">
-              {row.score === null ? (
-                <span className="status status--muted">{t('blocks.rk.untested')}</span>
-              ) : (
-                <>
-                  <span className="ladder__score">
-                    {row.score.toFixed(metric.unit === '分' || row.score < 10 ? 1 : 0)}
-                    {move !== 0 && (
-                      <em className={`ladder__arrow${move > 0 ? ' is-up' : ''}`}>
-                        {move > 0 ? '↑' : '↓'}
-                        {Math.abs(move)}
-                      </em>
-                    )}
-                    {tied && (
-                      <span className="tag" style={{ marginLeft: 'var(--gh-space-1)' }}>
-                        {t('blocks.rk.tie')}
-                      </span>
-                    )}
-                  </span>
-                  <span className="ladder__delta">{deltaText(row.score)}</span>
-                  {/* hover 展开：实测小卡（样本 / 来源） */}
-                  <span className="ladder__pop" role="tooltip">
-                    实测 {metric.label} {row.score.toFixed(metric.unit === '分' || row.score < 10 ? 1 : 0)} {metric.unit} · 样本 n=3 · 来源：小雪人评测实验室
-                  </span>
-                </>
-              )}
+              <span className="ladder__score">{formatScore(metric, row)}</span>
+              {/* hover 展开：实测小卡（来源） */}
+              <span className="ladder__pop" role="tooltip">
+                实测 {metric.label} {formatScore(metric, row)} {metric.unit} · 来源：小雪人评测实验室
+              </span>
             </span>
           </div>
         )
@@ -221,22 +174,22 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const metrics = data?.metrics ?? []
   const meta = data?.meta
 
-  // 列表页（showFilter）：指标 / 产品线筛选由 URL 驱动，供导航深链直达；区块本身不参与筛选
+  // 列表页（showFilter）：指标 / 品牌筛选由 URL 驱动，供导航深链直达；区块本身不参与筛选
   const canFilter = showFilter
   const metric = metrics.find((item) => item.id === (canFilter ? (params.get('metric') ?? metricId) : metricId)) ?? metrics[0]
-  // 范围（产品线）：列表页 URL `?type=` 优先，未选时以区块配置（props.type）作为默认；非列表页直接用区块配置
-  const urlType = params.get('type') ?? ''
-  const typeScope = asString(props.type)
-  const typeKey = canFilter ? urlType || typeScope : typeScope
-  const typeKeyword = TYPE_KEYWORDS[typeKey]
-  const scoped = canFilter && metric ? metric.id !== 'overall' || Boolean(typeKeyword) : false
-  const rows = metric ? metric.rows.filter((row) => matchesType(row, typeKeyword)) : []
-  const tested = rows.filter((row) => row.score !== null)
-  const shown = limit > 0 ? rows.slice(0, limit) : rows
-  const shownTested = limit > 0 ? tested.slice(0, limit) : tested
+  // 品牌：列表页 URL `?brand=` 优先；首页 teaser 不提供筛选
+  const brandScope = canFilter ? (params.get('brand') ?? '') : ''
+  const scoped = canFilter && brandScope !== ''
+  const rows = metric ? metric.rows.filter((row) => !brandScope || row.name === brandScope) : []
+  const tested = metric ? metric.rows.filter((row) => row.score !== null || row.inf) : []
+  // 列表页展示全量，首页 teaser 按 limit 截断
+  const effectiveLimit = canFilter ? 0 : limit
+  const shown = effectiveLimit > 0 ? rows.slice(0, effectiveLimit) : rows
+  const shownTested = effectiveLimit > 0 ? tested.slice(0, effectiveLimit) : tested
+  const brands = Array.from(new Set((metric?.rows ?? []).map((row) => row.name))).sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
   // 分值条生长：以「取数就绪 + 当前指标 / 条数」为刷新键，确保真实榜单渲染后再绑定观察器
-  const fillKey = `${metric?.id ?? 'none'}:${limit}:${rows.length}:${loading ? 'loading' : 'ready'}`
+  const fillKey = `${metric?.id ?? 'none'}:${effectiveLimit}:${rows.length}:${loading ? 'loading' : 'ready'}`
   useLadderFill(rootRef, fillKey)
 
   const setParam = (key: string, value: string) => {
@@ -296,11 +249,11 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
         </div>
       ) : (
         <>
-          {/* 指标切换 + 产品线筛选（仅列表页开启）：与原天梯榜页一致，状态写入 URL */}
+          {/* 指标切换 + 品牌筛选（仅列表页开启）：状态写入 URL */}
           {canFilter && (
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 'var(--gh-space-4)', flexWrap: 'wrap', gap: 'var(--gh-space-3)' }}>
               <div className="row" style={{ gap: 'var(--gh-space-4)', flexWrap: 'wrap' }}>
-                <div className="segmented" role="tablist" aria-label="指标切换">
+                <div className="segmented" role="tablist" aria-label="指标切换" style={{ flexWrap: 'wrap' }}>
                   {metrics.map((item) => (
                     <button
                       key={item.id}
@@ -314,24 +267,27 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                     </button>
                   ))}
                 </div>
-                <div className="segmented" role="group" aria-label="产品线筛选">
-                  <button type="button" className={!typeKeyword ? 'is-active' : undefined} onClick={() => setParam('type', '')}>
-                    全部
-                  </button>
-                  {Object.entries(TYPE_KEYWORDS).map(([key, label]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={typeKey === key ? 'is-active' : undefined}
-                      onClick={() => setParam('type', key)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                <label className="row" style={{ gap: 'var(--gh-space-2)', alignItems: 'center' }}>
+                  <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
+                    品牌
+                  </span>
+                  <select
+                    className="input"
+                    value={brandScope}
+                    onChange={(event) => setParam('brand', event.target.value)}
+                    aria-label="按品牌筛选"
+                  >
+                    <option value="">全部品牌</option>
+                    {brands.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
               <span className="muted" style={{ fontSize: 'var(--gh-font-size-caption)' }}>
-                测试日期 {meta.testedAt} ｜ 样本 {meta.sample} ｜ 更新于 {meta.updatedAt}
+                来源 {meta.source} ｜ 抓取于 {meta.scrapedAt} ｜ 更新于 {meta.updatedAt}
               </span>
             </div>
           )}
@@ -341,7 +297,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
               <span className="tag tag--accent" style={{ marginRight: 'var(--gh-space-2)' }}>
                 范围内排名
               </span>
-              名次仅在当前指标与产品线范围内重新计算，与综合榜名次可能不同。
+              名次仅在当前指标与「{brandScope}」范围内重新计算，与综合榜名次可能不同。
             </p>
           )}
 
@@ -366,7 +322,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                     className="input ladder__search"
                     type="search"
                     value={query}
-                    placeholder="输入型号，如 54027 / 27Q1F"
+                    placeholder="输入型号，如 25S1FP / OG27QK"
                     aria-label="查找我的型号"
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -391,7 +347,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
 
           {canFilter && (
             <p className="field__hint" style={{ marginTop: 'var(--gh-space-4)', fontSize: 'var(--gh-font-size-caption)', color: 'var(--color-text-tertiary)' }}>
-              当前范围：{typeKeyword ? `全部${typeKeyword}` : '全部产品线'} · 数值单位：{metric.unit}。延迟与续航按该指标内的相对占比展示进度条，不同量纲不混用同一刻度。
+              当前范围：{brandScope || '全部品牌'} · 数值单位：{metric.unit}。进度条按「{metric.better === 'high' ? '越大越好' : '越小越好'}」在全榜内归一化，榜首为 100%；不同量纲不混用同一刻度。
             </p>
           )}
         </>

@@ -168,8 +168,8 @@ export const PAGE_META: PageMeta[] = [
   },
   {
     path: '/about',
-    title: '关于光魂 · 品牌与实验室',
-    description: '品牌理念、光魂实验室、发展历程与团队文化。',
+    title: '探索光魂 · 品牌与测试方法',
+    description: '品牌主张、在售产品线、公开的测试方法与服务承诺。',
     indexable: true,
     changefreq: 'monthly',
     priority: 0.6,

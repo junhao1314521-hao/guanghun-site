@@ -10,7 +10,7 @@
  * - 分流能力由站点配置 `inquiryRouting`（默认开）控制，关掉后回退为原来的单一主题下拉。
  */
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { submitInquiry, type InquiryBody, type InquiryResult } from '../api/support-extra'
 import { CaptchaField, HoneypotField } from '../components/ui/CaptchaField'
 import { useSiteAuth } from '../hooks/useSiteConfig'
@@ -35,15 +35,27 @@ export function topicsForType(type: string): string[] {
   return INQUIRY_ROUTING.find((entry) => entry.value === type)?.topics ?? INQUIRY_ROUTING[1].topics
 }
 
-/** 生成咨询表单初始值：启用分流时默认选中「售后」类型及其首个主题 */
-function emptyForm(routingEnabled: boolean): InquiryBody {
+/** URL ?type= → 合法咨询类型；不合法时回退默认（支持 pre-sale / after-sale 连字符写法） */
+function resolveInquiryType(value: string | null): InquiryRoutingType {
+  const alias: Record<string, InquiryRoutingType> = {
+    pre: 'pre',
+    'pre-sale': 'pre',
+    after: 'after',
+    'after-sale': 'after',
+    business: 'business',
+  }
+  return (value && alias[value]) || DEFAULT_INQUIRY_TYPE
+}
+
+/** 生成咨询表单初始值：启用分流时默认选中「售后」类型及其首个主题；可由 ?type= 预选 */
+function emptyForm(routingEnabled: boolean, type: InquiryRoutingType = DEFAULT_INQUIRY_TYPE): InquiryBody {
   return {
     name: '',
     contact: '',
     model: '',
-    topic: routingEnabled ? topicsForType(DEFAULT_INQUIRY_TYPE)[0] : INQUIRY_TOPICS[0],
+    topic: routingEnabled ? topicsForType(type)[0] : INQUIRY_TOPICS[0],
     message: '',
-    ...(routingEnabled ? { inquiryType: DEFAULT_INQUIRY_TYPE } : {}),
+    ...(routingEnabled ? { inquiryType: type } : {}),
   }
 }
 
@@ -57,7 +69,10 @@ export type InquiryFormProps = {
 
 /** 咨询提交表单：提交中 / 成功 / 失败均保留已填内容；左栏文案 + 右栏表单两栏布局 */
 export function InquiryForm({ title, desc, points, routingEnabled }: InquiryFormProps) {
-  const [form, setForm] = useState<InquiryBody>(() => emptyForm(routingEnabled))
+  // 首页咨询分流会带 ?type= 进入：按链接预选类型与主题（无效值回退售后）
+  const [searchParams] = useSearchParams()
+  const initialType = resolveInquiryType(searchParams.get('type'))
+  const [form, setForm] = useState<InquiryBody>(() => emptyForm(routingEnabled, initialType))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<SubmitStatus>('idle')
   const [result, setResult] = useState<InquiryResult | null>(null)

@@ -1,0 +1,1 @@
+import{a as e,d as t,t as n}from"./vendor-bM4LRIQF.js";var r=n();function i(){let{metric:n=``}=t();return(0,r.jsx)(e,{to:n?`/ladder?metric=${encodeURIComponent(n)}`:`/ladder`,replace:!0})}export{i as LadderMetricPage};

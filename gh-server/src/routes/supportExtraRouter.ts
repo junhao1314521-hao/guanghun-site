@@ -6,6 +6,8 @@ import {
   FAQ_CATEGORIES,
   getDownloadDetail,
   getFaqDetail,
+  MODEL_IMAGES,
+  MODEL_SUPPORTS,
   withModelNames,
 } from '../data/support-extra'
 import { createCollectionItem, getCollectionItem, listCollection } from '../data/collectionStore'
@@ -67,6 +69,31 @@ supportExtraRouter.get('/faq/:id', (req, res) => {
   res.json(detail)
 })
 
+supportExtraRouter.get('/support/models', (req, res) => {
+  const locale = readLocale(req)
+  // 设备选择器：优先按型号支持清单（MODEL_SUPPORTS）给出主力机型，再补集合里新增的型号；
+  // 只返回有主图的型号，避免出现空图卡；型号全量仍在 /support/models 页面。
+  const seen = new Set<string>()
+  const items: Array<{ id: string; model: string; line: string; summary: string; image: string }> = []
+  const push = (record: Record<string, unknown>) => {
+    const id = readString(record.id)
+    if (!id || seen.has(id)) return
+    const image = readString(record.image) || MODEL_IMAGES[id] || ''
+    if (!image) return
+    seen.add(id)
+    items.push({
+      id,
+      model: readString(record.model),
+      line: readString(record.line),
+      summary: readString(record.summary),
+      image,
+    })
+  }
+  MODEL_SUPPORTS.forEach((model) => push(model as unknown as Record<string, unknown>))
+  listCollection('models', locale).forEach((model) => push(model as Record<string, unknown>))
+  res.json({ items })
+})
+
 supportExtraRouter.get('/support/model/:id', (req, res) => {
   const model = getCollectionItem('models', req.params.id, readLocale(req))
   if (!model) {
@@ -90,16 +117,20 @@ supportExtraRouter.post('/inquiry', (req, res) => {
     res.json({ ok: true, ticketId: `INQ-${Date.now()}`, receivedAt: new Date().toISOString() })
     return
   }
-  const name = readString(body.name)
+  // 首页「快速提问」：只收问题描述 + 联系方式，称呼与型号用占位值落库（后台可再补）
+  const quick = body.quick === true
+  const name = readString(body.name) || (quick ? '快速提问' : '')
   const contact = readString(body.contact)
-  const model = readString(body.model)
+  const model = readString(body.model) || (quick ? '未指定' : '')
   const topic = readString(body.topic)
   const message = readString(body.message)
   // 轻量分流：咨询类型（售前咨询 / 售后报修 / 商务合作），独立落库供后台按类型分派 / 筛选
   const inquiryType = readString(body.inquiryType)
-  // 服务端校验：缺失必填项返回 400，不写入空记录
-  if (!name || !contact || !model || !message) {
-    res.status(400).json({ error: '请填写称呼、联系方式、产品型号与问题描述' })
+  // 服务端校验：缺失必填项返回 400，不写入空记录（快速提问只校验描述与联系方式）
+  if (!message || !contact || (!quick && (!name || !model))) {
+    res.status(400).json({
+      error: quick ? '请填写问题描述与联系方式' : '请填写称呼、联系方式、产品型号与问题描述',
+    })
     return
   }
   const id = `inq-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`

@@ -110,10 +110,10 @@ export const LEGAL_DOCS: LegalDoc[] = [
     updated: '2026-10-11',
     intro: '本页公示本站的备案与主体信息，便于核验与联系。以下信息以正式备案后公示为准。',
     sections: [
-      { heading: 'ICP 备案号', body: '待正式备案后公示' },
-      { heading: '网站主办单位', body: '光魂科技（深圳）有限公司' },
+      { heading: 'ICP 备案号', body: '粤ICP备19156321号' },
+      { heading: '网站主办单位', body: '广州小雪人信息科技有限公司' },
       { heading: '公安网备案号', body: '待正式备案后公示' },
-      { heading: '联系方式', body: '备案核验联系邮箱 support@guanghun.example；电话 400-000-0000（工作日 9:00–18:00）。' },
+      { heading: '联系方式', body: '备案核验联系邮箱 1009742523@qq.com；电话 15913908438（李经理）。' },
     ],
   },
 ]

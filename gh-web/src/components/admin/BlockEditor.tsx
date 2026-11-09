@@ -20,7 +20,7 @@ import { isStringList, newItem, resolveItemFields } from './blockBuilderUtils'
 import { ImageField, MediaField } from './ImageField'
 import { RichTextField } from './RichTextField'
 import { Select } from './Select'
-import { mediaHintText, resolveMediaHint, isSafetyAreaField } from './mediaHints'
+import { mediaHintText, resolveMediaHint, isSafetyAreaField, type MediaHint } from './mediaHints'
 import { MediaSafetyPreview } from './MediaSafetyPreview'
 
 /** 挑选器条目：统一呈现（主文案 / 次文案 / 分类） */
@@ -344,10 +344,12 @@ function MediaFieldExtra({
 function FieldControl({
   field,
   value,
+  hint,
   onChange,
 }: {
   field: BlockFieldMeta
   value: unknown
+  hint?: MediaHint
   onChange: (value: unknown) => void
 }) {
   const fieldId = `f-${field.name}`
@@ -368,6 +370,7 @@ function FieldControl({
         inputId={fieldId}
         label={field.label}
         placeholder={field.placeholder ?? '图片资源地址（URL 或 /uploads/...）'}
+        hint={hint}
         value={typeof value === 'string' ? value : ''}
         onChange={(url) => onChange(url)}
       />
@@ -380,6 +383,7 @@ function FieldControl({
         inputId={fieldId}
         label={field.label}
         placeholder={field.placeholder ?? '图片 / GIF / 视频地址（URL 或 /uploads/...）'}
+        hint={hint}
         value={typeof value === 'string' ? value : ''}
         onChange={(url) => onChange(url)}
       />
@@ -564,6 +568,7 @@ function ItemListEditor({
                       <FieldControl
                         field={itemField}
                         value={item[itemField.name]}
+                        hint={resolveMediaHint({ blockType, fieldName: itemField.name, blockProps, itemProps: item })}
                         onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
                       />
                       <MediaFieldExtra blockType={blockType} field={itemField} blockProps={blockProps} itemProps={item} />
@@ -668,7 +673,12 @@ export function BlockEditor({
               />
             ) : (
               <>
-                <FieldControl field={field} value={value} onChange={(value) => setProp(field.name, value)} />
+                <FieldControl
+                  field={field}
+                  value={value}
+                  hint={resolveMediaHint({ blockType: block.type, fieldName: field.name, blockProps: block.props })}
+                  onChange={(value) => setProp(field.name, value)}
+                />
                 <MediaFieldExtra blockType={block.type} field={field} blockProps={block.props} />
               </>
             )}

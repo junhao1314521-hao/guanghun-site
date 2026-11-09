@@ -10,6 +10,7 @@ import {
   resetPage,
   savePageDraft,
   saveSiteConfig,
+  setCenterBackdrop,
   setDefaultTheme,
   setEnabledBlocks,
   setTheme,
@@ -170,7 +171,9 @@ function parseSite(raw: unknown): Partial<{
   shopChannels: ShopChannel[]
   defaultTheme: 'auto' | 'light' | 'dark'
   navFeatureEnabled: boolean
+  footerMotion: boolean
   inquiryRouting: boolean
+  centerBackdrop: boolean
 }> | null {
   if (!raw || typeof raw !== 'object') return null
   const data = raw as Record<string, unknown>
@@ -196,7 +199,9 @@ function parseSite(raw: unknown): Partial<{
     shopChannels: ShopChannel[]
     defaultTheme: 'auto' | 'light' | 'dark'
     navFeatureEnabled: boolean
+    footerMotion: boolean
     inquiryRouting: boolean
+    centerBackdrop: boolean
   }> = { nav, footer }
   if (data.enabledBlocks !== undefined) {
     if (!Array.isArray(data.enabledBlocks)) return null
@@ -264,11 +269,19 @@ function parseSite(raw: unknown): Partial<{
   if (data.navFeatureEnabled !== undefined) {
     result.navFeatureEnabled = data.navFeatureEnabled === true
   }
+  // —— 页脚流动方块动画：布尔，缺省 false（纯色页脚）——
+  if (data.footerMotion !== undefined) {
+    result.footerMotion = data.footerMotion === true
+  }
   // —— 默认主题：'auto' | 'light' | 'dark'；非法值整体 400 ——
   if (data.defaultTheme !== undefined) {
     const value = readString(data.defaultTheme)
     if (value !== 'auto' && value !== 'light' && value !== 'dark') return null
     result.defaultTheme = value
+  }
+  // —— Center 页背景装饰：布尔，缺省 true（开启）——
+  if (data.centerBackdrop !== undefined) {
+    result.centerBackdrop = data.centerBackdrop !== false
   }
   return result
 }
@@ -477,4 +490,16 @@ adminPagesRouter.put('/default-theme', requireSession, requireScope('content'), 
   }
   const site = setDefaultTheme(value)
   res.json({ defaultTheme: site.defaultTheme ?? 'auto' })
+})
+
+/* ---------------- 样式：Center 页背景装饰开关 ---------------- */
+
+adminPagesRouter.put('/center-backdrop', requireSession, requireScope('content'), auditWrite('save-center-backdrop', () => 'site'), (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>
+  if (typeof body.enabled !== 'boolean') {
+    res.status(400).json({ error: 'enabled 必须为布尔值' })
+    return
+  }
+  const site = setCenterBackdrop(body.enabled)
+  res.json({ centerBackdrop: site.centerBackdrop !== false })
 })

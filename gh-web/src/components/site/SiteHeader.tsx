@@ -4,7 +4,8 @@ import { MEGA_PANELS, PAGE_NAV, pageIdFromPath } from '../../data/nav'
 import { MEGA_PANELS_EN } from '../../data/navEn'
 import { LANG_OPTIONS } from '../../data/site'
 import { useSiteAnnouncement, useSiteConfig, useSiteNav, useSiteShopChannels, useTopCta } from '../../hooks/useSiteConfig'
-import { useSession } from '../../hooks/useSession'
+import { invalidateSession, useSession } from '../../hooks/useSession'
+import { logout } from '../../api/auth'
 import { useSitePages } from '../../hooks/useSitePages'
 import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
@@ -31,8 +32,9 @@ type Props = {
 /**
  * 顶栏内容高度（px）：与 `styles/tokens.css` 的 `--gh-header-h` 严格保持一致。
  * 首屏「顶入顶栏」偏移与 over-hero（磨砂浮于海报）判定阈值都由它派生，改高度时只改令牌 + 这一处。
+ * 54px：在原先 47px 基础上加高 7px，导航上下呼吸更宽松；与令牌严格同步。
  */
-const HEADER_HEIGHT = 60
+const HEADER_HEIGHT = 54
 
 /**
  * 下拉面板右侧推荐卡的配图（按面板 key 固定）。
@@ -48,7 +50,7 @@ const MEGA_FEATURE_IMAGE: Record<string, string> = {
   about: '/media/home/scenes/scene-01.jpg',
 }
 
-/** 公告条（顶栏上方细条）：文案可点跳转，可按配置关闭（关闭状态记忆在 localStorage） */
+/** 公告条（顶栏上方细条，独立于 70px 导航高度）：文案可点跳转，可按配置关闭（关闭状态记忆在 localStorage） */
 function AnnouncementBar({ announcement, onDismiss }: { announcement: SiteAnnouncement; onDismiss: () => void }) {
   return (
     <div className="announce" role="region" aria-label="站点公告">
@@ -92,6 +94,31 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
   const panelRef = useRef<HTMLDivElement>(null)
   // 最近一次指针类型：区分鼠标点击（悬停已开，无需切换）与触屏点击（需切换）
   const pointerType = useRef('')
+  // 收起冷却：指针在入口与面板之间扫过时，延迟关闭，避免反复开关的「抽搐」
+  const closeTimer = useRef<number | null>(null)
+
+  /** 立即展开并取消待执行的收起 */
+  const openNow = () => {
+    if (closeTimer.current !== null) {
+      window.clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+    setOpen(true)
+  }
+
+  /** 延迟收起：把「指针短暂离开」与「真正移走」区分开 */
+  const closeSoon = () => {
+    if (closeTimer.current !== null) window.clearTimeout(closeTimer.current)
+    closeTimer.current = window.setTimeout(() => {
+      closeTimer.current = null
+      setOpen(false)
+    }, 140)
+  }
+
+  // 卸载时清理计时器
+  useEffect(() => () => {
+    if (closeTimer.current !== null) window.clearTimeout(closeTimer.current)
+  }, [])
 
   // 路由切换时收起浮层
   useEffect(() => {
@@ -141,8 +168,8 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
     <span
       className={`shop-wrap${open ? ' is-open' : ''}`}
       ref={wrapRef}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={openNow}
+      onMouseLeave={closeSoon}
     >
       <button
         type="button"
@@ -204,6 +231,34 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const navFeatureEnabled = useSiteConfig()?.navFeatureEnabled === true
   // 登录态：已登录 → 个人中心；未登录 → 登录页（入口按会话切换）
   const { user } = useSession()
+  // 登录态下拉：个人中心 / 我的咨询 / 我的设备 / 账号设置 / 退出登录
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const onPointer = (event: MouseEvent) => {
+      if (!userMenuRef.current?.contains(event.target as Node)) setUserMenuOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setUserMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [userMenuOpen])
+  const signOut = async () => {
+    try {
+      await logout()
+    } catch {
+      // 会话已失效时忽略错误，本地照常清理
+    }
+    invalidateSession()
+    setUserMenuOpen(false)
+    navigate('/')
+  }
   // 下线级联：下拉面板链接统一走 isPathLive 过滤，已下线页面的入口不出现在下拉里
   const { isPathLive } = useSitePages()
 
@@ -236,6 +291,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const [langOpen, setLangOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [overHero, setOverHero] = useState(false)
+  const [posterTheme, setPosterTheme] = useState<'light' | 'dark' | null>(null)
   const [query, setQuery] = useState('')
 
   const headerRef = useRef<HTMLElement>(null)
@@ -249,28 +305,55 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   const wantNav = PAGE_NAV[pageKey]
   const isHome = pathname === '/'
 
-  // —— 首页顶部：顶栏以更透的磨砂浮于海报之上（轻微透出海报）——
+  // —— 首页顶部 / Center 深色页：顶栏以磨砂浮于深色画面之上 ——
   useEffect(() => {
     const isHome = pathname === '/'
+    // Center 页整页为深色，顶栏直接切到深色态，避免白底顶栏压在黑底首屏上
+    const isDarkPage = pathname === '/center'
     const update = () => {
       let over = false
+      let theme: 'light' | 'dark' | null = null
       if (isHome) {
         // 首屏海报由内容库 carousel 区块渲染（旧 .hero 结构已停用）
         const poster = document.querySelector('[data-block="carousel"]')
-        if (poster) over = poster.getBoundingClientRect().bottom > HEADER_HEIGHT
+        if (poster) {
+          over = poster.getBoundingClientRect().bottom > HEADER_HEIGHT
+          // 大疆式：顶栏文字色跟随「当前这张海报」的主题，而不是站点主题
+          const posterNode = poster.querySelector('[data-poster-theme]')
+          const value = posterNode?.getAttribute('data-poster-theme')
+          if (value === 'light' || value === 'dark') theme = value
+        }
+      } else if (isDarkPage) {
+        over = true
       }
       setOverHero(over)
+      setPosterTheme(theme)
     }
     update()
     window.addEventListener('scroll', update, { passive: true })
     window.addEventListener('resize', update)
+    // 海报主题由轮播内部切换（自动播放 / 手动切换），监听属性变化同步顶栏
+    let observer: MutationObserver | null = null
+    const observePoster = () => {
+      if (observer) return
+      const node = document.querySelector('[data-block="carousel"] [data-poster-theme]')
+      if (!node) return
+      observer = new MutationObserver(update)
+      observer.observe(node, { attributes: true, attributeFilter: ['data-poster-theme'] })
+    }
     // 首屏海报为异步渲染（内容库取数后才挂载），首次探测可能早于海报出现；
     // 用有限次重试兜底，数据到位后即修正为「磨砂浮于海报之上」。
-    const timers = [200, 600, 1200, 2000].map((ms) => window.setTimeout(update, ms))
+    const timers = [200, 600, 1200, 2000].map((ms) =>
+      window.setTimeout(() => {
+        update()
+        observePoster()
+      }, ms),
+    )
     return () => {
       window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
       timers.forEach((timer) => window.clearTimeout(timer))
+      observer?.disconnect()
     }
   }, [pathname])
 
@@ -369,13 +452,15 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
 
   return (
     <>
-      {/* 公告条：置于顶栏之上；可关闭时按配置隐藏 */}
-      {announcement && !announceDismissed && <AnnouncementBar announcement={announcement} onDismiss={dismissAnnounce} />}
+      {/* 公告细条：独立于 70px 导航高度（导航本体仍严格 = 令牌 --gh-header-h） */}
+      {announcement && !announceDismissed && (
+        <AnnouncementBar announcement={announcement} onDismiss={dismissAnnounce} />
+      )}
       {/* 悬停热区 = 一级导航 + 下拉面板：指针从一级菜单移到面板不会收起，
           离开这个区域（含移到左侧 LOGO / 右侧操作区）才延时收起。 */}
       <header
         ref={headerRef}
-        className={`site-header${overHero ? ' site-header--over-hero' : ''}${isHome ? ' site-header--home' : ''}`}
+        className={`site-header${overHero ? ' site-header--over-hero' : ''}${overHero && posterTheme ? ` site-header--poster-${posterTheme}` : ''}${isHome ? ' site-header--home' : ''}${pathname === '/center' ? ' site-header--dark' : ''}`}
       >
       <div className="container site-header__inner" style={{ position: 'relative' }}>
         <Link className="logo" to="/">
@@ -399,6 +484,8 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
               <span key={item.menu || item.to} className="site-nav__item">
                 <Link
                   to={item.to}
+                  /* Center 由服务端独立静态页托管：强制整页跳转，避免客户端路由渲染已下线的旧版 React 页面 */
+                  reloadDocument={item.to === '/center'}
                   className={[isActive ? 'is-active' : '', isMenuActive ? 'is-menu-active' : '']
                     .filter(Boolean)
                     .join(' ')}
@@ -521,9 +608,41 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
 
           {/* 客服入口已移除：与服务支持（一级导航 / 下拉 / 页脚）重复，顶栏不再重复暴露 */}
           {user ? (
-            <Link className="icon-btn" to="/me" aria-label="个人中心">
-              <IconAccount />
-            </Link>
+            <div className="user-menu" ref={userMenuRef}>
+              <button
+                className={`icon-btn${userMenuOpen ? ' is-open' : ''}`}
+                type="button"
+                aria-label="账号菜单"
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+                onClick={() => setUserMenuOpen((open) => !open)}
+              >
+                <IconAccount />
+              </button>
+              {userMenuOpen && (
+                <div className="user-menu__panel" role="menu">
+                  <div className="user-menu__head">
+                    <strong>{user.name || user.email || '我的账号'}</strong>
+                    <span>{user.email || ''}</span>
+                  </div>
+                  <Link className="user-menu__item" role="menuitem" to="/me" onClick={() => setUserMenuOpen(false)}>
+                    个人中心
+                  </Link>
+                  <Link className="user-menu__item" role="menuitem" to="/me/inquiries" onClick={() => setUserMenuOpen(false)}>
+                    我的咨询
+                  </Link>
+                  <Link className="user-menu__item" role="menuitem" to="/me/devices" onClick={() => setUserMenuOpen(false)}>
+                    我的设备
+                  </Link>
+                  <Link className="user-menu__item" role="menuitem" to="/me/settings" onClick={() => setUserMenuOpen(false)}>
+                    账号设置
+                  </Link>
+                  <button className="user-menu__item user-menu__item--danger" type="button" role="menuitem" onClick={signOut}>
+                    退出登录
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             // 未登录：顶栏只放账号图标（按反馈去掉文字，避免挤压导航）；可访问名保留「登录 / 注册」
             <Link className="icon-btn" to="/login" aria-label="登录 / 注册" title="登录 / 注册">
@@ -542,8 +661,6 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
           </button>
         </div>
       </div>
-
-      <span className="scroll-progress" aria-hidden="true" />
 
       {/* 宽屏下拉菜单：一级菜单悬停/聚焦展开，展示二级栏目（开合由「导航 + 面板」热区统一控制） */}
       <div

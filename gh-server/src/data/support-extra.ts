@@ -453,7 +453,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'faq-warranty-period',
     q: 'OLED 显示器保修多久，是否包含烧屏保护？',
-    a: '整机三年质保，含 OLED 烧屏保护；在显示器底部标签或包装盒上找到序列号，使用「保修状态查询」输入即可看到剩余时间。',
+    a: '整机三年质保，含 OLED 烧屏保护；登录后进入「我的设备」绑定设备，即可看到保修剩余时间。',
     category: '售后',
   },
   {
@@ -507,6 +507,14 @@ export type ModelSupport = {
 
 function faqsByIds(...ids: string[]): FaqItem[] {
   return FAQ_ITEMS.filter((item) => ids.includes(item.id))
+}
+
+/** 型号支持页 / 设备选择器用的型号主图（与产品图库同一份静态资源） */
+export const MODEL_IMAGES: Record<string, string> = {
+  'gh-54027x1qe': '/media/products/transparent/gh-54027x1qe.webp',
+  'gh-32x1ue': '/media/products/transparent/gh-32x1ue.webp',
+  'gh-27x1qe-500': '/media/products/transparent/gh-27x1qe-500.webp',
+  'gh-g27k180': '/media/products/transparent/gh-g27k180.webp',
 }
 
 export const MODEL_SUPPORTS: ModelSupport[] = [
@@ -589,9 +597,9 @@ export type ContactPayload = {
 
 export const CONTACT_PAYLOAD: ContactPayload = {
   channels: [
-    { kind: 'phone', label: '客服热线', value: '400-000-0000', note: '周一至周日 09:00–21:00' },
-    { kind: 'mail', label: '技术支持邮箱', value: 'support@guanghun.example', note: '1 个工作日内回复' },
-    { kind: 'chat', label: '在线咨询', value: '提交咨询工单', note: '提交后可在个人中心跟踪进度' },
+    { kind: 'phone', label: '采购与合作热线', value: '15913908438（李经理）', note: '批量采购、渠道与项目合作' },
+    { kind: 'mail', label: '商务邮箱', value: '1009742523@qq.com', note: '1 个工作日内回复' },
+    { kind: 'chat', label: '微信 / 在线咨询', value: 'xxrsm001 / xxrsm004', note: '也可提交咨询工单，在个人中心跟踪进度' },
   ],
   offices: [
     { city: '上海', address: '静安区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '10:00–21:00' },

@@ -10,17 +10,17 @@ export type ProductCategoryItem = {
   name: string
   /** 语义编码（mouse / keyboard / headset / accessory），供程序关联 */
   code: string
-  /** 关联产品数（后台展示用，可手动维护） */
+  /** 关联产品数（仅作种子初始值；接口按产品库实况重算，见 collectionStore.listProductCategories） */
   count: number
   order: number
   status: string
 }
 
 export const PRODUCT_CATEGORIES: ProductCategoryItem[] = [
-  { id: 'pc-oled', name: 'OLED旗舰', code: 'oled', count: 2, order: 1, status: '启用' },
+  { id: 'pc-oled', name: 'OLED旗舰', code: 'oled', count: 7, order: 1, status: '启用' },
   { id: 'pc-dual', name: '双模高刷', code: 'dual', count: 2, order: 2, status: '启用' },
-  { id: 'pc-ips', name: '电竞IPS', code: 'ips', count: 3, order: 3, status: '启用' },
-  { id: 'pc-accessory', name: '周边', code: 'accessory', count: 1, order: 4, status: '启用' },
+  { id: 'pc-ips', name: '电竞IPS', code: 'ips', count: 0, order: 3, status: '启用' },
+  { id: 'pc-accessory', name: '周边', code: 'accessory', count: 0, order: 4, status: '启用' },
 ]
 
 /** 前台产品筛选项：启用中的分类名（按 order 升序） */

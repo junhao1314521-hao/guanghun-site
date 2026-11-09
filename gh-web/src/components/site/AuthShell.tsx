@@ -19,6 +19,8 @@ type Props = {
   headline?: string
   subtitle?: string
   points?: string[]
+  /** 左栏品牌海报（留空则渲染点阵动效）；建议 1600×2000 竖图 */
+  poster?: string
 }
 
 /** 组件：渲染登录/注册页左右分栏外壳，承载表单与品牌信息。 */
@@ -30,11 +32,16 @@ export function AuthShell({
   headline = '以实测定义性能',
   subtitle = 'OLED 电竞显示器 · 参数公开、方法公开、来源可查。',
   points = [],
+  poster = '',
 }: Props) {
   return (
     <div className={`auth-shell auth-shell--${variant}`}>
       <aside className="auth-shell__aside">
-        <CodeBackdrop className="auth-shell__canvas" />
+        {poster ? (
+          <img className="auth-shell__poster" src={poster} alt="" aria-hidden="true" />
+        ) : (
+          <CodeBackdrop className="auth-shell__canvas" />
+        )}
         <div className="auth-shell__aside-inner">
           <div className="auth-shell__brand">
             <BrandMark className="logo__mark" />

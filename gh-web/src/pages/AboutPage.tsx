@@ -1,6 +1,15 @@
 import { PageView } from '../blocks/PageView'
+import '../styles/about.css'
 
-/** 关于光魂：由内容库 `about` 页驱动（品牌理念 / 关键事实 / 测试实验室 / 历程 / 新闻 / 文化 / 招聘 / 合规 / 引导）。 */
+/**
+ * 探索光魂：由内容库 `about` 页驱动。
+ * 初期品牌版：主张 → 我们是谁 → 怎么做事 → 在售产品线 → 怎么测 → 关键事实 → 历程 → 引导。
+ * 外层 .about-page 仅用于本页样式微调（不污染其它页面）。
+ */
 export function AboutPage() {
-  return <PageView pageKey="about" />
+  return (
+    <div className="about-page">
+      <PageView pageKey="about" />
+    </div>
+  )
 }

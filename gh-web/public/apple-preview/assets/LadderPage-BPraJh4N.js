@@ -1,0 +1,1 @@
+import{t as e}from"./vendor-bM4LRIQF.js";import{n as t}from"./PageView-D4U_J6hT.js";var n=e();function r(){return(0,n.jsx)(t,{pageKey:`ladder`,blockDefaults:{ranking:{showFilter:!0}}})}export{r as LadderPage};

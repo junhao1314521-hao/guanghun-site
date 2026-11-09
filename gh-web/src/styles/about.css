@@ -1,0 +1,147 @@
+/**
+ * 探索光魂（/about）本页专用微调。
+ * 只作用于 .about-page，避免影响首页与其它页面。
+ * 目标：把「结构正确但观感稀」的成品拉到方案稿的密度与层级。
+ */
+
+/* —— 首屏：眉题 + 单行主张句 + 白色胶囊主按钮 —— */
+/* 海报默认文案区只有 620px，撑不开「把每一块屏的参数，测给你看」一行 */
+#about-hero .hero__content--pos {
+  max-width: min(920px, calc(100% - 2 * var(--gh-space-5)));
+}
+#about-hero .hero__eyebrow {
+  font-family: var(--gh-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+#about-hero .hero__title {
+  max-width: none;
+  font-size: clamp(32px, 3.35vw, 48px);
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  margin-top: var(--gh-space-3);
+}
+/* 桌面端不折行：方案稿是一句整话，断成两行会显得第二行孤零零 */
+@media (min-width: 900px) {
+  #about-hero .hero__title { white-space: nowrap; }
+}
+#about-hero .hero__desc {
+  max-width: 46ch;
+  margin-top: var(--gh-space-3);
+  font-size: var(--gh-font-size-body-lg);
+  opacity: 0.82;
+}
+#about-hero .hero__cta {
+  margin-top: var(--gh-space-6);
+  gap: var(--gh-space-3);
+}
+#about-hero .hero__cta .btn--primary {
+  background: var(--gh-neutral-0);
+  border-color: transparent;
+  color: var(--gh-neutral-950);
+}
+#about-hero .hero__cta .btn--primary:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+#about-hero .hero__cta .btn--secondary {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+/* —— 章节节奏：柔和区块比画布深一档，避免整页一张白纸 —— */
+.about-page .blk--bg-soft {
+  background: var(--color-bg-sunken);
+}
+
+/* —— 章节标题：略大一档，和首屏形成层级 —— */
+.about-page .section__title {
+  font-size: clamp(30px, 2.9vw, 38px);
+  letter-spacing: -0.025em;
+}
+.about-page .section__head {
+  margin-bottom: var(--gh-space-8);
+}
+
+/* —— 图文块：深色场景图铺满，去掉「白底方块」的突兀感 —— */
+#about-who .blk-imagetext__media {
+  border-color: transparent;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(9, 10, 16, 0.18);
+}
+/* 要点列表：默认 13px 太小，读起来像注脚 */
+#about-who .feature-list {
+  gap: 10px;
+  margin-top: var(--gh-space-5);
+}
+#about-who .feature-list li {
+  font-size: 14px;
+  line-height: 1.65;
+}
+#about-who .feature-list li::before {
+  width: 6px;
+  height: 6px;
+  margin-top: 0.62em;
+}
+
+/* —— 卡片：圆角与悬停统一，避免只有描边的「表格感」 —— */
+.about-page .card {
+  border-radius: 14px;
+  padding: var(--gh-space-6);
+  transition: transform var(--gh-duration-fast) var(--gh-ease-standard),
+              border-color var(--gh-duration-fast) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
+}
+.about-page .card:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border-default));
+  box-shadow: 0 14px 32px rgba(9, 10, 16, 0.08);
+  transform: translateY(-2px);
+}
+.about-page .card__title {
+  font-size: 18px;
+  letter-spacing: -0.012em;
+}
+.about-page .card__desc {
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+/* —— 产品线卡：底部补一条动作行，避免四张卡只有标题和一个孤立箭头 —— */
+#about-lines .card {
+  display: flex;
+  flex-direction: column;
+  min-height: 216px;
+}
+#about-lines .blk-icard__go {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gh-space-3);
+  margin-top: auto;
+  padding-top: var(--gh-space-5);
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-caption);
+  letter-spacing: 0.02em;
+}
+#about-lines .blk-icard__go::before {
+  content: '查看该系列型号';
+}
+#about-lines a.card:hover .blk-icard__go {
+  color: var(--color-accent-text);
+  border-top-color: color-mix(in srgb, var(--color-accent) 35%, var(--color-border-subtle));
+}
+
+/* —— 发展历程：横向流程的年份稍大，和正文拉开层次 —— */
+.about-page .tl-flow__num { font-size: var(--gh-font-size-body-sm); letter-spacing: 0.02em; }
+.about-page .tl-flow__title { font-size: 17px; }
+
+@media (max-width: 767px) {
+  #about-hero .hero__title { font-size: clamp(28px, 7.4vw, 36px); }
+  #about-hero .hero__desc { font-size: var(--gh-font-size-body); }
+  #about-who .blk-imagetext__media { border-radius: 14px; box-shadow: none; }
+  .about-page .section__head { margin-bottom: var(--gh-space-7); }
+}

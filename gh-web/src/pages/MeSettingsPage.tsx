@@ -6,6 +6,7 @@ import { invalidateSession } from '../hooks/useSession'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { MePageHeader } from '../components/site/MePageHeader'
 
 /**
  * 个人中心 · 账号设置（二级页面）：账号与安全、基本资料、修改密码、登录设备、注销账号。
@@ -132,6 +133,8 @@ export function MeSettingsPage() {
 
   return (
     <div ref={rootRef}>
+      <MePageHeader title="账号设置" description="管理登录方式、绑定信息与账号安全；敏感操作需验证当前密码。" />
+
       {error ? (
         <div className="empty">
           <div className="empty__title">设置加载失败</div>

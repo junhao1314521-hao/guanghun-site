@@ -19,7 +19,7 @@
 3. Rajdhani（rajdhani-regular.woff2 / rajdhani-semibold.woff2）
    版权：Copyright 2014 The Rajdhani Project Authors (https://github.com/itfoundry/rajdhani)
    授权：SIL Open Font License 1.1（OFL-1.1）
-   用途：Center 页面的拉丁标题与数字；已按字符集子集化，未修改字形设计。
+   用途：Center 苹果风参考版（/center-v3）的拉丁标题与数字；已按字符集子集化，未修改字形设计。
 
 4. 字体栈中的系统字体
    PingFang SC / HarmonyOS Sans SC / Segoe UI / ui-monospace 等仅作为本机回退引用，
