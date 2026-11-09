@@ -345,7 +345,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
               { key: 'measured', label: '实测值', type: 'text' },
             ],
           },
-          { key: 'features', label: '产品亮点', type: 'list', span: 2, hint: '每行一项，如：满速 DP 2.1 · 80Gbps' },
+          { key: 'features', label: '产品亮点（详情页卡片）', type: 'list', span: 2, hint: '每行一条；详情页取前 3 条做亮点卡片，系统按第一个「，」拆成标题与说明（如：第四代 W-OLED 面板，2K 540Hz 满速刷新）。无需上传配图' },
           {
             key: 'specTemplate',
             label: '常用参数模板',

@@ -15,12 +15,20 @@
   --pdv8-line: rgba(17, 17, 20, 0.08);
   --pdv8-line-strong: rgba(17, 17, 20, 0.14);
   --pdv8-stage: #f4f5f7;
-  --pdv8-band: #f5f6f8;
   --pdv8-accent: #2f6bff;
-  --pdv8-pad: var(--gh-space-4);
   --pdv8-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--pdv8-ink);
-  background: #fff;
+  /* 与站点同一张纸：不再铺纯白，只让主图舞台与价格卡留白 */
+  background: transparent;
+}
+
+/* 键盘可达性：统一可见焦点环 */
+.pdv8 a:focus-visible,
+.pdv8 button:focus-visible,
+.pdv8 [tabindex]:focus-visible {
+  outline: 2px solid var(--pdv8-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .pdv8 img {
@@ -51,8 +59,8 @@
   gap: 56px;
   padding-top: 32px;
   padding-bottom: 56px;
-  /* 右栏拉满，让购买区与图库底边收口，不再出现右栏提前结束的悬空 */
-  align-items: stretch;
+  /* 回到自然高度：右栏不再被拉伸，避免信息之间出现大块空洞 */
+  align-items: start;
 }
 
 .pdv8-gallery {
@@ -111,9 +119,13 @@
 
 .pdv8-stage {
   position: relative;
+  width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #fbfbfc 0%, #f2f3f5 100%);
+  /* 主图舞台最高 520：超宽屏不再把首屏拉成一整屏 */
+  max-height: 520px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--pdv8-line);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -238,16 +250,16 @@
 .pdv8-rail {
   min-width: 0;
   padding-top: 2px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: 22px;
+  align-content: start;
 }
 
-/* 服务承诺 + 购买按钮整体贴底，与左侧图库底边对齐 */
-.pdv8-railfoot {
-  margin-top: auto;
-  padding-top: 18px;
+/* 组内 10px、组间 22px：把右栏收成三个决策小组 */
+.pdv8-group {
   display: grid;
-  gap: 14px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .pdv8-meta {
@@ -287,16 +299,16 @@
 }
 
 .pdv8-title {
-  margin: 10px 0 0;
-  font-size: clamp(28px, 2.8vw, 40px);
-  line-height: 1.22;
+  margin: 8px 0 0;
+  font-size: clamp(26px, 2.1vw, 32px);
+  line-height: 1.28;
   font-weight: 600;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
 .pdv8-lede {
-  margin: 12px 0 0;
+  margin: 0;
   font-size: 14px;
   line-height: 1.7;
   color: var(--pdv8-ink2);
@@ -306,7 +318,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 18px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -321,9 +333,11 @@
 }
 
 .pdv8-price {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid var(--pdv8-line);
+  margin: 0;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--pdv8-line);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -359,9 +373,7 @@
 
 /* 规格选择：按后台 skuOptions 渲染；无配置时整块不出现 */
 .pdv8-sku {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--pdv8-line);
+  margin: 0;
   display: grid;
   gap: 10px;
 }
@@ -485,7 +497,7 @@
 }
 
 .pdv8-subnav__inner {
-  height: 56px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -507,10 +519,15 @@
 
 .pdv8-subnav__links a {
   position: relative;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--pdv8-ink2);
   white-space: nowrap;
-  padding: 18px 0;
+  padding: 19px 0;
+  transition: color 0.15s ease;
+}
+
+.pdv8-subnav__links a:hover {
+  color: var(--pdv8-ink);
 }
 
 .pdv8-subnav__links a.is-on {
@@ -535,6 +552,12 @@
   flex: none;
 }
 
+.pdv8-subnav__buy .pdv8-btn.is-sm {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
 .pdv8-subnav__buy strong {
   font-family: var(--pdv8-mono);
   font-size: 16px;
@@ -542,27 +565,32 @@
 
 /* —— 通用区块 —— */
 .pdv8-section {
-  padding: 72px 0;
+  padding: 64px 0;
   border-bottom: 1px solid var(--pdv8-line);
 }
 
-.pdv8-band {
-  margin-left: calc(var(--pdv8-pad) * -1);
-  margin-right: calc(var(--pdv8-pad) * -1);
-  padding-left: var(--pdv8-pad);
-  padding-right: var(--pdv8-pad);
-  background: var(--pdv8-band);
+/* 入场：轻微上浮淡入；尊重减少动态偏好 */
+.pdv8-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-@media (min-width: 768px) {
-  .pdv8 {
-    --pdv8-pad: var(--gh-space-6);
+.pdv8-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdv8-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
-}
 
-@media (min-width: 1024px) {
-  .pdv8 {
-    --pdv8-pad: var(--gh-space-7);
+  .pdv8-card,
+  .pdv8-card::after {
+    transition: none;
   }
 }
 
@@ -570,7 +598,7 @@
   display: flex;
   align-items: baseline;
   gap: 14px;
-  margin-bottom: 34px;
+  margin-bottom: 32px;
 }
 
 .pdv8-section__index {
@@ -582,63 +610,103 @@
 
 .pdv8-section__head h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-/* —— 亮点：一张实拍 + 编号清单 —— */
-.pdv8-highlights {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
-  gap: 64px;
-  align-items: center;
+/* 区块右上「查看全部规格」 */
+.pdv8-section__more {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--pdv8-muted);
+  transition: color 0.15s ease;
 }
 
-.pdv8-highlights__media {
-  border-radius: 8px;
+.pdv8-section__more:hover {
+  color: var(--pdv8-accent);
+}
+
+/* —— 亮点：三列纯文字卡片（数据来自后台 features，无需上传图片） —— */
+.pdv8-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pdv8-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--pdv8-line);
+  border-radius: 12px;
+  padding: 24px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 156px;
   overflow: hidden;
-  background: var(--pdv8-stage);
-  aspect-ratio: 4 / 3;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.pdv8-highlights__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.pdv8-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--pdv8-line-strong);
+  box-shadow: 0 12px 28px rgba(17, 17, 20, 0.06);
 }
 
-.pdv8-highlights__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* 底部主色细线：悬停从左展开，作为唯一的强调动作 */
+.pdv8-card::after {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 0;
+  height: 2px;
+  background: var(--pdv8-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s ease;
 }
 
-.pdv8-highlights__list li {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 12px;
-  padding: 16px 0;
-  border-top: 1px solid var(--pdv8-line);
+.pdv8-card:hover::after {
+  transform: scaleX(1);
 }
 
-.pdv8-highlights__list li:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.pdv8-highlights__list span {
+.pdv8-card__num {
   font-family: var(--pdv8-mono);
   font-size: 12px;
+  letter-spacing: 0.08em;
   color: var(--pdv8-faint);
-  padding-top: 3px;
 }
 
-.pdv8-highlights__list p {
+.pdv8-card h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--pdv8-ink);
+}
+
+.pdv8-card p {
+  margin: 0;
+  font-size: 13px;
   line-height: 1.7;
-  color: var(--pdv8-ink2);
+  color: var(--pdv8-muted);
+}
+
+.pdv8-card__arrow {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 14px;
+  color: var(--pdv8-faint);
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.pdv8-card:hover .pdv8-card__arrow {
+  color: var(--pdv8-accent);
+  transform: translate(2px, -2px);
 }
 
 /* —— 性能 —— */
@@ -988,8 +1056,8 @@
     gap: 36px;
   }
 
-  .pdv8-highlights {
-    gap: 36px;
+  .pdv8-cards {
+    gap: 12px;
   }
 
   .pdv8-perf {
@@ -1082,9 +1150,14 @@
     margin-bottom: 24px;
   }
 
-  .pdv8-highlights {
+  .pdv8-cards {
     grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
+    gap: 12px;
+  }
+
+  .pdv8-card {
+    min-height: 0;
+    padding: 20px;
   }
 
   .pdv8-perf {

@@ -46,6 +46,15 @@ function isExternal(href: string) {
   return /^https?:\/\//i.test(href)
 }
 
+/** 把后台「产品亮点」的一条拆成卡片标题 + 说明：
+ *  「第四代 W-OLED 面板，2K 540Hz 满速刷新」→ 标题「第四代 W-OLED 面板」，说明「2K 540Hz 满速刷新」。
+ *  没有分隔符时整条作为标题，不编造说明文字。 */
+function splitFeature(text: string) {
+  const matched = text.match(/^(.{2,26}?)[，,、：:·|]\s*(.+)$/)
+  if (matched) return { title: matched[1].trim(), desc: matched[2].trim() }
+  return { title: text.trim(), desc: '' }
+}
+
 export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, unknown>; t: T }) {
   const detail = useProductDetail()
   const hero = heroProps as HeroConfig
@@ -77,6 +86,8 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   const [showBuyBar, setShowBuyBar] = useState(false)
   const [stackHeight, setStackHeight] = useState(90)
   const [picked, setPicked] = useState<string[]>([])
+  // 已进入过视口的区块 id：用状态保存，避免滚动引起重渲染时丢掉入场态
+  const [revealed, setRevealed] = useState<string[]>([])
 
   useEffect(() => {
     let alive = true
@@ -160,23 +171,45 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
     return items
   }, [detail, t])
 
+  // 当前区块：按「最后一个越过吸顶线」计算，短区块（如产品亮点）也不会被漏掉
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return
+    const ids = ['pdv8-top', ...navItems.map((item) => item.id)]
+    const onScroll = () => {
+      const line = (stackHeight || 90) + 80
+      let current = ids[0]
+      for (const id of ids) {
+        const element = document.getElementById(id)
+        if (element && element.getBoundingClientRect().top <= line) current = id
+      }
+      setActiveNav(current)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [navItems, stackHeight])
+
+  // 区块入场：滚到视口后淡入上浮一次；不支持的浏览器直接显示（CSS 里已有降级）
+  useEffect(() => {
+    if (!detail || typeof IntersectionObserver === 'undefined') return
+    const nodes = document.querySelectorAll<HTMLElement>('.pdv8 .pdv8-reveal')
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        if (visible[0]?.target.id) setActiveNav(visible[0].target.id)
+        const ids = entries.filter((entry) => entry.isIntersecting).map((entry) => entry.target.id)
+        if (!ids.length) return
+        setRevealed((prev) => [...new Set([...prev, ...ids])])
+        for (const entry of entries) {
+          if (entry.isIntersecting) observer.unobserve(entry.target)
+        }
       },
-      { rootMargin: '-45% 0px -50% 0px' },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
     )
-    for (const item of navItems) {
-      const element = document.getElementById(item.id)
-      if (element) observer.observe(element)
-    }
+    nodes.forEach((node) => observer.observe(node))
     return () => observer.disconnect()
-  }, [navItems])
+  }, [detail])
 
   if (!detail) return null
 
@@ -198,6 +231,12 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   const highlights = detail.features?.length
     ? detail.features.slice(0, 6)
     : attributes.slice(0, 6).map((item) => `${item.label}：${item.value}`)
+
+  // 亮点卡片：只取前 3 条，标题/说明由后台同一条文案拆分，运营无需额外上传图片
+  const highlightCards = highlights.slice(0, 3).map((text, index) => ({
+    num: String(index + 1).padStart(2, '0'),
+    ...splitFeature(text),
+  }))
 
   const chips = detail.specs?.length
     ? detail.specs.slice(0, 4)
@@ -275,6 +314,9 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
       next[index] = prev[index] === value ? '' : value
       return next
     })
+
+  /** 区块入场类名：一旦进入过视口就保持 is-in */
+  const sectionClass = (id: string) => `pdv8-section pdv8-reveal${revealed.includes(id) ? ' is-in' : ''}`
 
   return (
     <div className="pdv8" style={{ '--pdv8-stack': `${stackHeight}px` } as CSSProperties}>
@@ -380,23 +422,26 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         </div>
 
         <aside className="pdv8-rail">
-          <div className="pdv8-meta">
-            <span className="pdv8-model">{detail.model}</span>
-            <span className={`pdv8-stock is-${detail.status.level}`}>
-              <i aria-hidden="true" />
-              {detail.status.text}
-            </span>
+          <div className="pdv8-group">
+            <div className="pdv8-meta">
+              <span className="pdv8-model">{detail.model}</span>
+              <span className={`pdv8-stock is-${detail.status.level}`}>
+                <i aria-hidden="true" />
+                {detail.status.text}
+              </span>
+            </div>
+            <h1 className="pdv8-title">{detail.name}</h1>
+            {detail.features?.[0] && <p className="pdv8-lede">{detail.features[0]}</p>}
           </div>
-          <h1 className="pdv8-title">{detail.name}</h1>
-          {detail.features?.[0] && <p className="pdv8-lede">{detail.features[0]}</p>}
 
-          {chips.length > 0 && (
-            <ul className="pdv8-chips">
-              {chips.map((chip) => (
-                <li key={chip}>{chip}</li>
-              ))}
-            </ul>
-          )}
+          <div className="pdv8-group">
+            {chips.length > 0 && (
+              <ul className="pdv8-chips">
+                {chips.map((chip) => (
+                  <li key={chip}>{chip}</li>
+                ))}
+              </ul>
+            )}
 
           {hero.showPrice !== false && (
             <div className="pdv8-price">
@@ -438,8 +483,9 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
               </span>
             </div>
           )}
+          </div>
 
-          <div className="pdv8-railfoot">
+          <div className="pdv8-group">
             <ul className="pdv8-promise">
               <li>{warrantyText}</li>
               <li>{t('blocks.pd.v8Nationwide')}</li>
@@ -495,32 +541,34 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         </div>
       </nav>
 
-      {highlights.length > 0 && (
-        <section className="pdv8-section" id="pdv8-highlights">
+      {highlightCards.length > 0 && (
+        <section className={sectionClass('pdv8-highlights')} id="pdv8-highlights">
           <div>
             <header className="pdv8-section__head">
               <span className="pdv8-section__index">02</span>
               <h2>{t('blocks.pd.highlights')}</h2>
+              <a className="pdv8-section__more" href="#pdv8-specs">
+                {t('blocks.pd.v8AllSpecs')} →
+              </a>
             </header>
-            <div className="pdv8-highlights">
-              <div className="pdv8-highlights__media">
-                <img src={photos[1] || photos[0]} alt={detail.name} loading="lazy" />
-              </div>
-              <ol className="pdv8-highlights__list">
-                {highlights.map((item, index) => (
-                  <li key={item}>
-                    <span>{String(index + 1).padStart(2, '0')}</span>
-                    <p>{item}</p>
-                  </li>
-                ))}
-              </ol>
+            <div className="pdv8-cards">
+              {highlightCards.map((card) => (
+                <article className="pdv8-card" key={`${card.num}-${card.title}`}>
+                  <span className="pdv8-card__arrow" aria-hidden="true">
+                    ↗
+                  </span>
+                  <span className="pdv8-card__num">{card.num}</span>
+                  <h3>{card.title}</h3>
+                  {card.desc && <p>{card.desc}</p>}
+                </article>
+              ))}
             </div>
           </div>
         </section>
       )}
 
       {(refreshHz > 0 || stats.length > 0) && (
-        <section className="pdv8-section pdv8-band" id="pdv8-perf">
+        <section className={sectionClass('pdv8-perf')} id="pdv8-perf">
           <div>
             <header className="pdv8-section__head">
               <span className="pdv8-section__index">03</span>
@@ -559,7 +607,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
       )}
 
       {(groups.length > 0 || compareRows.length > 0) && (
-        <section className="pdv8-section" id="pdv8-specs">
+        <section className={sectionClass('pdv8-specs')} id="pdv8-specs">
           <div>
             <header className="pdv8-section__head">
               <span className="pdv8-section__index">04</span>
@@ -628,7 +676,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         </section>
       )}
 
-      <section className="pdv8-section" id="pdv8-service">
+      <section className={sectionClass('pdv8-service')} id="pdv8-service">
         <div>
           <header className="pdv8-section__head">
             <span className="pdv8-section__index">05</span>
@@ -667,7 +715,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
       </section>
 
       {detail.reviews?.length ? (
-        <section className="pdv8-section pdv8-band" id="pdv8-reviews">
+        <section className={sectionClass('pdv8-reviews')} id="pdv8-reviews">
           <div>
             <header className="pdv8-section__head">
               <span className="pdv8-section__index">06</span>
