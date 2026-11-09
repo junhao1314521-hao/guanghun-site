@@ -1,5 +1,6 @@
 /** 产品列表页数据：以光魂（小雪人数码）OLED 电竞显示器为主线 + 少量周边，供商品接口层消费 */
 import type { DeviceVariant } from './device-variant'
+import type { ProductReviewView } from './productReviews'
 
 export type ProductCategory = 'OLED旗舰' | '双模高刷' | '电竞IPS' | '周边'
 /** 视频接口规格（显示器主接口） */
@@ -74,6 +75,22 @@ export type Product = {
   buyUrl?: string
   /** 性能摘要（标称 / 实测）：后台可维护；有值时覆盖内置摘要 */
   summaryRows?: ProductSummaryRowInput[]
+  /**
+   * 3D 预览（详情页主图区）：单文件 .glb 地址。
+   * 只有 `model3dEnabled === true` 且本字段非空时，前台才显示 3D 入口；
+   * 缺省 / 关闭时行为与现在完全一致（纯图片相册）。
+   */
+  model3d?: string
+  /** 3D 加载中的首帧封面（可选，缺省用相册首图） */
+  model3dPoster?: string
+  /** 3D 预览总开关（默认关闭；模型未就绪时保持关闭，前台不出现 3D 按钮） */
+  model3dEnabled?: boolean
+  /** 主图视频地址（后台维护；留空则前台不显示视频入口） */
+  videoUrl?: string
+  /** 主图视频封面（可选；留空用相册首图） */
+  videoPoster?: string
+  /** 同系列标识（后台维护；留空按产品分类自动归类到对应系列） */
+  seriesId?: string
 }
 
 /** 后台录入的摘要行：实测留空时只展示标称值 */
@@ -111,7 +128,7 @@ export const PRODUCTS: Product[] = [
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
     weight: 6500,
-    gallery: ['/media/products/white/gh-54027x1qe.jpg'],
+    gallery: ['/media/products/transparent/gh-54027x1qe.webp'],
     buyUrl: TB('1072729325444'),
   },
   {
@@ -132,7 +149,7 @@ export const PRODUCTS: Product[] = [
     inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
-    gallery: ['/media/products/white/gh-28027x1qe.jpg'],
+    gallery: ['/media/products/transparent/gh-28027x1qe.webp'],
     buyUrl: TB('758519598484'),
   },
   {
@@ -151,7 +168,7 @@ export const PRODUCTS: Product[] = [
     inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
-    gallery: ['/media/products/white/gh-32x1ue.jpg'],
+    gallery: ['/media/products/transparent/gh-32x1ue.webp'],
     buyUrl: TB('817280696488'),
   },
   {
@@ -170,13 +187,14 @@ export const PRODUCTS: Product[] = [
     inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
-    gallery: ['/media/products/white/gh-27x1ue-q16.jpg'],
+    gallery: ['/media/products/transparent/gh-27x1ue-q16.webp'],
     buyUrl: TB('740313579537'),
   },
   {
     id: 'gh-32x1ue-q24', model: '32X1UE-Q24', name: 'Q24 31.5 英寸 4K 240Hz QD-OLED 显示器', category: 'OLED旗舰', connection: 'DP 2.1',
     specs: ['31.5 英寸', '4K 240Hz', 'QD-OLED'], status: { level: 'success', text: '在售' },
     price: '', priceValue: 4688, releasedAt: '2026-07-10', variant: 'monitor', flag: '大屏',
+    gallery: ['/media/products/transparent/gh-32x1ue-q24.webp'],
     features: ['31.5 英寸 4K 240Hz 第四代 QD-OLED', 'BLACKSHIELD 涂层，提升抗反与黑位表现', '满速率 DP 2.1 接口', '四微边全面屏设计 · CNC 阳极氧化铝背板', '硬件低蓝光，三年质保含烧屏保护'],
     attributes: [
       { group: '显示', label: '面板', value: '第四代 QD-OLED' },
@@ -196,6 +214,7 @@ export const PRODUCTS: Product[] = [
     id: 'gh-27x1qe-q32', model: '27X1QE-Q32', name: 'Q32 26.5 英寸 2K 320Hz QD-OLED 显示器', category: 'OLED旗舰', connection: 'HDMI 2.1',
     specs: ['26.5 英寸', '2K 320Hz', 'QD-OLED'], status: { level: 'success', text: '在售' },
     price: '', priceValue: 3099, releasedAt: '2026-06-12', variant: 'monitor', flag: '高刷',
+    gallery: ['/media/products/transparent/gh-27x1qe-q32.webp'],
     features: ['26.5 英寸 2K 320Hz QD-OLED', '0.03 ms 灰阶响应，高速画面无拖影', 'HDMI 2.1 接口', '四微边全面屏设计', '三年质保，含 OLED 烧屏保护'],
     attributes: [
       { group: '显示', label: '面板', value: 'QD-OLED' },
@@ -227,7 +246,7 @@ export const PRODUCTS: Product[] = [
     inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
-    gallery: ['/media/products/white/gh-27x1qe-500.jpg'],
+    gallery: ['/media/products/transparent/gh-27x1qe-500.webp'],
     buyUrl: TB('811263399696'),
   },
   {
@@ -246,7 +265,7 @@ export const PRODUCTS: Product[] = [
     inBox: ['显示器 × 1', 'DP 2.1 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保（含 OLED 烧屏保护），全国联保',
     os: ['Windows 10 / 11', 'macOS', 'PS5 / Xbox Series X'],
-    gallery: ['/media/products/white/gh-27x1ue-qd.jpg'],
+    gallery: ['/media/products/transparent/gh-27x1ue-qd.webp'],
     buyUrl: TB('878280736062'),
   },
   {
@@ -264,7 +283,7 @@ export const PRODUCTS: Product[] = [
     inBox: ['显示器 × 1', 'DP 线 × 1', '电源适配器 × 1', '说明书 / 保修卡 × 1'],
     warranty: '整机三年质保，全国联保',
     os: ['Windows 10 / 11', 'macOS'],
-    gallery: ['/media/products/white/gh-g27k180.jpg'],
+    gallery: ['/media/products/transparent/gh-g27k180.webp'],
     buyUrl: TB('1006891718756'),
   },
 ]
@@ -308,9 +327,13 @@ export type ProductDetail = {
   badges: string[]
   status: Product['status']
   price: string
+  /** 参考价数值（元）；未填文字价时前台按此显示「¥x,xxx 起」 */
+  priceValue?: number
   tag: string
   summary: SpecSummaryGroup[]
   tabs: string[]
+  /** 列表页同款核心参数（首屏规格标签） */
+  specs?: string[]
   /** 以下为运营可维护的扩展字段（来自产品记录，缺省则不展示） */
   features?: string[]
   attributes?: ProductAttribute[]
@@ -329,6 +352,19 @@ export type ProductDetail = {
   h5LongImagesMobile?: string[]
   /** 购买链接（详情页主按钮「立即购买」取此值，见 §4.22 3-2） */
   buyUrl?: string
+  /** 3D 预览（后台开关打开且模型地址存在时才下发，前台据此显示 3D 入口） */
+  model3d?: string
+  model3dPoster?: string
+  model3dEnabled?: boolean
+  /** 设备形态（相册兜底 / 占位图使用） */
+  variant?: DeviceVariant
+  /** 主图视频（后台维护；缺省时前台不显示视频入口） */
+  videoUrl?: string
+  videoPoster?: string
+  /** 同系列标识（后台留空时按分类派生） */
+  seriesId?: string
+  /** 用户评价（后台审核通过后下发；缺省时不渲染评价模块） */
+  reviews?: ProductReviewView[]
 }
 
 /** 详情页占位数据（以旗舰 540Hz OLED 为完整示例，其余型号复用同一结构） */
@@ -403,9 +439,22 @@ export const PRODUCT_DETAILS_EN: Record<string, ProductDetail> = {
   },
 }
 
+/** 分类 → 系列 slug（与 product-extra.ts 的 SERIES 同口径）；后台未填 seriesId 时派生 */
+const CATEGORY_SERIES: Record<ProductCategory, string> = {
+  OLED旗舰: 'oled',
+  双模高刷: 'dual',
+  电竞IPS: 'ips',
+  周边: 'accessory',
+}
+
 /** 从产品记录中取出运营可维护的扩展字段（仅取已定义项，供详情合并） */
 function extendedFields(base: Product, locale: string = 'zh'): Partial<ProductDetail> {
   const out: Partial<ProductDetail> = {}
+  if (base.variant) out.variant = base.variant
+  // 主图视频 / 系列：后台留空时按分类派生，保证前台零配置可用
+  if (base.videoUrl) out.videoUrl = base.videoUrl
+  if (base.videoPoster) out.videoPoster = base.videoPoster
+  out.seriesId = base.seriesId || CATEGORY_SERIES[base.category]
   // 性能摘要：后台录入优先（有值即覆盖内置示例），实测留空时前台只展示标称值
   const summaryRows = (Array.isArray(base.summaryRows) ? base.summaryRows : [])
     .map((row) => ({
@@ -442,6 +491,13 @@ function extendedFields(base: Product, locale: string = 'zh'): Partial<ProductDe
   if (base.h5LongImages !== undefined) out.h5LongImages = base.h5LongImages
   if (base.h5LongImagesMobile !== undefined) out.h5LongImagesMobile = base.h5LongImagesMobile
   if (base.buyUrl !== undefined) out.buyUrl = base.buyUrl
+  // 3D 预览：三个字段同时满足才下发，避免「开了开关却没模型」时前台出现空入口
+  const model3dOn = base.model3dEnabled === true || String(base.model3dEnabled) === 'true'
+  if (model3dOn && base.model3d) {
+    out.model3dEnabled = true
+    out.model3d = base.model3d
+    if (base.model3dPoster) out.model3dPoster = base.model3dPoster
+  }
   return out
 }
 
@@ -466,9 +522,24 @@ function withRecordFields(detail: ProductDetail, base: Product, locale: string):
         ? { level: base.status.level, text: STATUS_EN[base.status.text] ?? base.status.text }
         : base.status,
     price: base.price,
+    priceValue: base.priceValue,
+    specs: base.specs,
     tag: locale === 'en' ? (CATEGORY_EN[base.category] ?? base.category) : base.category,
     badges,
   }
+}
+
+/**
+ * 兜底摘要：后台未录入 summaryRows 时，用结构化参数的前 6–8 条生成真实指标，
+ * 不再伪造「类别规格 1/2/3」这种占位标签。
+ */
+function fallbackSummary(base: Product, locale: string): SpecSummaryGroup[] {
+  const rows = (base.attributes ?? [])
+    .filter((attr) => attr.label?.trim() && attr.value?.trim())
+    .slice(0, 8)
+    .map((attr) => ({ label: attr.label.trim(), nominal: attr.value.trim(), value: attr.value.trim() }))
+  if (!rows.length) return []
+  return [{ title: locale === 'en' ? 'Key specifications' : '关键参数', rows }]
 }
 
 /** 兜底：把列表数据补成详情结构，保证任意型号进入详情页都不空白（列表来自集合存储，形状与 PRODUCTS 一致） */
@@ -485,13 +556,10 @@ export function getProductDetail(products: Product[], id: string, locale: string
       badges: base.flag ? [base.flag, base.specs.join(' · ')] : [base.specs.join(' · ')],
       status: { level: base.status.level, text: STATUS_EN[base.status.text] ?? base.status.text },
       price: base.price,
+      priceValue: base.priceValue,
+      specs: base.specs,
       tag: CATEGORY_EN[base.category] ?? base.category,
-      summary: [
-        {
-          title: 'Nominal (vendor published)',
-          rows: base.specs.map((spec, index) => ({ label: `Spec ${index + 1}`, value: spec, nominal: spec })),
-        },
-      ],
+      summary: fallbackSummary(base, locale),
       tabs: ['Specifications', 'Test records'],
       ...extendedFields(base, locale),
     }
@@ -505,13 +573,10 @@ export function getProductDetail(products: Product[], id: string, locale: string
     badges: base.flag ? [base.flag, base.specs.join(' · ')] : [base.specs.join(' · ')],
     status: base.status,
     price: base.price,
+    priceValue: base.priceValue,
+    specs: base.specs,
     tag: base.category,
-    summary: [
-      {
-        title: '标称参数（厂商公布）',
-        rows: base.specs.map((spec, index) => ({ label: `${base.category}规格 ${index + 1}`, value: spec, nominal: spec })),
-      },
-    ],
+    summary: fallbackSummary(base, locale),
     tabs: ['参数规格', '测试记录'],
     ...extendedFields(base),
   }

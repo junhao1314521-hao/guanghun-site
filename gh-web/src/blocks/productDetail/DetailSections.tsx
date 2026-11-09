@@ -14,6 +14,7 @@ const GROUP_ORDER = ['显示', '接口', '电源', '机械', '物理尺寸', '�
 
 export type DetailSectionKey =
   | 'overview'
+  | 'summary'
   | 'specs'
   | 'compatibility'
   | 'downloads'
@@ -69,7 +70,32 @@ function OverviewContent({ detail }: { detail: ProductDetail }) {
   )
 }
 
-/** ② 完整规格（分组折叠） */
+/** ② 参数摘要：标称 / 实测并列（实测全缺时只保留标称列，不留空列） */
+function SummaryContent({ detail, t }: { detail: ProductDetail; t: T }) {
+  const rows = detail.summary.flatMap((group) => group.rows)
+  if (!rows.length) return null
+  const hasMeasured = rows.some((row) => Boolean(row.measured))
+  return (
+    <div className={`pd-summary-table${hasMeasured ? ' has-measured' : ''}`}>
+      <div className="pd-summary-table__head">
+        <span>{t('blocks.pd.colParam')}</span>
+        <span>{t('blocks.pd.colNominal')}</span>
+        {hasMeasured && <span>{t('blocks.pd.colMeasured')}</span>}
+      </div>
+      <div className="pd-summary-table__body">
+        {rows.slice(0, 8).map((row) => (
+          <div className="pd-summary-table__row" key={row.label}>
+            <span className="pd-summary-table__k">{row.label}</span>
+            <span>{row.nominal ?? row.value ?? '—'}</span>
+            {hasMeasured && <span className={row.missing ? 'missing' : undefined}>{row.measured ?? '—'}</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** ③ 完整规格（分组折叠） */
 function SpecsContent({ detail, t }: { detail: ProductDetail; t: T }) {
   const groups = groupAttributes(detail.attributes)
   if (!groups.length) return null
@@ -95,10 +121,10 @@ function SpecsContent({ detail, t }: { detail: ProductDetail; t: T }) {
   )
 }
 
-/** ③ 兼容与保修 */
+/** ④ 兼容与保修（无卡片：只留字段与分割线） */
 function CompatibilityContent({ detail, t }: { detail: ProductDetail; t: T }) {
   return (
-    <div className="card">
+    <div className="pd-compat">
       <div className="dl-meta">
         {Boolean(detail.os?.length) && (
           <div>
@@ -120,7 +146,7 @@ function CompatibilityContent({ detail, t }: { detail: ProductDetail; t: T }) {
         )}
       </div>
       {Boolean(detail.inBox?.length) && (
-        <div style={{ marginTop: 'var(--gh-space-4)' }}>
+        <div className="pd-compat__box">
           <div className="dl-meta__k">{t('blocks.pd.inBox')}</div>
           <ul className="feature-list" style={{ marginTop: 'var(--gh-space-2)' }}>
             {detail.inBox?.map((item) => (
@@ -205,6 +231,16 @@ export function buildDetailSections(
       title: t('blocks.pd.highlights'),
       count: detail.features.length,
       node: <OverviewContent detail={detail} />,
+    })
+  }
+
+  const summaryRows = detail.summary.flatMap((group) => group.rows)
+  if (summaryRows.length) {
+    sections.push({
+      key: 'summary',
+      title: t('blocks.pd.summaryTitle'),
+      count: summaryRows.length,
+      node: <SummaryContent detail={detail} t={t} />,
     })
   }
 

@@ -6,11 +6,12 @@
  * 结构：外层负责取详情并处理加载 / 错误 / 未命中；内层表单在数据就绪后挂载，
  * 用 props 初始化 state，避免「用 effect 反向同步」。
  */
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { fetchAdminResourceDetail, saveAdminResource, type AdminDetail } from '../../api/admin'
 import {
   adminResource,
+  PRODUCT_SPEC_TEMPLATES,
   type AdminColumn,
   type AdminField,
   type AdminFieldType,
@@ -25,8 +26,9 @@ import { ImageField } from '../../components/admin/ImageField'
 import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
 import { RichTextField } from '../../components/admin/RichTextField'
+import { ProductModel3D, supports3D } from '../../components/product/ProductModel3D'
 import { Select } from '../../components/admin/Select'
-import { mediaHintText, resolveMediaHint } from '../../components/admin/mediaHints'
+import { mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 
 /** 无 form 配置时，按列定义兜底生成字段 */
@@ -68,6 +70,7 @@ function FormField({
   invalid = false,
   idPrefix = '',
   resourceKey,
+  allValues,
 }: {
   field: AdminField
   value: unknown
@@ -77,11 +80,16 @@ function FormField({
   idPrefix?: string
   /** 资源 key：用于解析图片字段的建议上传尺寸（见 components/admin/mediaHints） */
   resourceKey?: string
+  /** 表单当前全部值：3D 预览回退封面 / 参数模板等跨字段逻辑使用 */
+  allValues?: Record<string, unknown>
 }) {
   const fieldId = `${idPrefix}f-${field.key}`
   const req = required ? <span className="req" aria-hidden="true">*</span> : null
   const inputClass = `input${invalid ? ' input--error' : ''}`
   const textareaClass = `textarea${invalid ? ' input--error' : ''}`
+  // 图片字段的规格与下游裁切预览（资源 key 缺省时不提示）
+  const mediaHint = resourceKey ? resolveMediaHint({ resourceKey, fieldKey: field.key }) : undefined
+  const mediaCrops = mediaHint ? resolveMediaCrops(resourceKey ?? '', field.key, mediaHint) : undefined
 
   if (field.type === 'switch') {
     // 开关字段：label 与控件同行，说明文字（用途 / 示例）仍按统一规范渲染在下方
@@ -194,10 +202,12 @@ function FormField({
           inputId={fieldId}
           label={field.label}
           placeholder={field.placeholder}
+          hint={mediaHint}
+          crops={mediaCrops}
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
         />
-        <span className="field__hint">{mediaHintText(resolveMediaHint({ resourceKey, fieldKey: field.key }))}</span>
+        {mediaHint && <span className="field__hint">{mediaHintText(mediaHint)}</span>}
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -231,8 +241,14 @@ function FormField({
           {field.label}
           {req}
         </span>
-        <MultiImageField value={list} label={field.label} onChange={(next) => onChange(field.key, next)} />
-        <span className="field__hint">{mediaHintText(resolveMediaHint({ resourceKey, fieldKey: field.key }))}</span>
+        <MultiImageField
+          value={list}
+          label={field.label}
+          hint={mediaHint}
+          crops={mediaCrops}
+          onChange={(next) => onChange(field.key, next)}
+        />
+        {mediaHint && <span className="field__hint">{mediaHintText(mediaHint)}</span>}
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -253,6 +269,47 @@ function FormField({
           placeholder={field.placeholder}
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
+        />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
+  if (field.type === 'model3d') {
+    // 3D 模型：上传 / 选择 .glb 后就地渲染预览，失败时回退封面
+    const poster = String(allValues?.model3dPoster ?? '').trim()
+    const gallery = Array.isArray(allValues?.gallery) ? (allValues.gallery as unknown[]) : []
+    return (
+      <>
+        <label className="field__label" htmlFor={fieldId}>
+          {field.label}
+          {req}
+        </label>
+        <Model3DField
+          inputId={fieldId}
+          label={field.label}
+          placeholder={field.placeholder}
+          value={value === undefined || value === null ? '' : String(value)}
+          fallbackSrc={poster || (gallery.length > 0 ? String(gallery[0]) : '')}
+          onChange={(url) => onChange(field.key, url)}
+        />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
+  if (field.type === 'specTemplate') {
+    // 常用参数模板：按设备形态把参数骨架并入 attributes（只补缺失项，不覆盖已填内容）
+    return (
+      <>
+        <span className="field__label">
+          {field.label}
+          {req}
+        </span>
+        <SpecTemplateField
+          attributes={allValues?.attributes}
+          variant={allValues?.variant}
+          onChange={(next) => onChange('attributes', next)}
         />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
@@ -301,6 +358,113 @@ function FormField({
       )}
       {field.hint && <span className="field__hint">{field.hint}</span>}
     </>
+  )
+}
+
+/** 3D 模型字段：地址输入 / 上传（复用 FileField）+ 内嵌 3D 预览；失败回退封面图 */
+function Model3DField({
+  value,
+  fallbackSrc,
+  inputId,
+  label,
+  placeholder,
+  onChange,
+}: {
+  value: string
+  fallbackSrc: string
+  inputId: string
+  label: string
+  placeholder?: string
+  onChange: (url: string) => void
+}) {
+  const [failed, setFailed] = useState(false)
+  // 地址变化后重新尝试预览（避免一次失败后永久停在封面）
+  useEffect(() => setFailed(false), [value])
+  const isGlb = /\.glb(?:$|[?#])/i.test(value.trim())
+  const canPreview = isGlb && supports3D()
+  return (
+    <>
+      <FileField variant="file" inputId={inputId} label={label} placeholder={placeholder} value={value} onChange={onChange} />
+      {isGlb && (
+        <div
+          style={{
+            position: 'relative',
+            marginTop: 'var(--gh-space-2)',
+            height: 300,
+            borderRadius: 'var(--gh-radius-lg)',
+            overflow: 'hidden',
+            background: 'var(--color-bg-muted)',
+          }}
+        >
+          {canPreview && !failed ? (
+            <ProductModel3D key={value} src={value} label={label} onError={() => setFailed(true)} />
+          ) : fallbackSrc ? (
+            <img
+              src={fallbackSrc}
+              alt={`${label}预览封面`}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          ) : (
+            <span
+              className="field__hint"
+              style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: 'var(--gh-space-3)', textAlign: 'center' }}
+            >
+              {canPreview ? '模型预览加载失败，请检查 .glb 文件是否完整' : '当前浏览器不支持 3D 预览，模型地址已保留'}
+            </span>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+/** 常用参数模板：按设备形态一键把参数骨架并入结构化参数（只补缺失项，不覆盖已填内容） */
+function SpecTemplateField({
+  attributes,
+  variant,
+  onChange,
+}: {
+  attributes: unknown
+  variant: unknown
+  onChange: (next: Array<Record<string, unknown>>) => void
+}) {
+  const rows = Array.isArray(attributes) ? (attributes as Array<Record<string, unknown>>) : []
+  const existing = new Set(rows.map((row) => String(row.label ?? '').trim()).filter(Boolean))
+  const current = typeof variant === 'string' ? variant : ''
+  const keys = Object.keys(PRODUCT_SPEC_TEMPLATES)
+  // 当前设备形态排在最前，其余模板依次列出
+  const ordered = current && keys.includes(current) ? [current, ...keys.filter((key) => key !== current)] : keys
+
+  const apply = (key: string) => {
+    const template = PRODUCT_SPEC_TEMPLATES[key]
+    if (!template) return
+    const next = [...rows]
+    for (const row of template.rows) {
+      if (!next.some((item) => String(item.label ?? '').trim() === row.label)) {
+        next.push({ group: row.group, label: row.label, value: row.value })
+      }
+    }
+    onChange(next)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--gh-space-2)' }}>
+      {ordered.map((key) => {
+        const template = PRODUCT_SPEC_TEMPLATES[key]
+        const missing = template.rows.filter((row) => !existing.has(row.label)).length
+        return (
+          <button
+            key={key}
+            type="button"
+            className="btn btn--secondary btn--sm"
+            onClick={() => apply(key)}
+            disabled={missing === 0}
+          >
+            带入{template.label}参数{current === key ? '（当前形态）' : ''} · {missing} 项
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -564,6 +728,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
                   required={requiredKeys.has(field.key)}
                   invalid={Boolean(errors[field.key])}
                   resourceKey={resource.key}
+                  allValues={values}
                 />
                 {errors[field.key] && (
                   <span className="field__error" role="alert">

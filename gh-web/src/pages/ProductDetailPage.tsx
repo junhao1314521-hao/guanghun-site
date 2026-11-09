@@ -64,11 +64,6 @@ export function ProductDetailPage() {
     const notFound = error instanceof ApiError && error.status === 404
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/products">产品</Link>
-        </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">{notFound ? '未找到该产品' : '产品加载失败'}</div>
           <p className="empty__desc">
@@ -96,15 +91,6 @@ export function ProductDetailPage() {
   return (
     <div ref={rootRef}>
       <JsonLdNode node={productJsonLd(detail, ogImage)} />
-      <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/products">产品</Link>
-          <span>/</span>
-          <span>{detail.name}</span>
-        </nav>
-      </div>
       {templateBlocks.length > 0 ? (
         <ProductDetailContext.Provider value={detail}>
           <BlockRenderer blocks={templateBlocks} />

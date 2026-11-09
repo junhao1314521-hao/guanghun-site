@@ -68,6 +68,10 @@ export type AdminFieldType =
   | 'file'
   /** 多图相册：逐张上传 / 从素材库选择 + 排序（见 components/admin/MultiImageField），值为地址数组 */
   | 'images'
+  /** 3D 模型地址：上传 .glb 后内嵌 3D 预览（失败回退封面） */
+  | 'model3d'
+  /** 常用参数模板：按设备形态一键带入结构化参数骨架（仅产品表单使用） */
+  | 'specTemplate'
 
 export type AdminField = {
   key: string
@@ -131,6 +135,86 @@ export type AdminNavItem =
 
 export type AdminNavGroup = { key: string; label: string; items: AdminNavItem[] }
 
+/**
+ * 产品「常用参数模板」：按设备形态给出常用参数骨架（分组 + 参数名）。
+ * 产品表单里一键带入「结构化参数」；只补缺失的参数名，不覆盖已填内容，
+ * 取值仍需运营按实物填写（零配置优先，保留 attributes 的自由录入）。
+ */
+export const PRODUCT_SPEC_TEMPLATES: Record<
+  string,
+  { label: string; rows: Array<{ group: string; label: string; value: string }> }
+> = {
+  monitor: {
+    label: '显示器',
+    rows: [
+      { group: '显示', label: '面板', value: '' },
+      { group: '显示', label: '尺寸 / 分辨率', value: '' },
+      { group: '显示', label: '刷新率', value: '' },
+      { group: '显示', label: '响应时间', value: '' },
+      { group: '显示', label: '对比度', value: '' },
+      { group: '显示', label: '色域', value: '' },
+      { group: '认证', label: 'HDR 认证', value: '' },
+      { group: '接口', label: '接口', value: '' },
+      { group: '接口', label: '同步技术', value: '' },
+      { group: '电源', label: '功耗', value: '' },
+      { group: '机械', label: '支架', value: '' },
+      { group: '物理尺寸', label: '净重', value: '' },
+    ],
+  },
+  mouse: {
+    label: '鼠标',
+    rows: [
+      { group: '其他', label: '传感器', value: '' },
+      { group: '其他', label: 'DPI', value: '' },
+      { group: '其他', label: '回报率', value: '' },
+      { group: '其他', label: '按键数', value: '' },
+      { group: '其他', label: '连接方式', value: '' },
+      { group: '其他', label: '续航', value: '' },
+      { group: '机械', label: '材质', value: '' },
+      { group: '物理尺寸', label: '尺寸', value: '' },
+      { group: '物理尺寸', label: '重量', value: '' },
+    ],
+  },
+  keyboard: {
+    label: '键盘',
+    rows: [
+      { group: '其他', label: '轴体', value: '' },
+      { group: '其他', label: '连接方式', value: '' },
+      { group: '其他', label: '回报率', value: '' },
+      { group: '其他', label: '键位数', value: '' },
+      { group: '其他', label: '背光', value: '' },
+      { group: '其他', label: '续航', value: '' },
+      { group: '机械', label: '键帽材质', value: '' },
+      { group: '物理尺寸', label: '尺寸', value: '' },
+      { group: '物理尺寸', label: '重量', value: '' },
+    ],
+  },
+  headset: {
+    label: '耳机',
+    rows: [
+      { group: '其他', label: '单元', value: '' },
+      { group: '其他', label: '阻抗', value: '' },
+      { group: '其他', label: '频响', value: '' },
+      { group: '其他', label: '连接方式', value: '' },
+      { group: '其他', label: '麦克风', value: '' },
+      { group: '其他', label: '续航', value: '' },
+      { group: '机械', label: '材质', value: '' },
+      { group: '物理尺寸', label: '重量', value: '' },
+    ],
+  },
+  pad: {
+    label: '鼠标垫 / 周边',
+    rows: [
+      { group: '其他', label: '表面材质', value: '' },
+      { group: '其他', label: '包边', value: '' },
+      { group: '其他', label: '防滑', value: '' },
+      { group: '物理尺寸', label: '尺寸', value: '' },
+      { group: '物理尺寸', label: '厚度', value: '' },
+      { group: '物理尺寸', label: '重量', value: '' },
+    ],
+  },
+}
+
 /* ============================================================
    资源定义
    ============================================================ */
@@ -183,6 +267,28 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             span: 2,
             placeholder: 'https://… 或 /inquiry',
             hint: '详情页 / 对比页主按钮「立即购买」取此链接；留空则回退到区块配置的链接',
+          },
+          {
+            key: 'videoUrl',
+            label: '主图视频',
+            type: 'file',
+            span: 2,
+            placeholder: '/uploads/xxxx.mp4',
+            hint: 'mp4 / webm；详情页主图区出现「视频」切换，留空则不显示视频入口。≤ 30MB',
+          },
+          {
+            key: 'videoPoster',
+            label: '视频封面',
+            type: 'image',
+            span: 2,
+            hint: '可选；留空则用相册第一张图作为封面',
+          },
+          {
+            key: 'seriesId',
+            label: '同系列标识',
+            type: 'text',
+            placeholder: 'oled / dual / ips / accessory',
+            hint: '用于详情页对比取同系列产品；留空按分类自动归类（OLED 旗舰→oled、双模高刷→dual、电竞 IPS→ips、周边→accessory）',
           },
         ],
       },
@@ -241,6 +347,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           },
           { key: 'features', label: '产品亮点', type: 'list', span: 2, hint: '每行一项，如：满速 DP 2.1 · 80Gbps' },
           {
+            key: 'specTemplate',
+            label: '常用参数模板',
+            type: 'specTemplate',
+            span: 2,
+            hint: '按设备形态一键带入常用参数骨架（分组 + 参数名），只补缺失项、不覆盖已填内容；带入后请填写各参数取值',
+          },
+          {
             key: 'attributes',
             label: '结构化参数',
             type: 'records',
@@ -284,6 +397,84 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             span: 2,
             hint: '可选；按同顺序上传，移动端优先使用；缺省回退桌面切片',
           },
+        ],
+      },
+      {
+        title: '3D 预览（主图区）',
+        fields: [
+          {
+            key: 'model3dEnabled',
+            label: '启用 3D 预览',
+            type: 'switch',
+            hint: '关闭时前台完全看不到 3D 入口；模型未就绪请保持关闭。打开后需先上传下方模型才会生效',
+          },
+          {
+            key: 'model3d',
+            label: '3D 模型文件（.glb）',
+            type: 'model3d',
+            span: 2,
+            placeholder: '/uploads/xxxx.glb',
+            hint: '只收单文件 .glb（贴图需内嵌），≤ 30 MB；不要 .gltf + 外部贴图。建议几何 ≤ 15 万面、贴图 ≤ 2048、Y 轴向上、正面朝 +Z、原点在底座中心。上传后自动生成 3D 预览，打开上方开关并保存即可生效',
+          },
+          {
+            key: 'model3dPoster',
+            label: '3D 首帧封面',
+            type: 'image',
+            span: 2,
+            hint: '可选，模型加载时先显示这张图；留空则用相册第一张图',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'product-reviews',
+    label: '商品评价',
+    icon: 'trophy',
+    title: '商品评价',
+    desc: '录入并审核真实购买评价；只有「已通过」的评价会展示在产品详情页（每个产品最多 3 条）。',
+    creatable: true,
+    editable: true,
+    deletable: true,
+    searchKeys: ['nickname', 'content', 'productId', 'purchasedModel'],
+    columns: [
+      { key: 'nickname', label: '昵称', type: 'strong' },
+      { key: 'productId', label: '关联产品', type: 'mono' },
+      { key: 'rating', label: '评分', type: 'number', align: 'right' },
+      { key: 'content', label: '评价内容' },
+      { key: 'purchasedModel', label: '购买型号', type: 'mono' },
+      { key: 'tags', label: '标签', type: 'list' },
+      { key: 'status', label: '审核状态', type: 'status' },
+      { key: 'createdAt', label: '提交时间', type: 'date' },
+    ],
+    filters: [{ key: 'status', label: '审核状态', options: ['待审核', '已通过', '已拒绝'] }],
+    form: [
+      {
+        title: '评价信息',
+        fields: [
+          { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
+          {
+            key: 'productId',
+            label: '关联产品 ID',
+            type: 'text',
+            span: 2,
+            required: true,
+            placeholder: 'gh-54027x1qe',
+            hint: '填写「产品」栏目里的产品 ID；保存后该评价才会出现在对应详情页',
+          },
+          { key: 'nickname', label: '昵称', type: 'text', required: true, hint: '对外展示的评价人昵称（注意脱敏）' },
+          { key: 'purchasedModel', label: '购买型号', type: 'text', placeholder: '54027X1QE-W54' },
+          { key: 'rating', label: '评分（1–5）', type: 'number', hint: '1 分最低、5 分最高；详情页按平均分展示' },
+          { key: 'createdAt', label: '提交时间', type: 'date' },
+          { key: 'tags', label: '标签', type: 'list', hint: '每行一项，如：色彩 / 做工 / 物流' },
+          {
+            key: 'status',
+            label: '审核状态',
+            type: 'select',
+            options: ['待审核', '已通过', '已拒绝'],
+            hint: '仅「已通过」的评价会出现在产品详情页',
+          },
+          { key: 'content', label: '评价内容', type: 'textarea', span: 2, required: true, hint: '真实评价原文；请勿编造' },
         ],
       },
     ],
@@ -1589,9 +1780,11 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     label: '产品与评测',
     items: [
       { kind: 'resource', key: 'products' },
+      { kind: 'resource', key: 'product-reviews' },
       { kind: 'resource', key: 'product-categories' },
       { kind: 'resource', key: 'test-records' },
       { kind: 'resource', key: 'rankings' },
+      { kind: 'link', to: '/admin/rankings-import', label: '天梯榜导入', icon: 'grid' },
       { kind: 'resource', key: 'methods' },
     ],
   },
@@ -1626,6 +1819,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { kind: 'resource', key: 'inquiries' },
       { kind: 'resource', key: 'reservations' },
       { kind: 'resource', key: 'devices' },
+      { kind: 'link', to: '/admin/device-reviews', label: '设备审核', icon: 'keyboard' },
       { kind: 'resource', key: 'subscribers' },
       { kind: 'resource', key: 'reviews' },
     ],

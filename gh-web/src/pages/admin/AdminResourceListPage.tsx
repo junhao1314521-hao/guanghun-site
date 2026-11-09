@@ -40,9 +40,10 @@ type StatusTone = 'success' | 'warning' | 'danger' | 'info' | 'muted'
 const STATUS_TONE: Record<string, StatusTone> = {
   已上架: 'success', 已发布: 'success', 启用: 'success', 正常: 'success', 营业中: 'success', 运营中: 'success',
   已接入: 'success', 成功: 'success', 已发送: 'success', 已合作: 'success', 已解决: 'success', 已上线: 'success', 保修中: 'success',
+  已通过: 'success',
   草稿: 'warning', 审核中: 'warning', 待审核: 'warning', 待处理: 'warning', 进行中: 'warning', 筹备中: 'warning',
   待激活: 'warning', 暂停: 'warning', 翻译中: 'warning', 未开始: 'warning', 定时: 'warning', 维修中: 'warning', 洽谈中: 'warning',
-  已下架: 'danger', 冻结: 'danger', 已关闭: 'danger', 失败: 'danger', 已注销: 'danger', 已过保: 'danger', 停用: 'danger',
+  已下架: 'danger', 冻结: 'danger', 已关闭: 'danger', 失败: 'danger', 已注销: 'danger', 已过保: 'danger', 停用: 'danger', 已拒绝: 'danger',
   处理中: 'info', 已结束: 'muted',
 }
 

@@ -9,6 +9,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import { ProductHeroBlock } from '../ProductHeroBlock'
+import { ProductDetailV8 } from './ProductDetailV8'
 import type { DetailSection, DetailSectionKey } from './DetailSections'
 
 type T = (key: string, vars?: Record<string, string | number>) => string
@@ -33,35 +34,6 @@ function Hero({ heroProps }: { heroProps: Record<string, unknown> }) {
   )
 }
 
-/** 分区标题：渲染可选的序号、分区标题与条目数量 */
-function SectionHead({ section, index, t }: { section: DetailSection; index?: number; t: T }) {
-  return (
-    <div className="pdl-section__head">
-      <div className="pdl-section__heading">
-        {index !== undefined && <span className="pdl-section__index">{String(index).padStart(2, '0')}</span>}
-        <h2 className="pdl-section__title">{section.title}</h2>
-      </div>
-      {section.count !== undefined && (
-        <span className="pdl-section__count">{t('blocks.pd.specCount', { n: section.count })}</span>
-      )}
-    </div>
-  )
-}
-
-/** 分区外壳：带锚点 id 的 section，复用标题头并承载分区内容 */
-function SectionFrame({ section, index, t }: { section: DetailSection; index?: number; t: T }) {
-  return (
-    <section
-      id={`pdl-${section.key}`}
-      className="pdl-section"
-      data-pdl-section={section.key}
-    >
-      <SectionHead section={section} index={index} t={t} />
-      <div className="pdl-section__body">{section.node}</div>
-    </section>
-  )
-}
-
 /** 购买分区外壳：无购买分区时不渲染 */
 function BuySection({ buy }: { buy?: DetailSection }) {
   if (!buy) return null
@@ -72,70 +44,8 @@ function BuySection({ buy }: { buy?: DetailSection }) {
    ① 吸顶目录
    ============================================================ */
 
-export function TocLayout({ sections, heroProps, t }: CommonProps) {
-  const sectionKeys = sections.map((section) => `pdl-${section.key}`).join('|')
-  const [active, setActive] = useState<string>(sections[0]?.key ?? '')
-  const [mobileOpen, setMobileOpen] = useState(false)
-
-  useEffect(() => {
-    const ids = sectionKeys.split('|').filter(Boolean)
-    if (!ids.length || typeof IntersectionObserver === 'undefined') return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        const first = visible[0]?.target.id
-        if (first) setActive(first.slice('pdl-'.length))
-      },
-      { rootMargin: '-140px 0px -62% 0px', threshold: [0, 1] },
-    )
-    for (const id of ids) {
-      const element = document.getElementById(id)
-      if (element) observer.observe(element)
-    }
-    return () => observer.disconnect()
-  }, [sectionKeys])
-
-  return (
-    <>
-      <Hero heroProps={heroProps} />
-      <div className="pdl-toc">
-        <aside className={`pdl-toc__aside${mobileOpen ? ' is-open' : ''}`}>
-          <button
-            type="button"
-            className="pdl-toc__toggle"
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((value) => !value)}
-          >
-            <span>{t('blocks.pd.tocLabel')}</span>
-            <span aria-hidden="true">{mobileOpen ? '−' : '+'}</span>
-          </button>
-          <nav className="pdl-toc__nav" aria-label={t('blocks.pd.tocLabel')}>
-            {sections.map((section) => (
-              <a
-                key={section.key}
-                href={`#pdl-${section.key}`}
-                className={active === section.key ? 'is-active' : undefined}
-                onClick={(event) => {
-                  event.preventDefault()
-                  setMobileOpen(false)
-                  document.getElementById(`pdl-${section.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-              >
-                {section.title}
-              </a>
-            ))}
-          </nav>
-        </aside>
-        <div className="pdl-toc__content">
-          {sections.map((section, index) => (
-            <SectionFrame key={section.key} section={section} index={index + 1} t={t} />
-          ))}
-        </div>
-      </div>
-    </>
-  )
+export function TocLayout({ heroProps, t }: CommonProps) {
+  return <ProductDetailV8 heroProps={heroProps} t={t} />
 }
 
 /* ============================================================
@@ -149,6 +59,7 @@ export function TabsLayout({ sections, heroProps, t }: CommonProps) {
   const buy = sectionOf(sections, 'buy')
   const overview = sectionOf(sections, 'overview')
   const specs = sectionOf(sections, 'specs')
+  const summary = sectionOf(sections, 'summary')
   const compatibility = sectionOf(sections, 'compatibility')
   const downloads = sectionOf(sections, 'downloads')
   const rich = sectionOf(sections, 'rich')
@@ -162,7 +73,7 @@ export function TabsLayout({ sections, heroProps, t }: CommonProps) {
     {
       key: 'specs',
       label: t('blocks.pd.specTitle'),
-      sections: [specs].filter(Boolean) as DetailSection[],
+      sections: [summary, specs].filter(Boolean) as DetailSection[],
     },
     {
       key: 'support',
@@ -228,7 +139,7 @@ export function AccordionLayout({ sections, heroProps, t }: CommonProps) {
     {
       key: 'specs',
       title: t('blocks.pd.specTitle'),
-      children: [sectionOf(sections, 'specs')].filter(Boolean) as DetailSection[],
+      children: [sectionOf(sections, 'summary'), sectionOf(sections, 'specs')].filter(Boolean) as DetailSection[],
     },
     {
       key: 'support',

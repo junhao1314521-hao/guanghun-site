@@ -55,9 +55,11 @@ export const CONTENT_SCOPED_KEYS: ReadonlySet<string> = new Set<string>([
   'products', 'rankings', 'articles', 'downloads', 'faqs', 'models',
   'biz-content', 'biz-cases', 'biz-venues', 'inquiries', 'templates',
   'legal', 'taxonomy', 'product-categories', 'test-records', 'methods',
-  'service-info', 'reservations',
+  'service-info', 'reservations', 'product-reviews',
   // 内容类后台资源（roles.ts CONTENT_ADMIN_RESOURCE_KEYS）
   'assets', 'components', 'styles', 'pages', 'nav',
+  // 天梯榜批量导入（自定义页，后端 requirements 同为 content）
+  'rankings-import',
   // 站点配置（adminPagesRouter.ts PUT /site）
   'site',
 ])

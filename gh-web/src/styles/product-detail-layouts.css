@@ -5,7 +5,304 @@
    ============================================================ */
 
 .pdl {
-  --pdl-section-gap: var(--gh-space-7);
+  --pdl-section-gap: var(--gh-space-9);
+  /* 详情页单独收窄到 1200：与站点 1440 容器形成留白对比，首屏更「展厅」 */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   首屏 · 60 / 40 竖脊
+   左：大图（浅色影棚底，无边框无阴影）+ 缩略图
+   右：型号 → 标题 → 卖点 → 规格标签 → 参考价 → CTA → 关键指标 → 保障
+   ============================================================ */
+
+.detail-top--spine {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--gh-space-8);
+  align-items: start;
+}
+/* 大图优先：去掉描边、光晕与展台内边距，产品图本身撑满 */
+.detail-top--spine .detail-media.stage {
+  padding: 0;
+}
+.detail-top--spine .detail-media.media-ph:not(.stage--3d) {
+  border: 0;
+  box-shadow: none;
+}
+.detail-top--spine .stage__glow {
+  display: none;
+}
+
+.detail-info .pd-spine__model {
+  font-family: var(--gh-font-mono);
+  font-size: var(--gh-font-size-caption);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.detail-info .pd-spine__title {
+  margin: var(--gh-space-2) 0 0;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: -.02em;
+  color: var(--color-text-primary);
+}
+.detail-info .pd-spine__pitch {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: var(--gh-space-3) 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.pd-spine__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gh-space-2);
+  margin-top: var(--gh-space-5);
+}
+.pd-spine__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-full);
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* 参考价：小标签 + 大字数值 + 口径说明（强调色只给价格与主 CTA） */
+.pd-spine__price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--gh-space-5);
+}
+.pd-spine__price-label {
+  font-size: var(--gh-font-size-caption);
+  letter-spacing: .08em;
+  color: var(--color-text-tertiary);
+}
+.pd-spine__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.pd-spine__price-value {
+  font-family: var(--gh-font-mono);
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: var(--gh-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent-text);
+}
+.pd-spine__price-suffix {
+  font-size: var(--gh-font-size-body-sm);
+  color: var(--color-text-tertiary);
+}
+.pd-spine__price-note {
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+}
+.pd-spine__price-pending {
+  font-size: var(--gh-font-size-body);
+  color: var(--color-text-tertiary);
+}
+
+.detail-buy.pd-spine__cta {
+  margin: var(--gh-space-5) 0 0;
+  align-items: center;
+}
+
+/* 关键指标：真实 label + 值，右对齐、等宽数字 */
+.detail-info .pd-spine__metrics {
+  margin: var(--gh-space-6) 0 0;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.pd-spine__metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gh-space-4);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.pd-spine__metric dt {
+  font-size: var(--gh-font-size-body-sm);
+  color: var(--color-text-tertiary);
+}
+.pd-spine__metric dd {
+  margin: 0;
+  font-family: var(--gh-font-mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+  text-align: right;
+}
+
+.pd-spine__assurance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: var(--gh-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+}
+.pd-spine__assurance li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pd-spine__assurance li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+/* ============================================================
+   中段 · 去卡片（只用 1px 分割线 + 大留白）
+   ============================================================ */
+
+.pdl .pdl-section {
+  border-top: 1px solid rgba(17, 17, 20, .08);
+}
+/* 卖点：三列编号，无卡片 */
+.pdl .pd-feature-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gh-space-6) var(--gh-space-7);
+}
+.pdl .pd-feature-grid li {
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+.pdl .pd-feature-grid__idx {
+  padding: 0;
+  font-size: var(--gh-font-size-caption);
+  letter-spacing: .08em;
+  color: var(--color-text-tertiary);
+}
+
+/* 参数摘要：参数 / 标称 / 实测 三列（实测全缺时两列） */
+.pd-summary-table {
+  max-width: 760px;
+}
+.pd-summary-table__head,
+.pd-summary-table__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--gh-space-4);
+  align-items: baseline;
+}
+.pd-summary-table.has-measured .pd-summary-table__head,
+.pd-summary-table.has-measured .pd-summary-table__row {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+.pd-summary-table__head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(17, 17, 20, .08);
+  font-size: var(--gh-font-size-caption);
+  letter-spacing: .06em;
+  color: var(--color-text-tertiary);
+}
+.pd-summary-table__row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 14px;
+}
+.pd-summary-table__k {
+  color: var(--color-text-secondary);
+}
+.pd-summary-table__row > span:not(.pd-summary-table__k):not(.missing) {
+  font-family: var(--gh-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+/* 完整规格：分组合并成一条分割线序列 */
+.pdl .pd-spec-groups {
+  gap: 0;
+}
+.pdl .pd-spec-group {
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: none;
+}
+.pdl .pd-spec-group:first-child {
+  border-top: 0;
+}
+.pdl .pd-spec-group > summary {
+  padding: var(--gh-space-4) 0;
+  font-size: var(--gh-font-size-body);
+  font-weight: var(--gh-weight-medium);
+}
+.pdl .pd-spec-group__list {
+  border-top: 0;
+  padding: 0 0 var(--gh-space-5);
+}
+.pdl .pd-compat {
+  max-width: 760px;
+}
+.pdl .pd-compat__box {
+  margin-top: var(--gh-space-5);
+  padding-top: var(--gh-space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 1199px) {
+  .detail-top--spine {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+    gap: var(--gh-space-6);
+  }
+  .detail-info .pd-spine__title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .detail-top.detail-top--spine {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gh-space-6);
+  }
+}
+
+@media (max-width: 767px) {
+  .pdl {
+    --pdl-section-gap: var(--gh-space-7);
+  }
+  .detail-info .pd-spine__title {
+    font-size: 28px;
+  }
+  .pdl .pd-feature-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gh-space-5);
+  }
+  .pd-summary-table.has-measured .pd-summary-table__head,
+  .pd-summary-table.has-measured .pd-summary-table__row {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--gh-space-3);
+  }
+  .detail-buy.pd-spine__cta .btn {
+    flex: 1 1 auto;
+  }
 }
 
 .pdl-hero {

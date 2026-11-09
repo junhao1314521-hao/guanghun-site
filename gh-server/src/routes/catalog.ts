@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { getProductDetail } from '../data/products'
 import { listCollection } from '../data/collectionStore'
+import { approvedReviewsFor } from '../data/productReviews'
 import { readLocale } from '../data/locale'
 
 /** 产品：GET /api/products、GET /api/products/:id（数据来自集合存储，形状与既有 PRODUCTS 一致）。
@@ -21,5 +22,7 @@ catalogRouter.get('/:id', (req, res) => {
     res.status(404).json({ error: '未找到该产品' })
     return
   }
-  res.json(detail)
+  // 商品评价：只下发后台审核通过的评价（最多 3 条）；无评价时不带该字段，前台据此隐藏模块
+  const reviews = approvedReviewsFor(listCollection('product-reviews'), req.params.id)
+  res.json(reviews.length > 0 ? { ...detail, reviews } : detail)
 })

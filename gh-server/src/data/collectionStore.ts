@@ -44,6 +44,7 @@ import { SERVICE_SPOTS, type ServiceSpot } from './serviceInfo'
 import { RESERVATIONS, type ReservationSummary } from './reservations'
 import { SUBSCRIBERS, type Subscriber } from './subscribers'
 import { BRAND_ASSET_ITEMS, type BrandAssetItem } from './brandAssets'
+import { PRODUCT_REVIEWS, type ProductReviewRecord } from './productReviews'
 
 /** 集合 key（与后台栏目 key 一致） */
 export type CollectionKey =
@@ -67,6 +68,7 @@ export type CollectionKey =
   | 'reservations'
   | 'subscribers'
   | 'brand-assets'
+  | 'product-reviews'
 
 /** 集合 → 记录类型（规范形状 = 前台现有形状） */
 export type CollectionMap = {
@@ -90,6 +92,7 @@ export type CollectionMap = {
   reservations: ReservationSummary[]
   subscribers: Subscriber[]
   'brand-assets': BrandAssetItem[]
+  'product-reviews': ProductReviewRecord[]
 }
 
 /** 某集合的记录类型 */
@@ -117,6 +120,7 @@ export const COLLECTION_KEYS: CollectionKey[] = [
   'reservations',
   'subscribers',
   'brand-assets',
+  'product-reviews',
 ]
 
 /** 已就绪的数据库路径（DB_PATH 变化时需重新检查 / 回填；显式 initCollections 可重复调用） */
@@ -156,6 +160,7 @@ export function buildCollectionSeed(): CollectionMap {
     reservations: RESERVATIONS,
     subscribers: SUBSCRIBERS,
     'brand-assets': BRAND_ASSET_ITEMS,
+    'product-reviews': PRODUCT_REVIEWS,
   }
   return clone(seed)
 }
@@ -262,6 +267,18 @@ export function listCollection<K extends CollectionKey>(key: K, locale: Locale =
     .all(key) as Array<{ data: string }>
   const records = rows.map((row) => localizeRecord(applyEnOverlay(key, JSON.parse(row.data) as Record<string, unknown>, locale), locale))
   return records as CollectionMap[K]
+}
+
+/**
+ * 产品分类列表：`count`（关联产品数）按产品库实况重算，种子里写死的数字只作初始值，
+ * 避免后台「分类与参数」显示 2/2/3/1 而实际产品是 9 款这种漂移。
+ */
+export function listProductCategories(): ProductCategoryItem[] {
+  const counts = new Map<string, number>()
+  for (const product of listCollection('products')) {
+    counts.set(product.category, (counts.get(product.category) ?? 0) + 1)
+  }
+  return listCollection('product-categories').map((item) => ({ ...item, count: counts.get(item.name) ?? 0 }))
 }
 
 /** 按 id 取单条记录；未命中返回 undefined。locale 语义同 `listCollection`。 */

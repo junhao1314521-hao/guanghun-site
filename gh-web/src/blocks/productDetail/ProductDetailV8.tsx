@@ -1,0 +1,661 @@
+/**
+ * 产品详情 v8：首屏决策台 + 下方叙事。
+ *
+ * 设计约束（已与业务确认）：
+ * - 首屏只做决策：主图 / 视频 / 3D、型号、标题、核心参数、价格、购买、服务；
+ * - 下方只做叙事：亮点、性能、规格与同系列对比、服务、评价、相关产品；
+ * - 全页白底 + 发丝线分隔，不使用白卡外壳与投影（相关产品除外）；
+ * - 所有模块数据驱动，无数据时自动隐藏；3D 无模型时保留灰色入口。
+ */
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
+import { fetchProducts } from '../../api/products'
+import { MEDIA } from '../../data/media'
+import type { Product, ProductAttribute } from '../../data/products'
+import { ProductModel3D } from '../../components/product/ProductModel3D'
+import { DeviceArt, type DeviceVariant } from '../../components/ui/DeviceArt'
+import { useProductDetail } from '../ProductDetailContext'
+import './productDetailV8.css'
+
+type T = (key: string, vars?: Record<string, string | number>) => string
+
+type HeroConfig = {
+  primaryLabel?: string
+  primaryHref?: string
+  primaryFromProduct?: boolean
+  secondaryLabel?: string
+  secondaryHref?: string
+  showBadges?: boolean
+  showPrice?: boolean
+}
+
+const HZ_BASE = [60, 144, 240, 320]
+
+function findAttr(attrs: ProductAttribute[] | undefined, key: string) {
+  return attrs?.find((item) => item.label.includes(key))
+}
+
+function parseHz(value: string | undefined) {
+  if (!value) return 0
+  const matched = value.match(/(\d{2,4})/)
+  return matched ? Number(matched[1]) : 0
+}
+
+function isExternal(href: string) {
+  return /^https?:\/\//i.test(href)
+}
+
+export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, unknown>; t: T }) {
+  const detail = useProductDetail()
+  const hero = heroProps as HeroConfig
+
+  const photos = useMemo(() => {
+    if (!detail) return []
+    // 后台没填相册时，优先用站点已登记的产品透明图，避免首屏出现空白舞台。
+    const registered = MEDIA.product[detail.id]
+    const gallery = detail.gallery?.length ? detail.gallery : registered ? [registered] : []
+    // 后台只传了 1 张主图时，用站内同形态场景图补齐，保证左右切图可用。
+    // 仅显示器品类补场景图：优先看 variant；老数据没有 variant 时，用「参数像显示器 + 名字不像配件」双重判断，
+    // 避免「显示器悬臂支架」这类名字里带「显示器」的配件被塞进显示器实拍。
+    const text = [detail.name, ...(detail.specs ?? [])].join(' ')
+    const isMonitor =
+      detail.variant === 'monitor' ||
+      (!detail.variant &&
+        /Hz|OLED|面板|分辨率|刷新率/.test(text) &&
+        !/支架|悬臂|挂架|配件|线材/.test(detail.name))
+    if (gallery.length >= 2 || !isMonitor) return gallery
+    const fallback = MEDIA.views.monitor.filter((src) => !gallery.includes(src))
+    return [...gallery, ...fallback].slice(0, 4)
+  }, [detail])
+
+  const [photoIndex, setPhotoIndex] = useState(0)
+  const [mode, setMode] = useState<'photo' | 'video' | 'model'>('photo')
+  const [activeGroup, setActiveGroup] = useState('')
+  const [activeNav, setActiveNav] = useState('pdv8-top')
+  const [related, setRelated] = useState<Product[]>([])
+  const [showBuyBar, setShowBuyBar] = useState(false)
+  const [stackHeight, setStackHeight] = useState(90)
+
+  useEffect(() => {
+    let alive = true
+    fetchProducts()
+      .then((result) => {
+        if (alive) setRelated(result.items)
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // 顶栏 + 公告条是 sticky 的，子导航要贴在它下面，不能直接 top: 0
+  useEffect(() => {
+    const stack = document.querySelector('.top-stack')
+    const update = () => setStackHeight(stack?.getBoundingClientRect().height || 0)
+    update()
+    const observer =
+      typeof ResizeObserver !== 'undefined' && stack ? new ResizeObserver(update) : null
+    if (stack && observer) observer.observe(stack)
+    window.addEventListener('resize', update)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  useEffect(() => {
+    const onScroll = () => setShowBuyBar(window.scrollY > 420)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const attributes = useMemo(() => detail?.attributes ?? [], [detail])
+
+  const groups = useMemo(() => {
+    const map = new Map<string, ProductAttribute[]>()
+    for (const item of attributes) {
+      const name = item.group || '其他'
+      if (!map.has(name)) map.set(name, [])
+      map.get(name)?.push(item)
+    }
+    return [...map.entries()].map(([name, items]) => ({ name, items }))
+  }, [attributes])
+
+  useEffect(() => {
+    if (groups.length && !groups.some((group) => group.name === activeGroup)) {
+      setActiveGroup(groups[0].name)
+    }
+  }, [groups, activeGroup])
+
+  const navItems = useMemo(() => {
+    if (!detail) return []
+    const attrs = detail.attributes ?? []
+    const items: { id: string; label: string }[] = []
+    // 子导航与下方实际渲染的区块同源：没有数据的模块不出现在导航里，避免死锚点。
+    if (detail.features?.length || attrs.length) items.push({ id: 'pdv8-highlights', label: t('blocks.pd.highlights') })
+    if (attrs.length) {
+      items.push({ id: 'pdv8-perf', label: t('blocks.pd.v8Performance') })
+      items.push({ id: 'pdv8-specs', label: t('blocks.pd.v8Specs') })
+    }
+    items.push({ id: 'pdv8-service', label: t('blocks.pd.v8Service') })
+    if (detail.reviews?.length) items.push({ id: 'pdv8-reviews', label: t('blocks.pd.v8Reviews') })
+    return items
+  }, [detail, t])
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible[0]?.target.id) setActiveNav(visible[0].target.id)
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    )
+    for (const item of navItems) {
+      const element = document.getElementById(item.id)
+      if (element) observer.observe(element)
+    }
+    return () => observer.disconnect()
+  }, [navItems])
+
+  if (!detail) return null
+
+  const refresh = findAttr(attributes, '刷新率')
+  const refreshHz = parseHz(refresh?.value)
+  const stats = (() => {
+    const list: { label: string; value: string }[] = []
+    for (const key of ['响应时间', '尺寸', '亮度', '对比度', '色域']) {
+      const item = findAttr(attributes, key)
+      if (item) list.push({ label: item.label, value: item.value })
+      if (list.length === 4) break
+    }
+    if (!list.length) {
+      for (const item of attributes.slice(0, 3)) list.push({ label: item.label, value: item.value })
+    }
+    return list
+  })()
+
+  const highlights = detail.features?.length
+    ? detail.features.slice(0, 6)
+    : attributes.slice(0, 6).map((item) => `${item.label}：${item.value}`)
+
+  const chips = detail.specs?.length
+    ? detail.specs.slice(0, 4)
+    : attributes.slice(0, 4).map((item) => item.value)
+
+  const self = related.find((item) => item.id === detail.id)
+  const sameCategory = related.filter((item) => item.id !== detail.id && item.category === detail.tag)
+  const sameVariant = related.filter(
+    (item) => item.id !== detail.id && item.category !== detail.tag && item.variant === self?.variant,
+  )
+  const compareItems = [...sameCategory, ...sameVariant].slice(0, 2)
+
+  const resolveValue = (attrs: ProductAttribute[] | undefined, label: string) => {
+    const exact = attrs?.find((item) => item.label === label)
+    if (exact) return exact.value
+    if (label.includes('尺寸')) {
+      const size = findAttr(attrs, '尺寸')?.value
+      const resolution = findAttr(attrs, '分辨率')?.value
+      if (size || resolution) return [size, resolution].filter(Boolean).join(' · ')
+    }
+    return findAttr(attrs, label)?.value ?? '—'
+  }
+  // 对比维度优先取硬件通用项；非显示器品类没有这些字段时，退回该品类自己的前 6 个参数，
+  // 保证「性能对比对所有品类都显示」。
+  const allLabels = [...new Set(attributes.map((item) => item.label))]
+  const preferredLabels = allLabels.filter((label) =>
+    /面板|尺寸|分辨率|刷新率|响应时间|亮度|对比度|色域|接口|连接|续航|重量|材质/.test(label),
+  )
+  const compareLabels = (preferredLabels.length ? preferredLabels : allLabels).slice(0, 6)
+  const compareRows = compareLabels.map((label) => ({
+    label,
+    current: resolveValue(detail.attributes, label),
+    others: compareItems.map((item) => resolveValue(item.attributes, label)),
+  }))
+
+  const warrantyText = (detail.warranty || t('blocks.pd.v8Warranty')).split(/[，,]/)[0]
+  const priceText = detail.priceValue
+    ? `¥${detail.priceValue.toLocaleString('zh-CN')}`
+    : detail.price || '咨询报价'
+  const buyHref =
+    (hero.primaryFromProduct && detail.buyUrl) || hero.primaryHref || detail.buyUrl || '/products'
+  const buyLabel = hero.primaryLabel || t('blocks.pd.v8Buy')
+  const secondaryHref = hero.secondaryHref || `/compare?ids=${detail.id}`
+  const secondaryLabel = hero.secondaryLabel || t('blocks.pd.v8Compare')
+
+  const can3d = Boolean(detail.model3d && detail.model3dEnabled)
+  const hasVideo = Boolean(detail.videoUrl)
+  // 相册为空时用同品类矢量占位图兜底，避免首屏只剩一个空舞台。
+  const artVariant: DeviceVariant =
+    detail.variant === 'mouse' || detail.variant === 'keyboard' || detail.variant === 'headset' || detail.variant === 'pad'
+      ? detail.variant
+      : 'monitor'
+  const rating = detail.reviews?.length
+    ? (detail.reviews.reduce((sum, item) => sum + item.rating, 0) / detail.reviews.length).toFixed(1)
+    : ''
+
+  const selectPhoto = (index: number) => {
+    const total = photos.length
+    if (!total) return
+    setMode('photo')
+    setPhotoIndex((index + total) % total)
+  }
+
+  return (
+    <div className="pdv8" style={{ '--pdv8-stack': `${stackHeight}px` } as CSSProperties}>
+      <div className="pdv8-hero" id="pdv8-top">
+        <div className="pdv8-gallery">
+          <div className="pdv8-thumbs" role="tablist" aria-label={detail.name}>
+            {photos.map((src, index) => (
+              <button
+                key={`${src}-${index}`}
+                type="button"
+                className={`pdv8-thumb${mode === 'photo' && photoIndex === index ? ' is-on' : ''}`}
+                onClick={() => selectPhoto(index)}
+                aria-label={`${t('blocks.pd.view', { n: index + 1 })}`}
+              >
+                <img src={src} alt="" loading="lazy" />
+              </button>
+            ))}
+            {hasVideo && (
+              <button
+                type="button"
+                className={`pdv8-thumb pdv8-thumb--video${mode === 'video' ? ' is-on' : ''}`}
+                onClick={() => setMode('video')}
+                aria-label="Video"
+              >
+                <img src={detail.videoPoster || photos[0]} alt="" loading="lazy" />
+                <i className="pdv8-thumb__play" aria-hidden="true" />
+              </button>
+            )}
+            <button
+              type="button"
+              className={`pdv8-thumb pdv8-thumb--3d${mode === 'model' ? ' is-on' : ''}${
+                can3d ? '' : ' is-disabled'
+              }`}
+              onClick={() => can3d && setMode('model')}
+              disabled={!can3d}
+              title={can3d ? '3D' : t('blocks.pd.v8ModelSoon')}
+              aria-label="3D"
+            >
+              {detail.model3dPoster ? <img src={detail.model3dPoster} alt="" loading="lazy" /> : <span>3D</span>}
+            </button>
+          </div>
+
+          <div className={`pdv8-stage is-${mode}`}>
+            {mode === 'photo' && photos[photoIndex] && (
+              <img className="pdv8-stage__img" src={photos[photoIndex]} alt={detail.name} />
+            )}
+            {mode === 'photo' && photos.length === 0 && (
+              <div className="pdv8-stage__art" role="img" aria-label={detail.name}>
+                <DeviceArt variant={artVariant} label={detail.name} />
+              </div>
+            )}
+            {mode === 'video' && detail.videoUrl && (
+              <video
+                className="pdv8-stage__video"
+                src={detail.videoUrl}
+                poster={detail.videoPoster}
+                controls
+                playsInline
+                preload="metadata"
+              />
+            )}
+            {mode === 'model' && detail.model3d && (
+              <div className="pdv8-stage__model">
+                <ProductModel3D src={detail.model3d} label={detail.name} />
+              </div>
+            )}
+
+            {mode === 'photo' && photos.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="pdv8-arrow is-prev"
+                  onClick={() => selectPhoto(photoIndex - 1)}
+                  aria-label="Previous"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="pdv8-arrow is-next"
+                  onClick={() => selectPhoto(photoIndex + 1)}
+                  aria-label="Next"
+                >
+                  ›
+                </button>
+                <span className="pdv8-counter">
+                  {photoIndex + 1} / {photos.length}
+                </span>
+              </>
+            )}
+
+            <button
+              type="button"
+              className={`pdv8-3d${can3d ? '' : ' is-disabled'}`}
+              onClick={() => can3d && setMode((value) => (value === 'model' ? 'photo' : 'model'))}
+              disabled={!can3d}
+              title={can3d ? t('blocks.pd.v8DragHint') : t('blocks.pd.v8ModelSoon')}
+            >
+              360°
+            </button>
+          </div>
+        </div>
+
+        <aside className="pdv8-rail">
+          <div className="pdv8-meta">
+            <span className="pdv8-model">{detail.model}</span>
+            <span className={`pdv8-stock is-${detail.status.level}`}>
+              <i aria-hidden="true" />
+              {detail.status.text}
+            </span>
+          </div>
+          <h1 className="pdv8-title">{detail.name}</h1>
+          {detail.features?.[0] && <p className="pdv8-lede">{detail.features[0]}</p>}
+
+          {chips.length > 0 && (
+            <ul className="pdv8-chips">
+              {chips.map((chip) => (
+                <li key={chip}>{chip}</li>
+              ))}
+            </ul>
+          )}
+
+          {hero.showPrice !== false && (
+            <div className="pdv8-price">
+              <span className="pdv8-price__label">{t('blocks.pd.refPrice')}</span>
+              <div className="pdv8-price__row">
+                <strong>{priceText}</strong>
+                <span>起</span>
+              </div>
+              <span className="pdv8-price__note">{t('blocks.pd.v8PriceNote')}</span>
+            </div>
+          )}
+
+          <div className="pdv8-cta">
+            {isExternal(buyHref) ? (
+              <a className="pdv8-btn is-primary" href={buyHref} target="_blank" rel="noreferrer">
+                {buyLabel}
+              </a>
+            ) : (
+              <Link className="pdv8-btn is-primary" to={buyHref}>
+                {buyLabel}
+              </Link>
+            )}
+            <Link className="pdv8-btn is-ghost" to={secondaryHref}>
+              {secondaryLabel}
+            </Link>
+          </div>
+
+          <ul className="pdv8-promise">
+            <li>{warrantyText}</li>
+            <li>{t('blocks.pd.v8Nationwide')}</li>
+            <li>{t('blocks.pd.v8Return')}</li>
+          </ul>
+        </aside>
+      </div>
+
+      <nav
+        className="pdv8-subnav"
+        aria-label={t('blocks.pd.tocLabel')}
+        style={{ top: stackHeight || undefined }}
+      >
+        <div className="pdv8-subnav__inner">
+          <div className="pdv8-subnav__links">
+            <a href="#pdv8-top" className={activeNav === 'pdv8-top' ? 'is-on' : undefined}>
+              {t('blocks.pd.overview')}
+            </a>
+            {navItems.map((item) => (
+              <a key={item.id} href={`#${item.id}`} className={activeNav === item.id ? 'is-on' : undefined}>
+                {item.label}
+              </a>
+            ))}
+          </div>
+          <div className="pdv8-subnav__buy">
+            <strong>{priceText}</strong>
+            {isExternal(buyHref) ? (
+              <a className="pdv8-btn is-primary is-sm" href={buyHref} target="_blank" rel="noreferrer">
+                {buyLabel}
+              </a>
+            ) : (
+              <Link className="pdv8-btn is-primary is-sm" to={buyHref}>
+                {buyLabel}
+              </Link>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {highlights.length > 0 && (
+        <section className="pdv8-section" id="pdv8-highlights">
+          <div>
+            <header className="pdv8-section__head">
+              <span className="pdv8-section__index">02</span>
+              <h2>{t('blocks.pd.highlights')}</h2>
+            </header>
+            <div className="pdv8-highlights">
+              <div className="pdv8-highlights__media">
+                <img src={photos[1] || photos[0]} alt={detail.name} loading="lazy" />
+              </div>
+              <ol className="pdv8-highlights__list">
+                {highlights.map((item, index) => (
+                  <li key={item}>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <p>{item}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {(refreshHz > 0 || stats.length > 0) && (
+        <section className="pdv8-section pdv8-band" id="pdv8-perf">
+          <div>
+            <header className="pdv8-section__head">
+              <span className="pdv8-section__index">03</span>
+              <h2>{t('blocks.pd.v8Performance')}</h2>
+            </header>
+            <div className={`pdv8-perf${refreshHz ? '' : ' is-simple'}`}>
+              {refreshHz > 0 && (
+                <div className="pdv8-perf__bars">
+                  {[...HZ_BASE.filter((value) => value < refreshHz), refreshHz].map((value) => {
+                    const max = Math.max(refreshHz, 320)
+                    const isCurrent = value === refreshHz
+                    return (
+                      <div key={value} className={`pdv8-bar${isCurrent ? ' is-current' : ''}`}>
+                        <span className="pdv8-bar__label">{value} Hz</span>
+                        <span className="pdv8-bar__track">
+                          <i style={{ width: `${Math.max(8, (value / max) * 100)}%` }} />
+                        </span>
+                        {isCurrent && <em>本机</em>}
+                      </div>
+                    )
+                  })}
+                  <p className="pdv8-perf__caption">{refresh?.label}</p>
+                </div>
+              )}
+              <div className="pdv8-perf__stats">
+                {stats.map((item) => (
+                  <div key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {(groups.length > 0 || compareRows.length > 0) && (
+        <section className="pdv8-section" id="pdv8-specs">
+          <div>
+            <header className="pdv8-section__head">
+              <span className="pdv8-section__index">04</span>
+              <h2>{t('blocks.pd.v8Specs')}</h2>
+            </header>
+
+          <div className="pdv8-specs">
+            {groups.length > 1 && (
+              <nav className="pdv8-specs__nav" aria-label={t('blocks.pd.v8Specs')}>
+                {groups.map((group) => (
+                  <button
+                    key={group.name}
+                    type="button"
+                    className={activeGroup === group.name ? 'is-on' : undefined}
+                    onClick={() => setActiveGroup(group.name)}
+                  >
+                    {group.name}
+                  </button>
+                ))}
+              </nav>
+            )}
+            <div className="pdv8-specs__panel">
+              {(groups.find((group) => group.name === activeGroup) || groups[0])?.items.map((item) => (
+                <div key={`${item.label}-${item.value}`} className="pdv8-specs__row">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {compareRows.length > 0 && compareItems.length > 0 && (
+            <div className="pdv8-compare">
+              <h3>{t('blocks.pd.v8CompareTitle')}</h3>
+              <div className="pdv8-compare__scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col" />
+                      <th scope="col" className="is-current">
+                        {detail.model}
+                      </th>
+                      {compareItems.map((item) => (
+                        <th key={item.id} scope="col">
+                          {item.model}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {compareRows.map((row) => (
+                      <tr key={row.label}>
+                        <th scope="row">{row.label}</th>
+                        <td className="is-current">{row.current}</td>
+                        {row.others.map((value, index) => (
+                          <td key={`${row.label}-${index}`}>{value}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+        </section>
+      )}
+
+      <section className="pdv8-section" id="pdv8-service">
+        <div>
+          <header className="pdv8-section__head">
+            <span className="pdv8-section__index">05</span>
+            <h2>{t('blocks.pd.v8Service')}</h2>
+          </header>
+          <div className="pdv8-service">
+            {[
+              { title: warrantyText, desc: t('blocks.pd.point1') },
+              { title: t('blocks.pd.v8Nationwide'), desc: t('blocks.pd.v8NationwideDesc') },
+              { title: t('blocks.pd.v8Return'), desc: t('blocks.pd.point2') },
+              { title: t('blocks.pd.v8Shipping'), desc: t('blocks.pd.v8ShippingDesc') },
+            ].map((item) => (
+              <div key={item.title} className="pdv8-service__item">
+                <span className="pdv8-service__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+                    <path d="M12 3 4.5 6v6c0 4.4 3.2 7.6 7.5 9 4.3-1.4 7.5-4.6 7.5-9V6L12 3Z" />
+                  </svg>
+                </span>
+                <strong>{item.title}</strong>
+                <p>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {detail.inBox?.length ? (
+            <div className="pdv8-pack">
+              <span>{t('blocks.pd.v8PackTitle')}</span>
+              <ul>
+                {detail.inBox.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {detail.reviews?.length ? (
+        <section className="pdv8-section pdv8-band" id="pdv8-reviews">
+          <div>
+            <header className="pdv8-section__head">
+              <span className="pdv8-section__index">06</span>
+              <h2>{t('blocks.pd.v8Reviews')}</h2>
+            </header>
+            <div className="pdv8-reviews">
+              <div className="pdv8-reviews__score">
+                <strong>{rating}</strong>
+                <span>{t('blocks.pd.v8AvgRating')}</span>
+                <em>{detail.reviews.length}</em>
+              </div>
+              <div className="pdv8-reviews__list">
+                {detail.reviews.slice(0, 3).map((item) => (
+                  <blockquote key={item.id}>
+                    <p>{item.content}</p>
+                    <footer>
+                      {item.nickname}
+                      {item.purchasedModel ? ` · ${item.purchasedModel}` : ''}
+                    </footer>
+                  </blockquote>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {typeof document !== 'undefined'
+        ? createPortal(
+            <div className={`pdv8 pdv8-buybar${showBuyBar ? ' is-on' : ''}`}>
+              <div className="pdv8-buybar__price">
+                <strong>{priceText}</strong>
+                <span>{detail.model}</span>
+              </div>
+              <div className="pdv8-buybar__actions">
+                <Link className="pdv8-btn is-ghost is-sm" to={`/compare?ids=${detail.id}`}>
+                  {t('blocks.pd.v8Compare')}
+                </Link>
+                {isExternal(buyHref) ? (
+                  <a className="pdv8-btn is-primary is-sm" href={buyHref} target="_blank" rel="noreferrer">
+                    {buyLabel}
+                  </a>
+                ) : (
+                  <Link className="pdv8-btn is-primary is-sm" to={buyHref}>
+                    {buyLabel}
+                  </Link>
+                )}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+    </div>
+  )
+}
