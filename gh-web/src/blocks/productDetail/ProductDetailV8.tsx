@@ -593,9 +593,13 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                   <span className="pdv8-card__arrow" aria-hidden="true">
                     ↗
                   </span>
-                  <span className="pdv8-card__num">{card.num}</span>
-                  <h3>{card.title}</h3>
-                  {card.desc && <p>{card.desc}</p>}
+                  <span className="pdv8-card__body">
+                    <h3>{card.title}</h3>
+                    {card.desc && <p>{card.desc}</p>}
+                  </span>
+                  <span className="pdv8-card__num" aria-hidden="true">
+                    {card.num}
+                  </span>
                 </a>
               ))}
             </div>
@@ -624,6 +628,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                       style={{ left: `${Math.min(100, (refreshHz / 540) * 100)}%` }}
                     >
                       <i />
+                      <em>{t('blocks.pd.v8Local')}</em>
                     </span>
                     {[60, 144, 240, 320, 540].map((value) => (
                       <span
@@ -639,7 +644,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                   <p className="pdv8-perf__caption">{t('blocks.pd.v8PerfHint')}</p>
                 </div>
               )}
-              <div className="pdv8-perf__stats">
+              <div className={`pdv8-perf__stats${stats.length === 4 ? '' : ' is-narrow'}`}>
                 {stats.map((item) => (
                   <div key={item.label}>
                     <span>{item.label}</span>
