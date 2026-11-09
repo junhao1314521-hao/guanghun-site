@@ -706,13 +706,80 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 @media (prefers-reduced-motion: reduce) { .blk-stats__item, .blk-spotlight__main, .blk-spotlight__row { transition: none; } }
 
-/* —— productBuy · 购买 / 咨询保障要点 —— */
-.buy-points { list-style: none; margin: var(--gh-space-5) 0 0; padding: 0; display: grid; gap: var(--gh-space-3); }
-.buy-points li { position: relative; padding-left: var(--gh-space-6); color: var(--color-text-secondary); }
-.buy-points li::before {
-  content: ''; position: absolute; left: 0; top: 0.45em;
-  width: 14px; height: 8px; border-left: 2px solid var(--color-accent-solid); border-bottom: 2px solid var(--color-accent-solid);
+/* —— productBuy · 购买 / 咨询收口 —— */
+.pd-buy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  gap: var(--gh-space-7);
+  align-items: center;
+  padding: var(--gh-space-7) 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.pd-buy__title {
+  margin: 0;
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.pd-buy__sub {
+  margin: var(--gh-space-3) 0 0;
+  font-size: var(--gh-font-size-body);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.pd-buy__points {
+  list-style: none;
+  margin: var(--gh-space-6) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gh-space-3) var(--gh-space-6);
+}
+
+.pd-buy__points li {
+  position: relative;
+  padding-left: var(--gh-space-6);
+  font-size: var(--gh-font-size-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.pd-buy__points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 14px;
+  height: 8px;
+  border-left: 2px solid var(--color-accent-solid);
+  border-bottom: 2px solid var(--color-accent-solid);
   transform: rotate(-45deg);
+}
+
+.pd-buy__actions {
+  display: grid;
+  gap: var(--gh-space-3);
+}
+
+.pd-buy__actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .pd-buy {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gh-space-6);
+    padding: var(--gh-space-6) 0;
+  }
+
+  .pd-buy__actions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 
 /* hero 区块（.stage 皮肤）通栏：同样去圆角描边并给足高度 */

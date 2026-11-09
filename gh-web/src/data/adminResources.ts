@@ -358,7 +358,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '结构化参数',
             type: 'records',
             span: 2,
-            hint: '唯一「完整规格」来源，详情页按分组折叠展示。常用参数名——显示：面板 / 尺寸 / 分辨率 / 刷新率 / 响应时间 / 对比度 / 色域 / HDR 认证；接口：接口 / 同步技术；电源：功耗；机械：支架；物理尺寸：净重 / 尺寸；包装：包装清单；认证：CE / FCC / CCC',
+            hint: '唯一「完整规格」来源，详情页按分组平铺展示（不做分类切换）；性能模块自动取刷新率 / 响应时间 / 尺寸 / 亮度 / 对比度 / 色域。常用参数名——显示：面板 / 尺寸 / 分辨率 / 刷新率 / 响应时间 / 对比度 / 色域 / HDR 认证；接口：接口 / 同步技术；电源：功耗；机械：支架；物理尺寸：净重 / 尺寸；包装：包装清单；认证：CE / FCC / CCC',
             recordFields: [
               { key: 'group', label: '分组', type: 'select', options: ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证', '其他'] },
               { key: 'label', label: '参数名', type: 'text' },
@@ -368,7 +368,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'os', label: '兼容系统', type: 'list', span: 2, hint: '每行一项，如：Windows 10 / 11' },
           { key: 'weight', label: '整机重量（克）', type: 'number' },
           { key: 'warranty', label: '保修政策', type: 'text', span: 2 },
-          { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：显示器 × 1、电源线 × 1' },
+          { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：显示器 × 1、电源线 × 1；详情页显示在「规格参数」末尾的包装清单分组' },
           {
             key: 'gallery',
             label: '相册图片',

@@ -275,6 +275,7 @@ export type ProductDetailSpecsProps = {
 /** 23. productBuy 产品详情 · 购买 / 咨询收口 */
 export type ProductBuyProps = {
   title?: string
+  subtitle?: string
   primaryLabel?: string
   primaryHref?: string
   secondaryLabel?: string

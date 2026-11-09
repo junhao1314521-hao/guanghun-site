@@ -30,8 +30,6 @@ type HeroConfig = {
   showPrice?: boolean
 }
 
-const HZ_BASE = [60, 144, 240, 320]
-
 function findAttr(attrs: ProductAttribute[] | undefined, key: string) {
   return attrs?.find((item) => item.label.includes(key))
 }
@@ -53,6 +51,51 @@ function splitFeature(text: string) {
   const matched = text.match(/^(.{2,26}?)[，,、：:·|]\s*(.+)$/)
   if (matched) return { title: matched[1].trim(), desc: matched[2].trim() }
   return { title: text.trim(), desc: '' }
+}
+
+/** 服务保障图标：四项各用不同图形，避免四个盾牌重复 */
+function ServiceIcon({ name }: { name: string }) {
+  const common = {
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.5,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+  if (name === 'nationwide') {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18" />
+        <path d="M12 3c2.6 2.7 3.9 5.9 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.9-3.9-9S9.4 5.7 12 3Z" />
+      </svg>
+    )
+  }
+  if (name === 'return') {
+    return (
+      <svg {...common}>
+        <path d="M4 12a8 8 0 1 0 2.4-5.7" />
+        <path d="M4 4v4.5h4.5" />
+      </svg>
+    )
+  }
+  if (name === 'shipping') {
+    return (
+      <svg {...common}>
+        <path d="M3 7h11v9H3z" />
+        <path d="M14 10h4l3 3v3h-7z" />
+        <circle cx="7" cy="18" r="1.6" />
+        <circle cx="17.5" cy="18" r="1.6" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...common}>
+      <path d="M12 3 4.5 6v6c0 4.4 3.2 7.6 7.5 9 4.3-1.4 7.5-4.6 7.5-9V6L12 3Z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  )
 }
 
 export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, unknown>; t: T }) {
@@ -80,7 +123,6 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
 
   const [photoIndex, setPhotoIndex] = useState(0)
   const [mode, setMode] = useState<'photo' | 'video' | 'model'>('photo')
-  const [activeGroup, setActiveGroup] = useState('')
   const [activeNav, setActiveNav] = useState('pdv8-top')
   const [related, setRelated] = useState<Product[]>([])
   const [showBuyBar, setShowBuyBar] = useState(false)
@@ -150,12 +192,6 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
     return [...map.entries()].map(([name, items]) => ({ name, items }))
   }, [attributes])
 
-  useEffect(() => {
-    if (groups.length && !groups.some((group) => group.name === activeGroup)) {
-      setActiveGroup(groups[0].name)
-    }
-  }, [groups, activeGroup])
-
   const navItems = useMemo(() => {
     if (!detail) return []
     const attrs = detail.attributes ?? []
@@ -217,7 +253,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   const refreshHz = parseHz(refresh?.value)
   const stats = (() => {
     const list: { label: string; value: string }[] = []
-    for (const key of ['响应时间', '尺寸', '亮度', '对比度', '色域']) {
+    for (const key of ['响应时间', '尺寸', '亮度', '对比度', '色域', '面板', '接口', 'HDR 认证']) {
       const item = findAttr(attributes, key)
       if (item) list.push({ label: item.label, value: item.value })
       if (list.length === 4) break
@@ -545,22 +581,22 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         <section className={sectionClass('pdv8-highlights')} id="pdv8-highlights">
           <div>
             <header className="pdv8-section__head">
-              <span className="pdv8-section__index">02</span>
               <h2>{t('blocks.pd.highlights')}</h2>
+              <span className="pdv8-section__meta">{t('blocks.pd.v8HighlightCount', { n: highlights.length })}</span>
               <a className="pdv8-section__more" href="#pdv8-specs">
                 {t('blocks.pd.v8AllSpecs')} →
               </a>
             </header>
             <div className="pdv8-cards">
               {highlightCards.map((card) => (
-                <article className="pdv8-card" key={`${card.num}-${card.title}`}>
+                <a className="pdv8-card" href="#pdv8-specs" key={`${card.num}-${card.title}`}>
                   <span className="pdv8-card__arrow" aria-hidden="true">
                     ↗
                   </span>
                   <span className="pdv8-card__num">{card.num}</span>
                   <h3>{card.title}</h3>
                   {card.desc && <p>{card.desc}</p>}
-                </article>
+                </a>
               ))}
             </div>
           </div>
@@ -571,26 +607,36 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         <section className={sectionClass('pdv8-perf')} id="pdv8-perf">
           <div>
             <header className="pdv8-section__head">
-              <span className="pdv8-section__index">03</span>
               <h2>{t('blocks.pd.v8Performance')}</h2>
             </header>
             <div className={`pdv8-perf${refreshHz ? '' : ' is-simple'}`}>
               {refreshHz > 0 && (
-                <div className="pdv8-perf__bars">
-                  {[...HZ_BASE.filter((value) => value < refreshHz), refreshHz].map((value) => {
-                    const max = Math.max(refreshHz, 320)
-                    const isCurrent = value === refreshHz
-                    return (
-                      <div key={value} className={`pdv8-bar${isCurrent ? ' is-current' : ''}`}>
-                        <span className="pdv8-bar__label">{value} Hz</span>
-                        <span className="pdv8-bar__track">
-                          <i style={{ width: `${Math.max(8, (value / max) * 100)}%` }} />
-                        </span>
-                        {isCurrent && <em>本机</em>}
-                      </div>
-                    )
-                  })}
-                  <p className="pdv8-perf__caption">{refresh?.label}</p>
+                <div className="pdv8-perf__hero">
+                  <span className="pdv8-perf__label">{refresh?.label}</span>
+                  <div className="pdv8-perf__value">
+                    <strong>{refreshHz}</strong>
+                    <span>Hz</span>
+                  </div>
+                  <div className="pdv8-perf__scale" aria-hidden="true">
+                    <span className="pdv8-perf__track" />
+                    <span
+                      className="pdv8-perf__marker"
+                      style={{ left: `${Math.min(100, (refreshHz / 540) * 100)}%` }}
+                    >
+                      <i />
+                    </span>
+                    {[60, 144, 240, 320, 540].map((value) => (
+                      <span
+                        key={value}
+                        className={`pdv8-perf__tick${value === refreshHz ? ' is-current' : ''}`}
+                        style={{ left: `${(value / 540) * 100}%` }}
+                      >
+                        <i />
+                        {value}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="pdv8-perf__caption">{t('blocks.pd.v8PerfHint')}</p>
                 </div>
               )}
               <div className="pdv8-perf__stats">
@@ -610,36 +656,40 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         <section className={sectionClass('pdv8-specs')} id="pdv8-specs">
           <div>
             <header className="pdv8-section__head">
-              <span className="pdv8-section__index">04</span>
               <h2>{t('blocks.pd.v8Specs')}</h2>
             </header>
 
-          <div className="pdv8-specs">
-            {groups.length > 1 && (
-              <nav className="pdv8-specs__nav" aria-label={t('blocks.pd.v8Specs')}>
-                {groups.map((group) => (
-                  <button
-                    key={group.name}
-                    type="button"
-                    className={activeGroup === group.name ? 'is-on' : undefined}
-                    onClick={() => setActiveGroup(group.name)}
-                  >
-                    {group.name}
-                  </button>
-                ))}
-              </nav>
-            )}
-            <div className="pdv8-specs__panel">
-              {(groups.find((group) => group.name === activeGroup) || groups[0])?.items.map((item) => (
-                <div key={`${item.label}-${item.value}`} className="pdv8-specs__row">
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
+            {/* 直接平铺所有参数分组，不做左侧分类切换；包装清单并入同一张规格表 */}
+            <div className="pdv8-specs">
+              {groups.map((group) => (
+                <div className="pdv8-specs__group" key={group.name}>
+                  <h3>{group.name}</h3>
+                  <dl className="pdv8-specs__list">
+                    {group.items.map((item) => (
+                      <div
+                        key={`${item.label}-${item.value}`}
+                        className={`pdv8-specs__row${item.label === group.name ? ' is-single' : ''}`}
+                      >
+                        {item.label !== group.name && <dt>{item.label}</dt>}
+                        <dd>{item.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
               ))}
+              {detail.inBox?.length ? (
+                <div className="pdv8-specs__group">
+                  <h3>{t('blocks.pd.v8PackTitle')}</h3>
+                  <ul className="pdv8-specs__pack">
+                    {detail.inBox.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
-          </div>
 
-          {compareRows.length > 0 && compareItems.length > 0 && (
+            {compareRows.length > 0 && compareItems.length > 0 && (
             <div className="pdv8-compare">
               <h3>{t('blocks.pd.v8CompareTitle')}</h3>
               <div className="pdv8-compare__scroll">
@@ -679,38 +729,24 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
       <section className={sectionClass('pdv8-service')} id="pdv8-service">
         <div>
           <header className="pdv8-section__head">
-            <span className="pdv8-section__index">05</span>
             <h2>{t('blocks.pd.v8Service')}</h2>
           </header>
           <div className="pdv8-service">
             {[
-              { title: warrantyText, desc: t('blocks.pd.point1') },
-              { title: t('blocks.pd.v8Nationwide'), desc: t('blocks.pd.v8NationwideDesc') },
-              { title: t('blocks.pd.v8Return'), desc: t('blocks.pd.point2') },
-              { title: t('blocks.pd.v8Shipping'), desc: t('blocks.pd.v8ShippingDesc') },
+              { key: 'warranty', title: warrantyText, desc: t('blocks.pd.point1') },
+              { key: 'nationwide', title: t('blocks.pd.v8Nationwide'), desc: t('blocks.pd.v8NationwideDesc') },
+              { key: 'return', title: t('blocks.pd.v8Return'), desc: t('blocks.pd.point2') },
+              { key: 'shipping', title: t('blocks.pd.v8Shipping'), desc: t('blocks.pd.v8ShippingDesc') },
             ].map((item) => (
-              <div key={item.title} className="pdv8-service__item">
+              <div key={item.key} className="pdv8-service__item">
                 <span className="pdv8-service__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                    <path d="M12 3 4.5 6v6c0 4.4 3.2 7.6 7.5 9 4.3-1.4 7.5-4.6 7.5-9V6L12 3Z" />
-                  </svg>
+                  <ServiceIcon name={item.key} />
                 </span>
                 <strong>{item.title}</strong>
                 <p>{item.desc}</p>
               </div>
             ))}
           </div>
-
-          {detail.inBox?.length ? (
-            <div className="pdv8-pack">
-              <span>{t('blocks.pd.v8PackTitle')}</span>
-              <ul>
-                {detail.inBox.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </div>
       </section>
 
@@ -718,7 +754,6 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         <section className={sectionClass('pdv8-reviews')} id="pdv8-reviews">
           <div>
             <header className="pdv8-section__head">
-              <span className="pdv8-section__index">06</span>
               <h2>{t('blocks.pd.v8Reviews')}</h2>
             </header>
             <div className="pdv8-reviews">
