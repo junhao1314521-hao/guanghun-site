@@ -76,6 +76,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   const [related, setRelated] = useState<Product[]>([])
   const [showBuyBar, setShowBuyBar] = useState(false)
   const [stackHeight, setStackHeight] = useState(90)
+  const [picked, setPicked] = useState<string[]>([])
 
   useEffect(() => {
     let alive = true
@@ -112,6 +113,21 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   }, [])
 
   const attributes = useMemo(() => detail?.attributes ?? [], [detail])
+
+  // 规格组：后台 skuOptions 最多 3 组；values 兼容数组与「逗号分隔」文本
+  const skuGroups = useMemo(
+    () =>
+      (detail?.skuOptions ?? []).slice(0, 3).map((group) => ({
+        name: group.name,
+        values: Array.isArray(group.values)
+          ? group.values
+          : String(group.values ?? '')
+              .split(/[,，]/)
+              .map((value) => value.trim())
+              .filter(Boolean),
+      })),
+    [detail],
+  )
 
   const groups = useMemo(() => {
     const map = new Map<string, ProductAttribute[]>()
@@ -245,6 +261,21 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
     setPhotoIndex((index + total) % total)
   }
 
+  // SKU：所有规格组都选中后，按 option1～3 匹配明细（缺失时兜底用 options 数组）
+  const allPicked = skuGroups.length > 0 && picked.filter(Boolean).length === skuGroups.length
+  const selectedSku = allPicked
+    ? detail.skus?.find((item) => {
+        const options = item.options?.length ? item.options : [item.option1, item.option2, item.option3]
+        return picked.every((value, index) => options[index] === value)
+      })
+    : undefined
+  const pickSku = (index: number, value: string) =>
+    setPicked((prev) => {
+      const next = [...prev]
+      next[index] = prev[index] === value ? '' : value
+      return next
+    })
+
   return (
     <div className="pdv8" style={{ '--pdv8-stack': `${stackHeight}px` } as CSSProperties}>
       <div className="pdv8-hero" id="pdv8-top">
@@ -261,29 +292,6 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 <img src={src} alt="" loading="lazy" />
               </button>
             ))}
-            {hasVideo && (
-              <button
-                type="button"
-                className={`pdv8-thumb pdv8-thumb--video${mode === 'video' ? ' is-on' : ''}`}
-                onClick={() => setMode('video')}
-                aria-label="Video"
-              >
-                <img src={detail.videoPoster || photos[0]} alt="" loading="lazy" />
-                <i className="pdv8-thumb__play" aria-hidden="true" />
-              </button>
-            )}
-            <button
-              type="button"
-              className={`pdv8-thumb pdv8-thumb--3d${mode === 'model' ? ' is-on' : ''}${
-                can3d ? '' : ' is-disabled'
-              }`}
-              onClick={() => can3d && setMode('model')}
-              disabled={!can3d}
-              title={can3d ? '3D' : t('blocks.pd.v8ModelSoon')}
-              aria-label="3D"
-            >
-              {detail.model3dPoster ? <img src={detail.model3dPoster} alt="" loading="lazy" /> : <span>3D</span>}
-            </button>
           </div>
 
           <div className={`pdv8-stage is-${mode}`}>
@@ -310,7 +318,6 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 <ProductModel3D src={detail.model3d} label={detail.name} />
               </div>
             )}
-
             {mode === 'photo' && photos.length > 1 && (
               <>
                 <button
@@ -334,15 +341,40 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 </span>
               </>
             )}
+          </div>
 
+          <div className="pdv8-viewtabs" role="tablist" aria-label={detail.name}>
             <button
               type="button"
-              className={`pdv8-3d${can3d ? '' : ' is-disabled'}`}
-              onClick={() => can3d && setMode((value) => (value === 'model' ? 'photo' : 'model'))}
+              role="tab"
+              aria-selected={mode === 'photo'}
+              className={`pdv8-viewtab${mode === 'photo' ? ' is-on' : ''}`}
+              onClick={() => setMode('photo')}
+            >
+              {t('blocks.pd.v8TabPhoto')}
+              {photos.length > 0 ? ` ${photos.length}` : ''}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'video'}
+              className={`pdv8-viewtab${mode === 'video' ? ' is-on' : ''}`}
+              onClick={() => setMode('video')}
+              disabled={!hasVideo}
+              title={hasVideo ? undefined : t('blocks.pd.v8VideoSoon')}
+            >
+              {t('blocks.pd.v8TabVideo')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === 'model'}
+              className={`pdv8-viewtab${mode === 'model' ? ' is-on' : ''}`}
+              onClick={() => setMode('model')}
               disabled={!can3d}
               title={can3d ? t('blocks.pd.v8DragHint') : t('blocks.pd.v8ModelSoon')}
             >
-              360°
+              3D
             </button>
           </div>
         </div>
@@ -377,26 +409,58 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
             </div>
           )}
 
-          <div className="pdv8-cta">
-            {isExternal(buyHref) ? (
-              <a className="pdv8-btn is-primary" href={buyHref} target="_blank" rel="noreferrer">
-                {buyLabel}
-              </a>
-            ) : (
-              <Link className="pdv8-btn is-primary" to={buyHref}>
-                {buyLabel}
-              </Link>
-            )}
-            <Link className="pdv8-btn is-ghost" to={secondaryHref}>
-              {secondaryLabel}
-            </Link>
-          </div>
+          {skuGroups.length > 0 && (
+            <div className="pdv8-sku">
+              {skuGroups.map((group, index) => (
+                <div className="pdv8-sku__row" key={group.name}>
+                  <span className="pdv8-sku__label">{group.name}</span>
+                  <div className="pdv8-sku__opts">
+                    {group.values.map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={`pdv8-sku__opt${picked[index] === value ? ' is-on' : ''}`}
+                        aria-pressed={picked[index] === value}
+                        onClick={() => pickSku(index, value)}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <span className="pdv8-sku__hint">
+                {allPicked
+                  ? selectedSku?.stock !== undefined && selectedSku.stock !== ''
+                    ? t('blocks.pd.v8SkuStock', { n: selectedSku.stock })
+                    : t('blocks.pd.v8SkuSelected', { value: picked.filter(Boolean).join(' / ') })
+                  : t('blocks.pd.v8SkuPick')}
+              </span>
+            </div>
+          )}
 
-          <ul className="pdv8-promise">
-            <li>{warrantyText}</li>
-            <li>{t('blocks.pd.v8Nationwide')}</li>
-            <li>{t('blocks.pd.v8Return')}</li>
-          </ul>
+          <div className="pdv8-railfoot">
+            <ul className="pdv8-promise">
+              <li>{warrantyText}</li>
+              <li>{t('blocks.pd.v8Nationwide')}</li>
+              <li>{t('blocks.pd.v8Return')}</li>
+            </ul>
+
+            <div className="pdv8-cta">
+              {isExternal(buyHref) ? (
+                <a className="pdv8-btn is-primary" href={buyHref} target="_blank" rel="noreferrer">
+                  {buyLabel}
+                </a>
+              ) : (
+                <Link className="pdv8-btn is-primary" to={buyHref}>
+                  {buyLabel}
+                </Link>
+              )}
+              <Link className="pdv8-btn is-ghost" to={secondaryHref}>
+                {secondaryLabel}
+              </Link>
+            </div>
+          </div>
         </aside>
       </div>
 

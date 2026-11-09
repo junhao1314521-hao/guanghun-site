@@ -6,6 +6,8 @@
 }
 
 .pdv8 {
+  /* 性能带用负边距做全出血，裁掉容器内的横向溢出（clip 不建立滚动容器，粘性定位仍生效） */
+  overflow-x: clip;
   --pdv8-ink: #17171a;
   --pdv8-ink2: #565b63;
   --pdv8-muted: #8a8f98;
@@ -38,7 +40,8 @@
 
 .pdv8 section[id],
 .pdv8[id] {
-  scroll-margin-top: calc(var(--pdv8-stack, 90px) + 56px);
+  /* 停在吸顶子导航下方（子导航高 58 + 8 间距） */
+  scroll-margin-top: calc(var(--pdv8-stack, 90px) + 66px);
 }
 
 /* —— 首屏 —— */
@@ -48,7 +51,8 @@
   gap: 56px;
   padding-top: 32px;
   padding-bottom: 56px;
-  align-items: start;
+  /* 右栏拉满，让购买区与图库底边收口，不再出现右栏提前结束的悬空 */
+  align-items: stretch;
 }
 
 .pdv8-gallery {
@@ -105,32 +109,6 @@
   cursor: not-allowed;
 }
 
-.pdv8-thumb--video img {
-  object-fit: cover;
-  filter: brightness(0.72);
-}
-
-.pdv8-thumb__play {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-left: 9px solid #fff;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  margin-left: 3px;
-}
-
-.pdv8-thumb--3d span {
-  font-family: var(--pdv8-mono);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--pdv8-ink2);
-}
-
-.pdv8-thumb--3d img {
-  object-fit: cover;
-}
-
 .pdv8-stage {
   position: relative;
   aspect-ratio: 1 / 1;
@@ -174,6 +152,42 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(72% 72% at 50% 44%, #fff 0%, #eef0f3 100%);
+}
+
+/* 图集 / 视频 / 3D 切换：贴在主图下方，替代原先塞在缩略图列里的入口 */
+.pdv8-viewtabs {
+  grid-column: 2;
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.pdv8-viewtab {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--pdv8-line-strong);
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+  color: var(--pdv8-ink2);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.pdv8-viewtab:hover:not(:disabled) {
+  border-color: var(--pdv8-ink);
+  color: var(--pdv8-ink);
+}
+
+.pdv8-viewtab.is-on {
+  border-color: var(--pdv8-ink);
+  color: var(--pdv8-ink);
+  font-weight: 600;
+}
+
+.pdv8-viewtab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-style: dashed;
 }
 
 .pdv8-arrow {
@@ -220,31 +234,20 @@
   font-variant-numeric: tabular-nums;
 }
 
-.pdv8-3d {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
-  height: 28px;
-  padding: 0 11px;
-  border-radius: 999px;
-  border: 1px solid var(--pdv8-line-strong);
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--pdv8-ink2);
-  font-family: var(--pdv8-mono);
-  font-size: 11px;
-}
-
-.pdv8-3d.is-disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  border-style: dashed;
-}
-
 /* —— 右栏决策信息 —— */
 .pdv8-rail {
   min-width: 0;
   padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 服务承诺 + 购买按钮整体贴底，与左侧图库底边对齐 */
+.pdv8-railfoot {
+  margin-top: auto;
+  padding-top: 18px;
+  display: grid;
+  gap: 14px;
 }
 
 .pdv8-meta {
@@ -354,10 +357,64 @@
   color: var(--pdv8-faint);
 }
 
+/* 规格选择：按后台 skuOptions 渲染；无配置时整块不出现 */
+.pdv8-sku {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--pdv8-line);
+  display: grid;
+  gap: 10px;
+}
+
+.pdv8-sku__row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.pdv8-sku__label {
+  padding-top: 7px;
+  font-size: 12px;
+  color: var(--pdv8-faint);
+}
+
+.pdv8-sku__opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pdv8-sku__opt {
+  padding: 6px 12px;
+  border: 1px solid var(--pdv8-line-strong);
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+  color: var(--pdv8-ink2);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.pdv8-sku__opt:hover {
+  border-color: var(--pdv8-ink);
+  color: var(--pdv8-ink);
+}
+
+.pdv8-sku__opt.is-on {
+  border-color: var(--pdv8-accent);
+  background: #f2f6ff;
+  color: var(--pdv8-accent);
+  font-weight: 600;
+}
+
+.pdv8-sku__hint {
+  font-size: 12px;
+  color: var(--pdv8-muted);
+}
+
 .pdv8-cta {
   display: flex;
   gap: 10px;
-  margin-top: 20px;
 }
 
 .pdv8-btn {
@@ -401,7 +458,7 @@
 }
 
 .pdv8-promise {
-  margin: 18px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
@@ -690,7 +747,9 @@
   flex-direction: column;
   gap: 2px;
   position: sticky;
-  top: 76px;
+  /* 必须让过粘性子导航（stack + 58 高 + 8 间距），否则分组标签会被盖住 */
+  top: calc(var(--pdv8-stack, 90px) + 66px);
+  z-index: 1;
 }
 
 .pdv8-specs__nav button {
@@ -961,7 +1020,7 @@
   }
 
   .pdv8-thumbs {
-    order: 2;
+    order: 3;
     flex-direction: row;
     max-height: none;
     overflow-x: auto;
@@ -975,6 +1034,17 @@
 
   .pdv8-stage {
     order: 1;
+  }
+
+  .pdv8-viewtabs {
+    order: 2;
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .pdv8-sku__row {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .pdv8-title {
