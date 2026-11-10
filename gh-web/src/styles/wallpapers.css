@@ -1,0 +1,877 @@
+/**
+ * 品牌壁纸页（/wallpapers）
+ * ============================================================
+ * 浅色通版页面：标题 → 精选图 → 主题筛选 → 16:9 网格。
+ * 不使用面包屑与眉题，首屏只保留「标题 + 一句说明 + 数据行」。
+ * 颜色统一走语义令牌，自动跟随站点明暗主题；字号 / 间距对齐 tokens.css 的 8pt 体系。
+ */
+
+.wp-page {
+  padding-bottom: clamp(72px, 9vw, 112px);
+}
+
+/* ---------- 页头 ---------- */
+.wp-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: clamp(40px, 6vw, 88px);
+  padding-top: clamp(48px, 7vh, 104px);
+}
+
+.wp-title {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  font-size: clamp(44px, 6.2vw, 104px);
+  font-weight: var(--gh-weight-semibold);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  color: var(--color-text-primary);
+}
+
+.wp-lede {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 22px 0 0;
+  max-width: 44ch;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-lg);
+  line-height: 1.75;
+}
+
+.wp-facts {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 24px 40px;
+  margin: 0;
+  padding: 0 0 4px;
+  list-style: none;
+}
+
+.wp-facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wp-facts strong {
+  font-family: var(--gh-font-mono);
+  font-size: 17px;
+  font-weight: var(--gh-weight-medium);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.wp-facts span {
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ---------- 首屏舞台：固定宽屏背景 + 居中文案 + 3D 弧形封面流 ---------- */
+.wp-stage {
+  position: relative;
+  overflow: hidden;
+  background: #08090c;
+  isolation: isolate;
+}
+
+/* 背景用未模糊的精选大图铺满，跟着舞台一起滚走；不做 background-attachment: fixed（iOS 会退化） */
+.wp-stage__bg {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* 卡片下方一层品牌色雾光，把弧形封面从深色背景里托起来 */
+.wp-stage::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(1280px, 94vw);
+  height: 52%;
+  transform: translateX(-50%);
+  background: radial-gradient(58% 100% at 50% 100%, rgba(32, 64, 237, 0.26), rgba(32, 64, 237, 0) 72%);
+  pointer-events: none;
+}
+
+/* 背景未模糊，遮罩只在文案位置压暗一块 + 收一下上下边缘，画面细节仍然清晰 */
+.wp-stage__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(6, 7, 11, 0.2), rgba(6, 7, 11, 0.2)),
+    radial-gradient(52% 36% at 50% 26%, rgba(8, 9, 12, 0.72), rgba(8, 9, 12, 0) 72%),
+    radial-gradient(120% 92% at 50% 26%, rgba(8, 9, 12, 0) 30%, rgba(8, 9, 12, 0.36) 100%),
+    linear-gradient(
+      180deg,
+      rgba(8, 9, 12, 0.5) 0%,
+      rgba(8, 9, 12, 0.18) 32%,
+      rgba(8, 9, 12, 0.46) 64%,
+      rgba(8, 9, 12, 0.92) 100%
+    );
+}
+
+.wp-stage__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* 顶部常驻条 = 公告栏 36px + 导航 54px，留出后再撑满一屏 */
+  min-height: calc(100vh - var(--gh-header-h) - 36px);
+  min-height: calc(100svh - var(--gh-header-h) - 36px);
+  padding-top: clamp(32px, 6vh, 72px);
+  padding-bottom: clamp(32px, 6vh, 64px);
+  /* 文案与弧线作为一组居中，间距 48–72px */
+  gap: clamp(48px, 6.5vh, 72px);
+}
+
+/* 文案排版对齐首页轮播海报：居中、小标题、一行说明、单颗主按钮 */
+.wp-stage__copy {
+  width: 100%;
+  max-width: 620px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.wp-stage .wp-title {
+  margin: 0 0 6px;
+  color: #fafafb;
+  font-size: clamp(28px, 2.25vw, 34px);
+  font-weight: var(--gh-weight-semibold);
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.wp-stage .wp-lede {
+  margin: 0 0 16px;
+  max-width: 46ch;
+  margin-inline: auto;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.wp-stage__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wp-stage__cta .btn {
+  height: 40px;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+/* 舞台下缘的一行操作提示：贴底居中、极轻的品牌色发光，不再压在背景主体上 */
+.wp-stage__hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(10px, 2vh, 22px);
+  z-index: 2;
+  margin: 0;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow:
+    0 0 13px rgba(147, 164, 248, 0.7),
+    0 0 28px rgba(91, 117, 245, 0.38),
+    0 1px 10px rgba(0, 0, 0, 0.85);
+}
+
+/* ---------- 环绕式封面流 ---------- */
+.wp-arc {
+  --card-w: clamp(260px, 21.5vw, 340px);
+  position: relative;
+  width: 100%;
+  /* 卡高 + 两侧下沉量；±3 张的侧卡最多下沉约 115px，留足包围弧面的高度 */
+  height: calc(var(--card-w) * 0.5625 + 96px);
+  perspective: 1600px;
+  perspective-origin: 50% 42%;
+  outline: none;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wp-arc[data-dragging='true'] {
+  cursor: grabbing;
+}
+
+.wp-arc:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 10px;
+  border-radius: 20px;
+}
+
+.wp-arc__card {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--card-w);
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  outline: none;
+}
+
+/* 只在吸附/静止时给透明度补间；拖动时由脚本逐帧写入，避免滞后 */
+.wp-arc[data-dragging='false'] .wp-arc__card {
+  transition: opacity 0.5s var(--gh-ease-standard);
+}
+
+.wp-arc__frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #12141a;
+  /* --w 为居中权重（0–1），中心卡更亮、投影更重 */
+  filter: brightness(calc(0.84 + 0.16 * var(--w, 0)));
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, calc(0.34 + 0.14 * var(--w, 0))),
+    0 4px 12px rgba(0, 0, 0, 0.28);
+  transition:
+    transform 0.35s var(--gh-ease-standard),
+    box-shadow 0.4s var(--gh-ease-standard),
+    filter 0.3s var(--gh-ease-standard);
+}
+
+.wp-arc__card:hover .wp-arc__frame {
+  transform: translateY(-6px);
+}
+
+.wp-arc[data-dragging='true'] .wp-arc__card:hover .wp-arc__frame {
+  transform: none;
+}
+
+.wp-arc__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 内描边：中心 0.22、两侧 0.09，随 --w 平滑插值 */
+.wp-arc__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  opacity: calc(0.09 + 0.13 * var(--w, 0));
+  pointer-events: none;
+}
+
+.wp-arc__card:focus-visible .wp-arc__frame {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
+}
+
+/* ---------- 筛选 + 网格 ---------- */
+.wp-browse {
+  margin-top: clamp(72px, 9vw, 104px);
+  scroll-margin-top: 110px;
+}
+
+.wp-browse__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.wp-browse__head h2 {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.wp-browse__head h2 span {
+  font-family: var(--gh-font-mono);
+  font-size: 12px;
+  font-weight: var(--gh-weight-regular);
+  color: var(--color-text-tertiary);
+}
+
+.wp-filters {
+  min-width: 0;
+  max-width: 64%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.wp-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.wp-seg {
+  flex: none;
+}
+
+.wp-seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.wp-seg button span {
+  font-family: var(--gh-font-mono);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.wp-seg button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 44px 24px;
+}
+
+.wp-card {
+  min-width: 0;
+}
+
+.wp-card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-bg-muted);
+  transition: border-color var(--gh-duration-slow) var(--gh-ease-standard),
+              box-shadow var(--gh-duration-slow) var(--gh-ease-standard);
+}
+
+.wp-card:hover .wp-card__media,
+.wp-card:focus-within .wp-card__media {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.wp-card__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--gh-ease-out);
+}
+
+.wp-card:hover .wp-card__img,
+.wp-card:focus-within .wp-card__img {
+  transform: scale(1.03);
+}
+
+.wp-card__open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.wp-card__open:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  border-radius: 12px;
+}
+
+.wp-card__dl {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+  background: rgba(14, 14, 16, 0.5);
+  color: #fff;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--gh-duration-base) var(--gh-ease-standard),
+              transform var(--gh-duration-base) var(--gh-ease-standard),
+              background var(--gh-duration-fast) var(--gh-ease-standard);
+  backdrop-filter: blur(6px);
+}
+
+.wp-card:hover .wp-card__dl,
+.wp-card:focus-within .wp-card__dl {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.wp-card__dl:hover {
+  background: var(--color-accent);
+  border-color: transparent;
+}
+
+.wp-card__body {
+  padding-top: 13px;
+}
+
+.wp-card__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wp-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--gh-weight-medium);
+  letter-spacing: -0.005em;
+  color: var(--color-text-primary);
+}
+
+.wp-card__theme {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.wp-card__meta {
+  margin: 7px 0 0;
+  font-family: var(--gh-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--color-text-tertiary);
+}
+
+.wp-card--skeleton {
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.wp-card--skeleton .skeleton {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- 授权说明 ---------- */
+.wp-note {
+  margin-top: clamp(80px, 10vw, 112px);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.wp-note__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  padding-block: clamp(44px, 5vw, 60px);
+}
+
+.wp-note h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: var(--gh-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.wp-note p {
+  margin: 0;
+  max-width: 74ch;
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-body-sm);
+  line-height: 1.85;
+}
+
+.wp-note a {
+  color: var(--color-accent-text);
+  text-decoration: none;
+}
+
+.wp-note a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 大图弹层 ---------- */
+.wp-lb {
+  width: min(1080px, calc(100vw - 48px));
+  max-width: none;
+  max-height: 88vh;
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  overflow: hidden;
+}
+
+.wp-lb::backdrop {
+  background: rgba(14, 14, 16, 0.64);
+  backdrop-filter: blur(4px);
+}
+
+.wp-lb__panel {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 336px;
+  max-height: 88vh;
+}
+
+.wp-lb__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background: #101115;
+}
+
+.wp-lb__img {
+  display: block;
+  max-width: 100%;
+  max-height: 88vh;
+  object-fit: contain;
+}
+
+.wp-lb__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(14, 14, 16, 0.48);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background var(--gh-duration-base) var(--gh-ease-standard),
+              border-color var(--gh-duration-base) var(--gh-ease-standard);
+  backdrop-filter: blur(6px);
+}
+
+.wp-lb__nav:hover {
+  background: rgba(32, 64, 237, 0.74);
+  border-color: transparent;
+}
+
+.wp-lb__nav--prev { left: 16px; }
+.wp-lb__nav--next { right: 16px; }
+
+.wp-lb__count {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  z-index: 3;
+  padding: 4px 10px;
+  border-radius: var(--gh-radius-full);
+  background: rgba(14, 14, 16, 0.5);
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--gh-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.wp-lb__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 28px 26px;
+  overflow-y: auto;
+  border-left: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
+}
+
+.wp-lb__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 50%;
+  background: var(--color-bg-surface);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--gh-duration-fast) var(--gh-ease-standard),
+              border-color var(--gh-duration-fast) var(--gh-ease-standard);
+}
+
+.wp-lb__close:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.wp-lb__theme {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 3px 9px;
+  border-radius: var(--gh-radius-sm);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.wp-lb__title {
+  margin: 14px 0 0;
+  font-size: 22px;
+  font-weight: var(--gh-weight-semibold);
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.wp-lb__desc {
+  margin: 10px 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm);
+  line-height: 1.8;
+}
+
+.wp-lb__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  margin: 24px 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.wp-lb__meta div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 3px;
+}
+
+.wp-lb__meta dt {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.wp-lb__meta dd {
+  margin: 0;
+  font-family: var(--gh-font-mono);
+  font-size: 12.5px;
+  color: var(--color-text-primary);
+}
+
+.wp-lb__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wp-lb__actions .btn {
+  width: 100%;
+}
+
+.wp-lb__hint {
+  margin: 16px 0 0;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* ---------- Toast ---------- */
+.wp-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: var(--gh-z-toast);
+  transform: translateX(-50%);
+  padding: 11px 18px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-full);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-size: var(--gh-font-size-body-sm);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1024px) {
+  .wp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 861px) {
+  .wp-arc {
+    --card-w: clamp(230px, 30vw, 300px);
+  }
+}
+
+@media (max-width: 860px) {
+  /* 小屏顶栏比桌面高（导航 78px + 公告 36px），多减 24px，保证环形不被首屏截断 */
+  .wp-stage__inner {
+    min-height: calc(100vh - var(--gh-header-h) - 60px);
+    min-height: calc(100svh - var(--gh-header-h) - 60px);
+  }
+
+  .wp-head {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .wp-title,
+  .wp-lede,
+  .wp-facts {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .wp-facts {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: start;
+    gap: 14px 36px;
+    margin-top: 32px;
+    padding-bottom: 0;
+  }
+
+  .wp-facts li {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 7px;
+  }
+
+  .wp-facts strong {
+    font-size: 15px;
+  }
+
+  .wp-facts span {
+    font-size: var(--gh-font-size-body-sm);
+  }
+
+  .wp-arc {
+    --card-w: min(46vw, 300px);
+  }
+
+  .wp-browse__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .wp-filters {
+    width: 100%;
+    max-width: 100%;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+  }
+
+  .wp-lb {
+    width: calc(100vw - 24px);
+    max-height: 92vh;
+    border-radius: 12px;
+  }
+
+  .wp-lb__panel {
+    grid-template-columns: 1fr;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .wp-lb__img {
+    max-height: 54vh;
+  }
+
+  .wp-lb__side {
+    border-left: 0;
+    border-top: 1px solid var(--color-border-subtle);
+    padding: 22px 20px 24px;
+  }
+
+  .wp-note__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .wp-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .wp-arc {
+    --card-w: min(58vw, 280px);
+  }
+
+  .wp-stage .wp-lede {
+    max-width: 34ch;
+    font-size: 15px;
+  }
+
+  .wp-card__dl {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (hover: none) {
+  .wp-card__dl {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wp-card__media,
+  .wp-card__img,
+  .wp-card__dl,
+  .wp-arc__card,
+  .wp-arc__frame {
+    transition: none !important;
+  }
+
+  .wp-card:hover .wp-card__img {
+    transform: none;
+  }
+}
