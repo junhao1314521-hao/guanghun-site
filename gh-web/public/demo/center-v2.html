@@ -290,34 +290,61 @@
   .mod p{font-size:15px;line-height:1.8;color:var(--sub)}
   .mod-no{position:absolute;right:24px;top:22px;font-family:var(--mono);font-size:13px;color:var(--dim)}
 
-  /* ---------- 固定镜头 ---------- */
-  .stage{height:400vh;position:relative}
-  .stage-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
-  .stage-inner{display:grid;grid-template-columns:minmax(0,.36fr) minmax(0,.64fr);gap:56px;align-items:center}
+  /* ---------- 六组参数：横向卡片轨道 ---------- */
+  .stage{position:relative;padding:clamp(72px,9vh,112px) 0;overflow:hidden}
+  .stage-head{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:clamp(36px,4vw,52px)}
   .stage-copy h2{font-size:clamp(30px,3.2vw,46px);line-height:1.2}
-  .stage-copy p{margin-top:18px;color:var(--sub);font-size:16px;max-width:340px}
-  .steps{display:flex;flex-direction:column;gap:18px;margin-top:34px}
-  .step{display:flex;gap:12px;font-size:14px;color:var(--dim);transition:color .3s}
-  .step b{font-family:var(--mono);font-weight:400;color:var(--dim);transition:color .3s}
-  .step.on{color:var(--text)}
-  .step.on b{color:var(--cyan)}
-  .stage-view{perspective:1200px;position:relative}
-  .stage-window{border-radius:12px;border:1px solid rgba(255,255,255,.14);overflow:hidden;position:relative;
-    aspect-ratio:16/10;background:#06080d url('/media/center/app/basic.webp') center/cover no-repeat;
-    box-shadow:0 44px 110px rgba(0,0,0,.72),0 0 80px rgba(60,150,255,.12);
-    transform:rotateX(var(--rx,9deg)) rotateY(var(--ry,-15deg)) scale(var(--sc,.93));
-    transform-origin:50% 50%;will-change:transform}
-  .stage-window::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 30%,transparent 72%,rgba(91,117,245,.08));pointer-events:none}
-  .callouts{position:absolute;inset:0;pointer-events:none;z-index:5}
-  .callout{position:absolute;right:2%;display:flex;align-items:center;gap:10px;opacity:0;transform:translateX(14px);transition:opacity .5s,transform .5s}
-  .callout::before{content:"";width:56px;height:1px;background:linear-gradient(90deg,transparent,rgba(91,117,245,.7))}
-  .callout span{font-size:15px;color:var(--text);background:rgba(6,10,18,.78);border:1px solid rgba(91,117,245,.22);padding:8px 13px;border-radius:8px;backdrop-filter:blur(8px)}
-  .callout.on{opacity:1;transform:none}
-  /* 当前一条保持高亮，已经过去的标注降为背景，避免三条同时抢视线 */
-  .callout.on.dim{opacity:.28}
-  .callout:nth-child(1){top:22%}
-  .callout:nth-child(2){top:48%}
-  .callout:nth-child(3){top:72%}
+  .stage-copy p{margin-top:16px;color:var(--sub);font-size:16px;line-height:1.8;max-width:430px}
+  .stage-ctrl{display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex:none;padding-bottom:4px}
+  .stage-count{display:flex;align-items:baseline;gap:6px;font-family:var(--mono)}
+  .stage-count b{font-size:32px;font-weight:400;color:var(--text);letter-spacing:-.03em}
+  .stage-count i{font-style:normal;font-size:13px;color:var(--dim)}
+  .stage-arrows{display:flex;gap:8px}
+  .stage-arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;font-size:15px;line-height:1;
+    display:grid;place-items:center;transition:border-color .25s,background .25s}
+  .stage-arrow:hover{border-color:rgba(91,117,245,.55);background:rgba(91,117,245,.12)}
+  .stage-arrow:focus-visible{outline:2px solid rgba(147,164,248,.85);outline-offset:3px}
+
+  /* 轨道本身不裁圆角，靠整段 overflow:hidden 把左右卡片切在视口边缘 */
+  .stage-rail{--stage-w:clamp(300px,42vw,560px);position:relative;overflow:hidden;cursor:grab;
+    touch-action:pan-y;user-select:none;-webkit-user-select:none;outline:none}
+  .stage-rail.dragging{cursor:grabbing}
+  .stage-rail:focus-visible{outline:2px solid rgba(147,164,248,.55);outline-offset:6px;border-radius:18px}
+  .stage-track{display:flex;align-items:flex-start;gap:clamp(18px,2.2vw,30px);
+    padding-inline:max(24px,calc(50vw - var(--stage-w)/2));will-change:transform}
+  /* 非当前卡缩小后退，当前卡回到原尺寸并变亮 */
+  .stage-card{position:relative;flex:none;width:var(--stage-w);padding:0;border:0;background:none;
+    text-align:left;color:var(--text);cursor:pointer;opacity:.42;
+    transform:scale(.88) translateY(10px);transform-origin:50% 50%;
+    transition:opacity .5s var(--ease),transform .5s var(--ease)}
+  .stage-card.on{opacity:1;transform:none}
+  .stage-card:not(.on):hover{opacity:.68}
+  .stage-card:focus-visible{outline:none}
+  .stage-card:focus-visible .stage-card__shot{outline:2px solid rgba(147,164,248,.85);outline-offset:4px}
+  .stage-card__shot{display:block;margin:0;position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.14);background:#06080d;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);transition:box-shadow .5s,border-color .5s}
+  .stage-card.on .stage-card__shot{border-color:rgba(255,255,255,.2);
+    box-shadow:0 40px 100px rgba(0,0,0,.65),0 0 60px rgba(60,150,255,.12)}
+  .stage-card__shot::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 32%,transparent 72%,rgba(91,117,245,.08))}
+  .stage-card__shot img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+  /* 说明叠加在截图底部：只有当前卡显示，避免轨道整体过高 */
+  .stage-card__meta{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:flex-start;gap:12px;
+    padding:54px 20px 18px;opacity:0;transform:translateY(10px);pointer-events:none;
+    background:linear-gradient(0deg,rgba(4,6,12,.9),rgba(4,6,12,.52) 48%,transparent);
+    transition:opacity .45s var(--ease),transform .45s var(--ease)}
+  .stage-card.on .stage-card__meta{opacity:1;transform:none}
+  .stage-card__meta > b{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:.06em;color:var(--cyan);line-height:1.6;padding-top:2px}
+  .stage-card__text{display:block;min-width:0}
+  .stage-card__title{display:block;font-size:18px;font-weight:600;letter-spacing:-.01em;line-height:1.4}
+  .stage-card__desc{display:block;margin-top:2px;font-size:13.5px;line-height:1.6;color:rgba(223,232,246,.74)}
+  .stage-foot{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:26px}
+  .stage-dots{display:flex;align-items:center;gap:8px}
+  .stage-dot{width:16px;height:2px;border-radius:2px;background:rgba(255,255,255,.16);transition:width .35s,background .35s}
+  .stage-dot.on{width:34px;background:var(--cyan)}
+  .stage-hint{margin:0;font-size:12px;letter-spacing:.06em;color:var(--dim)}
 
   /* ---------- 界面细节（滚动放大） ---------- */
   .zoom{height:320vh;position:relative}
@@ -586,11 +613,14 @@
     .statement{padding:120px 0 100px}
     .mod-grid{grid-template-columns:1fr 1fr}
     .mod{min-height:280px}
-    .stage{height:auto}
-    .stage-sticky{position:static;height:auto;padding:80px 0}
-    .stage-inner{grid-template-columns:1fr;gap:40px}
-    .stage-window{transform:none}
-    .callouts{display:none}
+    .stage{padding:80px 0}
+    .stage-head{flex-direction:column;align-items:flex-start;gap:24px}
+    .stage-ctrl{flex-direction:row;align-items:center;justify-content:space-between;width:100%}
+    .stage-rail{--stage-w:min(82vw,420px)}
+    .stage-card__meta{padding:54px 16px 16px;gap:10px}
+    .stage-card__title{font-size:16px}
+    .stage-card__desc{font-size:12.5px}
+    .stage-foot{margin-top:20px}
     .zoom{height:auto}
     .zoom-sticky{position:static;height:auto;padding:80px 0}
     .zoom-inner{grid-template-columns:1fr;gap:32px}
@@ -817,28 +847,48 @@
     </div>
   </section>
 
-  <!-- 固定镜头 -->
+  <!-- 六组参数：横向卡片轨道 -->
   <section class="stage" id="stage">
-    <div class="stage-sticky">
-      <div class="wrap stage-inner">
-        <div class="stage-copy reveal">
-          <h2>六组参数，<br />一条路径。</h2>
-          <p>从基本功能开始，往下是电竞设置、专业设置、图像调节、输入源与系统设置。切到哪一组，右侧就只排这一组参数。</p>
-          <div class="steps">
-            <div class="step" data-step="0"><b>01</b><span>基本功能：分辨率、亮度与预设</span></div>
-            <div class="step" data-step="1"><b>02</b><span>专业设置：六轴色调与饱和度</span></div>
-            <div class="step" data-step="2"><b>03</b><span>系统设置：音量、语言与更新</span></div>
-          </div>
-        </div>
-        <div class="stage-view">
-          <div class="stage-window" id="stageWin"></div>
-          <div class="callouts">
-            <div class="callout" data-at="0.72"><span>6 个模块，覆盖显示到设备</span></div>
-            <div class="callout" data-at="0.85"><span>改动即时写入，没有保存按钮</span></div>
-            <div class="callout" data-at="0.97"><span>机型与当前输入源自动读取</span></div>
-          </div>
+    <div class="wrap stage-head reveal">
+      <div class="stage-copy">
+        <h2>六组参数，<br />一条路径。</h2>
+        <p>从基本功能开始，往下是电竞设置、专业设置、图像调节、输入源与系统设置。拖动轨道，当前卡片会停在中间并展开说明。</p>
+      </div>
+      <div class="stage-ctrl">
+        <span class="stage-count"><b id="stageNow">01</b><i>/ 06</i></span>
+        <div class="stage-arrows">
+          <button class="stage-arrow" type="button" data-dir="-1" aria-label="上一组参数">←</button>
+          <button class="stage-arrow" type="button" data-dir="1" aria-label="下一组参数">→</button>
         </div>
       </div>
+    </div>
+    <div class="stage-rail" id="stageRail" role="group" aria-roledescription="卡片轨道" aria-label="六组参数，可拖动浏览" tabindex="0">
+      <div class="stage-track" id="stageTrack">
+        <button class="stage-card on" type="button" aria-pressed="true">
+          <span class="stage-card__shot"><img src="/media/center/app/basic.webp" alt="Center 基本功能界面" draggable="false" /><span class="stage-card__meta"><b>01</b><span class="stage-card__text"><span class="stage-card__title">基本功能</span><span class="stage-card__desc">分辨率、亮度与预设</span></span></span></span>
+        </button>
+        <button class="stage-card" type="button" aria-pressed="false">
+          <span class="stage-card__shot"><img src="/media/center/app/gaming.webp" alt="Center 电竞设置界面" draggable="false" /><span class="stage-card__meta"><b>02</b><span class="stage-card__text"><span class="stage-card__title">电竞设置</span><span class="stage-card__desc">暗部增强、准心与刷新率显示</span></span></span></span>
+        </button>
+        <button class="stage-card" type="button" aria-pressed="false">
+          <span class="stage-card__shot"><img src="/media/center/app/pro.webp" alt="Center 专业设置界面" draggable="false" /><span class="stage-card__meta"><b>03</b><span class="stage-card__text"><span class="stage-card__title">专业设置</span><span class="stage-card__desc">六轴色调与饱和度</span></span></span></span>
+        </button>
+        <button class="stage-card" type="button" aria-pressed="false">
+          <span class="stage-card__shot"><img src="/media/center/app/image.webp" alt="Center 图像调节界面" draggable="false" /><span class="stage-card__meta"><b>04</b><span class="stage-card__text"><span class="stage-card__title">图像调节</span><span class="stage-card__desc">色域空间、色温与低蓝光</span></span></span></span>
+        </button>
+        <button class="stage-card" type="button" aria-pressed="false">
+          <span class="stage-card__shot"><img src="/media/center/app/input.webp" alt="Center 输入源界面" draggable="false" /><span class="stage-card__meta"><b>05</b><span class="stage-card__text"><span class="stage-card__title">输入源</span><span class="stage-card__desc">双 DP、双 HDMI 与 USB-C</span></span></span></span>
+        </button>
+        <button class="stage-card" type="button" aria-pressed="false">
+          <span class="stage-card__shot"><img src="/media/center/app/system.webp" alt="Center 系统设置界面" draggable="false" /><span class="stage-card__meta"><b>06</b><span class="stage-card__text"><span class="stage-card__title">系统设置</span><span class="stage-card__desc">音量、语言与更新</span></span></span></span>
+        </button>
+      </div>
+    </div>
+    <div class="wrap stage-foot reveal">
+      <div class="stage-dots" aria-hidden="true">
+        <i class="stage-dot on"></i><i class="stage-dot"></i><i class="stage-dot"></i><i class="stage-dot"></i><i class="stage-dot"></i><i class="stage-dot"></i>
+      </div>
+      <p class="stage-hint">拖动浏览 · 点击卡片切换</p>
     </div>
   </section>
 
@@ -1471,39 +1521,158 @@
   }
   requestAnimationFrame(heroLoop);
 
-  /* ---------- 固定镜头 ---------- */
-  var stage = document.querySelector('.stage');
-  var stageWin = document.getElementById('stageWin');
-  var callouts = Array.prototype.slice.call(document.querySelectorAll('.callout'));
-  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
-  /** 固定镜头段：按滚动进度翻转窗口，并同步点亮对应标注与步骤 */
-  function stageLoop() {
-    if (!stage || !stageWin) return;
-    var r = stage.getBoundingClientRect();
-    var total = r.height - window.innerHeight;
-    var p = total > 0 ? Math.max(0, Math.min(1, -r.top / total)) : 0;
-    // 旋转在 p=0.72 前完成：之后界面已完全摆正，标注才允许出现
-    var rot = Math.min(1, p / .72);
-    // 初始 3/4 侧视（轻微俯仰 + 向左转 15°），滚动过程中摆正并推近；
-    // 不再用 58° 大角度翻转——那种角度会把界面压成难以辨认的深色平行四边形
-    var rx = 9 * (1 - rot), ry = -15 + 15 * rot, sc = .93 + .15 * rot;
-    stageWin.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-    stageWin.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-    stageWin.style.setProperty('--sc', sc.toFixed(3));
-    callouts.forEach(function (el, i) {
-      var at = Number(el.getAttribute('data-at'));
-      var next = callouts[i + 1] ? Number(callouts[i + 1].getAttribute('data-at')) : 2;
-      var on = p >= at;
-      // 仅在界面摆正后按顺序出现；进入下一条后，上一条降为背景
-      el.classList.toggle('on', on);
-      el.classList.toggle('dim', on && p >= next);
+  /* ---------- 六组参数：横向卡片轨道 ---------- */
+  (function () {
+    var rail = document.getElementById('stageRail');
+    var track = document.getElementById('stageTrack');
+    if (!rail || !track) return;
+    var cards = Array.prototype.slice.call(track.querySelectorAll('.stage-card'));
+    var nowEl = document.getElementById('stageNow');
+    var dots = Array.prototype.slice.call(document.querySelectorAll('.stage-dot'));
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var index = 0;
+    var x = 0;
+    var drag = null;
+
+    /** 预加载六张界面图，拖动时不再闪白 */
+    cards.forEach(function (card) {
+      var img = card.querySelector('img');
+      if (img) { var pre = new Image(); pre.src = img.getAttribute('src'); }
     });
-    steps.forEach(function (el) {
-      var i = Number(el.getAttribute('data-step'));
-      var on = (i === 0 && p < .40) || (i === 1 && p >= .40 && p < .72) || (i === 2 && p >= .72);
-      el.classList.toggle('on', on);
+
+    function centerOf(i) {
+      var card = cards[i];
+      return card.offsetLeft + card.offsetWidth / 2;
+    }
+    /** 让第 i 张卡正好落在轨道中线所需的位移 */
+    function offsetOf(i) {
+      return rail.clientWidth / 2 - centerOf(i);
+    }
+    /** 给定位移，找离中线最近的那张卡 */
+    function closestIndex(pos) {
+      var mid = rail.clientWidth / 2 - pos;
+      var best = 0;
+      var dist = Infinity;
+      for (var i = 0; i < cards.length; i++) {
+        var d = Math.abs(centerOf(i) - mid);
+        if (d < dist) { dist = d; best = i; }
+      }
+      return best;
+    }
+    function paint(i) {
+      index = i;
+      cards.forEach(function (card, k) {
+        card.classList.toggle('on', k === i);
+        card.setAttribute('aria-pressed', k === i ? 'true' : 'false');
+      });
+      if (nowEl) nowEl.textContent = ('0' + (i + 1)).slice(-2);
+      dots.forEach(function (dot, k) { dot.classList.toggle('on', k === i); });
+    }
+    function moveTo(pos, animate) {
+      x = pos;
+      track.style.transition = animate && !reduce ? 'transform .58s cubic-bezier(.22,.8,.2,1)' : 'none';
+      track.style.transform = 'translate3d(' + pos.toFixed(2) + 'px,0,0)';
+    }
+    function go(i, animate) {
+      i = Math.max(0, Math.min(cards.length - 1, i));
+      paint(i);
+      moveTo(offsetOf(i), animate);
+    }
+    /** 取当前实际位移（吸附动画进行中被打断时不会跳一下） */
+    function currentX() {
+      var t = getComputedStyle(track).transform;
+      if (!t || t === 'none') return x;
+      try { return new DOMMatrixReadOnly(t).m41; } catch (err) { return x; }
+    }
+
+    function onDown(e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      var card = e.target.closest ? e.target.closest('.stage-card') : null;
+      var base = currentX();
+      drag = {
+        id: e.pointerId, x: e.clientX, y: e.clientY, base: base,
+        axis: null, moved: 0, card: card ? cards.indexOf(card) : -1,
+        samples: [{ x: e.clientX, t: performance.now() }]
+      };
+      track.style.transition = 'none';
+      track.style.transform = 'translate3d(' + base + 'px,0,0)';
+      x = base;
+      rail.classList.add('dragging');
+      rail.setPointerCapture(e.pointerId);
+    }
+    function onMove(e) {
+      if (!drag || drag.id !== e.pointerId) return;
+      var dx = e.clientX - drag.x;
+      var dy = e.clientY - drag.y;
+      if (!drag.axis) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        // 先动的是纵向就交回页面滚动
+        drag.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      }
+      if (drag.axis === 'y') { drag.moved = 99; return; }
+      drag.moved = Math.max(drag.moved, Math.abs(dx));
+      var pos = drag.base + dx;
+      track.style.transform = 'translate3d(' + pos.toFixed(2) + 'px,0,0)';
+      x = pos;
+      var near = closestIndex(pos);
+      if (near !== index) paint(near);
+      var now = performance.now();
+      drag.samples.push({ x: e.clientX, t: now });
+      while (drag.samples.length > 2 && now - drag.samples[0].t > 120) drag.samples.shift();
+    }
+    function onUp(e) {
+      if (!drag || drag.id !== e.pointerId) return;
+      var d = drag;
+      drag = null;
+      rail.classList.remove('dragging');
+      if (rail.hasPointerCapture(e.pointerId)) rail.releasePointerCapture(e.pointerId);
+      if (d.axis === 'y') { go(index, true); return; }
+      // 位移小于 6px 视为点击：点哪张就把哪张移到中线
+      if (d.moved < 6) {
+        if (d.card >= 0) go(d.card, true);
+        return;
+      }
+      var step = cards.length > 1 ? cards[1].offsetLeft - cards[0].offsetLeft : 1;
+      var shift = 0;
+      if (!reduce && d.samples.length >= 2) {
+        var a = d.samples[0];
+        var b = d.samples[d.samples.length - 1];
+        var v = (b.x - a.x) / Math.max(1, b.t - a.t);
+        // 200ms 惯性投影，最多 3 张（x 与手势同向，向左拖继续向左）
+        shift = Math.max(-3 * step, Math.min(3 * step, v * 200));
+        if (Math.abs(shift) < step * 0.3) shift = 0;
+      }
+      go(closestIndex(x + shift), true);
+    }
+
+    rail.addEventListener('pointerdown', onDown);
+    rail.addEventListener('pointermove', onMove);
+    rail.addEventListener('pointerup', onUp);
+    rail.addEventListener('pointercancel', onUp);
+
+    cards.forEach(function (card) {
+      card.addEventListener('click', function (e) {
+        // 指针点击已在 pointerup 处理；这里只接键盘 Enter / Space
+        if (e.detail === 0) go(cards.indexOf(card), true);
+      });
     });
-  }
+    Array.prototype.forEach.call(document.querySelectorAll('.stage-arrow'), function (btn) {
+      btn.addEventListener('click', function () {
+        go(index + Number(btn.getAttribute('data-dir')), true);
+      });
+    });
+    rail.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+      else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+      else if (e.key === 'End') { e.preventDefault(); go(cards.length - 1, true); }
+    });
+
+    requestAnimationFrame(function () { go(0, false); });
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { moveTo(offsetOf(index), false); }).observe(rail);
+    }
+  })();
 
   /* ---------- 界面细节：滚动推近 ---------- */
   var zoom = document.querySelector('.zoom');
@@ -1594,7 +1763,6 @@
     ticking = true;
     requestAnimationFrame(function () {
       standUp();
-      stageLoop();
       zoomLoop();
       syncIndex();
       ticking = false;
@@ -1602,7 +1770,7 @@
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', function () { measureMods(); onScroll(); });
-  standUp(); stageLoop(); zoomLoop(); syncIndex();
+  standUp(); zoomLoop(); syncIndex();
 
   /* ---------- 卡片聚光 ---------- */
   document.querySelectorAll('.mod').forEach(function (el) {
