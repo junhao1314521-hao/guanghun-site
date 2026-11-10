@@ -71,14 +71,14 @@ function DownloadIcon() {
   )
 }
 
-/** 水平步距 = 0.96 × 卡宽：两侧卡片向内旋转后视觉变窄，收紧后仍不重叠 */
-const ARC_STEP = 0.96
-/** 弧线深度：y = 30 × |k|^1.3（px），越往两侧越低，形成包围感 */
-const ARC_DROP = 30
+/** 水平步距 = 0.55 × 卡宽：环形排列必然近邻重叠，前后遮挡本身就是纵深线索 */
+const ARC_STEP = 0.55
+/** 弧线下沉：y = 18 × |k|^1.15（px），向外逐级下坠 */
+const ARC_DROP = 18
 /** 每张卡的向内旋转角度（度），|k| 越大越转向弧心 */
-const ARC_TILT = 24
+const ARC_TILT = 44
 /** 超出该距离的卡片完全淡出并移出焦点顺序 */
-const ARC_FADE_END = 4.2
+const ARC_FADE_END = 2.6
 
 /**
  * 环绕式封面流：卡片沿一条向内收拢的弧面排布，中心卡最大、最高、正对镜头，
@@ -141,16 +141,18 @@ function WallpaperArc({
       k = ((k % total) + total) % total
       if (k > total / 2) k -= total
       const abs = Math.abs(k)
+      // 环形几何：x 线性逼近、z 逐级后退、rotateY 内转。
+      // 缩放交给 perspective 计算，不再手写 scale，卡片才会真的“退到空间里”。
       const x = k * ARC_STEP * cardW
-      const y = ARC_DROP * Math.pow(abs, 1.3)
-      const scale = 1 / (1 + 0.13 * abs)
-      const tilt = Math.max(-56, Math.min(56, -ARC_TILT * k))
+      const y = ARC_DROP * Math.pow(abs, 1.15)
+      const z = 30 - abs * 0.5 * cardW
+      const tilt = Math.max(-88, Math.min(88, -ARC_TILT * k))
       const visible = abs < ARC_FADE_END
-      // --w 是「居中权重」：中心 1、偏离 0.9 张卡后为 0，用于平滑插值描边与亮度
-      const weight = Math.max(0, 1 - abs / 0.9)
+      // --w 是「居中权重」：中心 1、两侧递减，用于插值描边、亮度与景深压暗
+      const weight = Math.max(0, 1 - abs / 2.2)
       el.style.transform =
-        `translate(-50%, 0) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) ` +
-        `rotateY(${tilt.toFixed(2)}deg) scale(${scale.toFixed(4)})`
+        `translate(-50%, 0) translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, ${z.toFixed(2)}px) ` +
+        `rotateY(${tilt.toFixed(2)}deg)`
       el.style.opacity = visible ? String(Math.min(1, (ARC_FADE_END - abs) / 1)) : '0'
       el.style.visibility = visible ? 'visible' : 'hidden'
       el.style.pointerEvents = visible ? '' : 'none'
@@ -549,24 +551,46 @@ export function WallpapersPage() {
   return (
     <div className="wp-page" ref={rootRef}>
       {feature ? (
-        /* 首屏舞台：固定宽屏背景 + 居中文案 + 环绕式封面流；背景用未模糊的大图，纯装饰，不响应点击 */
+        /* 首屏舞台：未模糊背景 + 左上文案 + 底部环绕封面流；背景纯装饰，不响应点击 */
         <section className="wp-stage" aria-labelledby="wp-title">
           <div
             className="wp-stage__bg"
             style={{ backgroundImage: `url(${feature.previewUrl ?? feature.fileUrl})` }}
             aria-hidden="true"
           />
-          <span className="wp-stage__veil" aria-hidden="true" />
 
           <div className="container wp-stage__inner">
-            <div className="wp-stage__copy">
-              <h1 id="wp-title" className="wp-title">品牌壁纸</h1>
-              <p className="wp-lede">
-                从星海、赛博到秘境，16:9 桌面壁纸。免登录、无水印，挑一张留给你的桌面。
-              </p>
-              <div className="wp-stage__cta">
-                <a className="btn btn--primary btn--lg" href="#wp-all">浏览全部壁纸</a>
+            <div className="wp-stage__top">
+              <div className="wp-stage__copy">
+                <p className="wp-eyebrow">Brand Wallpapers</p>
+                <h1 id="wp-title" className="wp-title">品牌壁纸</h1>
+                <p className="wp-lede">
+                  从星海、赛博到秘境，16:9 桌面壁纸。
+                  <br />
+                  免登录、无水印，选一张留给你的桌面。
+                </p>
+                <a className="wp-cta" href="#wp-all">
+                  浏览全部壁纸
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
               </div>
+
+              <ul className="wp-stage__meta">
+                <li>
+                  <span>Collection</span>
+                  <strong>{items.length || '—'} 张</strong>
+                </li>
+                <li>
+                  <span>Themes</span>
+                  <strong>{themeCount || '—'} 个主题</strong>
+                </li>
+                <li>
+                  <span>Ratio</span>
+                  <strong>16 : 9</strong>
+                </li>
+              </ul>
             </div>
 
             <WallpaperArc

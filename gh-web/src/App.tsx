@@ -36,6 +36,7 @@ const ArticlesPage = lazy(() => import('./pages/ArticlesPage').then((m) => ({ de
 const NewsPage = lazy(() => import('./pages/NewsPage').then((m) => ({ default: m.NewsPage })))
 const ArticleDetailPage = lazy(() => import('./pages/ArticleDetailPage').then((m) => ({ default: m.ArticleDetailPage })))
 const DownloadsPage = lazy(() => import('./pages/DownloadsPage').then((m) => ({ default: m.DownloadsPage })))
+const WallpapersPage = lazy(() => import('./pages/WallpapersPage').then((m) => ({ default: m.WallpapersPage })))
 const DownloadDetailPage = lazy(() => import('./pages/DownloadDetailPage').then((m) => ({ default: m.DownloadDetailPage })))
 const FaqPage = lazy(() => import('./pages/FaqPage').then((m) => ({ default: m.FaqPage })))
 const FaqDetailPage = lazy(() => import('./pages/FaqDetailPage').then((m) => ({ default: m.FaqDetailPage })))
@@ -97,6 +98,9 @@ const AdminDeviceReviewsPage = lazy(() =>
 )
 const AdminRankingsImportPage = lazy(() =>
   import('./pages/admin/AdminRankingsImportPage').then((m) => ({ default: m.AdminRankingsImportPage })),
+)
+const AdminWallpapersPage = lazy(() =>
+  import('./pages/admin/AdminWallpapersPage').then((m) => ({ default: m.AdminWallpapersPage })),
 )
 const AdminNotFound = lazy(() => import('./components/admin/AdminNotFound').then((m) => ({ default: m.AdminNotFound })))
 
@@ -300,6 +304,7 @@ function AppShell() {
               <Route path="/support/models" element={<ModelSupportIndexPage />} />
               <Route path="/support/model/:id" element={<ModelSupportPage />} />
               <Route path="/downloads" element={<DownloadsPage />} />
+              <Route path="/wallpapers" element={<WallpapersPage />} />
               <Route path="/downloads/:id" element={<DownloadDetailPage />} />
               <Route path="/faq" element={<FaqPage />} />
               <Route path="/faq/:id" element={<FaqDetailPage />} />
@@ -385,6 +390,8 @@ function AdminArea() {
                 <Route path="rankings-import" element={<AdminRankingsImportPage />} />
                 {/* 页面装修器：须先于通用 `:key/:id` 声明（三段路径，取更具体者） */}
                 <Route path="pages/:key/builder" element={<AdminPageBuilderPage />} />
+                {/* 品牌壁纸：自定义列表（批量上传 / 替换 / 主题快捷编辑），须先于通用 `:key` 声明 */}
+                <Route path="wallpapers" element={<AdminWallpapersPage />} />
                 <Route path=":key/new" element={<AdminResourceFormPage />} />
                 <Route path=":key/:id" element={<AdminResourceFormPage />} />
                 <Route path=":key" element={<AdminResourceListPage />} />

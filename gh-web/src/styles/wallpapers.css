@@ -70,51 +70,40 @@
   color: var(--color-text-tertiary);
 }
 
-/* ---------- 首屏舞台：固定宽屏背景 + 居中文案 + 3D 弧形封面流 ---------- */
+/* ---------- 首屏舞台：全幅背景 + 上方文案 + 底部环形封面流 ---------- */
 .wp-stage {
   position: relative;
   overflow: hidden;
-  background: #08090c;
+  /* 底色 = 页面底色：背景图底部渐隐后直接融进页面，没有分界线 */
+  background: var(--color-bg-page);
   isolation: isolate;
 }
 
-/* 背景用未模糊的精选大图铺满，跟着舞台一起滚走；不做 background-attachment: fixed（iOS 会退化） */
+/* 背景用未模糊的精选大图铺满，中间区域完整露出，只在底部用遮罩淡出 */
 .wp-stage__bg {
   position: absolute;
   inset: 0;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
   background-size: cover;
-}
-
-/* 卡片下方一层品牌色雾光，把弧形封面从深色背景里托起来 */
-.wp-stage::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: min(1280px, 94vw);
-  height: 52%;
-  transform: translateX(-50%);
-  background: radial-gradient(58% 100% at 50% 100%, rgba(32, 64, 237, 0.26), rgba(32, 64, 237, 0) 72%);
-  pointer-events: none;
-}
-
-/* 背景未模糊，遮罩只在文案位置压暗一块 + 收一下上下边缘，画面细节仍然清晰 */
-.wp-stage__veil {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(6, 7, 11, 0.2), rgba(6, 7, 11, 0.2)),
-    radial-gradient(52% 36% at 50% 26%, rgba(8, 9, 12, 0.72), rgba(8, 9, 12, 0) 72%),
-    radial-gradient(120% 92% at 50% 26%, rgba(8, 9, 12, 0) 30%, rgba(8, 9, 12, 0.36) 100%),
-    linear-gradient(
-      180deg,
-      rgba(8, 9, 12, 0.5) 0%,
-      rgba(8, 9, 12, 0.18) 32%,
-      rgba(8, 9, 12, 0.46) 64%,
-      rgba(8, 9, 12, 0.92) 100%
-    );
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 74%,
+    rgba(0, 0, 0, 0.88) 82%,
+    rgba(0, 0, 0, 0.55) 89%,
+    rgba(0, 0, 0, 0.2) 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 74%,
+    rgba(0, 0, 0, 0.88) 82%,
+    rgba(0, 0, 0, 0.55) 89%,
+    rgba(0, 0, 0, 0.2) 94%,
+    transparent 100%
+  );
 }
 
 .wp-stage__inner {
@@ -122,88 +111,175 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   /* 顶部常驻条 = 公告栏 36px + 导航 54px，留出后再撑满一屏 */
   min-height: calc(100vh - var(--gh-header-h) - 36px);
   min-height: calc(100svh - var(--gh-header-h) - 36px);
-  padding-top: clamp(32px, 6vh, 72px);
-  padding-bottom: clamp(32px, 6vh, 64px);
-  /* 文案与弧线作为一组居中，间距 48–72px */
-  gap: clamp(48px, 6.5vh, 72px);
+  padding-top: clamp(44px, 7vh, 96px);
+  padding-bottom: clamp(56px, 7vh, 84px);
 }
 
-/* 文案排版对齐首页轮播海报：居中、小标题、一行说明、单颗主按钮 */
-.wp-stage__copy {
+/* 顶部一条：左侧文案 + 右侧参数，中间整块留给背景画面 */
+.wp-stage__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: clamp(40px, 6vw, 88px);
   width: 100%;
+}
+
+.wp-stage__copy {
   max-width: 620px;
-  margin-inline: auto;
-  text-align: center;
+  text-align: left;
+}
+
+.wp-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 clamp(14px, 1.8vh, 20px);
+  font-family: var(--gh-font-mono);
+  font-size: 11px;
+  font-weight: var(--gh-weight-medium);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 2px 16px rgba(0, 0, 0, 0.8);
+}
+
+/* 眉题前的一条短线：给悬浮文案一个"排版锚点"，不再是纯居中的大白字 */
+.wp-eyebrow::before {
+  content: '';
+  width: 34px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .wp-stage .wp-title {
-  margin: 0 0 6px;
-  color: #fafafb;
-  font-size: clamp(28px, 2.25vw, 34px);
+  margin: 0;
+  color: #fff;
+  font-size: clamp(40px, 4.9vw, 68px);
   font-weight: var(--gh-weight-semibold);
-  line-height: 1.14;
-  letter-spacing: -0.022em;
-  text-align: center;
-  text-wrap: balance;
+  line-height: 1.04;
+  letter-spacing: -0.042em;
+  text-align: left;
+  text-shadow:
+    0 2px 44px rgba(0, 0, 0, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .wp-stage .wp-lede {
-  margin: 0 0 16px;
-  max-width: 46ch;
-  margin-inline: auto;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 18px;
-  line-height: 1.5;
-  text-align: center;
-  text-wrap: balance;
+  margin: clamp(14px, 2vh, 22px) 0 0;
+  max-width: 30ch;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: clamp(15px, 1.05vw, 16.5px);
+  line-height: 1.8;
+  text-align: left;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.62),
+    0 2px 26px rgba(0, 0, 0, 0.55);
 }
 
-.wp-stage__cta {
-  display: flex;
+/* 白色实心小胶囊：在杂色背景上给 CTA 一个稳定、干净的落点 */
+.wp-cta {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.wp-stage__cta .btn {
-  height: 40px;
+  gap: 9px;
+  height: 42px;
+  margin-top: clamp(20px, 2.6vh, 30px);
   padding: 0 20px;
-  font-size: 15px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.94);
+  color: #10131c;
+  font-size: 13.5px;
+  font-weight: var(--gh-weight-medium);
+  text-decoration: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  transition:
+    background 0.25s var(--gh-ease-standard),
+    box-shadow 0.25s var(--gh-ease-standard),
+    transform 0.25s var(--gh-ease-standard);
 }
 
-/* 舞台下缘的一行操作提示：贴底居中、极轻的品牌色发光，不再压在背景主体上 */
+.wp-cta:hover {
+  background: #fff;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.wp-cta svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s var(--gh-ease-standard);
+}
+
+.wp-cta:hover svg {
+  transform: translateX(3px);
+}
+
+/* 右上参数：给画面一丝产品目录感，也让右侧不至于空 */
+.wp-stage__meta {
+  display: grid;
+  gap: clamp(14px, 2vh, 22px);
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: right;
+}
+
+.wp-stage__meta li {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wp-stage__meta span {
+  font-family: var(--gh-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.68);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 16px rgba(0, 0, 0, 0.75);
+}
+
+.wp-stage__meta strong {
+  font-family: var(--gh-font-mono);
+  font-size: 13px;
+  font-weight: var(--gh-weight-regular);
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 16px rgba(0, 0, 0, 0.8);
+}
+
+/* 卡片下沿的操作提示：落在底部渐隐后的浅色带上，用深墨色 + 品牌蓝微光 */
 .wp-stage__hint {
   position: absolute;
   left: 50%;
-  bottom: clamp(10px, 2vh, 22px);
+  bottom: clamp(12px, 2vh, 22px);
   z-index: 2;
   margin: 0;
   transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(18, 22, 34, 0.6);
   font-size: 12px;
   letter-spacing: 0.12em;
   white-space: nowrap;
   pointer-events: none;
   text-shadow:
-    0 0 13px rgba(147, 164, 248, 0.7),
-    0 0 28px rgba(91, 117, 245, 0.38),
-    0 1px 10px rgba(0, 0, 0, 0.85);
+    0 0 14px rgba(147, 164, 248, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-/* ---------- 环绕式封面流 ---------- */
+/* ---------- 环形封面流（中心卡最大，两侧卡后退、内转、被中心卡遮住边缘） ---------- */
 .wp-arc {
-  --card-w: clamp(260px, 21.5vw, 340px);
+  --card-w: clamp(320px, 33vw, 500px);
   position: relative;
   width: 100%;
-  /* 卡高 + 两侧下沉量；±3 张的侧卡最多下沉约 115px，留足包围弧面的高度 */
-  height: calc(var(--card-w) * 0.5625 + 96px);
-  perspective: 1600px;
-  perspective-origin: 50% 42%;
+  margin-top: auto;
+  /* 卡高 + 两侧下沉量；±2 张的侧卡最多下沉约 60px */
+  height: calc(var(--card-w) * 0.5625 + 64px);
+  perspective: 1400px;
+  perspective-origin: 50% 38%;
   outline: none;
   cursor: grab;
   touch-action: pan-y;
@@ -249,11 +325,11 @@
   border-radius: 12px;
   overflow: hidden;
   background: #12141a;
-  /* --w 为居中权重（0–1），中心卡更亮、投影更重 */
-  filter: brightness(calc(0.84 + 0.16 * var(--w, 0)));
+  /* --w 为居中权重（0–1）：中心卡亮、两侧卡明显压暗，远侧卡不抢中心画面 */
+  filter: brightness(calc(0.52 + 0.48 * var(--w, 0)));
   box-shadow:
-    0 18px 44px rgba(0, 0, 0, calc(0.34 + 0.14 * var(--w, 0))),
-    0 4px 12px rgba(0, 0, 0, 0.28);
+    0 34px 90px rgba(0, 0, 0, calc(0.42 + 0.24 * var(--w, 0))),
+    0 6px 18px rgba(0, 0, 0, 0.3);
   transition:
     transform 0.35s var(--gh-ease-standard),
     box-shadow 0.4s var(--gh-ease-standard),
@@ -742,7 +818,7 @@
 
 @media (max-width: 1199px) and (min-width: 861px) {
   .wp-arc {
-    --card-w: clamp(230px, 30vw, 300px);
+    --card-w: clamp(280px, 38vw, 420px);
   }
 }
 
@@ -751,6 +827,15 @@
   .wp-stage__inner {
     min-height: calc(100vh - var(--gh-header-h) - 60px);
     min-height: calc(100svh - var(--gh-header-h) - 60px);
+  }
+
+  /* 小屏放不下右上参数，只留左侧文案 */
+  .wp-stage__top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wp-stage__meta {
+    display: none;
   }
 
   .wp-head {
@@ -789,7 +874,7 @@
   }
 
   .wp-arc {
-    --card-w: min(46vw, 300px);
+    --card-w: min(78vw, 400px);
   }
 
   .wp-browse__head {
@@ -841,7 +926,7 @@
   }
 
   .wp-arc {
-    --card-w: min(58vw, 280px);
+    --card-w: min(84vw, 340px);
   }
 
   .wp-stage .wp-lede {

@@ -24,6 +24,7 @@ import { supportExtraRouter } from './supportExtraRouter'
 import { templatesRouter } from './templatesRouter'
 import { trackRouter } from './trackRouter'
 import { uploadsRouter } from './uploadsRouter'
+import { wallpapersRouter } from './wallpapers'
 import { csrfGuard } from '../middleware/adminAuth'
 
 /**
@@ -44,6 +45,7 @@ export function registerRoutes(app: Express): void {
   app.use('/api', businessExtraRouter) // /business/scenes、/business/cases、/business/venues
   app.use('/api', catalogMetaRouter) // /taxonomy、/product-categories、/test-records、/methods、/service-info
   app.use('/api', brandRouter) // /brand/:slug
+  app.use('/api', wallpapersRouter) // /wallpapers（品牌壁纸独立集合）
   // 公开图形验证码：/api/captcha（登录 / 注册 / 公开表单反垃圾用）
   app.use('/api/captcha', captchaRouter)
   app.use('/api', authRouter) // /auth/*、/account/inquiries

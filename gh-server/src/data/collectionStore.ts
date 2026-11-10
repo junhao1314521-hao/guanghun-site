@@ -45,6 +45,7 @@ import { RESERVATIONS, type ReservationSummary } from './reservations'
 import { SUBSCRIBERS, type Subscriber } from './subscribers'
 import { BRAND_ASSET_ITEMS, type BrandAssetItem } from './brandAssets'
 import { PRODUCT_REVIEWS, type ProductReviewRecord } from './productReviews'
+import { WALLPAPERS, type WallpaperItem } from './wallpapers'
 
 /** 集合 key（与后台栏目 key 一致） */
 export type CollectionKey =
@@ -69,6 +70,7 @@ export type CollectionKey =
   | 'subscribers'
   | 'brand-assets'
   | 'product-reviews'
+  | 'wallpapers'
 
 /** 集合 → 记录类型（规范形状 = 前台现有形状） */
 export type CollectionMap = {
@@ -93,6 +95,7 @@ export type CollectionMap = {
   subscribers: Subscriber[]
   'brand-assets': BrandAssetItem[]
   'product-reviews': ProductReviewRecord[]
+  wallpapers: WallpaperItem[]
 }
 
 /** 某集合的记录类型 */
@@ -121,6 +124,7 @@ export const COLLECTION_KEYS: CollectionKey[] = [
   'subscribers',
   'brand-assets',
   'product-reviews',
+  'wallpapers',
 ]
 
 /** 已就绪的数据库路径（DB_PATH 变化时需重新检查 / 回填；显式 initCollections 可重复调用） */
@@ -161,6 +165,7 @@ export function buildCollectionSeed(): CollectionMap {
     subscribers: SUBSCRIBERS,
     'brand-assets': BRAND_ASSET_ITEMS,
     'product-reviews': PRODUCT_REVIEWS,
+    wallpapers: WALLPAPERS,
   }
   return clone(seed)
 }

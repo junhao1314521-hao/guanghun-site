@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>壁纸封面流 · 三种空间几何对比</title>
+<link rel="icon" href="/favicon.png" />
+<style>
+  :root{
+    --ink:#04050a; --text:#eef4fb; --sub:#9dabbe; --dim:#6d7b8e;
+    --brand:#2040ed; --brand-hi:#5b75f5; --soft:#93a4f8;
+    --line:rgba(255,255,255,.12);
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  p{margin:0}
+  .bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    padding:16px clamp(16px,4vw,48px);background:rgba(4,5,10,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .bar h1{font-size:15px;font-weight:600;margin:0 auto 0 0;letter-spacing:.01em}
+  .bar h1 small{display:block;font-size:12px;font-weight:400;color:var(--dim);margin-top:4px}
+  .tab{appearance:none;cursor:pointer;font:inherit;font-size:13px;padding:9px 16px;border-radius:999px;
+    border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--sub);transition:.22s var(--ease)}
+  .tab:hover{color:var(--text);border-color:rgba(147,164,248,.5)}
+  .tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#5b75f5,#2040ed);box-shadow:0 8px 26px rgba(32,64,237,.4)}
+  .stage{position:relative;height:min(62vh,600px);margin:0;perspective:1400px;perspective-origin:50% 45%;
+    overflow:hidden;touch-action:pan-y;cursor:grab;user-select:none}
+  .stage.drag{cursor:grabbing}
+  .card{position:absolute;left:50%;top:50%;width:var(--w);aspect-ratio:16/9;margin:0;padding:0;border:0;
+    border-radius:12px;overflow:hidden;background:#10131a;cursor:pointer;transform-origin:50% 50%;
+    will-change:transform,opacity;backface-visibility:hidden}
+  .card img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .card::after{content:"";position:absolute;inset:0;border-radius:12px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);pointer-events:none}
+  .card span{position:absolute;left:10px;bottom:8px;font:500 11px/1 var(--mono);letter-spacing:.08em;
+    padding:4px 7px;border-radius:999px;background:rgba(4,6,12,.6);color:rgba(255,255,255,.8)}
+  .foot{display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:center;
+    padding:14px 24px 26px;font-size:12px;color:var(--dim)}
+  .foot code{font-family:var(--mono);font-size:12px;color:var(--soft)}
+  .hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:12px;letter-spacing:.12em;
+    color:rgba(255,255,255,.9);pointer-events:none;white-space:nowrap;
+    text-shadow:0 0 13px rgba(147,164,248,.7),0 1px 10px rgba(0,0,0,.85)}
+  @media (max-width:720px){
+    .stage{height:min(54vh,460px);perspective:1100px;--w:min(74vw,340px)!important}
+    .bar h1{width:100%;margin:0 0 4px}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>壁纸封面流 · 三种空间几何<small>同一批素材，只改 layout 的几何公式</small></h1>
+  <button class="tab on" data-mode="a" type="button">A 平面扇形（当前）</button>
+  <button class="tab" data-mode="b" type="button">B 真 3D 弧墙</button>
+  <button class="tab" data-mode="c" type="button">C 闭环环幕</button>
+</div>
+
+<div class="stage" id="stage"><p class="hint">拖动浏览 · 点击卡片切换</p></div>
+
+<div class="foot">
+  <span>几何：<code id="formula">z = 0</code></span>
+  <span>可见：<code id="visible">±4</code></span>
+  <span>重叠：<code id="overlap">—</code></span>
+</div>
+
+<script>
+(function () {
+  const ITEMS = [
+    ['violet-gate', '紫曜之门'], ['crystal-lake', '镜湖水晶'], ['neon-metropolis', '霓虹之城'],
+    ['cloud-citadel', '云端悬城'], ['star-sea-horizon', '星海地平线'], ['crystal-canyon', '水晶回廊'],
+    ['galactic-heart', '银河之心'], ['skyline-core', '天际光核'], ['nebula-ring', '星云之环'],
+    ['galactic-vortex', '星涡之门'],
+  ]
+
+  // A：当前线上实现——z 恒为 0，缩放手写、下沉用幂函数
+  // B：卡片落在真圆弧上，z 由同一角度推出，缩放交给 perspective
+  // C：闭环环幕——步距收窄、z 二次后退、内转角更大，允许前后遮挡
+  const MODES = {
+    a: {
+      persp: 1600, step: 0.96, fadeEnd: 4.2, formula: 'z = 0，scale 手写',
+      calc(k, W) {
+        const abs = Math.abs(k)
+        return {
+          x: k * 0.96 * W,
+          y: 30 * Math.pow(abs, 1.3),
+          z: 0,
+          ry: -24 * Math.max(-1, Math.min(1, k)),
+          s: 1 / (1 + 0.13 * abs),
+        }
+      },
+    },
+    b: {
+      persp: 1400, step: 0.92, fadeEnd: 3.2, formula: 'x = R·sinθ，z = R(cosθ−1)，R = 1.9W，Δθ = 34°',
+      calc(k, W) {
+        const R = 1.9 * W
+        const th = (k * 34 * Math.PI) / 180
+        return {
+          x: R * Math.sin(th),
+          y: 24 * Math.pow(Math.abs(k), 1.2),
+          z: R * (Math.cos(th) - 1),
+          ry: -k * 34,
+          s: 1,
+        }
+      },
+    },
+    c: {
+      persp: 1400, step: 0.55, fadeEnd: 2.6, formula: 'x = 0.55W·k，z = 30 − 0.5W·|k|，Δθ = 44°（允许遮挡）',
+      calc(k, W) {
+        const abs = Math.abs(k)
+        return {
+          x: k * 0.55 * W,
+          y: 26 * Math.pow(abs, 1.15),
+          z: 30 - abs * 0.5 * W,
+          ry: -k * 44,
+          s: 1,
+        }
+      },
+    },
+  }
+
+  const stage = document.getElementById('stage')
+  const hint = stage.querySelector('.hint')
+  const formula = document.getElementById('formula')
+  const visible = document.getElementById('visible')
+  const overlapEl = document.getElementById('overlap')
+
+  let mode = 'a'
+  let pos = 0
+  let cardW = 300
+  let cards = []
+  let drag = null
+  let raf = 0
+
+  ITEMS.forEach(([slug, name], i) => {
+    const b = document.createElement('button')
+    b.className = 'card'
+    b.type = 'button'
+    b.dataset.index = String(i)
+    b.innerHTML = '<img src="/media/wallpapers/' + slug + '-960.webp" alt="' + name + '" draggable="false" loading="lazy"><span>' +
+      String(i + 1).padStart(2, '0') + ' ' + name + '</span>'
+    stage.insertBefore(b, hint)
+    cards.push(b)
+  })
+
+  function measure() {
+    const css = getComputedStyle(document.documentElement)
+    cardW = parseFloat(css.getPropertyValue('--w')) || 0
+    if (!cardW) cardW = Math.max(220, Math.min(340, stage.clientWidth * 0.215))
+    cardW = Math.round(cardW)
+    cards.forEach((c) => { c.style.setProperty('--w', cardW + 'px') })
+  }
+
+  function layout(p) {
+    const M = MODES[mode]
+    const total = cards.length
+    stage.style.perspective = M.persp + 'px'
+    let maxOverlap = 0
+    const boxes = []
+    cards.forEach((el, i) => {
+      let k = i - p
+      k = ((k % total) + total) % total
+      if (k > total / 2) k -= total
+      const abs = Math.abs(k)
+      const g = M.calc(k, cardW)
+      const shown = abs < M.fadeEnd
+      el.style.transform =
+        'translate(-50%,-50%) translate3d(' + g.x.toFixed(2) + 'px,' + g.y.toFixed(2) + 'px,' + g.z.toFixed(2) + 'px) ' +
+        'rotateY(' + g.ry.toFixed(2) + 'deg) scale(' + g.s.toFixed(4) + ')'
+      el.style.opacity = shown ? String(Math.min(1, (M.fadeEnd - abs) / 1)) : '0'
+      el.style.visibility = shown ? 'visible' : 'hidden'
+      el.style.zIndex = String(200 - Math.round(abs * 10))
+      el.style.pointerEvents = shown ? '' : 'none'
+      // 景深：越远越暗、投影越散，这是「空间感」除了几何之外最有效的一条线索
+      const dim = Math.max(0.4, 1 - 0.2 * abs - 0.07 * Math.max(0, abs - 1))
+      el.style.filter = 'brightness(' + dim.toFixed(3) + ')'
+      el.style.boxShadow =
+        '0 ' + Math.round(18 + abs * 14) + 'px ' + Math.round(46 + abs * 26) + 'px rgba(0,0,0,' +
+        Math.max(0.16, 0.58 - abs * 0.1).toFixed(2) + ')'
+      el.setAttribute('aria-hidden', shown ? 'false' : 'true')
+      if (shown) boxes.push({ i, r: el.getBoundingClientRect() })
+    })
+    // 只统计相邻两张的重叠量，作为「是否互不重叠」的量化指标
+    boxes.sort((a, b) => a.r.left - b.r.left)
+    for (let n = 1; n < boxes.length; n++) {
+      const a = boxes[n - 1].r, b = boxes[n].r
+      if (b.left < a.right && Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top)) {
+        maxOverlap = Math.max(maxOverlap, Math.round(Math.min(a.right, b.right) - b.left))
+      }
+    }
+    overlapEl.textContent = maxOverlap + 'px'
+    formula.textContent = M.formula
+    visible.textContent = '±' + Math.floor(M.fadeEnd)
+  }
+
+  function settle(target) {
+    cancelAnimationFrame(raf)
+    const total = cards.length
+    const to = Math.round(target)
+    let from = pos
+    const t0 = performance.now()
+    const dur = 460
+    function step(now) {
+      const t = Math.min(1, (now - t0) / dur)
+      const e = 1 - Math.pow(1 - t, 3)
+      pos = from + (to - from) * e
+      layout(pos)
+      if (t < 1) raf = requestAnimationFrame(step)
+      else { pos = ((to % total) + total) % total; layout(pos) }
+    }
+    raf = requestAnimationFrame(step)
+  }
+
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.tab')) return
+    const card = e.target.closest('.card')
+    drag = { x: e.clientX, y: e.clientY, start: pos, moved: false, card }
+    stage.setPointerCapture(e.pointerId)
+    stage.classList.add('drag')
+    cancelAnimationFrame(raf)
+  })
+
+  stage.addEventListener('pointermove', (e) => {
+    if (!drag) return
+    const dx = e.clientX - drag.x
+    if (Math.abs(dx) > 4 || Math.abs(e.clientY - drag.y) > 4) drag.moved = true
+    if (!drag.moved) return
+    const per = MODES[mode].step * cardW
+    pos = drag.start - dx / per
+    layout(pos)
+  })
+
+  function endDrag(e) {
+    if (!drag) return
+    const d = drag
+    drag = null
+    stage.classList.remove('drag')
+    if (!d.moved) {
+      const el = d.card
+      if (el) {
+        const i = Number(el.dataset.index)
+        const total = cards.length
+        let k = i - pos
+        k = ((k % total) + total) % total
+        if (k > total / 2) k -= total
+        settle(pos + Math.round(k))
+      }
+      return
+    }
+    settle(pos)
+  }
+  stage.addEventListener('pointerup', endDrag)
+  stage.addEventListener('pointercancel', endDrag)
+
+  document.querySelectorAll('.tab').forEach((t) => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((x) => x.classList.remove('on'))
+      t.classList.add('on')
+      mode = t.dataset.mode
+      stage.style.setProperty('--w', '')
+      measure()
+      layout(pos)
+    })
+  })
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') settle(pos + 1)
+    if (e.key === 'ArrowLeft') settle(pos - 1)
+  })
+  window.addEventListener('resize', () => { measure(); layout(pos) })
+
+  measure()
+  layout(pos)
+})()
+</script>
+</body>
+</html>
