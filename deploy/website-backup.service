@@ -1,0 +1,14 @@
+[Unit]
+Description=Guanghun Website SQLite daily backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+EnvironmentFile=-/opt/website/app/.env
+ExecStart=/usr/bin/node /opt/website/app/deploy/backup-db.mjs
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

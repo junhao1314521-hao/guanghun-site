@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react'
-import { BRAND, LANG_QUERY_KEY, defaultOgImage, hreflangLinks, pageMetaFor } from '../data/meta'
+import { BRAND, LANG_QUERY_KEY, canonicalPathFor, defaultOgImage, hreflangLinks, pageMetaFor } from '../data/meta'
 
 /** 写入 / 更新 <head> 中的 meta（name / property 二选一） */
 export function upsertMeta(attr: 'name' | 'property', key: string, content: string): void {
@@ -60,8 +60,10 @@ export function syncUrlLang(lang: string): void {
  */
 export function usePageMeta(pathname: string, lang: string = 'zh-CN'): void {
   useLayoutEffect(() => {
-    const meta = pageMetaFor(pathname)
-    const { canonical, alternates } = hreflangLinks(pathname, lang)
+    // 旧站路由别名（如 /h-col-160.html）按新站规范路径生成标题与 canonical
+    const canonicalPath = canonicalPathFor(pathname)
+    const meta = pageMetaFor(canonicalPath)
+    const { canonical, alternates } = hreflangLinks(canonicalPath, lang)
 
     // URL 上的语言标签与当前语言保持一致（英文可被抓取 / 分享）
     syncUrlLang(lang)

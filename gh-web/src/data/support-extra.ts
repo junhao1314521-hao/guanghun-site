@@ -36,6 +36,8 @@ export type DownloadItem = {
   isLatest?: boolean
   /** 校验算法标识（如 SHA-256） */
   checksumType?: string
+  /** 服务端计算的真实 SHA-256（本地文件才有；外链 / 缺失为空） */
+  sha256?: string
   /** 被本版本替代的旧版本 id（预留） */
   supersedes?: string
   /** 可下载文件地址（来自后台 downloads.fileUrl；缺省则前台回退到下载详情页） */

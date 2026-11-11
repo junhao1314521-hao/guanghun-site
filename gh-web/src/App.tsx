@@ -304,6 +304,8 @@ function AppShell() {
               <Route path="/support/models" element={<ModelSupportIndexPage />} />
               <Route path="/support/model/:id" element={<ModelSupportPage />} />
               <Route path="/downloads" element={<DownloadsPage />} />
+              {/* 旧站下载中心永久别名：地址栏保持不变，直接渲染新下载中心（服务端亦已注入对应 SEO 头） */}
+              <Route path="/h-col-160.html" element={<DownloadsPage />} />
               <Route path="/wallpapers" element={<WallpapersPage />} />
               <Route path="/downloads/:id" element={<DownloadDetailPage />} />
               <Route path="/faq" element={<FaqPage />} />

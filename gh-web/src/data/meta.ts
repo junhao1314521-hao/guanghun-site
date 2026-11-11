@@ -111,6 +111,14 @@ export const PAGE_META: PageMeta[] = [
     priority: 0.7,
   },
   {
+    path: '/wallpapers',
+    title: '品牌壁纸 · 光魂',
+    description: '光魂 16:9 桌面壁纸，取自产品影像与品牌光影，免登录下载、无水印，仅限个人非商业用途。',
+    indexable: true,
+    changefreq: 'weekly',
+    priority: 0.7,
+  },
+  {
     path: '/downloads',
     title: '下载中心 · 光魂',
     description: '驱动、固件、说明书与工具下载，按类别、类型与型号筛选。',
@@ -229,6 +237,17 @@ export function hreflangLinks(
       { hreflang: 'x-default', href: zh },
     ],
   }
+}
+
+/** 旧站路由 → 新站规范路径（地址栏保持不变，仅用于标题 / canonical / hreflang） */
+const LEGACY_ROUTES: Record<string, string> = {
+  '/h-col-160.html': '/downloads',
+}
+
+/** 归一化路径：旧站下载中心别名按新下载中心处理 */
+export function canonicalPathFor(pathname: string): string {
+  const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+  return LEGACY_ROUTES[clean] ?? pathname
 }
 
 /** 按当前路径取 SEO 元信息；动态路由与未知路径给出相应口径 */

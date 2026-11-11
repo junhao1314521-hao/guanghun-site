@@ -17,6 +17,7 @@ import { checkCaptcha, honeypotHit } from '../lib/formGuard'
 import { recordMetric } from '../data/metricsStore'
 import { readCookie } from '../middleware/adminAuth'
 import { fileStatusOf } from '../lib/fileStatus'
+import { sha256OfUpload } from '../lib/fileChecksum'
 
 /**
  * 服务支持深度线端点（挂载于 /api）：
@@ -33,22 +34,29 @@ function readString(value: unknown): string {
 
 export const supportExtraRouter = Router()
 
-/** 下载列表 + 型号显示名（models 存型号 id，前台展示 modelNames） */
-function downloadItems(locale: ReturnType<typeof readLocale>) {
-  return withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale).map((item) => ({
+/** 下载列表 + 型号显示名 + 文件状态与真实 SHA-256（仅本地可用文件计算，带缓存） */
+async function downloadItems(locale: ReturnType<typeof readLocale>) {
+  const base = withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale).map((item) => ({
     ...item,
     ...fileStatusOf(item.fileUrl),
   }))
+  return Promise.all(
+    base.map(async (item) => {
+      if (item.fileStatus !== 'ok') return item
+      const sha256 = await sha256OfUpload(item.fileUrl)
+      return sha256 ? { ...item, sha256 } : item
+    }),
+  )
 }
 
-supportExtraRouter.get('/downloads', (req, res) => {
+supportExtraRouter.get('/downloads', async (req, res) => {
   const locale = readLocale(req)
-  res.json({ items: downloadItems(locale), categories: DOWNLOAD_CATEGORIES, types: DOWNLOAD_TYPES })
+  res.json({ items: await downloadItems(locale), categories: DOWNLOAD_CATEGORIES, types: DOWNLOAD_TYPES })
 })
 
-supportExtraRouter.get('/downloads/:id', (req, res) => {
+supportExtraRouter.get('/downloads/:id', async (req, res) => {
   const locale = readLocale(req)
-  const detail = getDownloadDetail(downloadItems(locale), req.params.id)
+  const detail = getDownloadDetail(await downloadItems(locale), req.params.id)
   if (!detail) {
     res.status(404).json({ error: '未找到该资料' })
     return

@@ -2,6 +2,7 @@ import type { Express, Request, Response } from 'express'
 import { listPages } from '../data/contentStore'
 import { listCollection } from '../data/collectionStore'
 import { LEGAL_DOCS } from '../data/legal'
+import { fileStatusOf } from '../lib/fileStatus'
 
 /**
  * SEO：动态生成 `GET /sitemap.xml` 与 `GET /robots.txt`（挂载于站点根，非 /api）。
@@ -53,12 +54,17 @@ function collectSitemapPaths(): string[] {
 
   // 1) 内容库页面路径
   for (const page of listPages()) add(page.path)
-  // 2) 法律页（静态文档）
+  // 2) 静态营销页（不在内容库中，但可收录）
+  add('/wallpapers')
+  // 3) 法律页（静态文档）
   for (const doc of LEGAL_DOCS) add(`/legal/${doc.slug}`)
-  // 3) 各类详情页
+  // 4) 各类详情页
   for (const item of listCollection('products')) add(`/products/${item.id}`)
   for (const item of listCollection('articles')) add(`/articles/${item.id}`)
-  for (const item of listCollection('downloads')) add(`/downloads/${item.id}`)
+  // 下载详情仅在文件实际可用时收录，避免收录「整理中」的空页面
+  for (const item of listCollection('downloads')) {
+    if (fileStatusOf(item.fileUrl).fileStatus === 'ok') add(`/downloads/${item.id}`)
+  }
   for (const item of listCollection('faqs')) add(`/faq/${item.id}`)
   for (const item of listCollection('biz-cases')) add(`/business/cases/${item.id}`)
   for (const item of listCollection('biz-venues')) add(`/business/venues/${item.id}`)

@@ -98,6 +98,47 @@ export function createApp(): Express {
   // 素材库公开访问：/uploads/<文件名>（与 /api 不冲突）。
   // 必须在下方 SPA 回退之前挂载，否则未命中的静态请求会被回退到 index.html。
   const uploadDir = ensureUploadDir()
+  // 软限流：正常下载 / 图片浏览不受影响，仅拦截单 IP 批量遍历（默认 120 次/分钟，可调）
+  const uploadRlMax = Number(process.env.UPLOAD_RATE_LIMIT_MAX ?? 120)
+  app.use('/uploads', rateLimit({ windowMs: 60_000, max: uploadRlMax }))
+  // 防盗链：仅拦截**明确的第三方 Referer**；空 Referer（直接访问 / 扫码 / 下载器 / 搜索引擎）一律放行。
+  // 生产环境默认开启，可用 UPLOAD_HOTLINK_GUARD=0 关闭；开发联调默认跳过（Vite 代理与本机端口不一致）。
+  const hotlinkGuard =
+    process.env.UPLOAD_HOTLINK_GUARD === '1' ||
+    (process.env.NODE_ENV === 'production' && process.env.UPLOAD_HOTLINK_GUARD !== '0')
+  if (hotlinkGuard) {
+    const refererAllow = (process.env.DOWNLOAD_REFERER_ALLOW ?? '')
+      .split(',')
+      .map((s) => s.trim().replace(/\/+$/, ''))
+      .filter(Boolean)
+    app.use('/uploads', (req: Request, res: Response, next: NextFunction) => {
+      const referer = req.get('referer') || ''
+      // 空 Referer 放行：直接输入地址、扫码、客户端下载器、隐私模式等均不带 Referer
+      if (!referer) {
+        next()
+        return
+      }
+      let refOrigin = ''
+      try {
+        refOrigin = new URL(referer).origin
+      } catch {
+        // 无法解析的 Referer 不作为拦截依据，避免误伤
+        next()
+        return
+      }
+      const host = req.get('host') ?? ''
+      const siteOrigin = (process.env.SITE_ORIGIN ?? '').trim().replace(/\/+$/, '')
+      const allowed =
+        refOrigin === `${req.protocol}://${host}` ||
+        (siteOrigin !== '' && refOrigin === siteOrigin) ||
+        refererAllow.includes(refOrigin)
+      if (!allowed) {
+        res.status(403).json({ error: '该资源仅限从本站页面下载' })
+        return
+      }
+      next()
+    })
+  }
   // 软删除（回收站中）素材的直链拦截：磁盘文件在彻底删除前保留，
   // 故须在静态托管前按回收站记录拒绝其直链（含变体文件），保证「软删除后前台不可见」。
   app.use('/uploads', (req: Request, res: Response, next: NextFunction) => {
@@ -210,10 +251,22 @@ export function createApp(): Express {
     res.status(404).json({ error: `未找到该资源：${req.method} ${req.path}` })
   })
 
-  // 统一错误处理
+  // 统一错误处理：请求体错误归一为 4xx；其余异常对外只返回通用文案（生产不泄漏内部细节）
   app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+    const type = (err as { type?: string }).type
+    if (type === 'entity.parse.failed') {
+      res.status(400).json({ error: '请求体不是合法的 JSON' })
+      return
+    }
+    if (type === 'entity.too.large') {
+      res.status(413).json({ error: '请求体超过大小限制' })
+      return
+    }
     logger.error('未捕获请求异常', { requestId: res.getHeader('X-Request-Id'), path: req.originalUrl, error: err.message, stack: err.stack })
-    res.status(500).json({ error: '服务器内部错误', detail: err.message })
+    const body: { error: string; detail?: string } = { error: '服务器内部错误' }
+    // 仅非生产环境附带 message，便于本地排查；生产环境一律脱敏
+    if (process.env.NODE_ENV !== 'production') body.detail = err.message
+    res.status(500).json(body)
   })
 
   return app

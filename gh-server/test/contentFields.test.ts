@@ -7,7 +7,7 @@
  * 运行：npm test
  */
 import assert from 'node:assert/strict'
-import { rmSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import type { Server } from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
@@ -18,6 +18,7 @@ import { buildCollectionSeed } from '../src/data/collectionStore'
 const tmpDir = path.join(os.tmpdir(), `gh-content-fields-${process.pid}`)
 process.env.DB_PATH = path.join(tmpDir, 'gh.sqlite')
 process.env.BACKUP_DIR = path.join(tmpDir, 'backups')
+process.env.UPLOAD_DIR = path.join(tmpDir, 'uploads')
 process.env.CONTENT_STORE_PATH = path.join(tmpDir, 'legacy-content-store.json')
 process.env.COLLECTION_STORE_PATH = path.join(tmpDir, 'legacy-collection-store.json')
 process.env.ADMIN_RESOURCE_STORE_PATH = path.join(tmpDir, 'legacy-admin-resources.json')
@@ -28,6 +29,13 @@ let base: string
 
 before(async () => {
   rmSync(tmpDir, { recursive: true, force: true })
+  // sitemap 现仅收录「文件确实存在」的下载详情，故先落一个与种子 fileUrl 对应的文件
+  const uploadDir = path.join(tmpDir, 'uploads')
+  mkdirSync(uploadDir, { recursive: true })
+  const firstDownload = buildCollectionSeed().downloads.find((item) => (item.fileUrl ?? '').startsWith('/uploads/'))
+  if (firstDownload) {
+    writeFileSync(path.join(uploadDir, firstDownload.fileUrl.slice('/uploads/'.length)), 'test-file')
+  }
   server = createApp().listen(0)
   await new Promise<void>((resolve) => server.once('listening', () => resolve()))
   const addr = server.address()

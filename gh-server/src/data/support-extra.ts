@@ -39,6 +39,8 @@ export type DownloadItem = {
   isLatest?: boolean
   /** 校验算法标识（如 SHA-256）；具体校验值在详情页展示 */
   checksumType?: string
+  /** 本地上传文件的真实 SHA-256（由服务端计算并缓存；外链 / 缺失文件为空） */
+  sha256?: string
   /** 被本版本替代的旧版本 id（版本链路，预留） */
   supersedes?: string
   /**
@@ -352,16 +354,6 @@ const DOWNLOAD_INSTALL_STEPS: Record<DownloadType, string[]> = {
   calibration: ['下载对应型号的色彩配置文件（ICC）', '在系统「显示」设置中导入并指定该配置文件', '在 Center 中应用同一套显示预设后即可生效'],
 }
 
-/** 由 id 生成确定性的 64 位占位校验值，供界面展示校验字段结构（非真实摘要） */
-function placeholderSha(id: string): string {
-  let hex = ''
-  for (let i = 0; i < 64; i += 1) {
-    const code = id.charCodeAt(i % id.length) + i * 7
-    hex += (code % 16).toString(16)
-  }
-  return hex
-}
-
 /** 下载详情：命中返回详情，未命中返回 undefined（由路由 / 接口层映射 404；列表来自集合存储） */
 export function getDownloadDetail(downloads: DownloadItem[], id: string): DownloadDetail | undefined {
   const item = downloads.find((entry) => entry.id === id)
@@ -370,7 +362,8 @@ export function getDownloadDetail(downloads: DownloadItem[], id: string): Downlo
     ...item,
     changelog: DOWNLOAD_CHANGELOG[item.type],
     installSteps: DOWNLOAD_INSTALL_STEPS[item.type],
-    sha256: placeholderSha(item.id),
+    // 真实摘要由调用方（/api/downloads 列表）计算并注入；外链或缺失文件为空，不做伪造
+    sha256: item.sha256 ?? '',
   }
 }
 

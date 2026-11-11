@@ -14,7 +14,7 @@
 import { readFileSync, statSync } from 'node:fs'
 import { getCollectionItem } from '../data/collectionStore'
 
-type StaticMeta = { title: string; description: string; indexable: boolean }
+type StaticMeta = { title: string; description: string; indexable: boolean; canonical?: string }
 
 /** 静态路由元信息（与前端 meta.ts 保持一致；未列出的路径按 noindex 处理） */
 const STATIC_META: Record<string, StaticMeta> = {
@@ -26,6 +26,9 @@ const STATIC_META: Record<string, StaticMeta> = {
   '/center': { title: '光魂 Center · 设备管理软件', description: '一套软件管理全部光魂设备：按键与宏、性能参数调节、灯效场景、固件更新与配置云同步。', indexable: true },
   '/support': { title: '服务与支持 · 光魂', description: '保修政策与要点、服务网点、常见问题与驱动 / 固件下载。', indexable: true },
   '/downloads': { title: '下载中心 · 光魂', description: '驱动、固件、说明书与工具下载，按类别、类型与型号筛选。', indexable: true },
+  // 旧站下载中心永久别名：地址栏保持 /h-col-160.html，canonical 指向新下载中心，避免重复收录
+  '/h-col-160.html': { title: '下载中心 · 光魂', description: '驱动、固件、说明书与工具下载，按类别、类型与型号筛选。', indexable: true, canonical: '/downloads' },
+  '/wallpapers': { title: '品牌壁纸 · 光魂', description: '光魂 16:9 桌面壁纸，取自产品影像与品牌光影，免登录下载、无水印，仅限个人非商业用途。', indexable: true },
   '/faq': { title: '常见问题 · 光魂', description: '安装、使用、保修与售后高频问题的解答。', indexable: true },
   '/contact': { title: '联系我们 · 光魂', description: '客服热线、商务邮箱、办事处地址与服务时间。', indexable: true },
   '/business': { title: '商业合作 · 光魂', description: '媒体送测、渠道分销与品牌联名等合作方式及联系方式。', indexable: true },
@@ -47,6 +50,8 @@ export type HeadMeta = {
   description: string
   indexable: boolean
   image: string
+  /** 规范地址覆盖（站点相对路径）；用于旧路由别名指向新地址，缺省按当前路径 */
+  canonical?: string
   jsonLd?: Record<string, unknown>
 }
 
@@ -224,7 +229,7 @@ function escapeHtml(value: string): string {
 
 /** 组装要注入 <head> 的标签 */
 function buildHeadTags(meta: HeadMeta, pathname: string, origin: string): string {
-  const canonical = `${origin}${pathname}`
+  const canonical = `${origin}${meta.canonical ?? pathname}`
   const tags = [
     `<title>${escapeHtml(meta.title)}</title>`,
     `<meta name="description" content="${escapeHtml(meta.description)}" />`,

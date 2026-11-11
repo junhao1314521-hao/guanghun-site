@@ -204,25 +204,27 @@ export function DownloadDetailPage() {
                   color: 'var(--color-text-secondary)',
                 }}
               >
-                {detail.sha256}
+                {detail.sha256 || '暂未提供'}
               </span>
-              <button
-                className="btn btn--ghost btn--sm"
-                type="button"
-                onClick={() => {
-                  navigator.clipboard
-                    ?.writeText(detail.sha256)
-                    .then(() => {
-                      setCopied(true)
-                      window.setTimeout(() => setCopied(false), 2000)
-                    })
-                    .catch(() => {
-                      // 剪贴板不可用（非安全上下文等）时静默
-                    })
-                }}
-              >
-                {copied ? '已复制' : '复制'}
-              </button>
+              {detail.sha256 && (
+                <button
+                  className="btn btn--ghost btn--sm"
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard
+                      ?.writeText(detail.sha256)
+                      .then(() => {
+                        setCopied(true)
+                        window.setTimeout(() => setCopied(false), 2000)
+                      })
+                      .catch(() => {
+                        // 剪贴板不可用（非安全上下文等）时静默
+                      })
+                  }}
+                >
+                  {copied ? '已复制' : '复制'}
+                </button>
+              )}
             </div>
             <span className="field__hint">下载完成后可核对校验值，确认文件完整。</span>
           </div>

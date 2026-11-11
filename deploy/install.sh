@@ -76,13 +76,16 @@ touch "$LOGS/website.log"
 chown www-data:www-data "$LOGS/website.log"
 echo "[5/7] 权限已设置"
 
-# 6) systemd + 日志轮转
+# 6) systemd + 日志轮转 + 每日数据库备份
 install -m 644 "$PKG/deploy/website.service" /etc/systemd/system/website.service
 install -m 644 "$PKG/deploy/logrotate-website" /etc/logrotate.d/website
+install -m 644 "$PKG/deploy/website-backup.service" /etc/systemd/system/website-backup.service
+install -m 644 "$PKG/deploy/website-backup.timer" /etc/systemd/system/website-backup.timer
 systemctl daemon-reload
 systemctl enable website >/dev/null
 systemctl restart website
-echo "[6/7] systemd 已启动"
+systemctl enable --now website-backup.timer >/dev/null
+echo "[6/7] systemd 已启动（含每日 03:30 数据库备份定时器）"
 
 # 7) 健康检查
 for _ in $(seq 1 30); do

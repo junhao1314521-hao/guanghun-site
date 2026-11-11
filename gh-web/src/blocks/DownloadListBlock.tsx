@@ -124,7 +124,11 @@ function DownloadGrid({ items }: { items: DownloadItem[] }) {
               </div>
             </div>
             <div className="dl-card__foot">
-              <span className="dl-card__sum">{item.checksumType ?? 'SHA-256'} 校验</span>
+              <span className="dl-card__sum" title={item.sha256 ?? undefined}>
+                {item.sha256
+                  ? `${item.checksumType ?? 'SHA-256'} ${item.sha256.slice(0, 12)}…`
+                  : `${item.checksumType ?? 'SHA-256'} 校验`}
+              </span>
               <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
                 <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
                   详情
