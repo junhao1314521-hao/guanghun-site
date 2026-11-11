@@ -404,7 +404,7 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   overflow: hidden;
   background: var(--color-bg-muted);
 }
-.fs-visual--h-full { min-height: min(100svh, 940px); }
+.fs-visual--h-full { min-height: min(100vh, 940px); min-height: min(100svh, 940px); }
 .fs-visual--h-r219 { aspect-ratio: 21 / 9; }
 .fs-visual--h-short { min-height: min(66vh, 600px); }
 @media (max-width: 900px) {
@@ -458,7 +458,7 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 }
 
 /* —— 海报高度档位（§1.3）：满屏 / 21:9 宽幅 / 比首屏矮一档 / 自定义（首屏轮播固定满屏）—— */
-.blk-hero--h-full { min-height: min(100svh, 940px); }
+.blk-hero--h-full { min-height: min(100vh, 940px); min-height: min(100svh, 940px); }
 /* 21:9 宽幅：海报通栏满宽，高度**由宽度决定**，但封顶 660px。
    不封顶时 1920 宽 → 823 高、2560 宽 → 1097 高，会反超首屏；封顶后与首屏形成「首屏最高、内页海报更矮」的层级。
    必须显式 width:100%：只写 aspect-ratio + max-height 时，浏览器会反过来按 660px 限高收缩宽度
@@ -1935,7 +1935,7 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .blk-pmatrix.is-accent-themed .blk-pmatrix__btns .btn--secondary,
 .blk-pmatrix.is-accent-themed .blk-pmatrix__btns .btn--secondary:hover { border-color: var(--pm-accent); color: var(--pm-accent); }
 /* 一屏正好放下：等分行高铺满视口高度 */
-.blk-pmatrix.is-full { display: flex; flex-direction: column; min-height: min(100svh, 940px); }
+.blk-pmatrix.is-full { display: flex; flex-direction: column; min-height: min(100vh, 940px); min-height: min(100svh, 940px); }
 .blk-pmatrix.is-full .blk-pmatrix__grid { flex: 1 1 auto; grid-auto-rows: 1fr; }
 .blk-pmatrix.is-full .blk-pmatrix__card { display: flex; }
 .blk-pmatrix.is-full .blk-pmatrix__media { aspect-ratio: auto; flex: 1 1 auto; height: 100%; }
@@ -2390,6 +2390,14 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .dl-recognized b { font-weight: var(--gh-weight-semibold); }
 .dl-view { display: inline-flex; gap: 6px; }
 .dl-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-3); margin-bottom: var(--gh-space-5); }
+/* 移动端：型号筛选默认收起为两行，避免筛选区占满首屏 */
+.dl-models__more { display: none; }
+@media (max-width: 640px) {
+  .dl-models { max-height: 52px; overflow: hidden; }
+  .dl-models.is-expanded { max-height: none; }
+  .dl-models__more { display: inline-flex; }
+  .dl-filters { margin-bottom: var(--gh-space-4); }
+}
 .dl-tabs {
   display: inline-flex; gap: 2px; padding: 4px;
   border: 1px solid var(--color-border-subtle); border-radius: var(--gh-radius-full);
@@ -2426,6 +2434,13 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .dl-overview__chip:hover { border-color: var(--color-border-strong); color: var(--color-text-primary); }
 .dl-overview__chip.is-active { border-color: var(--color-accent); color: var(--color-accent-text); background: color-mix(in srgb, var(--color-accent-solid) 10%, transparent); }
 .dl-overview__hint { margin-left: auto; font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+/* 移动端：概览条压成一行横滑，避免把首屏资料卡推到折叠线以下 */
+@media (max-width: 640px) {
+  .dl-overview { padding: var(--gh-space-2) var(--gh-space-3); gap: var(--gh-space-2); }
+  .dl-overview__chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .dl-overview__chip { flex: 0 0 auto; }
+  .dl-overview__hint { display: none; }
+}
 
 .dl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--gh-space-5); }
 .dl-card {

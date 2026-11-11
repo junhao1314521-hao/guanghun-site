@@ -16,6 +16,7 @@ import { buildAnalytics } from '../data/analytics'
 import { countSince } from '../data/metricsStore'
 import { getTrashRecord, listTrash, purgeTrash, restoreTrash, softDelete } from '../data/trashStore'
 import { auditWrite, clientIp } from '../middleware/audit'
+import { rateLimit } from '../lib/rateLimit'
 import {
   createCollectionItem,
   getCollectionItem,
@@ -100,26 +101,83 @@ function sessionCookieOptions(): {
   }
 }
 
-adminRouter.post('/auth/login', (req, res) => {
-  const body = (req.body ?? {}) as Record<string, unknown>
-  const username = readString(body.username)
-  const password = readString(body.password)
-  if (!username || !password) {
-    res.status(400).json({ error: '请输入账号与密码' })
-    return
+// 登录防爆破：独立于全局 API 限流。
+// - 短时高频：单 IP 每分钟最多 LOGIN_RATE_LIMIT_MAX 次（默认 5）；
+// - 连续失败：同一 IP + 账号累计 LOGIN_LOCK_THRESHOLD 次后锁定 LOGIN_LOCK_MS（默认 15 分钟）。
+const LOGIN_RATE_LIMIT_MAX = Number(process.env.LOGIN_RATE_LIMIT_MAX ?? 10)
+const LOGIN_LOCK_THRESHOLD = Number(process.env.LOGIN_LOCK_THRESHOLD ?? 10)
+const LOGIN_LOCK_MS = Number(process.env.LOGIN_LOCK_MS ?? 15 * 60_000)
+const loginFailures = new Map<string, { count: number; until: number }>()
+
+type LockEntry = { count: number; until: number }
+
+/** 登录失败计数键：IP + 账号（避免同一 IP 撞多个账号时互相抵消） */
+function lockKey(ip: string, username: string): string {
+  return `${ip}|${username.toLowerCase()}`
+}
+
+function lockRemainingSeconds(key: string): number {
+  const entry = loginFailures.get(key)
+  if (!entry) return 0
+  const left = entry.until - Date.now()
+  if (left <= 0) {
+    // 锁定期已过：重置计数
+    loginFailures.delete(key)
+    return 0
   }
-  const result = loginAdmin(username, password)
-  if (!result) {
-    // 审计：登录失败（actor 记录尝试账号，detail 说明失败原因）
-    appendAudit({ actor: username, action: 'login', target: '后台', detail: '登录失败', ip: clientIp(req) })
-    res.status(401).json({ error: '账号或密码不正确' })
-    return
+  return Math.ceil(left / 1000)
+}
+
+function recordLoginFailure(key: string): void {
+  const now = Date.now()
+  const entry: LockEntry = loginFailures.get(key) ?? { count: 0, until: 0 }
+  if (entry.until > now) return
+  entry.count += 1
+  if (entry.count >= LOGIN_LOCK_THRESHOLD) {
+    entry.count = 0
+    entry.until = now + LOGIN_LOCK_MS
   }
-  appendAudit({ actor: username, action: 'login', target: '后台', ip: clientIp(req) })
-  // 同时下发 httpOnly Cookie（主用）并在响应体返回 token（向后兼容 Bearer）
-  res.cookie(SESSION_COOKIE, result.token, sessionCookieOptions())
-  res.json({ token: result.token, user: toProfile(result.user) })
-})
+  loginFailures.set(key, entry)
+  // 简单容量保护：失败记录过多时清理已过期的条目
+  if (loginFailures.size > 5000) {
+    for (const [k, v] of loginFailures) if (v.until > 0 && v.until <= now) loginFailures.delete(k)
+  }
+}
+
+adminRouter.post(
+  '/auth/login',
+  rateLimit({ windowMs: 60_000, max: LOGIN_RATE_LIMIT_MAX }),
+  (req, res) => {
+    const body = (req.body ?? {}) as Record<string, unknown>
+    const username = readString(body.username)
+    const password = readString(body.password)
+    if (!username || !password) {
+      res.status(400).json({ error: '请输入账号与密码' })
+      return
+    }
+    const key = lockKey(clientIp(req), username)
+    const locked = lockRemainingSeconds(key)
+    if (locked > 0) {
+      const minutes = Math.ceil(locked / 60)
+      appendAudit({ actor: username, action: 'login', target: '后台', detail: '账号已锁定', ip: clientIp(req) })
+      res.status(429).json({ error: `登录失败次数过多，请 ${minutes} 分钟后再试` })
+      return
+    }
+    const result = loginAdmin(username, password)
+    if (!result) {
+      recordLoginFailure(key)
+      // 审计：登录失败（actor 记录尝试账号，detail 说明失败原因）
+      appendAudit({ actor: username, action: 'login', target: '后台', detail: '登录失败', ip: clientIp(req) })
+      res.status(401).json({ error: '账号或密码不正确' })
+      return
+    }
+    loginFailures.delete(key)
+    appendAudit({ actor: username, action: 'login', target: '后台', ip: clientIp(req) })
+    // 同时下发 httpOnly Cookie（主用）并在响应体返回 token（向后兼容 Bearer）
+    res.cookie(SESSION_COOKIE, result.token, sessionCookieOptions())
+    res.json({ token: result.token, user: toProfile(result.user) })
+  },
+)
 
 adminRouter.post('/auth/logout', (req, res) => {
   const token = sessionToken(req)

@@ -9,7 +9,7 @@
  * 环境变量：DB_PATH（默认 /opt/website/data/gh.sqlite）、BACKUP_DIR（默认同级 backups）。
  */
 import { DatabaseSync } from 'node:sqlite'
-import { mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs'
+import { copyFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs'
 import path from 'node:path'
 
 const src = process.env.DB_PATH || '/opt/website/data/gh.sqlite'
@@ -26,6 +26,18 @@ db.exec(`VACUUM INTO '${dst.replace(/'/g, "''")}'`)
 db.close()
 console.log(`[backup] ${dst}`)
 
+// 异地副本：配置 BACKUP_MIRROR_DIR（如挂载的另一块盘 / NAS）后，每次快照同步复制一份
+const mirror = (process.env.BACKUP_MIRROR_DIR || '').trim()
+if (mirror) {
+  try {
+    mkdirSync(mirror, { recursive: true })
+    copyFileSync(dst, path.join(mirror, path.basename(dst)))
+    console.log(`[backup] 已复制到镜像目录 ${mirror}`)
+  } catch (error) {
+    console.error(`[backup] 镜像复制失败：${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
 /** 文件名 → ISO 周键（用于每周保留 1 份） */
 function isoWeekKey(name) {
   const y = Number(name.slice(3, 7))
@@ -39,28 +51,36 @@ function isoWeekKey(name) {
   return `${dt.getUTCFullYear()}-W${p2(week)}`
 }
 
-const files = readdirSync(dir)
-  .filter((f) => /^gh-\d{8}-\d{6}\.sqlite$/.test(f))
-  .sort()
-const now = Date.now()
-const keep = new Set()
-
-// 1) 最近 7 天：全部保留
-for (const f of files) {
-  if (now - statSync(path.join(dir, f)).mtimeMs < 8 * 86400000) keep.add(f)
+/** 保留策略：最近 7 天全部保留 + 更早的每周保留最新 1 份（最多 4 周） */
+function prune(targetDir) {
+  const names = readdirSync(targetDir)
+    .filter((f) => /^gh-\d{8}-\d{6}\.sqlite$/.test(f))
+    .sort()
+  const nowMs = Date.now()
+  const keep = new Set()
+  for (const f of names) {
+    if (nowMs - statSync(path.join(targetDir, f)).mtimeMs < 8 * 86400000) keep.add(f)
+  }
+  const weeks = new Map()
+  for (const f of [...names].reverse()) {
+    if (keep.has(f)) continue
+    const key = isoWeekKey(f)
+    if (!weeks.has(key)) weeks.set(key, f)
+  }
+  for (const f of [...weeks.values()].slice(0, 4)) keep.add(f)
+  for (const f of names) {
+    if (!keep.has(f)) {
+      unlinkSync(path.join(targetDir, f))
+      console.log(`[backup] 清理过期快照 ${f}`)
+    }
+  }
 }
-// 2) 更早的：每个 ISO 周保留最新一份，最多 4 周
-const weeks = new Map()
-for (const f of [...files].reverse()) {
-  if (keep.has(f)) continue
-  const key = isoWeekKey(f)
-  if (!weeks.has(key)) weeks.set(key, f)
-}
-for (const f of [...weeks.values()].slice(0, 4)) keep.add(f)
 
-for (const f of files) {
-  if (!keep.has(f)) {
-    unlinkSync(path.join(dir, f))
-    console.log(`[backup] 清理过期快照 ${f}`)
+prune(dir)
+if (mirror) {
+  try {
+    prune(mirror)
+  } catch (error) {
+    console.error(`[backup] 镜像目录清理失败：${error instanceof Error ? error.message : String(error)}`)
   }
 }

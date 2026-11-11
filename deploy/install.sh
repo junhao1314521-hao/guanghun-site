@@ -69,12 +69,29 @@ else
   echo "[4/7] 依赖未变化，跳过安装"
 fi
 
-# 5) 权限：代码只读，数据与日志归 www-data
+# 5) 权限：代码只读，数据与日志归 www-data，并收紧到最小可见范围
 chown -R www-data:www-data "$DATA" "$LOGS"
 chmod -R a+rX "$APP/gh-server" "$APP/gh-web"
+mkdir -p "$DATA/uploads" "$DATA/backups" "$BKP" "$LOGS"
+chmod 750 "$DATA" "$DATA/uploads" "$DATA/backups" "$LOGS" "$BKP"
+find "$DATA/uploads" -type d -exec chmod 750 {} + 2>/dev/null || true
+find "$DATA/uploads" -type f -exec chmod 640 {} + 2>/dev/null || true
+if [ -f "$DATA/gh.sqlite" ]; then chmod 640 "$DATA/gh.sqlite"; fi
+# 旧站直链映射：不存在时创建空表（空表不产生任何跳转），后续按清单填充
+if [ ! -f "$DATA/legacy-redirects.json" ]; then
+  echo '{}' > "$DATA/legacy-redirects.json"
+  echo "     已创建空映射表 $DATA/legacy-redirects.json（参考 deploy/legacy-redirects.example.json）"
+fi
+chown www-data:www-data "$DATA/legacy-redirects.json"
+chmod 640 "$DATA/legacy-redirects.json"
 touch "$LOGS/website.log"
 chown www-data:www-data "$LOGS/website.log"
-echo "[5/7] 权限已设置"
+chmod 640 "$LOGS/website.log"
+if [ -f "$APP/.env" ]; then
+  chown root:www-data "$APP/.env"
+  chmod 640 "$APP/.env"
+fi
+echo "[5/7] 权限已设置（数据/上传/备份 750，数据库与 .env 640）"
 
 # 6) systemd + 日志轮转 + 每日数据库备份
 install -m 644 "$PKG/deploy/website.service" /etc/systemd/system/website.service

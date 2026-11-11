@@ -230,6 +230,8 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // 三入口 / 视图：仅列表页（showFilter）使用
   const [entry, setEntry] = useState<'model' | 'type' | 'category'>('model')
   const [view, setView] = useState<'cards' | 'table'>('cards')
+  // 移动端型号过多时默认收起，避免筛选区占满首屏
+  const [showAllModels, setShowAllModels] = useState(false)
   // —— 交互态：仅 showFilter 时使用；筛选「全量进 URL」（?category=&type=&model=），
   //    便于分享 / 深链直达（如型号支持页 → /downloads?model=xxx）——
   const [params, setParams] = useSearchParams()
@@ -456,7 +458,21 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                   ))}
                 </div>
                 {entry === 'model' ? (
-                  <FilterChips label="型号" options={modelOptions} value={model} onChange={setModel} labelFor={modelLabelOf} />
+                  <>
+                    <div className={`dl-models${showAllModels ? ' is-expanded' : ''}`}>
+                      <FilterChips label="型号" options={modelOptions} value={model} onChange={setModel} labelFor={modelLabelOf} />
+                    </div>
+                    {modelOptions.length > 7 && (
+                      <button
+                        type="button"
+                        className="chip dl-models__more"
+                        aria-expanded={showAllModels}
+                        onClick={() => setShowAllModels((v) => !v)}
+                      >
+                        {showAllModels ? '收起型号' : `更多型号（${modelOptions.length - 1}）`}
+                      </button>
+                    )}
+                  </>
                 ) : entry === 'type' ? (
                   <FilterChips label="类型" options={data?.types ?? []} value={type} onChange={setType} />
                 ) : (

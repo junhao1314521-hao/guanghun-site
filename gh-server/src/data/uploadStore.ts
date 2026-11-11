@@ -49,6 +49,38 @@ export function ensureUploadDir(): string {
   return dir
 }
 
+/** 上传目录当前占用（字节）。管理员上传频率低，直接遍历即可，无需维护缓存 */
+function uploadDirBytes(dir: string): number {
+  let total = 0
+  const walk = (current: string): void => {
+    let entries
+    try {
+      entries = readdirSync(current, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      const full = path.join(current, entry.name)
+      if (entry.isDirectory()) walk(full)
+      else if (entry.isFile()) {
+        try {
+          total += statSync(full).size
+        } catch {
+          // 读取失败的文件忽略，不阻断上传判断
+        }
+      }
+    }
+  }
+  walk(dir)
+  return total
+}
+
+/** 上传总配额（字节），默认 20GB；可用 UPLOAD_QUOTA_BYTES 覆盖，0 表示不限制 */
+function uploadQuotaBytes(): number {
+  const raw = Number(process.env.UPLOAD_QUOTA_BYTES ?? 20 * 1024 ** 3)
+  return Number.isFinite(raw) && raw >= 0 ? raw : 20 * 1024 ** 3
+}
+
 /**
  * 通用兜底 MIME：Office / 压缩包等二进制格式，浏览器常以空或 octet-stream 上报，
  * 故这些类别的白名单额外放行 `application/octet-stream`（不影响图片 / 视频 / SVG 的严格校验）。
@@ -279,6 +311,11 @@ export function saveUpload(
     }
   }
   const dir = ensureUploadDir()
+  // 磁盘配额：避免素材库无限增长拖垮服务器（管理员上传才触发，开销可接受）
+  const quota = uploadQuotaBytes()
+  if (quota > 0 && uploadDirBytes(dir) + bytes.length > quota) {
+    return { ok: false, status: 507, error: `上传空间已满（配额 ${formatLimit(quota)}），请先清理素材` }
+  }
   const filename = `${Date.now()}-${randomBytes(4).toString('hex')}-${safeName}`
   const file = path.join(dir, filename)
   writeFileSync(file, bytes)

@@ -12,6 +12,7 @@ import { hiddenUploadIds } from './data/trashStore'
 import { startScheduler } from './data/publishScheduler'
 import { getCollectionItem } from './data/collectionStore'
 import { renderIndexHtml } from './lib/seoHead'
+import { legacyRedirectFor } from './lib/legacyRedirects'
 import { registerRoutes } from './routes'
 
 /** 详情页路由 → 集合 key：用于 SPA 回退前判定实体是否存在，不存在时返回真实 404 状态 */
@@ -50,23 +51,56 @@ export function createApp(): Express {
   // gzip 压缩：同源托管模式下需压缩前端产物（JS / CSS）与 JSON，显著降低传输体积
   app.use(compression())
 
-  // 安全响应头（不含 CSP：前端含内联样式与外链图片，CSP 需按实际资源清单单独拟定，避免误伤）
+  // 安全响应头。CSP 先以 Report-Only 下发（不阻断），待收集误报后再转强制：
+  // 前端存在内联样式与少量内联脚本（JSON-LD），故暂保留 'unsafe-inline'。
   app.use((_req: Request, res: Response, next: NextFunction) => {
     res.setHeader('X-Content-Type-Options', 'nosniff')
     res.setHeader('X-Frame-Options', 'SAMEORIGIN')
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+    res.setHeader(
+      'Content-Security-Policy-Report-Only',
+      [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob:",
+        "font-src 'self' data:",
+        "media-src 'self' blob:",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+      ].join('; '),
+    )
     // HSTS 仅在实际经 HTTPS 提供时下发（由前置终止 TLS，故以 TRUST_PROXY 为判据）
     if (trustProxy) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
     next()
   })
 
-  // CORS：未配置 CORS_ORIGINS 时放开（本地联调）；生产设 CORS_ORIGINS=https://a.com,https://b.com 收敛为白名单
+  // CORS：同源部署为主。白名单 = CORS_ORIGINS + SITE_ORIGIN；未配置时开发环境放开、生产仅同源。
   const corsOrigins = (process.env.CORS_ORIGINS ?? '')
     .split(',')
-    .map((s) => s.trim())
+    .map((s) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean)
-  app.use(cors(corsOrigins.length ? { origin: corsOrigins } : undefined))
-  if (corsOrigins.length) logger.info('CORS 白名单已启用', { origins: corsOrigins })
+  const siteOriginForCors = (process.env.SITE_ORIGIN ?? '').trim().replace(/\/+$/, '')
+  const corsAllow = Array.from(new Set([...corsOrigins, siteOriginForCors].filter(Boolean)))
+  if (corsAllow.length) {
+    app.use(
+      cors({
+        origin: (origin, callback) => callback(null, !origin || corsAllow.includes(origin)),
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Request-Id'],
+        maxAge: 86400,
+      }),
+    )
+    logger.info('CORS 白名单已启用', { origins: corsAllow })
+  } else if (process.env.NODE_ENV !== 'production') {
+    app.use(cors())
+  } else {
+    logger.warn('未配置 CORS_ORIGINS / SITE_ORIGIN，生产环境仅允许同源请求')
+  }
 
   // JSON 体积上限放宽到 10MB：后台「法律条款」导入 Word 时会以 base64 提交文件内容
   app.use(express.json({ limit: '10mb' }))
@@ -94,6 +128,21 @@ export function createApp(): Express {
 
   // 业务路由（核心内容端点 + 个人中心等）
   registerRoutes(app)
+
+  // 旧站直链兼容：命中映射表时 301 到新地址；映射文件缺失 / 为空时完全无影响。
+  // 映射由 data/legacy-redirects.json（或 LEGACY_REDIRECTS_PATH）提供，等旧站清单确认后填充。
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      next()
+      return
+    }
+    const target = legacyRedirectFor(req.path)
+    if (target) {
+      res.redirect(301, target)
+      return
+    }
+    next()
+  })
 
   // 素材库公开访问：/uploads/<文件名>（与 /api 不冲突）。
   // 必须在下方 SPA 回退之前挂载，否则未命中的静态请求会被回退到 index.html。
@@ -165,8 +214,10 @@ export function createApp(): Express {
       index: false,
       fallthrough: true,
       setHeaders: (res, filePath) => {
-        // 素材按内容寻址（文件名唯一），设置较长缓存；删除后 URL 不再复用
-        res.setHeader('Cache-Control', 'public, max-age=86400')
+        // 文件名带版本号（如 -1.3.3- / _v2.1）或含哈希段的资源视为不可变，可长缓存并走 CDN；
+        // 其余（运营可能原地替换的图片 / 说明书）保持 1 天，避免换版后长时间不生效。
+        const versioned = /(?:[._-]v?\d+(?:\.\d+){1,3}|[._-][0-9a-f]{8,})(?:[._-]|\.)/i.test(path.basename(filePath))
+        res.setHeader('Cache-Control', versioned ? 'public, max-age=2592000, immutable' : 'public, max-age=86400')
         // SVG 安全加固：公开访问一律强制下载（attachment），避免直开 SVG 执行内联脚本（防 XSS）。
         // 页面内以 <img> 引用 SVG 不受影响（<img> 不执行脚本）；此处不做标签白名单清洗，实现风险更小。
         if (filePath.toLowerCase().endsWith('.svg')) {
