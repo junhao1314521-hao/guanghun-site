@@ -13,6 +13,11 @@ PKG="$(cd "$(dirname "$0")/.." && pwd)"
 [ "$(id -u)" -eq 0 ] || { echo "请用 root 执行"; exit 1; }
 command -v node >/dev/null || { echo "缺少 node"; exit 1; }
 command -v npm >/dev/null || { echo "缺少 npm"; exit 1; }
+# 项目依赖 node:sqlite（Node 22.5+），版本不足时给出明确提示而不是运行中崩溃
+node -e "require('node:sqlite')" >/dev/null 2>&1 || {
+  echo "Node 版本过低：当前 $(node -v)，需要 22.5+（node:sqlite）"; exit 1
+}
+getent group www-data >/dev/null || groupadd --system www-data
 
 mkdir -p "$APP" "$DATA/uploads" "$DATA/backups" "$LOGS" "$BKP"
 
@@ -25,6 +30,12 @@ if [ -d "$APP/gh-server" ]; then
   echo "[1/7] 旧代码已备份：$BKP/app-$TS.tar.gz"
 else
   echo "[1/7] 首次部署，无旧代码"
+fi
+
+# 1.1) 升级前数据库快照（VACUUM INTO 一致性拷贝，不中断服务）
+if [ -f "$DATA/gh.sqlite" ]; then
+  DB_PATH="$DATA/gh.sqlite" BACKUP_DIR="$DATA/backups" node "$PKG/deploy/backup-db.mjs" \
+    || echo "     数据库快照失败（继续部署，但请人工确认）"
 fi
 
 # 2) 同步新代码，保留 node_modules 以加速重复部署
@@ -55,6 +66,22 @@ if [ ! -f "$APP/.env" ]; then
 else
   echo "[3/7] 已存在 .env，保留原配置"
 fi
+
+# 首次部署允许用环境变量覆盖关键项，避免把测试机配置带上正式环境
+if [ -n "${SITE_ORIGIN:-}" ]; then
+  sed -i "s|^SITE_ORIGIN=.*|SITE_ORIGIN=$SITE_ORIGIN|" "$APP/.env"
+fi
+if [ -n "${COOKIE_SECURE:-}" ]; then
+  sed -i "s|^COOKIE_SECURE=.*|COOKIE_SECURE=$COOKIE_SECURE|" "$APP/.env"
+fi
+if [ -n "${TRUST_PROXY:-}" ]; then
+  sed -i "s|^TRUST_PROXY=.*|TRUST_PROXY=$TRUST_PROXY|" "$APP/.env"
+fi
+if [ -n "${PORT:-}" ]; then
+  sed -i "s|^PORT=.*|PORT=$PORT|" "$APP/.env"
+fi
+PORT=$(sed -n 's|^PORT=||p' "$APP/.env" | tail -1)
+PORT=${PORT:-3002}
 
 # 4) 安装后端依赖（不在服务器构建前端）
 cd "$APP/gh-server"
@@ -100,15 +127,25 @@ install -m 644 "$PKG/deploy/website-backup.service" /etc/systemd/system/website-
 install -m 644 "$PKG/deploy/website-backup.timer" /etc/systemd/system/website-backup.timer
 systemctl daemon-reload
 systemctl enable website >/dev/null
+
+# 端口冲突保护：升级时本服务自己占用是正常的；被其他进程占用则中止
+if ss -lntp 2>/dev/null | grep -q ":$PORT "; then
+  if ! systemctl is-active --quiet website; then
+    echo "端口 $PORT 已被其他进程占用，请修改 $APP/.env 的 PORT 后重试："
+    ss -lntp | grep ":$PORT "
+    exit 1
+  fi
+fi
+
 systemctl restart website
 systemctl enable --now website-backup.timer >/dev/null
 echo "[6/7] systemd 已启动（含每日 03:30 数据库备份定时器）"
 
 # 7) 健康检查
 for _ in $(seq 1 30); do
-  code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3002/healthz || true)
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/healthz" || true)
   if [ "$code" = "200" ]; then
-    echo "[7/7] 健康检查通过：http://127.0.0.1:3002/healthz"
+    echo "[7/7] 健康检查通过：http://127.0.0.1:$PORT/healthz（对外端口由 Nginx 决定）"
     exit 0
   fi
   sleep 1

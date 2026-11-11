@@ -18,4 +18,6 @@ chown -R www-data:www-data /opt/website/data /opt/website/logs
 chmod -R a+rX "$APP/gh-server" "$APP/gh-web"
 systemctl restart website
 sleep 2
-curl -fsS http://127.0.0.1:3002/healthz >/dev/null && echo "回滚完成，健康检查通过"
+PORT=$(sed -n 's|^PORT=||p' /opt/website/app/.env 2>/dev/null | tail -1)
+PORT=${PORT:-3002}
+curl -fsS "http://127.0.0.1:$PORT/healthz" >/dev/null && echo "回滚完成，健康检查通过"
