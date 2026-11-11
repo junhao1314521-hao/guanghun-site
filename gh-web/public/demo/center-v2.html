@@ -102,7 +102,7 @@
   .reveal.in{opacity:1;transform:none}
 
   /* ---------- 首屏 ---------- */
-  .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:172px 0 60px;overflow:hidden;isolation:isolate}
+  .hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:172px 0 60px;overflow:hidden;isolation:isolate}
   /* 首屏背景：纯代码复刻「近地轨道看星球地平线」，不使用图片 */
   .hero::before{content:"";position:absolute;inset:0;z-index:-2;
     background:
@@ -348,7 +348,7 @@
 
   /* ---------- 界面细节（滚动放大） ---------- */
   .zoom{height:320vh;position:relative}
-  .zoom-sticky{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+  .zoom-sticky{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;overflow:hidden}
   .zoom-inner{display:grid;grid-template-columns:minmax(0,.32fr) minmax(0,.68fr);gap:56px;align-items:center}
   .zoom-copy h2{font-size:clamp(30px,3.2vw,46px);line-height:1.2}
   .zoom-copy > p{margin-top:16px;color:var(--sub);font-size:16px;max-width:330px}
@@ -596,7 +596,7 @@
       background:rgba(5,7,12,.98);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
       border-bottom:1px solid rgba(255,255,255,.07);
       opacity:0;transform:translateY(-10px);pointer-events:none;
-      transition:opacity .24s var(--ease),transform .24s var(--ease);max-height:calc(100svh - 70px);overflow:auto}
+      transition:opacity .24s var(--ease),transform .24s var(--ease);max-height:calc(100vh - 70px);max-height:calc(100svh - 70px);overflow:auto}
     .nav-mobile.open{opacity:1;transform:none;pointer-events:auto}
     .nav-mobile a{display:block;padding:13px 20px;color:var(--sub);text-decoration:none;font-size:15px;
       border-bottom:1px solid rgba(255,255,255,.05)}
