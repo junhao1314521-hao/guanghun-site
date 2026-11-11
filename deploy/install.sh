@@ -121,6 +121,15 @@ fi
 echo "[5/7] 权限已设置（数据/上传/备份 750，数据库与 .env 640）"
 
 # 6) systemd + 日志轮转 + 每日数据库备份
+# 防误覆盖：正式机若已有同名但不同用途的 website.service，直接中止
+if [ -f /etc/systemd/system/website.service ] \
+   && ! grep -q '/opt/website/app/gh-server' /etc/systemd/system/website.service; then
+  echo "检测到已存在同名服务 website.service，且不是本项目的："
+  echo "  $(grep -m1 '^ExecStart=' /etc/systemd/system/website.service || true)"
+  echo "为避免影响现有业务，已中止。请先与运维确认服务名后再部署。"
+  exit 1
+fi
+
 install -m 644 "$PKG/deploy/website.service" /etc/systemd/system/website.service
 install -m 644 "$PKG/deploy/logrotate-website" /etc/logrotate.d/website
 install -m 644 "$PKG/deploy/website-backup.service" /etc/systemd/system/website-backup.service

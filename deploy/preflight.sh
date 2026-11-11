@@ -37,8 +37,16 @@ for p in 3002 3003; do
 done
 
 echo "== 现有服务 =="
-systemctl list-unit-files 2>/dev/null | grep -E '^(website|guanghun)\.service' \
-  | sed 's/^/  /' || echo "  （未发现同名服务）"
+if [ -f /etc/systemd/system/website.service ]; then
+  if grep -q '/opt/website/app/gh-server' /etc/systemd/system/website.service; then
+    ok "website.service 属于本项目"
+  else
+    bad "website.service 已被其他业务占用：$(grep -m1 '^ExecStart=' /etc/systemd/system/website.service || true)"
+  fi
+else
+  ok "website.service 不存在，可安全创建"
+fi
+systemctl list-unit-files 2>/dev/null | grep -E '^guanghun\.service' | sed 's/^/  /' || true
 
 echo "== Nginx =="
 if command -v nginx >/dev/null 2>&1; then
