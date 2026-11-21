@@ -54,8 +54,9 @@ export function AmbientBackdrop() {
       <div className="ambient__grid" />
       <div className="ambient__glow ambient__glow--a" />
       <div className="ambient__glow ambient__glow--b" />
-      <div className="ambient__noise" />
       <div className="ambient__cursor" ref={cursorRef} />
+      {/* 噪点必须最后绘制（盖在光标光晕之上），否则光标光晕会重新出现同心色带 */}
+      <div className="ambient__noise" />
     </div>
   )
 }
