@@ -124,7 +124,7 @@ export const SCENES: Scene[] = [
     id: 'scene-02',
     label: 'SCENE 02',
     title: '色准 · 创作',
-    desc: '99% DCI-P3、原生 10bit 与出厂校色，兼顾设计与影像调色。',
+    desc: '99% DCI-P3、原生 10bit，满足设计与影像调色需求。',
     tag: '内容创作',
     accentTag: false,
     background:

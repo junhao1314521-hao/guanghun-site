@@ -669,7 +669,7 @@ export type ContactPayload = {
 export const CONTACT_PAYLOAD: ContactPayload = {
   channels: [
     { kind: 'phone', label: '采购与合作热线', value: '15913908438（李经理）', note: '批量采购、渠道与项目合作' },
-    { kind: 'mail', label: '商务邮箱', value: '1009742523@qq.com', note: '1 个工作日内回复' },
+    { kind: 'mail', label: '商务邮箱', value: '1009742523@qq.com', note: '商务合作与采购咨询' },
     { kind: 'chat', label: '微信 / 在线咨询', value: 'xxrsm001 / xxrsm004', note: '也可提交咨询工单，在个人中心跟踪进度' },
   ],
   offices: [

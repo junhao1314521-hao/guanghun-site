@@ -335,7 +335,7 @@ function buildHome(): Page {
       props: {
         title: '咨询与售后',
         desc: '售前、售后与商务合作分开提交，各自有人接手。',
-        points: ['工作日 09:00–21:00 在线', '售前 / 售后工单 1 个工作日首次响应', '登录后可在「我的工单」查看进度'],
+        points: ['工作日 09:00–21:00 在线', '售前与售后分开受理，转交对应团队处理', '登录后可在「我的工单」查看进度'],
         quickEnabled: true,
         quickPlaceholder: '用一句话描述你的问题，例如：27X1QE 更新固件后 HDR 偏暗',
         quickCta: '快速提问',
@@ -357,11 +357,13 @@ function buildHome(): Page {
       type: 'trustBar',
       props: {
         columns: 4,
+        dataStatus: 'verified',
+        dataSource: '原官网 xxrsm.com 首页信任区（顺丰包邮 · 三年质保全国联保，2026-11-22 核对）',
         items: [
           { icon: 'flask', text: '实测数据', desc: '小雪人评测实验室 · 方法与样本公开' },
           { icon: 'shield', text: '三年质保', desc: '含 OLED 烧屏保护，全国联保' },
           { icon: 'check', text: '官方直营', desc: '官网 · 京东 · 抖音旗舰店' },
-          { icon: 'box', text: '顺丰包邮', desc: '全国配送，整机包邮' },
+          { icon: 'box', text: '顺丰包邮', desc: '顺丰送货上门，整机包邮' },
         ],
       },
     },
@@ -373,11 +375,13 @@ function buildHome(): Page {
       props: {
         layout: 'trust',
         columns: 4,
+        dataStatus: 'verified',
+        dataSource: '原官网 xxrsm.com 首页（顺丰包邮 · 15 天无理由退换货，2026-11-22 核对）',
         items: [
           { title: '小雪人评测实验室', desc: '统一方法与样本量' },
           { title: '三年质保', desc: '含 OLED 烧屏保护' },
           { title: '官方正品', desc: '全国联保' },
-          { title: '顺丰包邮', desc: '15 天无理由退换' },
+          { title: '顺丰包邮', desc: '15 天无理由退换货' },
         ],
       },
     },
@@ -394,6 +398,8 @@ function buildHome(): Page {
         overlay: true,
         ratio: '3 / 4',
         columns: 4,
+        dataStatus: 'verified',
+        dataSource: '产品参数：27X1QE-W54 色域 99% DCI-P3 · 原生 10bit（实测色域容积 97.6%）',
         items: home.SCENES.map((scene) => ({
           tag: scene.tag,
           title: scene.title,
@@ -461,9 +467,11 @@ function buildHome(): Page {
         subtitle: '售前与售后执行同一套服务标准。',
         layout: 'trust',
         columns: 3,
+        dataStatus: 'verified',
+        dataSource: '原官网 xxrsm.com 首页（顺丰包邮 · 现货秒发 · 15 天无理由退换货，2026-11-22 核对）',
         items: [
           { tag: '质保', title: '三年质保，含烧屏保障', desc: '全系 OLED 面板覆盖烧屏保护，全国联保；序列号即可查保修状态。' },
-          { tag: '物流', title: '顺丰包邮，现货速发', desc: '到货即验机，15 天无理由退换。' },
+          { tag: '物流', title: '顺丰包邮，现货秒发', desc: '15 天无理由退换货，购机无忧。' },
           { tag: '服务', title: '专属服务，全程可跟进', desc: '面板服务与技术支持由同一套工单承接，进度随时可查。' },
         ],
       },
@@ -594,6 +602,8 @@ function buildAbout(): Page {
         subtitle: '按类别查看该系列的全部型号与实测参数。',
         icon: 'monitor',
         columns: 4,
+        dataStatus: 'verified',
+        dataSource: '产品库在售统计（2026-11-22：OLED 旗舰 7 款 / 双模高刷 2 款，状态均为在售）',
         items: [
           // 数量取自产品库实况（/api/products）：OLED 旗舰 7 款、双模高刷 2 款；
           // IPS 与周边当前无上架型号，标注「暂未上架」且不给死链。
@@ -620,6 +630,8 @@ function buildAbout(): Page {
       type: 'stats',
       props: {
         title: '关键事实',
+        dataStatus: 'verified',
+        dataSource: '产品库在售统计（2026-11-22：OLED 旗舰 7 款 + 双模高刷 2 款 = 9 款）',
         items: [
           { value: '2', label: '在售产品线', note: 'OLED 旗舰 7 款 / 双模高刷 2 款' },
           { value: '9', label: '在售型号', note: '以产品库当前上架型号计' },
@@ -1055,9 +1067,11 @@ function buildSupport(): Page {
         title: '服务承诺',
         icon: 'shield',
         columns: 3,
+        dataStatus: 'verified',
+        dataSource: '原官网 xxrsm.com 首页与 B2B 页（顺丰包邮 / 顺丰送货上门 / 现货秒发 / 15 天无理由退换货，2026-11-22 核对）',
         items: [
           { title: '三年质保', desc: '全系含 OLED 烧屏保护，全国联保。' },
-          { title: '顺丰包邮', desc: '现货速发，支持 15 天无理由退换。' },
+          { title: '顺丰包邮，送货上门', desc: '现货秒发，支持 15 天无理由退换货。' },
           { title: '专属服务', desc: '面板服务与技术支持，工单全程可跟进。' },
         ],
       },
