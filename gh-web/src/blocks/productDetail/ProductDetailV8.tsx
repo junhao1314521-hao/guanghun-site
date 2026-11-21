@@ -7,7 +7,7 @@
  * - 全页白底 + 发丝线分隔，不使用白卡外壳与投影（相关产品除外）；
  * - 所有模块数据驱动，无数据时自动隐藏；3D 无模型时保留灰色入口。
  */
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { fetchProducts } from '../../api/products'
@@ -32,12 +32,6 @@ type HeroConfig = {
 
 function findAttr(attrs: ProductAttribute[] | undefined, key: string) {
   return attrs?.find((item) => item.label.includes(key))
-}
-
-function parseHz(value: string | undefined) {
-  if (!value) return 0
-  const matched = value.match(/(\d{2,4})/)
-  return matched ? Number(matched[1]) : 0
 }
 
 function isExternal(href: string) {
@@ -98,6 +92,79 @@ function ServiceIcon({ name }: { name: string }) {
   )
 }
 
+/** 产品亮点图标：按位次给三枚不同的线性图标，不依赖运营额外上传 */
+function HighlightIcon({ index }: { index: number }) {
+  const common = {
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.3,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+  if (index === 1) {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+    )
+  }
+  if (index === 2) {
+    return (
+      <svg {...common}>
+        <rect x="3" y="7" width="14" height="10" rx="1.5" />
+        <path d="M17 10h3l1.5 3v4H17z" />
+        <path d="M7 11h5M7 14h3" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...common}>
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M8 20h8M12 16v4" />
+    </svg>
+  )
+}
+
+/** 图集影视角标：把视频 / 3D 入口并入缩略图后，用角标区分媒体类型 */
+function MediaBadge({ kind }: { kind: 'video' | 'model' }) {
+  return kind === 'video' ? (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M9 6.5 18 12l-9 5.5z" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M12 3 4 7v10l8 4 8-4V7z" />
+      <path d="m4 7 8 4 8-4M12 11v10" />
+    </svg>
+  )
+}
+
+/** 缩略图缺少专属海报时的媒体字形，避免复用主图导致同一张图重复出现 */
+function MediaGlyph({ kind }: { kind: 'video' | 'model' }) {
+  return kind === 'video' ? (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m10 9 6 3-6 3z" fill="currentColor" stroke="none" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
+      <path d="M12 3 4 7v10l8 4 8-4V7z" />
+      <path d="m4 7 8 4 8-4M12 11v10" />
+    </svg>
+  )
+}
+
+/** 首屏权益 / 服务列表左侧的勾选图标 */
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="m5 12 4 4L19 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, unknown>; t: T }) {
   const detail = useProductDetail()
   const hero = heroProps as HeroConfig
@@ -126,6 +193,9 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   const [activeNav, setActiveNav] = useState('pdv8-top')
   const [related, setRelated] = useState<Product[]>([])
   const [showBuyBar, setShowBuyBar] = useState(false)
+  // 子导航是否已吸顶：只有吸顶时才需要磨砂底遮挡下方内容
+  const [navStuck, setNavStuck] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
   const [stackHeight, setStackHeight] = useState(90)
   const [picked, setPicked] = useState<string[]>([])
   // 已进入过视口的区块 id：用状态保存，避免滚动引起重渲染时丢掉入场态
@@ -182,30 +252,38 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
     [detail],
   )
 
-  const groups = useMemo(() => {
-    const map = new Map<string, ProductAttribute[]>()
-    for (const item of attributes) {
-      const name = item.group || '其他'
-      if (!map.has(name)) map.set(name, [])
-      map.get(name)?.push(item)
-    }
-    return [...map.entries()].map(([name, items]) => ({ name, items }))
-  }, [attributes])
+  // 规格与包装清单的唯一数据源：导航判据和下方区块渲染共用，避免两边条件不一致造成死锚点
+  const { specItems, packItems } = useMemo(() => {
+    const packaging = attributes.filter((item) => (item.group ?? '').includes('包装'))
+    const spec = attributes.filter((item) => !(item.group ?? '').includes('包装'))
+    const pack = detail?.inBox?.length
+      ? detail.inBox
+      : packaging.flatMap((item) =>
+          item.value
+            .split(/[、,，;；]/)
+            .map((value) => value.trim())
+            .filter(Boolean),
+        )
+    return { specItems: spec, packItems: pack }
+  }, [attributes, detail])
 
   const navItems = useMemo(() => {
     if (!detail) return []
-    const attrs = detail.attributes ?? []
     const items: { id: string; label: string }[] = []
     // 子导航与下方实际渲染的区块同源：没有数据的模块不出现在导航里，避免死锚点。
-    if (detail.features?.length || attrs.length) items.push({ id: 'pdv8-highlights', label: t('blocks.pd.highlights') })
-    if (attrs.length) {
-      items.push({ id: 'pdv8-perf', label: t('blocks.pd.v8Performance') })
-      items.push({ id: 'pdv8-specs', label: t('blocks.pd.v8Specs') })
-    }
+    if (detail.features?.length || attributes.length) items.push({ id: 'pdv8-highlights', label: t('blocks.pd.highlights') })
+    if (specItems.length) items.push({ id: 'pdv8-specs', label: t('blocks.pd.v8Specs') })
+    if (packItems.length) items.push({ id: 'pdv8-package', label: t('blocks.pd.v8PackTitle') })
+    const selfVariant = related.find((item) => item.id === detail.id)?.variant
+    const hasCompare = related.some(
+      (item) => item.id !== detail.id && (item.category === detail.tag || item.variant === selfVariant),
+    )
+    // 对比表以参数为行，没有参数时区块不渲染
+    if (hasCompare && attributes.length) items.push({ id: 'pdv8-compare', label: t('blocks.pd.v8CompareTitle') })
     items.push({ id: 'pdv8-service', label: t('blocks.pd.v8Service') })
     if (detail.reviews?.length) items.push({ id: 'pdv8-reviews', label: t('blocks.pd.v8Reviews') })
     return items
-  }, [detail, t])
+  }, [detail, related, attributes, specItems, packItems, t])
 
   // 当前区块：按「最后一个越过吸顶线」计算，短区块（如产品亮点）也不会被漏掉
   useEffect(() => {
@@ -218,6 +296,9 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
         if (element && element.getBoundingClientRect().top <= line) current = id
       }
       setActiveNav(current)
+      // 子导航顶端抵达吸顶线即视为已吸顶（此时才铺磨砂底）
+      const nav = navRef.current
+      if (nav) setNavStuck(nav.getBoundingClientRect().top <= (stackHeight || 90) + 1)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -244,22 +325,22 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
       { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
     )
     nodes.forEach((node) => observer.observe(node))
+    // related 异步返回后才渲染同系列对比，需要在它到位后重新观察新增区块
     return () => observer.disconnect()
-  }, [detail])
+  }, [detail, related])
 
   if (!detail) return null
 
-  const refresh = findAttr(attributes, '刷新率')
-  const refreshHz = parseHz(refresh?.value)
-  const stats = (() => {
+  // 关键指标：取后台参数里最常用的四项，与完整规格同源，不再单独做「性能」模块
+  const keyStats = (() => {
     const list: { label: string; value: string }[] = []
-    for (const key of ['响应时间', '尺寸', '亮度', '对比度', '色域', '面板', '接口', 'HDR 认证']) {
+    for (const key of ['刷新率', '响应时间', '分辨率', '面板', '尺寸', '亮度', '对比度', '色域', '接口']) {
       const item = findAttr(attributes, key)
       if (item) list.push({ label: item.label, value: item.value })
       if (list.length === 4) break
     }
     if (!list.length) {
-      for (const item of attributes.slice(0, 3)) list.push({ label: item.label, value: item.value })
+      for (const item of attributes.slice(0, 4)) list.push({ label: item.label, value: item.value })
     }
     return list
   })()
@@ -269,10 +350,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
     : attributes.slice(0, 6).map((item) => `${item.label}：${item.value}`)
 
   // 亮点卡片：只取前 3 条，标题/说明由后台同一条文案拆分，运营无需额外上传图片
-  const highlightCards = highlights.slice(0, 3).map((text, index) => ({
-    num: String(index + 1).padStart(2, '0'),
-    ...splitFeature(text),
-  }))
+  const highlightCards = highlights.slice(0, 3).map((text) => splitFeature(text))
 
   const chips = detail.specs?.length
     ? detail.specs.slice(0, 4)
@@ -358,7 +436,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
     <div className="pdv8" style={{ '--pdv8-stack': `${stackHeight}px` } as CSSProperties}>
       <div className="pdv8-hero" id="pdv8-top">
         <div className="pdv8-gallery">
-          <div className="pdv8-thumbs" role="tablist" aria-label={detail.name}>
+          <div className="pdv8-thumbs" role="group" aria-label={detail.name}>
             {photos.map((src, index) => (
               <button
                 key={`${src}-${index}`}
@@ -370,6 +448,42 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 <img src={src} alt="" loading="lazy" />
               </button>
             ))}
+            {/* 视频 / 3D 与图集共用同一条缩略图轨道，不再另起一排文字标签 */}
+            <button
+              type="button"
+              className={`pdv8-thumb pdv8-thumb--media${mode === 'video' ? ' is-on' : ''}${
+                hasVideo ? '' : ' is-missing'
+              }`}
+              onClick={() => setMode('video')}
+              aria-label={t('blocks.pd.v8TabVideo')}
+              title={hasVideo ? undefined : t('blocks.pd.v8VideoSoon')}
+            >
+              {detail.videoPoster ? (
+                <>
+                  <img src={detail.videoPoster} alt="" />
+                  <i className="pdv8-thumb__badge">
+                    <MediaBadge kind="video" />
+                  </i>
+                </>
+              ) : (
+                <span className="pdv8-thumb__ph">
+                  <MediaGlyph kind="video" />
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              className={`pdv8-thumb pdv8-thumb--media${mode === 'model' ? ' is-on' : ''}${
+                can3d ? '' : ' is-missing'
+              }`}
+              onClick={() => setMode('model')}
+              aria-label="3D"
+              title={can3d ? t('blocks.pd.v8DragHint') : t('blocks.pd.v8ModelSoon')}
+            >
+              <span className="pdv8-thumb__ph">
+                <MediaGlyph kind="model" />
+              </span>
+            </button>
           </div>
 
           <div className={`pdv8-stage is-${mode}`}>
@@ -391,9 +505,28 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 preload="metadata"
               />
             )}
-            {mode === 'model' && detail.model3d && (
+            {mode === 'video' && !hasVideo && (
+              <div className="pdv8-stage__ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.1">
+                  <rect x="3" y="5" width="14" height="14" rx="2" />
+                  <path d="m17 10 4-2v8l-4-2z" />
+                </svg>
+                <span>{t('blocks.pd.v8VideoSoon')}</span>
+              </div>
+            )}
+            {/* 与缩略图的灰态一致：未启用的 3D 不加载模型，只显示准备中 */}
+            {mode === 'model' && can3d && detail.model3d && (
               <div className="pdv8-stage__model">
                 <ProductModel3D src={detail.model3d} label={detail.name} />
+              </div>
+            )}
+            {mode === 'model' && !can3d && (
+              <div className="pdv8-stage__ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.1">
+                  <path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9L12 3Z" />
+                  <path d="m3.5 7.5 8.5 4.5 8.5-4.5M12 12v9" />
+                </svg>
+                <span>{t('blocks.pd.v8ModelSoon')}</span>
               </div>
             )}
             {mode === 'photo' && photos.length > 1 && (
@@ -414,46 +547,17 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 >
                   ›
                 </button>
-                <span className="pdv8-counter">
-                  {photoIndex + 1} / {photos.length}
-                </span>
               </>
             )}
-          </div>
-
-          <div className="pdv8-viewtabs" role="tablist" aria-label={detail.name}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'photo'}
-              className={`pdv8-viewtab${mode === 'photo' ? ' is-on' : ''}`}
-              onClick={() => setMode('photo')}
-            >
-              {t('blocks.pd.v8TabPhoto')}
-              {photos.length > 0 ? ` ${photos.length}` : ''}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'video'}
-              className={`pdv8-viewtab${mode === 'video' ? ' is-on' : ''}`}
-              onClick={() => setMode('video')}
-              disabled={!hasVideo}
-              title={hasVideo ? undefined : t('blocks.pd.v8VideoSoon')}
-            >
-              {t('blocks.pd.v8TabVideo')}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mode === 'model'}
-              className={`pdv8-viewtab${mode === 'model' ? ' is-on' : ''}`}
-              onClick={() => setMode('model')}
-              disabled={!can3d}
-              title={can3d ? t('blocks.pd.v8DragHint') : t('blocks.pd.v8ModelSoon')}
-            >
-              3D
-            </button>
+            {(mode !== 'photo' || photos.length > 0) && (
+              <span className="pdv8-counter">
+                {mode === 'photo'
+                  ? `${photoIndex + 1} / ${photos.length}`
+                  : mode === 'video'
+                    ? t('blocks.pd.v8TabVideo')
+                    : '3D'}
+              </span>
+            )}
           </div>
         </div>
 
@@ -470,14 +574,18 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
             {detail.features?.[0] && <p className="pdv8-lede">{detail.features[0]}</p>}
           </div>
 
-          <div className="pdv8-group">
-            {chips.length > 0 && (
-              <ul className="pdv8-chips">
+          {chips.length > 0 && (
+            <div className="pdv8-group">
+              <ul className="pdv8-benefits">
                 {chips.map((chip) => (
-                  <li key={chip}>{chip}</li>
+                  <li key={chip}>
+                    <CheckIcon />
+                    <span>{chip}</span>
+                  </li>
                 ))}
               </ul>
-            )}
+            </div>
+          )}
 
           {hero.showPrice !== false && (
             <div className="pdv8-price">
@@ -519,13 +627,21 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
               </span>
             </div>
           )}
-          </div>
 
           <div className="pdv8-group">
             <ul className="pdv8-promise">
-              <li>{warrantyText}</li>
-              <li>{t('blocks.pd.v8Nationwide')}</li>
-              <li>{t('blocks.pd.v8Return')}</li>
+              <li>
+                <ServiceIcon name="warranty" />
+                <span>{warrantyText}</span>
+              </li>
+              <li>
+                <ServiceIcon name="nationwide" />
+                <span>{t('blocks.pd.v8Nationwide')}</span>
+              </li>
+              <li>
+                <ServiceIcon name="return" />
+                <span>{t('blocks.pd.v8Return')}</span>
+              </li>
             </ul>
 
             <div className="pdv8-cta">
@@ -547,7 +663,8 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
       </div>
 
       <nav
-        className="pdv8-subnav"
+        ref={navRef}
+        className={`pdv8-subnav${navStuck ? ' is-stuck' : ''}`}
         aria-label={t('blocks.pd.tocLabel')}
         style={{ top: stackHeight || undefined }}
       >
@@ -582,152 +699,119 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
           <div>
             <header className="pdv8-section__head">
               <h2>{t('blocks.pd.highlights')}</h2>
-              <span className="pdv8-section__meta">{t('blocks.pd.v8HighlightCount', { n: highlights.length })}</span>
-              <a className="pdv8-section__more" href="#pdv8-specs">
-                {t('blocks.pd.v8AllSpecs')} →
-              </a>
             </header>
-            <div className="pdv8-cards">
-              {highlightCards.map((card) => (
-                <a className="pdv8-card" href="#pdv8-specs" key={`${card.num}-${card.title}`}>
-                  <span className="pdv8-card__arrow" aria-hidden="true">
-                    ↗
-                  </span>
-                  <span className="pdv8-card__body">
-                    <h3>{card.title}</h3>
-                    {card.desc && <p>{card.desc}</p>}
-                  </span>
-                  <span className="pdv8-card__num" aria-hidden="true">
-                    {card.num}
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {(refreshHz > 0 || stats.length > 0) && (
-        <section className={sectionClass('pdv8-perf')} id="pdv8-perf">
-          <div>
-            <header className="pdv8-section__head">
-              <h2>{t('blocks.pd.v8Performance')}</h2>
-            </header>
-            <div className={`pdv8-perf${refreshHz ? '' : ' is-simple'}`}>
-              {refreshHz > 0 && (
-                <div className="pdv8-perf__hero">
-                  <span className="pdv8-perf__label">{refresh?.label}</span>
-                  <div className="pdv8-perf__value">
-                    <strong>{refreshHz}</strong>
-                    <span>Hz</span>
-                  </div>
-                  <div className="pdv8-perf__scale" aria-hidden="true">
-                    <span className="pdv8-perf__track" />
-                    <span
-                      className="pdv8-perf__marker"
-                      style={{ left: `${Math.min(100, (refreshHz / 540) * 100)}%` }}
-                    >
-                      <i />
-                      <em>{t('blocks.pd.v8Local')}</em>
+            <div className="pdv8-hl">
+              {highlightCards.map((card, index) => {
+                const body = (
+                  <>
+                    <span className="pdv8-hl__icon" aria-hidden="true">
+                      <HighlightIcon index={index} />
                     </span>
-                    {[60, 144, 240, 320, 540].map((value) => (
-                      <span
-                        key={value}
-                        className={`pdv8-perf__tick${value === refreshHz ? ' is-current' : ''}`}
-                        style={{ left: `${(value / 540) * 100}%` }}
-                      >
-                        <i />
-                        {value}
-                      </span>
-                    ))}
+                    <span className="pdv8-hl__body">
+                      <h3>{card.title}</h3>
+                      {card.desc && <p>{card.desc}</p>}
+                    </span>
+                  </>
+                )
+                const key = `${card.title}-${index}`
+                // 规格区块不存在时不包链接，避免指向空锚点
+                return specItems.length > 0 ? (
+                  <a className="pdv8-hl__item" href="#pdv8-specs" key={key}>
+                    {body}
+                  </a>
+                ) : (
+                  <div className="pdv8-hl__item" key={key}>
+                    {body}
                   </div>
-                  <p className="pdv8-perf__caption">{t('blocks.pd.v8PerfHint')}</p>
-                </div>
-              )}
-              <div className={`pdv8-perf__stats${stats.length === 4 ? '' : ' is-narrow'}`}>
-                {stats.map((item) => (
-                  <div key={item.label}>
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                  </div>
-                ))}
-              </div>
+                )
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {(groups.length > 0 || compareRows.length > 0) && (
+      {specItems.length > 0 && (
         <section className={sectionClass('pdv8-specs')} id="pdv8-specs">
           <div>
             <header className="pdv8-section__head">
               <h2>{t('blocks.pd.v8Specs')}</h2>
             </header>
 
-            {/* 直接平铺所有参数分组，不做左侧分类切换；包装清单并入同一张规格表 */}
-            <div className="pdv8-specs">
-              {groups.map((group) => (
-                <div className="pdv8-specs__group" key={group.name}>
-                  <h3>{group.name}</h3>
-                  <dl className="pdv8-specs__list">
-                    {group.items.map((item) => (
-                      <div
-                        key={`${item.label}-${item.value}`}
-                        className={`pdv8-specs__row${item.label === group.name ? ' is-single' : ''}`}
-                      >
-                        {item.label !== group.name && <dt>{item.label}</dt>}
-                        <dd>{item.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
+            {/* 性能不再单独成模块：关键指标用四等分单元，与完整规格同源 */}
+            {keyStats.length > 0 && (
+              <div className="pdv8-kpis">
+                {keyStats.map((item) => (
+                  <div className="pdv8-kpi" key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 规格平铺为三列等宽单元，不做分组标题与切换 */}
+            <div className="pdv8-specgrid">
+              {specItems.map((item) => (
+                <div className="pdv8-specitem" key={`${item.label}-${item.value}`}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
                 </div>
               ))}
-              {detail.inBox?.length ? (
-                <div className="pdv8-specs__group">
-                  <h3>{t('blocks.pd.v8PackTitle')}</h3>
-                  <ul className="pdv8-specs__pack">
-                    {detail.inBox.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
             </div>
+          </div>
+        </section>
+      )}
 
-            {compareRows.length > 0 && compareItems.length > 0 && (
-            <div className="pdv8-compare">
-              <h3>{t('blocks.pd.v8CompareTitle')}</h3>
-              <div className="pdv8-compare__scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th scope="col" />
-                      <th scope="col" className="is-current">
-                        {detail.model}
+      {packItems.length > 0 && (
+        <section className={sectionClass('pdv8-package')} id="pdv8-package">
+          <div>
+            <header className="pdv8-section__head">
+              <h2>{t('blocks.pd.v8PackTitle')}</h2>
+            </header>
+            <ul className="pdv8-pack">
+              {packItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {compareRows.length > 0 && compareItems.length > 0 && (
+        <section className={sectionClass('pdv8-compare')} id="pdv8-compare">
+          <div>
+            <header className="pdv8-section__head">
+              <h2>{t('blocks.pd.v8CompareTitle')}</h2>
+            </header>
+            <div className="pdv8-compare__scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col" />
+                    <th scope="col" className="is-current">
+                      {detail.model}
+                    </th>
+                    {compareItems.map((item) => (
+                      <th key={item.id} scope="col">
+                        {item.model}
                       </th>
-                      {compareItems.map((item) => (
-                        <th key={item.id} scope="col">
-                          {item.model}
-                        </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareRows.map((row) => (
+                    <tr key={row.label}>
+                      <th scope="row">{row.label}</th>
+                      <td className="is-current">{row.current}</td>
+                      {row.others.map((value, index) => (
+                        <td key={`${row.label}-${index}`}>{value}</td>
                       ))}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {compareRows.map((row) => (
-                      <tr key={row.label}>
-                        <th scope="row">{row.label}</th>
-                        <td className="is-current">{row.current}</td>
-                        {row.others.map((value, index) => (
-                          <td key={`${row.label}-${index}`}>{value}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
+          </div>
         </section>
       )}
 

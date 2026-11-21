@@ -89,7 +89,7 @@ export function ProductDetailPage() {
   const templateBlocks = (template?.blocks ?? []).filter((block) => block.enabled)
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className="product-detail-page">
       <JsonLdNode node={productJsonLd(detail, ogImage)} />
       {templateBlocks.length > 0 ? (
         <ProductDetailContext.Provider value={detail}>

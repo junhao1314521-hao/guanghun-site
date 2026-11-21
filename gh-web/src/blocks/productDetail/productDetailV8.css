@@ -1,26 +1,26 @@
-/* 产品详情 v8：白底 + 发丝线，不使用卡片外壳与投影 */
+/* 产品详情 v8：宽屏、白底、发丝线；不叠加模块底色与卡片外壳 */
 /* 解除旧 Toc 布局的 1200px 限宽，让内容与站点导航同宽（1440 / 48 内边距） */
 .pdl.pdl--toc {
   max-width: none;
   width: 100%;
 }
 
-.pdv8 {
-  /* 性能带用负边距做全出血，裁掉容器内的横向溢出（clip 不建立滚动容器，粘性定位仍生效） */
+/* 产品页级裁掉横向溢出：clip 不建立滚动容器，粘性定位不受影响 */
+.product-detail-page {
   overflow-x: clip;
+}
+
+.pdv8 {
+  /* 横向出血的裁剪上移到 .product-detail-page：子导航要相对视口通栏，不能再被内容宽度裁掉 */
   --pdv8-ink: #17171a;
   --pdv8-ink2: #565b63;
   --pdv8-muted: #8a8f98;
   --pdv8-faint: #a2a7ae;
   --pdv8-line: rgba(17, 17, 20, 0.08);
   --pdv8-line-strong: rgba(17, 17, 20, 0.14);
-  --pdv8-stage: #f4f5f7;
   --pdv8-accent: #2f6bff;
   --pdv8-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
-  /* 页面左右留白：用于子导航、亮点带做通栏出血 */
-  --pdv8-gutter: 16px;
   color: var(--pdv8-ink);
-  /* 与站点同一张纸：不再铺纯白，只让主图舞台与价格卡留白 */
   background: transparent;
 }
 
@@ -45,6 +45,9 @@
 
 .pdv8 button {
   font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
   cursor: pointer;
 }
 
@@ -57,27 +60,25 @@
 /* —— 首屏 —— */
 .pdv8-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.34fr) minmax(0, 1fr);
-  gap: 56px;
-  padding-top: 32px;
-  padding-bottom: 56px;
-  /* 回到自然高度：右栏不再被拉伸，避免信息之间出现大块空洞 */
+  grid-template-columns: minmax(0, 1.65fr) minmax(360px, 1fr);
+  gap: clamp(40px, 4vw, 80px);
+  padding-block: 40px 72px;
   align-items: start;
 }
 
 .pdv8-gallery {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 76px minmax(0, 760px);
+  gap: 20px;
   min-width: 0;
 }
 
+/* 缩略图：方形 1:1，视频 / 3D 与图片共用同一条轨道 */
 .pdv8-thumbs {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 720px;
-  overflow: auto;
+  display: grid;
+  grid-auto-rows: max-content;
+  gap: 16px;
+  align-self: start;
   scrollbar-width: none;
 }
 
@@ -88,50 +89,96 @@
 .pdv8-thumb {
   position: relative;
   flex: none;
-  width: 72px;
-  height: 54px;
-  padding: 3px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: var(--pdv8-stage);
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   display: grid;
   place-items: center;
-  overflow: hidden;
-  transition: border-color 0.15s ease;
+  overflow: visible;
+  opacity: 0.5;
+  transition: opacity 0.18s ease;
 }
 
 .pdv8-thumb img {
-  width: 100%;
-  height: 100%;
+  width: 76px;
+  height: 76px;
   object-fit: contain;
 }
 
 .pdv8-thumb:hover {
-  border-color: var(--pdv8-line-strong);
+  opacity: 0.85;
 }
 
 .pdv8-thumb.is-on {
-  border-color: var(--pdv8-ink);
+  opacity: 1;
 }
 
-.pdv8-thumb.is-disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+/* 选中态用左侧细线标识，避免缩略图外面再套一圈卡片 */
+.pdv8-thumb.is-on::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--pdv8-accent);
 }
 
+.pdv8-thumb--media {
+  opacity: 0.75;
+}
+
+.pdv8-thumb--media.is-on {
+  opacity: 1;
+}
+
+.pdv8-thumb--media.is-missing {
+  opacity: 0.42;
+}
+
+.pdv8-thumb__badge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--pdv8-line-strong);
+  display: grid;
+  place-items: center;
+  color: var(--pdv8-ink2);
+}
+
+.pdv8-thumb__badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* 无专属海报时的媒体字形占位 */
+.pdv8-thumb__ph {
+  display: grid;
+  place-items: center;
+  color: var(--pdv8-faint);
+}
+
+.pdv8-thumb__ph svg {
+  width: 34px;
+  height: 34px;
+}
+
+/* 主图：1:1、占到栅格上限 760，不再用固定最大高度压扁 */
 .pdv8-stage {
   position: relative;
   width: 100%;
+  max-width: 760px;
   aspect-ratio: 1 / 1;
-  /* 主图舞台最高 520：超宽屏不再把首屏拉成一整屏 */
-  max-height: 520px;
-  border-radius: 12px;
-  background: #fff;
-  border: 1px solid var(--pdv8-line);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   min-width: 0;
 }
 
@@ -139,7 +186,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(1.02);
+  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease;
 }
 
 /* 相册为空时的同品类矢量占位：保持舞台有内容，不出现破图或纯白块 */
@@ -168,50 +215,23 @@
   background: radial-gradient(72% 72% at 50% 44%, #fff 0%, #eef0f3 100%);
 }
 
-/* 图集 / 视频 / 3D 切换：文字式标签，避免一排按钮感 */
-.pdv8-viewtabs {
-  grid-column: 2;
-  display: flex;
-  gap: 28px;
-  margin-top: 6px;
-  border-bottom: 1px solid var(--pdv8-line);
-}
-
-.pdv8-viewtab {
-  position: relative;
-  height: 38px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 13px;
-  color: var(--pdv8-muted);
-  display: inline-flex;
-  align-items: center;
-  transition: color 0.15s ease;
-}
-
-.pdv8-viewtab:hover:not(:disabled) {
-  color: var(--pdv8-ink);
-}
-
-.pdv8-viewtab.is-on {
-  color: var(--pdv8-ink);
-  font-weight: 600;
-}
-
-.pdv8-viewtab.is-on::after {
-  content: "";
+/* 视频 / 3D 尚未上传时的占位说明 */
+.pdv8-stage__ghost {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--pdv8-accent);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--pdv8-muted);
+  font-size: 13px;
 }
 
-.pdv8-viewtab:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+.pdv8-stage__ghost svg {
+  width: 56px;
+  height: 56px;
+  color: var(--pdv8-faint);
 }
 
 .pdv8-arrow {
@@ -247,43 +267,42 @@
 
 .pdv8-counter {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  right: 4px;
+  bottom: 4px;
   z-index: 3;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(20, 21, 25, 0.55);
-  color: #fff;
-  font-size: 11px;
+  font-family: var(--pdv8-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--pdv8-faint);
   font-variant-numeric: tabular-nums;
 }
 
 /* —— 右栏决策信息 —— */
 .pdv8-rail {
   min-width: 0;
+  max-width: 600px;
   padding-top: 2px;
   display: grid;
-  gap: 22px;
+  gap: 30px;
   align-content: start;
 }
 
-/* 组内 10px、组间 22px：把右栏收成三个决策小组 */
 .pdv8-group {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
 .pdv8-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .pdv8-model {
   font-family: var(--pdv8-mono);
   font-size: 12px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   color: var(--pdv8-faint);
 }
 
@@ -296,8 +315,8 @@
 }
 
 .pdv8-stock i {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
@@ -311,47 +330,52 @@
 }
 
 .pdv8-title {
-  margin: 8px 0 0;
-  font-size: clamp(26px, 2.1vw, 32px);
-  line-height: 1.28;
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.22;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.028em;
   text-wrap: balance;
 }
 
 .pdv8-lede {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--pdv8-ink2);
 }
 
-.pdv8-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* 首屏权益：勾选列表，替代一排带底色的参数胶囊 */
+.pdv8-benefits {
+  display: grid;
+  gap: 9px;
   margin: 0;
   padding: 0;
   list-style: none;
+  font-size: 13px;
+  color: var(--pdv8-ink2);
 }
 
-.pdv8-chips li {
-  padding: 6px 11px;
-  border: 1px solid var(--pdv8-line);
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--pdv8-ink2);
-  background: #fff;
+.pdv8-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pdv8-benefits svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 3px;
+  color: var(--pdv8-accent);
 }
 
 .pdv8-price {
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding: 20px 0;
+  border-top: 1px solid var(--pdv8-line);
+  border-bottom: 1px solid var(--pdv8-line);
+  display: grid;
+  gap: 5px;
 }
 
 .pdv8-price__label {
@@ -362,14 +386,15 @@
 .pdv8-price__row {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 7px;
 }
 
 .pdv8-price__row strong {
   font-family: var(--pdv8-mono);
-  font-size: 32px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 .pdv8-price__row span {
@@ -378,26 +403,25 @@
 }
 
 .pdv8-price__note {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--pdv8-faint);
 }
 
 /* 规格选择：按后台 skuOptions 渲染；无配置时整块不出现 */
 .pdv8-sku {
-  margin: 0;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pdv8-sku__row {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
 }
 
 .pdv8-sku__label {
-  padding-top: 7px;
+  padding-top: 8px;
   font-size: 12px;
   color: var(--pdv8-faint);
 }
@@ -409,13 +433,13 @@
 }
 
 .pdv8-sku__opt {
-  padding: 6px 12px;
+  padding: 7px 14px;
   border: 1px solid var(--pdv8-line-strong);
-  border-radius: 4px;
-  background: #fff;
-  font-size: 12px;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
   color: var(--pdv8-ink2);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
 }
 
 .pdv8-sku__opt:hover {
@@ -425,7 +449,7 @@
 
 .pdv8-sku__opt.is-on {
   border-color: var(--pdv8-accent);
-  background: #f2f6ff;
+  background: #f4f8ff;
   color: var(--pdv8-accent);
   font-weight: 600;
 }
@@ -435,37 +459,59 @@
   color: var(--pdv8-muted);
 }
 
-.pdv8-cta {
+.pdv8-promise {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--pdv8-muted);
+}
+
+.pdv8-promise li {
   display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.pdv8-promise svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--pdv8-accent);
+}
+
+.pdv8-cta {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
   gap: 10px;
 }
 
 .pdv8-btn {
-  height: 48px;
+  height: 50px;
   padding: 0 22px;
-  border-radius: 6px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
   font-size: 15px;
   font-weight: 600;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: filter 0.16s ease, border-color 0.16s ease;
 }
 
 .pdv8-btn.is-primary {
-  flex: 1;
   background: var(--pdv8-accent);
   color: #fff;
 }
 
 .pdv8-btn.is-primary:hover {
-  background: #1a43d8;
+  filter: brightness(0.94);
 }
 
 .pdv8-btn.is-ghost {
   border-color: var(--pdv8-line-strong);
-  background: #fff;
   color: var(--pdv8-ink);
 }
 
@@ -474,39 +520,30 @@
 }
 
 .pdv8-btn.is-sm {
-  height: 38px;
-  padding: 0 16px;
-  font-size: 13px;
-  flex: none;
+  height: 44px;
+  padding: 0 24px;
+  font-size: 14px;
 }
 
-.pdv8-promise {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 7px;
-  font-size: 12px;
-  color: var(--pdv8-muted);
-}
-
-.pdv8-promise li::before {
-  content: "·";
-  margin-right: 8px;
-  color: var(--pdv8-faint);
-}
-
-/* —— 吸顶子导航：通栏、等高居中、文字式下划线 —— */
+/* —— 吸顶子导航：与页面内容同宽、等高居中、文字式下划线 —— */
 .pdv8-subnav {
   position: sticky;
   top: 0;
   z-index: 40;
-  margin-inline: calc(var(--pdv8-gutter) * -1);
-  padding-inline: var(--pdv8-gutter);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
+  /* 相对视口通栏：左右外扩到页面边缘，再用等量内边距把内容拉回原对齐位置 */
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  /* 常态不铺底色：页面本身是渐变纸面，任何实底都会变成一块贴上去的白色横条 */
+  background: transparent;
   border-top: 1px solid var(--pdv8-line);
   border-bottom: 1px solid var(--pdv8-line);
+  transition: background 0.2s ease;
+}
+
+/* 吸顶后才需要遮挡下方滚动内容：此时才铺通栏磨砂底，与顶部导航同一套做法 */
+.pdv8-subnav.is-stuck {
+  background: color-mix(in srgb, var(--color-bg-surface) 92%, transparent);
+  backdrop-filter: blur(14px);
 }
 
 .pdv8-subnav__inner {
@@ -514,13 +551,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
+  gap: 36px;
 }
 
 .pdv8-subnav__links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 34px;
   min-width: 0;
   overflow: auto;
   scrollbar-width: none;
@@ -563,37 +600,25 @@
 .pdv8-subnav__buy {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
   flex: none;
-}
-
-.pdv8-subnav__buy .pdv8-btn.is-sm {
-  height: 44px;
-  padding: 0 20px;
-  font-size: 14px;
 }
 
 .pdv8-subnav__buy strong {
   font-family: var(--pdv8-mono);
   font-size: 16px;
+  font-weight: 600;
 }
 
-@media (min-width: 768px) {
-  .pdv8 {
-    --pdv8-gutter: 24px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .pdv8 {
-    --pdv8-gutter: 48px;
-  }
-}
-
-/* —— 通用区块 —— */
+/* —— 通用模块：只留发丝线与留白，不铺底色 —— */
 .pdv8-section {
-  padding: 64px 0;
-  border-bottom: 1px solid var(--pdv8-line);
+  padding-block: 80px;
+  border-top: 1px solid var(--pdv8-line);
+}
+
+/* 子导航自带下边框，紧随其后的首个区块不再重复画上边线，避免交界处出现 2px 双线 */
+.pdv8-subnav + .pdv8-section {
+  border-top: 0;
 }
 
 /* 入场：轻微上浮淡入；尊重减少动态偏好 */
@@ -615,428 +640,228 @@
     transition: none;
   }
 
-  .pdv8-card,
-  .pdv8-card::after {
+  .pdv8-hl__item,
+  .pdv8-hl__icon {
     transition: none;
   }
 }
 
+/* 统一标题栏：22 / 1.2 / 600；标题与内容间距桌面 36、移动 28 */
 .pdv8-section__head {
   display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 32px;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 36px;
 }
 
 .pdv8-section__head h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.pdv8-section__meta {
-  margin-left: auto;
-  font-family: var(--pdv8-mono);
-  font-size: 12px;
-  color: var(--pdv8-faint);
-}
-
-/* 区块右上「查看全部规格」 */
-.pdv8-section__more {
-  margin-left: 16px;
-  font-size: 13px;
-  color: var(--pdv8-muted);
-  transition: color 0.15s ease;
-}
-
-.pdv8-section__more:hover {
-  color: var(--pdv8-accent);
-}
-
-/* —— 亮点：圆角内嵌浅灰带 + 三列纯文字卡片（数据来自后台 features，无需图片） —— */
-#pdv8-highlights {
-  padding: 40px;
-  background: #f2f4f7;
-  border-radius: 20px;
-  border-bottom: 0;
-}
-
-#pdv8-highlights .pdv8-section__head h2 {
   font-size: 22px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
-.pdv8-cards {
+/* —— 产品亮点：大图标 + 主文案 + 副文案，横向排布填满列宽 —— */
+.pdv8-hl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: clamp(24px, 4vw, 56px);
 }
 
-.pdv8-card {
-  position: relative;
-  background: #fff;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  padding: 26px;
-  display: flex;
-  flex-direction: column;
-  min-height: 176px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(17, 17, 20, 0.04);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.pdv8-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--pdv8-line-strong);
-  box-shadow: 0 12px 24px rgba(17, 17, 20, 0.07);
-}
-
-.pdv8-card__body {
+.pdv8-hl__item {
   display: grid;
-  gap: 8px;
-  align-content: start;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 16px 20px;
+  align-items: start;
+  min-width: 0;
+  transition: transform 0.2s ease;
+}
+
+.pdv8-hl__icon {
+  grid-row: 1 / span 2;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--pdv8-line-strong);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: var(--pdv8-ink);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.pdv8-hl__icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.pdv8-hl__item:hover {
+  transform: translateY(-2px);
+}
+
+.pdv8-hl__item:hover .pdv8-hl__icon {
+  background: #f2f6ff;
+  border-color: var(--pdv8-accent);
+  color: var(--pdv8-accent);
+}
+
+.pdv8-hl__body {
+  display: grid;
+  gap: 7px;
   min-width: 0;
 }
 
-.pdv8-card h3 {
+.pdv8-hl__body h3 {
   margin: 0;
-  font-size: 19px;
-  line-height: 1.45;
+  font-size: 20px;
+  line-height: 1.3;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--pdv8-ink);
 }
 
-.pdv8-card p {
+.pdv8-hl__body p {
   margin: 0;
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--pdv8-muted);
 }
 
-/* 编号作为右下角水印，平衡卡片重心；它不随悬停变色 */
-.pdv8-card__num {
-  position: absolute;
-  right: 22px;
-  bottom: 10px;
-  font-family: var(--pdv8-mono);
-  font-size: 40px;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: #e4e7ec;
-  pointer-events: none;
-}
-
-.pdv8-card__arrow {
-  position: absolute;
-  top: 22px;
-  right: 22px;
-  font-size: 16px;
-  color: var(--pdv8-faint);
-}
-
-/* —— 性能：一整块白卡面板，左侧大号刷新率与刻度，右侧等分指标 —— */
-.pdv8-perf {
+/* —— 规格参数：关键指标四等分 + 参数三列等宽 —— */
+.pdv8-kpis {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 48px;
-  align-items: stretch;
-  padding: 32px;
-  background: #fff;
-  border: 1px solid var(--pdv8-line);
-  border-radius: 16px;
-}
-
-.pdv8-perf.is-simple {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.pdv8-perf__hero {
-  display: grid;
-  align-content: center;
-  gap: 6px;
-  padding: 4px 0;
-}
-
-.pdv8-perf__label {
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  color: var(--pdv8-faint);
-}
-
-.pdv8-perf__value {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.pdv8-perf__value strong {
-  font-family: var(--pdv8-mono);
-  font-size: 64px;
-  line-height: 1;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-
-.pdv8-perf__value span {
-  font-size: 16px;
-  color: var(--pdv8-muted);
-}
-
-/* 刻度：按真实刷新率定位，不做等分假刻度 */
-.pdv8-perf__scale {
-  position: relative;
-  height: 52px;
-  margin-top: 24px;
-}
-
-.pdv8-perf__track {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-  height: 2px;
-  border-radius: 2px;
-  background: #d9dde3;
-}
-
-.pdv8-perf__marker {
-  position: absolute;
-  top: 4px;
-  transform: translateX(-50%);
-  z-index: 1;
-}
-
-.pdv8-perf__marker::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -4px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--pdv8-accent);
-  transform: translateX(-50%);
-}
-
-.pdv8-perf__marker i {
-  display: block;
-  width: 2px;
-  height: 18px;
-  background: var(--pdv8-accent);
-}
-
-.pdv8-perf__marker em {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 2px);
-  transform: translateX(-50%);
-  font-style: normal;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--pdv8-accent);
-  white-space: nowrap;
-}
-
-.pdv8-perf__tick {
-  position: absolute;
-  top: 12px;
-  transform: translateX(-50%);
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  font-family: var(--pdv8-mono);
-  font-size: 11px;
-  color: var(--pdv8-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.pdv8-perf__tick i {
-  width: 1px;
-  height: 8px;
-  background: var(--pdv8-line-strong);
-}
-
-.pdv8-perf__tick.is-current {
-  color: var(--pdv8-accent);
-  font-weight: 600;
-}
-
-.pdv8-perf__tick.is-current i {
-  background: var(--pdv8-accent);
-}
-
-.pdv8-perf__caption {
-  margin: 0;
-  font-size: 12px;
-  color: var(--pdv8-faint);
-}
-
-/* 指标格：1px 网格线，四格等分；不足四格时自动单列，不留空格 */
-.pdv8-perf__stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 1fr;
-  gap: 1px;
-  background: var(--pdv8-line);
-  border: 1px solid var(--pdv8-line);
-  border-radius: 12px;
-  overflow: hidden;
-  align-self: stretch;
-}
-
-.pdv8-perf__stats.is-narrow {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.pdv8-perf__stats > div {
-  background: #fff;
-  padding: 18px 20px;
-  min-height: 88px;
-  display: grid;
-  align-content: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.pdv8-perf__stats span {
-  display: block;
-  font-size: 12px;
-  color: var(--pdv8-faint);
-}
-
-.pdv8-perf__stats strong {
-  display: block;
-  margin-top: 6px;
-  font-family: var(--pdv8-mono);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-/* —— 规格：分组直接平铺，双列瀑布，右侧不留大片空白 —— */
-.pdv8-specs {
-  columns: 2;
-  column-gap: 64px;
-}
-
-.pdv8-specs__group {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-  break-inside: avoid;
-  margin-bottom: 40px;
-}
-
-.pdv8-specs__group h3 {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--pdv8-faint);
-}
-
-.pdv8-specs__list {
-  margin: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--pdv8-line);
-}
-
-.pdv8-specs__row {
-  display: grid;
-  grid-template-columns: minmax(96px, 140px) minmax(0, 1fr);
-  gap: 16px;
-  padding: 11px 0;
   border-bottom: 1px solid var(--pdv8-line);
-  font-size: 13px;
+  margin-bottom: 44px;
 }
 
-.pdv8-specs__row dt {
-  margin: 0;
+.pdv8-kpi {
+  padding: 24px 28px;
+  border-left: 1px solid var(--pdv8-line);
+  min-width: 0;
+}
+
+.pdv8-kpi:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.pdv8-kpi span {
+  display: block;
+  font-size: 12px;
   color: var(--pdv8-muted);
 }
 
-/* 参数名与分组同名时（如「接口」组里的「接口」行）只留取值，避免重复 */
-.pdv8-specs__row.is-single {
-  grid-template-columns: minmax(0, 1fr);
+.pdv8-kpi strong {
+  display: block;
+  margin-top: 9px;
+  font-family: var(--pdv8-mono);
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  word-break: break-word;
 }
 
-.pdv8-specs__row dd {
-  margin: 0;
+.pdv8-specgrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(32px, 4vw, 64px);
+}
+
+.pdv8-specitem {
+  display: grid;
+  gap: 5px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--pdv8-line);
+  min-width: 0;
+}
+
+.pdv8-specitem span {
+  font-size: 12px;
+  color: var(--pdv8-muted);
+}
+
+.pdv8-specitem strong {
+  font-size: 14px;
   font-weight: 500;
   color: var(--pdv8-ink);
   word-break: break-word;
 }
 
-.pdv8-specs__pack {
+/* —— 包装清单：独立模块，胶囊式清单 —— */
+.pdv8-pack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
-.pdv8-specs__pack li {
-  padding: 5px 12px;
+.pdv8-pack li {
+  padding: 6px 14px;
   border: 1px solid var(--pdv8-line);
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--pdv8-ink2);
-  background: #fff;
 }
 
-/* 已并入规格表的旧包装清单样式不再使用 */
-.pdv8-compare {
-  margin-top: 48px;
-}
-
-.pdv8-compare h3 {
-  margin: 0 0 14px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
+/* —— 同系列对比：还原线上表格，当前列浅蓝底 —— */
 .pdv8-compare__scroll {
   overflow-x: auto;
+  border-top: 1px solid var(--pdv8-line);
 }
 
-.pdv8-compare table {
+.pdv8-compare__scroll table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 560px;
+  min-width: 640px;
 }
 
-.pdv8-compare th,
-.pdv8-compare td {
+.pdv8-compare__scroll th,
+.pdv8-compare__scroll td {
   padding: 12px 14px;
   text-align: left;
   border-bottom: 1px solid var(--pdv8-line);
   font-weight: 400;
-  color: var(--pdv8-ink2);
+  color: #565b63;
 }
 
-.pdv8-compare thead th {
+/* 首列固定 150，避免空表头被自动布局压窄 */
+.pdv8-compare__scroll thead th:first-child {
+  width: 150px;
+}
+
+.pdv8-compare__scroll thead th {
   font-size: 12px;
-  color: var(--pdv8-muted);
+  color: #8a8f98;
   border-top: 1px solid var(--pdv8-line);
+  border-bottom: 1px solid var(--pdv8-line);
 }
 
-.pdv8-compare tbody th {
-  color: var(--pdv8-muted);
+.pdv8-compare__scroll thead th.is-current {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pdv8-ink);
+  background: #f2f6ff;
+}
+
+.pdv8-compare__scroll tbody th {
   width: 150px;
   font-size: 12px;
+  color: #8a8f98;
 }
 
-.pdv8-compare .is-current {
-  background: #f2f6ff;
-  color: var(--pdv8-ink);
+.pdv8-compare__scroll td.is-current {
+  font-size: 13px;
   font-weight: 600;
+  color: var(--pdv8-ink);
+  background: #f2f6ff;
 }
 
-/* —— 服务：四项不同图标 + 可读字号 —— */
+/* —— 服务与保障：四项细线分栏 —— */
 .pdv8-service {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1051,7 +876,7 @@
 }
 
 .pdv8-service__item:first-child {
-  padding-left: 0;
+  padding: 0 28px 0 0;
   border-left: 0;
 }
 
@@ -1147,26 +972,118 @@
   display: none;
 }
 
+/* —— 详情页内其他区块：标题字号统一 —— */
+.product-detail-page .section__head {
+  margin-bottom: 36px;
+}
+
+.product-detail-page .section__title {
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* 相关产品：恢复线上部署版 pcard（大圆角、4:3 渐变图底、无价格） */
+.product-detail-page [data-block="productGrid"] .pcard {
+  border-radius: 24px;
+  padding: 11px;
+  background: #fff;
+  border: 1px solid var(--pdv8-line, rgba(17, 17, 20, 0.08));
+  box-shadow: 0 1px 2px rgba(19, 20, 23, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(19, 20, 23, 0.08);
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 17px;
+  background: radial-gradient(75% 75% at 50% 40%, #ffffff 0%, #f1f3f6 100%);
+  padding: 16px;
+  overflow: hidden;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__media img,
+.product-detail-page [data-block="productGrid"] .pcard__media svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__badge {
+  top: 10px;
+  left: 10px;
+  border-radius: 6px;
+  background: var(--pdv8-accent, #2f6bff);
+  color: #fff;
+  font-size: 11px;
+  padding: 3px 7px;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__body {
+  display: grid;
+  gap: 5px;
+  padding: 15px 6px 0;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__model {
+  font-family: var(--pdv8-mono, ui-monospace, Menlo, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--pdv8-faint, #a2a7ae);
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__name {
+  font-size: 16.5px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__specs {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--pdv8-muted, #8a8f98);
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__foot {
+  padding: 14px 6px 5px;
+  border-top: 0;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__status {
+  font-size: 12px;
+  color: #1f9d63;
+}
+
+.product-detail-page [data-block="productGrid"] .pcard__status::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: 2px;
+}
+
+/* —— 响应式 —— */
 @media (max-width: 1024px) {
   .pdv8-hero {
     gap: 36px;
   }
 
-  .pdv8-cards {
-    gap: 12px;
-  }
-
-  .pdv8-perf {
-    gap: 36px;
-  }
-
-  .pdv8-specs {
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: 28px;
-  }
-
   .pdv8-service__item {
     padding: 0 18px;
+  }
+
+  .pdv8-service__item:first-child {
+    padding: 0 18px 0 0;
   }
 }
 
@@ -1175,35 +1092,54 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 28px;
     padding-top: 20px;
-    padding-bottom: 36px;
+    padding-bottom: 44px;
   }
 
   .pdv8-gallery {
     grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+    gap: 16px;
+  }
+
+  .pdv8-stage {
+    order: 1;
+    max-width: none;
   }
 
   .pdv8-thumbs {
-    order: 3;
+    order: 2;
+    display: flex;
     flex-direction: row;
-    max-height: none;
+    gap: 12px;
     overflow-x: auto;
     padding-bottom: 2px;
   }
 
   .pdv8-thumb {
-    width: 64px;
-    height: 48px;
+    width: 68px;
+    height: 68px;
   }
 
-  .pdv8-stage {
-    order: 1;
+  .pdv8-thumb img {
+    width: 68px;
+    height: 68px;
   }
 
-  .pdv8-viewtabs {
-    order: 2;
-    grid-column: 1;
-    margin-top: 0;
+  /* 移动端选中线改到底部 */
+  .pdv8-thumb.is-on::before {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: -2px;
+    width: auto;
+    height: 2px;
+  }
+
+  .pdv8-title {
+    font-size: 26px;
+  }
+
+  .pdv8-price__row strong {
+    font-size: 28px;
   }
 
   .pdv8-sku__row {
@@ -1211,14 +1147,8 @@
     gap: 8px;
   }
 
-  .pdv8-title {
-    /* 26px 让「闪电 540Hz 电竞OLED显示器」这类长型号在 390px 宽度上仍能单行排下，
-       避免中文词被硬拆（如「电 / 竞」）；更窄的屏再靠 text-wrap:balance 均衡两行。 */
-    font-size: 26px;
-  }
-
-  .pdv8-price__row strong {
-    font-size: 28px;
+  .pdv8-cta {
+    grid-template-columns: 1fr;
   }
 
   .pdv8-subnav__buy {
@@ -1239,57 +1169,41 @@
   }
 
   .pdv8-section {
-    padding: 48px 0;
+    padding-block: 56px;
   }
 
   .pdv8-section__head {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
 
-  .pdv8-cards {
+  .pdv8-hl {
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 24px;
   }
 
-  .pdv8-card {
-    min-height: 0;
-    padding: 20px;
+  .pdv8-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 32px;
   }
 
-  .pdv8-card__num {
-    font-size: 32px;
-    right: 18px;
-    bottom: 8px;
+  .pdv8-kpi {
+    padding: 18px 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--pdv8-line);
   }
 
-  .pdv8-perf__value strong {
-    font-size: 52px;
+  .pdv8-kpi:nth-last-child(-n + 2) {
+    border-bottom: 0;
   }
 
-  .pdv8-perf {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 28px;
-    padding: 20px;
-    border-radius: 14px;
+  .pdv8-kpi:nth-child(even) {
+    padding-left: 20px;
+    border-left: 1px solid var(--pdv8-line);
   }
 
-  .pdv8-perf__stats {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #pdv8-highlights {
-    padding: 24px;
-    border-radius: 16px;
-  }
-
-  .pdv8-specs {
-    columns: 1;
-  }
-
-  .pdv8-specs__row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-    padding: 11px 0;
+  .pdv8-specgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
   }
 
   .pdv8-service {
@@ -1297,14 +1211,26 @@
     gap: 28px 0;
   }
 
-  .pdv8-service__item:nth-child(3) {
+  .pdv8-service__item {
+    padding: 0 0 0 18px;
+  }
+
+  .pdv8-service__item:nth-child(odd) {
     padding-left: 0;
     border-left: 0;
+  }
+
+  .pdv8-service__item:first-child {
+    padding: 0 0 0 0;
   }
 
   .pdv8-reviews {
     grid-template-columns: minmax(0, 1fr);
     gap: 24px;
+  }
+
+  .product-detail-page .section__head {
+    margin-bottom: 28px;
   }
 
   .pdv8-buybar {
@@ -1357,7 +1283,7 @@
 }
 
 @media (max-width: 480px) {
-  .pdv8-perf__stats {
+  .pdv8-specgrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1365,13 +1291,14 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .pdv8-service__item {
-    padding: 0 0 0 14px;
-    border-left: 1px solid var(--pdv8-line);
+  .pdv8-service__item,
+  .pdv8-service__item:nth-child(odd) {
+    padding: 0 0 0 0;
+    border-left: 0;
   }
 
-  .pdv8-service__item:nth-child(3) {
-    padding-left: 14px;
-    border-left: 1px solid var(--pdv8-line);
+  .pdv8-service__item + .pdv8-service__item {
+    padding-top: 20px;
+    border-top: 1px solid var(--pdv8-line);
   }
 }
