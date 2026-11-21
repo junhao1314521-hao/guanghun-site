@@ -19,6 +19,7 @@ import { AdminIcon } from './AdminIcon'
 import { MediaImg } from '../ui/MediaImg'
 import { registerSrcSet } from '../ui/mediaSrcSet'
 import { ImageCropPreview, type CropPreviewSpec } from './ImageCropPreview'
+import { useToast } from './feedback'
 import type { MediaHint } from './mediaHints'
 
 /** 允许上传的图片类型（与后端白名单的交集）；同时以扩展名兜底判断（部分浏览器 MIME 为空） */
@@ -32,6 +33,26 @@ const MEDIA_ACCEPT = `${IMAGE_ACCEPT},video/mp4,video/webm,video/quicktime`
 /** 允许上传的非图片文件类型（与后端白名单一致；图片另行允许；.glb 用于产品 3D 预览） */
 const FILE_ACCEPT =
   'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime,application/pdf,application/zip,text/plain,text/markdown,model/gltf-binary,.glb'
+
+/** 与服务端上传分档一致（图片 10MB / 文档 50MB / 视频 200MB）：上传前先拦，避免大文件白传一趟 */
+const SIZE_MB = 1024 * 1024
+const SIZE_LIMIT = { image: 10 * SIZE_MB, doc: 50 * SIZE_MB, video: 200 * SIZE_MB }
+
+/** 按文件类型取上限；部分系统上传时 MIME 为空，回退按扩展名判断（与服务端口径一致） */
+function limitOf(file: File): { bytes: number; label: string } {
+  const type = file.type
+  const name = file.name
+  const isImageFile = type.startsWith('image/') || (!type && /\.(png|jpe?g|webp|gif|svg)$/i.test(name))
+  const isVideoFile = type.startsWith('video/') || (!type && /\.(mp4|webm|mov)$/i.test(name))
+  if (isImageFile) return { bytes: SIZE_LIMIT.image, label: '图片' }
+  if (isVideoFile) return { bytes: SIZE_LIMIT.video, label: '视频' }
+  return { bytes: SIZE_LIMIT.doc, label: '文档' }
+}
+
+/** 字节 → 一位小数的 MB 文案 */
+function mbText(bytes: number): string {
+  return `${(bytes / SIZE_MB).toFixed(1)}MB`
+}
 
 /** 是否图片素材（按 MIME，回退扩展名） */
 function isImage(item: { type: string; name?: string }): boolean {
@@ -129,6 +150,7 @@ export function FileField({
   crops,
 }: FileFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const toast = useToast()
   const [uploading, setUploading] = useState(false)
   // 上传进度（0–100）；用于大文件时给出百分比反馈
   const [uploadPercent, setUploadPercent] = useState(0)
@@ -183,6 +205,12 @@ export function FileField({
     }
   }, [url, urlIsVideo, isImageMode, isMediaMode])
 
+  /** 上传失败：字段下方常驻说明 + 顶部弹窗提示，避免长表单里字段报错滚出视野 */
+  const fail = (message: string) => {
+    setError(message)
+    toast.error(message)
+  }
+
   const onPickFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = '' // 复位，允许重复选择同一文件
@@ -190,11 +218,17 @@ export function FileField({
     setError(null)
     const meta = { type: file.type, name: file.name }
     if (isImageMode && !isImage(meta)) {
-      setError('仅支持图片文件（png / jpg / jpeg / webp / gif / svg）')
+      fail('仅支持图片文件（png / jpg / jpeg / webp / gif / svg）')
       return
     }
     if (isMediaMode && !isImage(meta) && !isVideo(meta)) {
-      setError('仅支持图片（含 GIF）或视频（mp4 / webm / mov）')
+      fail('仅支持图片（含 GIF）或视频（mp4 / webm / mov）')
+      return
+    }
+    // 与服务端同口径的大小预检：直接说清类型、上限与当前体积，避免上传完才被拒
+    const limit = limitOf(file)
+    if (file.size > limit.bytes) {
+      fail(`${limit.label}最大 ${mbText(limit.bytes)}，当前 ${mbText(file.size)}；请压缩或更换文件`)
       return
     }
     setUploading(true)
@@ -204,7 +238,7 @@ export function FileField({
       const item = await uploadImage(file, null, setUploadPercent)
       onChange(item.url)
     } catch (ex) {
-      setError(ex instanceof Error ? ex.message : '上传失败，请稍后重试')
+      fail(ex instanceof Error ? ex.message : '上传失败，请稍后重试')
     } finally {
       setUploading(false)
     }
@@ -296,10 +330,10 @@ export function FileField({
       ) : (
         <span className="field__hint">
           {isImageMode
-            ? '支持格式：png / jpg / jpeg / webp / gif / svg；单个文件建议 ≤ 10MB。填写地址、上传或从素材库选择后显示预览。'
+            ? '支持格式：png / jpg / jpeg / webp / gif / svg；单张 ≤10MB。填写地址、上传或从素材库选择后显示预览。'
             : isMediaMode
-              ? '支持格式：图片（png/jpg/webp）、GIF、视频（mp4/webm）；单个文件建议 ≤ 20MB。上传或从素材库选择后显示预览。'
-              : '支持格式：pdf / zip / txt / md，以及图片（png / jpg / webp / gif / svg）与视频（mp4 / webm / mov）；单个文件建议 ≤ 20MB。填写地址、上传或从素材库选择文件。'}
+              ? '支持格式：图片（png / jpg / webp / gif）与视频（mp4 / webm / mov）；图片 ≤10MB，视频 ≤200MB。'
+              : '支持格式：pdf / zip / txt / md、图片与视频；图片 ≤10MB，文档 ≤50MB，视频 ≤200MB。'}
         </span>
       )}
 

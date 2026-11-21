@@ -16,6 +16,7 @@ import {
   setTheme,
 } from '../data/contentStore'
 import { pageReferenceCounts, referencesForPath } from '../data/pageRefs'
+import { listCollection } from '../data/collectionStore'
 import type {
   Block,
   BlockStyle,
@@ -148,6 +149,62 @@ function parseBlocks(raw: unknown): Block[] | null {
     blocks.push(block)
   }
   return blocks
+}
+
+/**
+ * 区块引用校验（保存草稿前执行，返回第一条错误文案）：
+ * 1) 链接协议白名单——只允许站内路径、http(s)、mailto、tel、锚点；拦掉 `javascript:` 等危险地址；
+ * 2) 重点产品区块的 `productId` 必须存在于产品库；
+ * 3) 产品区块按系列取数时，系列串必须能匹配到至少一个产品（与前台筛选口径一致）。
+ * 这些引用不会导致页面渲染报错，但会静默产出 404 链接 / 空通栏，因此在写入前拦住。
+ */
+const SAFE_LINK = /^(?:\/(?!\/)|https?:\/\/|mailto:|tel:|#|\?)/i
+
+/** 递归扫描 props 中所有以 href 结尾的字段（含 items[].cta.href 等嵌套结构） */
+function unsafeHref(value: unknown): string | null {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const hit = unsafeHref(item)
+      if (hit) return hit
+    }
+    return null
+  }
+  if (!value || typeof value !== 'object') return null
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof item === 'string') {
+      const href = item.trim()
+      if (/href$/i.test(key) && href && !SAFE_LINK.test(href)) return href
+      continue
+    }
+    const hit = unsafeHref(item)
+    if (hit) return hit
+  }
+  return null
+}
+
+function blockReferenceError(blocks: Block[]): string | null {
+  const unsafe = blocks.map((block) => unsafeHref(block.props)).find(Boolean)
+  if (unsafe) return `链接地址不安全：${unsafe}（只支持站内路径、http(s)、mailto、tel）`
+
+  const productIds = listCollection('products').map((item) => String(item.id))
+  for (const block of blocks) {
+    const props = block.props as Record<string, unknown>
+    if (block.type === 'showcase' && Array.isArray(props.items)) {
+      for (const item of props.items as Array<Record<string, unknown>>) {
+        const productId = typeof item?.productId === 'string' ? item.productId.trim() : ''
+        if (productId && !productIds.includes(productId)) {
+          return `重点产品区块引用了不存在的产品：${productId}`
+        }
+      }
+    }
+    if (block.type === 'productGrid' && props.source === 'series') {
+      const seriesId = typeof props.seriesId === 'string' ? props.seriesId.trim() : ''
+      if (seriesId && !productIds.some((id) => id.includes(seriesId))) {
+        return `产品区块的系列「${seriesId}」没有匹配的产品`
+      }
+    }
+  }
+  return null
 }
 
 /**
@@ -330,6 +387,11 @@ adminPagesRouter.put('/pages/:key', requireSession, requireScope('content'), aud
       res.status(400).json({ error: '区块数据不合法' })
       return
     }
+    const refError = blockReferenceError(parsed)
+    if (refError) {
+      res.status(422).json({ error: refError })
+      return
+    }
     blocks = parsed
   }
   const page = savePageDraft(key, {
@@ -389,6 +451,11 @@ adminPagesRouter.post(
     const parsed = parseBlocks(body.blocks)
     if (!parsed) {
       res.status(400).json({ error: '区块数据不合法' })
+      return
+    }
+    const refError = blockReferenceError(parsed)
+    if (refError) {
+      res.status(422).json({ error: refError })
       return
     }
     blocks = parsed
