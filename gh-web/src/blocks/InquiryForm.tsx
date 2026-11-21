@@ -11,12 +11,10 @@
  */
 import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { submitInquiry, type InquiryBody, type InquiryResult } from '../api/support-extra'
+import type { InquiryBody } from '../api/support-extra'
 import { CaptchaField, HoneypotField } from '../components/ui/CaptchaField'
-import { useSiteAuth } from '../hooks/useSiteConfig'
 import { INQUIRY_TOPICS } from '../data/support-extra'
-
-type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error'
+import { useInquirySubmit } from './useInquirySubmit'
 
 /** 咨询类型（轻量分流）：值即落库字段 `inquiryType`，topics 为随类型联动的「咨询主题」选项 */
 export type InquiryRoutingType = 'pre' | 'after' | 'business'
@@ -73,66 +71,35 @@ export function InquiryForm({ title, desc, points, routingEnabled }: InquiryForm
   const [searchParams] = useSearchParams()
   const initialType = resolveInquiryType(searchParams.get('type'))
   const [form, setForm] = useState<InquiryBody>(() => emptyForm(routingEnabled, initialType))
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [status, setStatus] = useState<SubmitStatus>('idle')
-  const [result, setResult] = useState<InquiryResult | null>(null)
-  const [errorMsg, setErrorMsg] = useState('')
-  // 反垃圾：图形验证码 + 蜜罐字段（真人不可见的隐藏输入）
-  const [captchaCode, setCaptchaCode] = useState('')
-  const [captchaToken, setCaptchaToken] = useState('')
-  const [captchaNonce, setCaptchaNonce] = useState(0)
-  const auth = useSiteAuth()
+  const {
+    status,
+    result,
+    errorMsg,
+    errors,
+    captchaCode,
+    captchaNonce,
+    setCaptchaCode,
+    setCaptchaToken,
+    submitForm,
+    resetSubmit,
+    clearError,
+  } = useInquirySubmit(false)
 
   const update = (key: keyof InquiryBody, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
-    setErrors((prev) => (prev[key] ? { ...prev, [key]: '' } : prev))
+    if (key === 'name' || key === 'contact' || key === 'model' || key === 'message') clearError(key)
   }
 
   /** 切换咨询类型：把「咨询主题」重置为该类型下的首项，实现主题随类型联动 */
   const selectType = (type: InquiryRoutingType) => {
     setForm((prev) => ({ ...prev, inquiryType: type, topic: topicsForType(type)[0] }))
-    setErrors((prev) => (prev.topic ? { ...prev, topic: '' } : prev))
   }
 
-  /** 提交咨询表单：前端校验必填项与验证码，通过后调用接口并展示结果 */
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    // 蜜罐字段为不受控隐藏输入（真人不可见）：提交时从表单读取，机器人自动填表会带出非空值
-    const honeypot = String(new FormData(event.currentTarget).get('website') ?? '')
-    const next: Record<string, string> = {}
-    if (!form.name.trim()) next.name = '请填写称呼'
-    if (!form.contact.trim()) next.contact = '请填写联系方式'
-    if (!form.model.trim()) next.model = '请填写产品型号'
-    if (!form.message.trim()) next.message = '请描述你遇到的问题'
-    if (auth.captcha && !captchaCode.trim()) next.captcha = '请输入图形验证码'
-    setErrors(next)
-    if (Object.keys(next).length > 0) {
-      setStatus('idle')
-      return
-    }
-    setStatus('submitting')
-    setErrorMsg('')
-    try {
-      const res = await submitInquiry({ ...form, captchaToken, captchaCode, website: honeypot })
-      setResult(res)
-      setStatus('success')
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : '提交失败，请稍后重试')
-      setStatus('error')
-      // 服务端每次校验都消费令牌，失败后强制刷新验证码
-      setCaptchaCode('')
-      setCaptchaNonce((n) => n + 1)
-    }
-  }
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => submitForm(event, form)
 
   const resetForm = () => {
     setForm(emptyForm(routingEnabled))
-    setErrors({})
-    setResult(null)
-    setErrorMsg('')
-    setCaptchaCode('')
-    setCaptchaNonce((n) => n + 1)
-    setStatus('idle')
+    resetSubmit()
   }
 
   const submitting = status === 'submitting'

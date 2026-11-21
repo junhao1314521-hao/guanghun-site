@@ -7,8 +7,8 @@
 import { useState, type FormEvent } from 'react'
 import { SafeLink } from '../components/ui/SafeLink'
 import { CaptchaField, HoneypotField } from '../components/ui/CaptchaField'
-import { submitInquiry } from '../api/support-extra'
 import { asArray, asBool, asRecord, asString, asStringArray } from './blockUtils'
+import { useInquirySubmit } from './useInquirySubmit'
 
 type Channel = { label: string; desc: string; type: 'pre' | 'after' | 'business'; action: string }
 
@@ -80,40 +80,33 @@ export function InquiryDockBlock({ props }: { props: Record<string, unknown> }) 
   const quickTip = asString(props.quickTip, '提交后可在「我的工单」查看进度；需要填型号与截图时再用完整表单。')
   const [message, setMessage] = useState('')
   const [contact, setContact] = useState('')
-  const [captchaCode, setCaptchaCode] = useState('')
-  const [captchaToken, setCaptchaToken] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle')
-  const [error, setError] = useState('')
-  const [ticketId, setTicketId] = useState('')
+  // 与完整表单共用同一套校验、验证码与提交逻辑（quick 模式只收联系方式 + 问题）
+  const {
+    status,
+    result,
+    errorMsg,
+    errors,
+    captchaCode,
+    setCaptchaCode,
+    setCaptchaToken,
+    submitForm,
+    clearError,
+  } = useInquirySubmit(true)
+  const sending = status === 'submitting'
+  const done = status === 'success'
+  const locked = sending || done
+  const quickError = errorMsg || errors.contact || errors.message || errors.captcha || ''
 
-  const submitQuick = async (event: FormEvent) => {
-    event.preventDefault()
-    if (status === 'sending' || status === 'done') return
-    if (!message.trim() || !contact.trim()) {
-      setError('请填写问题描述与联系方式')
-      return
-    }
-    setError('')
-    setStatus('sending')
-    try {
-      const result = await submitInquiry({
-        name: '',
-        contact: contact.trim(),
-        model: '',
-        topic: '',
-        message: message.trim(),
-        inquiryType: active.type,
-        quick: true,
-        captchaToken,
-        captchaCode,
-      })
-      setTicketId(result.ticketId)
-      setStatus('done')
-    } catch (err) {
-      setStatus('idle')
-      setError(err instanceof Error ? err.message : '提交失败，请稍后重试')
-    }
-  }
+  const submitQuick = (event: FormEvent<HTMLFormElement>) =>
+    submitForm(event, {
+      name: '',
+      contact: contact.trim(),
+      model: '',
+      topic: '',
+      message: message.trim(),
+      inquiryType: active.type,
+      quick: true,
+    })
 
   return (
     <section className="inq-dock" aria-label={title || '咨询'}>
@@ -159,8 +152,11 @@ export function InquiryDockBlock({ props }: { props: Record<string, unknown> }) 
               rows={2}
               value={message}
               placeholder={quickPlaceholder}
-              disabled={status !== 'idle'}
-              onChange={(event) => setMessage(event.target.value)}
+              disabled={locked}
+              onChange={(event) => {
+                setMessage(event.target.value)
+                clearError('message')
+              }}
             />
             <div className="inq-dock__quick-row">
               <input
@@ -169,29 +165,33 @@ export function InquiryDockBlock({ props }: { props: Record<string, unknown> }) 
                 placeholder="手机号或邮箱"
                 aria-label="手机号或邮箱"
                 autoComplete="email"
-                disabled={status !== 'idle'}
-                onChange={(event) => setContact(event.target.value)}
+                disabled={locked}
+                onChange={(event) => {
+                  setContact(event.target.value)
+                  clearError('contact')
+                }}
               />
               <CaptchaField
                 compact
                 inputId="inq-quick-captcha"
                 code={captchaCode}
+                error={errors.captcha}
                 onCodeChange={setCaptchaCode}
                 onTokenChange={setCaptchaToken}
-                disabled={status !== 'idle'}
+                disabled={locked}
               />
-              <button className="btn btn--primary inq-dock__quick-submit" type="submit" disabled={status !== 'idle'}>
-                {status === 'sending' ? '提交中…' : status === 'done' ? '已提交' : quickCta}
+              <button className="btn btn--primary inq-dock__quick-submit" type="submit" disabled={locked}>
+                {sending ? '提交中…' : done ? '已提交' : quickCta}
               </button>
             </div>
-            {status === 'done' ? (
+            {done ? (
               <p className="inq-dock__quick-ok" role="status">
-                已收到，工单号 {ticketId}。
+                已收到，工单号 {result?.ticketId}。
                 <SafeLink to="/me/inquiries">去「我的工单」查看进度 →</SafeLink>
               </p>
             ) : (
-              <p className={`inq-dock__quick-tip${error ? ' is-error' : ''}`} role={error ? 'alert' : undefined}>
-                {error || quickTip}
+              <p className={`inq-dock__quick-tip${quickError ? ' is-error' : ''}`} role={quickError ? 'alert' : undefined}>
+                {quickError || quickTip}
               </p>
             )}
           </form>
