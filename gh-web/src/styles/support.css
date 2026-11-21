@@ -4,6 +4,9 @@
  * 页头走大疆式「居中标题 + 通栏搜索」：没有小字眉题，层级只靠字号、留白与一根底线；
  * 设备选择是页面的核心交互：选中型号写入 ?model=，下方资料与下载自动跟随。
  */
+/* 首屏自带上下留白：取消区块外壳默认的 64px 纵向内边距，避免标题上方出现双倍间距 */
+.blk[data-block='supportHero'] { padding-block: 0; }
+
 .support-hero {
   position: relative;
   overflow: hidden;
