@@ -991,6 +991,13 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'height', label: '高度档位', kind: 'select', options: POSTER_HEIGHTS },
       { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
       { name: 'alt', label: '替代文本（无障碍）', kind: 'text' },
+      // —— 可选文案层：留空时仍是纯媒体铺满，填写后即成为宽屏定调首屏 ——
+      { name: 'title', label: '标题（留空则不显示文案层）', kind: 'text' },
+      { name: 'subtitle', label: '一句话说明', kind: 'text' },
+      { name: 'primary', label: '主按钮', kind: 'link' },
+      { name: 'secondary', label: '次按钮（可选）', kind: 'link' },
+      { name: 'contentPosition', label: '文案位置（可选，默认左侧居中）', kind: 'position' },
+      { name: 'scrim', label: '文案压暗（默认开启）', kind: 'switch' },
     ],
   },
   // —— 长图无缝拼接（R6 新建）：切片按顺序垂直拼接；桌面 / 移动可分别指定 ——

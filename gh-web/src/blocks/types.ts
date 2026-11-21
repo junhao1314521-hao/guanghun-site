@@ -471,7 +471,11 @@ export type TrustBarProps = {
   }[]
 }
 
-/** 31. fullscreenVisual 全屏视觉模块（R3 新建）：纯媒体铺满，无文案层 */
+/**
+ * 31. fullscreenVisual 全屏视觉模块（R3 新建）。
+ * 默认只承载媒体；"可选文案层"开启后即成为宽屏定调首屏（标题 / 一句话 / 1–2 个动作），
+ * 文案层复用海报同一套渲染与配色，字段留空时行为与旧版一致。
+ */
 export type FullscreenVisualProps = {
   /** 媒体地址（图片 / GIF / 视频） */
   media?: string
@@ -484,6 +488,15 @@ export type FullscreenVisualProps = {
   heightValue?: number
   /** 替代文本（无障碍） */
   alt?: string
+  /** —— 可选文案层 —— */
+  title?: string
+  subtitle?: string
+  primary?: BlockLink
+  secondary?: BlockLink
+  /** 文案位置（可选；缺省为左侧居中） */
+  contentPosition?: PosterPosition
+  /** 文案压暗（默认开启，保证白字可读） */
+  scrim?: boolean
 }
 
 /** 32. longImage 长图拼接（R6 新建）：切片按顺序垂直无缝拼接 */

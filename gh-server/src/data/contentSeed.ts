@@ -766,7 +766,7 @@ function buildCenter(): Page {
 /** 商业合作首页：合作方向与权益 → 合作流程 → 案例 → 品牌资料 → 申请 → 联系方式（§4.9：8 块 → 6 块） */
 function buildBusiness(): Page {
   return toPage('business', '/business', '商业合作首页', '商业合作首页装修。', [
-    // 顶部全屏海报（纯图片、无文案）：固定 480px 高，宽屏铺满；图片由后台替换
+    // 顶部全屏海报：宽屏定调 + 悬浮文案；主视觉图由后台替换
     {
       type: 'fullscreenVisual',
       props: {
@@ -775,6 +775,11 @@ function buildBusiness(): Page {
         height: 'custom',
         heightValue: 480,
         alt: '商业合作顶部横幅（待上传）',
+        title: '把光魂的显示技术，带到更多场景',
+        subtitle: '渠道分销、品牌联名、赛事与内容合作，按合作类型由对应团队对接。',
+        primary: { label: '提交合作申请', href: '/inquiry?type=business' },
+        secondary: { label: '查看合作案例', href: '/business/cases' },
+        scrim: true,
       },
       style: { container: 'full' },
     },
@@ -1160,7 +1165,7 @@ function buildArticles(): Page {
 /** 下载中心 */
 function buildDownloads(): Page {
   return toPage('downloads', '/downloads', '下载中心', '下载中心装修 + 数据源区块。', [
-    // 顶部全屏海报（纯图片、无文案）：固定 480px 高，宽屏铺满；图片由后台替换
+    // 顶部全屏海报：宽屏定调 + 悬浮文案；主视觉图由后台替换
     {
       type: 'fullscreenVisual',
       props: {
@@ -1169,6 +1174,11 @@ function buildDownloads(): Page {
         height: 'custom',
         heightValue: 480,
         alt: '下载中心顶部横幅（待上传）',
+        title: '驱动、固件与说明书，一处取用',
+        subtitle: '按型号或资料类型检索；下载前可核对版本、更新日期与适用型号。',
+        primary: { label: '按型号查找', href: '/support/models' },
+        secondary: { label: '常见问题', href: '/faq' },
+        scrim: true,
       },
       style: { container: 'full' },
     },
