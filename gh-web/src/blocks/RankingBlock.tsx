@@ -8,7 +8,8 @@
  *
  * 当 `showFilter` 开启（列表页由 PageView 注入）时，在区块内保留原天梯榜页的
  * 指标切换（含 URL `?metric=` 深链）、品牌筛选（`?brand=`）与范围内名次重算；
- * 列表页展示全量榜单（忽略区块 limit），首页 teaser 仍按 limit 截断。
+ * 列表页默认只渲染前 50 条，底部可展开全榜（`?all=1` 记住展开状态）；
+ * 输入型号时改为过滤全量数据，避免被截断挡住；首页 teaser 仍按 limit 截断。
  */
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -23,6 +24,9 @@ import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
 import { useI18n } from '../i18n'
 import { asBool, asNumber, asString } from './blockUtils'
+
+/** 列表页默认展示条数：超出的部分由底部「展开全部」按需渲染 */
+const LIST_PAGE_LIMIT = 50
 
 /** 契约指标 → 测试数据的指标 id（与榜单页同一份 rankings 集合） */
 const METRIC_ALIAS: Record<string, string> = {
@@ -134,7 +138,7 @@ function LadderRows({
                 {row.model}
               </Link>
             ) : (
-              <span className="ladder__model">
+              <span className="ladder__model" title={row.model}>
                 {row.model}
                 {soul && <span className="tag tag--soul">光魂</span>}
               </span>
@@ -166,7 +170,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const teaser = asBool(props.teaser)
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  // 「我的型号」高亮：输入型号片段，命中行高亮（列表页使用，不改动数据）
+  // 「我的型号」：输入型号片段时过滤全量数据并高亮命中行（列表页使用）
   const [query, setQuery] = useState('')
   const [params, setParams] = useSearchParams()
 
@@ -182,20 +186,28 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const scoped = canFilter && brandScope !== ''
   const rows = metric ? metric.rows.filter((row) => !brandScope || row.name === brandScope) : []
   const tested = metric ? metric.rows.filter((row) => row.score !== null || row.inf) : []
-  // 列表页展示全量，首页 teaser 按 limit 截断
-  const effectiveLimit = canFilter ? 0 : limit
-  const shown = effectiveLimit > 0 ? rows.slice(0, effectiveLimit) : rows
-  const shownTested = effectiveLimit > 0 ? tested.slice(0, effectiveLimit) : tested
+  // 关键词过滤全量数据；否则列表页默认只渲染前 50 条，首页 teaser 仍按区块 limit 截断
+  const keyword = query.trim().toLowerCase()
+  const matched = keyword
+    ? rows.filter((row) => `${row.model} ${row.name}`.toLowerCase().includes(keyword))
+    : rows
+  const expanded = canFilter && params.get('all') === '1'
+  const capped = canFilter && !keyword && !expanded
+  const shown = capped ? matched.slice(0, LIST_PAGE_LIMIT) : matched
+  const remaining = matched.length - shown.length
+  const shownTested = canFilter ? tested : tested.slice(0, limit)
   const brands = Array.from(new Set((metric?.rows ?? []).map((row) => row.name))).sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
   // 分值条生长：以「取数就绪 + 当前指标 / 条数」为刷新键，确保真实榜单渲染后再绑定观察器
-  const fillKey = `${metric?.id ?? 'none'}:${effectiveLimit}:${rows.length}:${loading ? 'loading' : 'ready'}`
+  const fillKey = `${metric?.id ?? 'none'}:${shown.length}:${keyword}:${loading ? 'loading' : 'ready'}`
   useLadderFill(rootRef, fillKey)
 
   const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(params)
     if (value) next.set(key, value)
     else next.delete(key)
+    // 切换指标 / 品牌时回到默认 50 条，避免展开状态带到另一份榜单
+    if (key !== 'all') next.delete('all')
     setParams(next, { replace: true })
   }
 
@@ -315,15 +327,15 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                 <span>{t('blocks.rk.sample', { n: meta.sample })}</span>
                 <span>{t('blocks.rk.updatedAt', { date: meta.updatedAt })}</span>
               </div>
-              {/* 「我的型号」高亮 + 页内测试方法入口（列表页；首页 teaser 不显示）*/}
+              {/* 型号筛选 + 页内测试方法入口（列表页；首页 teaser 不显示）*/}
               {!teaser && (
                 <div className="ladder__tools">
                   <input
                     className="input ladder__search"
                     type="search"
                     value={query}
-                    placeholder="输入型号，如 25S1FP / OG27QK"
-                    aria-label="查找我的型号"
+                    placeholder="输入型号筛选，如 25S1FP / OG27QK"
+                    aria-label="按型号筛选榜单"
                     onChange={(event) => setQuery(event.target.value)}
                   />
                   <SafeLink className="ladder__method" to="/articles">
@@ -334,6 +346,30 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
               {/* 领奖台（前三）：列表页展示，首页 teaser 省略 */}
               {!teaser && <Podium metric={metric} rows={shownTested} />}
               <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} highlight={query} />
+              {canFilter && (
+                <>
+                  {keyword && (
+                    <p className="ladder__match" role="status">
+                      匹配「{query.trim()}」共 {matched.length} 条
+                      {matched.length === 0 ? '，换个型号片段试试' : ''}
+                    </p>
+                  )}
+                  {remaining > 0 && (
+                    <div className="ladder__more">
+                      <button className="btn btn--ghost btn--sm" type="button" onClick={() => setParam('all', '1')}>
+                        展开全部 {matched.length} 条（还有 {remaining} 条）
+                      </button>
+                    </div>
+                  )}
+                  {expanded && !keyword && (
+                    <div className="ladder__more">
+                      <button className="btn btn--ghost btn--sm" type="button" onClick={() => setParam('all', '')}>
+                        收起，只看前 {LIST_PAGE_LIMIT} 条
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </>
           ) : (
             <div className="empty">

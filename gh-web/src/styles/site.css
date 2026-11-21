@@ -933,6 +933,9 @@ main.main--flush + .site-footer { margin-top: 0; }
 .ladder__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 6; display: none; width: max-content; max-width: 320px; padding: 8px 10px; border-radius: var(--gh-radius-md); background: var(--color-bg-elevated); border: 1px solid var(--color-border-default); box-shadow: 0 6px 20px rgba(0, 0, 0, .12); color: var(--color-text-secondary); font-size: var(--gh-font-size-caption); }
 .ladder__row:hover .ladder__pop { display: block; }
 .ladder__tools { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-4); margin-bottom: var(--gh-space-3); flex-wrap: wrap; }
+/* 默认 50 条：命中提示与展开 / 收起入口 */
+.ladder__match { margin: var(--gh-space-3) 0 0; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.ladder__more { display: flex; justify-content: center; margin-top: var(--gh-space-5); }
 /* —— 领奖台（前三）：视觉顺序 2 - 1 - 3，冠军居中抬高、底座最高 —— */
 .podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gh-space-4); align-items: end; margin: var(--gh-space-5) 0 var(--gh-space-6); }
 .podium__col { display: flex; flex-direction: column; }
@@ -1001,7 +1004,8 @@ main.main--flush + .site-footer { margin-top: 0; }
    「分数 / 涨跌 / 箭头」顶出可视区裁掉；这里收掉缩略图并收窄两列，保证四项都可见。 */
 @media (max-width: 560px) {
   .ladder__thumb-head, .ladder__thumb { display: none; }
-  .ladder__model { width: 84px; }
+  /* 长型号（如 MacBookPro16）在 84px 内没有断行机会，允许任意断行，避免被容器直接裁掉 */
+  .ladder__model { width: 84px; overflow-wrap: anywhere; line-height: 1.35; }
   .ladder__value { width: 86px; }
   .ladder__arrow { margin-left: 0; }
 }
