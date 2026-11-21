@@ -19,7 +19,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 /** 订阅区块：渲染邮箱订阅表单，校验邮箱与验证码，提交成功后展示结果状态 */
 export function SubscribeBlock({ props }: { props: Record<string, unknown> }) {
   const title = asString(props.title) || '订阅新品与固件更新'
-  const desc = asString(props.desc) || '留下邮箱，第一时间收到新品发布、固件更新与活动通知。'
+  const desc = asString(props.desc) || '留下邮箱，接收新品、固件与活动通知。'
   const source = asString(props.source, 'home')
   const points = asStringArray(props.points)
   const auth = useSiteAuth()

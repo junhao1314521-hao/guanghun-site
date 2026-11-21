@@ -109,7 +109,7 @@ export const MEGA_PANELS: MegaPanel[] = [
         links: [{ label: '合规与协议', to: '/legal/privacy' }],
       },
     ],
-    feature: { eyebrow: 'BRAND', title: '品牌理念', desc: '以实测数据定义性能' },
+    feature: { eyebrow: 'BRAND', title: '品牌理念', desc: 'OLED 电竞显示器与测试实验室' },
   },
 ]
 

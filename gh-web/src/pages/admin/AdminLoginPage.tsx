@@ -82,9 +82,9 @@ export function AdminLoginPage() {
       <AuthShell
         variant="full"
         badge="管理端"
-        headline="让每一帧都有据可查"
-        subtitle="产品、内容与服务，改一处即刻生效。"
-        points={['装修、参数与服务数据同源，无需重复录入。']}
+        headline="光魂管理后台"
+        subtitle="内容、商品与站点配置，一处修改全站生效。"
+        points={['导航、页面与商品数据同源，不需要重复录入。']}
       >
         <div className="card">
           <h1 className="card__title">登录后台</h1>

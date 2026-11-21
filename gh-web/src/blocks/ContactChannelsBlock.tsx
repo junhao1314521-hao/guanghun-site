@@ -9,7 +9,7 @@ import { IconCheck, IconCopy } from '../components/ui/Icon'
 
 /** 联系渠道区块：左侧标题 + 右侧渠道列表，微信等条目点击复制，外链条目可跳转 */
 export function ContactChannelsBlock({ props }: { props: Record<string, unknown> }) {
-  const title = (props.title as string) || '与你，直接对话。'
+  const title = (props.title as string) || '联系我们'
   const subtitle = (props.subtitle as string) || ''
   const items = (Array.isArray(props.items) ? props.items : []) as NonNullable<ContactChannelsProps['items']>
   const [copied, setCopied] = useState<string | null>(null)

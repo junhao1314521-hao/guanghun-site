@@ -387,7 +387,7 @@ function buildHome(): Page {
       props: {
         title: '按场景选择',
         icon: 'grid',
-        subtitle: '从电竞对战到内容创作，按使用场景组合你的显示方案。',
+        subtitle: '电竞对战、内容创作与办公场景，各有一套配置。',
         ctaLabel: '浏览全部产品',
         ctaHref: '/products',
         layout: 'rail',
@@ -439,7 +439,7 @@ function buildHome(): Page {
       props: {
         title: '服务与支持',
         icon: 'help',
-        subtitle: '从选型到售后，一站直达。',
+        subtitle: '选型、下载、保修与报修的入口。',
         ctaLabel: '进入服务与支持',
         ctaHref: '/support',
         layout: 'spotlight',
@@ -458,7 +458,7 @@ function buildHome(): Page {
       props: {
         title: '服务承诺',
         icon: 'shield',
-        subtitle: '买前买后，都由同一套标准兜底。',
+        subtitle: '售前与售后执行同一套服务标准。',
         layout: 'trust',
         columns: 3,
         items: [
@@ -474,7 +474,7 @@ function buildHome(): Page {
       props: {
         title: '选购指南',
         icon: 'compass',
-        subtitle: '不知道从哪看起？按这三条主线快速定位。',
+        subtitle: '按预算、尺寸与刷新率三步选型。',
         ctaLabel: '浏览全部产品',
         ctaHref: '/products',
         layout: 'steps',
@@ -493,7 +493,7 @@ function buildHome(): Page {
       props: {
         title: '体验与合作',
         icon: 'chat',
-        subtitle: '到店试玩，或与我们共同做一场活动。',
+        subtitle: '到店体验实机，或提交赛事与内容合作。',
         ctaLabel: '查看全部体验点',
         ctaHref: '/business/venues',
         columns: 3,
@@ -510,9 +510,9 @@ function buildHome(): Page {
       type: 'subscribe',
       props: {
         title: '订阅新品与固件更新',
-        desc: '留下邮箱，第一时间收到新品发布、固件更新与活动通知。',
+        desc: '留下邮箱，接收新品、固件与活动通知。',
         source: 'home',
-        points: ['新品发布第一时间知悉', '固件更新与调校配置提醒', '不定期线下体验活动邀请'],
+        points: ['新品发布通知', '固件更新与调校配置提醒', '线下体验活动邀请'],
       },
     },
     { enabled: false, type: 'articleList', props: { title: '新闻与动态', icon: 'refresh', subtitle: '产品发布、活动与品牌更新。', ctaLabel: '查看全部新闻', ctaHref: '/news', source: 'news', limit: 6 } },
@@ -575,7 +575,7 @@ function buildAbout(): Page {
       type: 'cards',
       props: {
         title: '我们怎么做事',
-        subtitle: '收样、测试、归档：三件每天都要做的事。',
+        subtitle: '从收样到归档，每一步都有记录。',
         icon: 'chip',
         columns: 3,
         items: [
@@ -610,7 +610,7 @@ function buildAbout(): Page {
       type: 'methodList',
       props: {
         title: '怎么测',
-        subtitle: '收样登记 → 仪器实测 → 方法复核，每一步都留记录；方法升级后旧版本数据不覆盖。',
+        subtitle: '收样登记 → 仪器实测 → 方法复核；方法升级后，旧版本数据按原版本保留。',
         limit: 3,
       },
       style: { paddingY: 'sm', background: 'soft' },
@@ -645,8 +645,8 @@ function buildAbout(): Page {
     {
       type: 'contact',
       props: {
-        title: '接下来，从哪里开始？',
-        desc: '看产品、查资料、谈合作，三条路都有人接。',
+        title: '下一步',
+        desc: '看产品、查资料、谈合作，各有对应入口。',
         channel: 'inquiry',
         showForm: false,
       },
@@ -836,7 +836,7 @@ function buildBusiness(): Page {
       type: 'contact',
       props: {
         title: '提交合作申请',
-        desc: '提交后进入与产品咨询同一套工单系统，来源字段标注为「商业合作」。',
+        desc: '提交后由商务团队对接，进度可在个人中心查看。',
         channel: 'business',
         showForm: true,
         // R5.2：联系方式只留邮箱与地址，并入表单左栏，不再单独占一个区块
@@ -860,7 +860,7 @@ function buildBusinessScenes(): Page {
         height: 'custom',
         heightValue: 420,
         alt: '合作场景顶部横幅（待上传）',
-        title: '把方案落到具体场景里',
+        title: '合作场景与配置方案',
         subtitle: '电竞对战、内容创作、门店陈列等场景的配置方式与落地要点。',
         primary: { label: '提交合作申请', href: '/inquiry?type=business' },
         secondary: { label: '查看合作案例', href: '/business/cases' },
@@ -896,7 +896,7 @@ function buildBusinessCases(): Page {
         height: 'custom',
         heightValue: 420,
         alt: '合作案例顶部横幅（待上传）',
-        title: '合作不是露出，是一起把事做成',
+        title: '合作案例',
         subtitle: '赛事、渠道与内容共创的落地项目，按合作类型查看具体做法。',
         primary: { label: '提交合作申请', href: '/inquiry?type=business' },
         secondary: { label: '查看合作场景', href: '/business/scenes' },
@@ -931,7 +931,7 @@ function buildBusinessVenues(): Page {
         height: 'custom',
         heightValue: 420,
         alt: '产品体验点顶部横幅（待上传）',
-        title: '先摸到那台机器，再决定',
+        title: '到店体验光魂显示器',
         subtitle: '全国合作门店提供光魂与极创全系显示器实机体验，按城市、机型或距离查找。',
         primary: { label: '企业批量采购', href: '/inquiry?type=business' },
         secondary: { label: '联系合作团队', href: '/contact' },
@@ -953,7 +953,7 @@ function buildBusinessVenues(): Page {
       type: 'b2bValue',
       props: {
         title: '企业批量采购',
-        subtitle: '面向团队与门店的整单采购支持 ｜ 从选型到部署一站对接',
+        subtitle: '面向团队与门店的整单采购，含选型与部署支持。',
         items: [
           { icon: 'cube', title: '批量采购价', desc: '按数量分档给出阶梯价，整单报价更透明，支持跨型号组合下单。' },
           { icon: 'shield', title: '对公 + 增票', desc: '支持对公转账与增值税专用发票，合同、账期按企业流程对接。' },
@@ -970,8 +970,8 @@ function buildBusinessVenues(): Page {
       type: 'contactChannels',
       props: {
         eyebrow: 'CONTACT · 联系我们',
-        title: '与你，直接对话。',
-        subtitle: '小雪人数码官方网站 · 集显示器资讯、评测、资源、技术解析于一体。',
+        title: '联系我们',
+        subtitle: '采购、合作与售后，按渠道直达对应团队。',
         items: [
           { label: '官方网站', value: 'www.xxrsm.com', href: 'https://www.xxrsm.com', copy: false },
           { label: '福利号微信', value: 'xxrsm004 / xxrsm001', copy: true },
@@ -1234,7 +1234,7 @@ function buildLadder(): Page {
     // 数据源区块：测评方法取自集合 methods（后台「测评方法」维护，改后前台即时生效）
     {
       type: 'methodList',
-      props: { title: '测试方法', subtitle: '测试方法公开、可复现；方法升级后历史文章引用旧版数值保持不变。', limit: 0 },
+      props: { title: '测试方法', subtitle: '测试方法与仪器；方法升级后，旧文章仍按原版本数值展示。', limit: 0 },
     },
   ])
 }
@@ -1242,7 +1242,7 @@ function buildLadder(): Page {
 /** 文章列表（评测 / 教程 / 技术；资讯并入 /news，默认停用，后台可开） */
 function buildArticles(): Page {
   return toPage('articles', '/articles', '文章列表', '文章列表装修 + 数据源区块。', [
-    { type: 'articleList', props: { title: '全部文章', subtitle: '评测、教程与技术解析；参数与方法公开，来源可查。', source: 'all', limit: 0, pageSize: 9 } },
+    { type: 'articleList', props: { title: '全部文章', subtitle: '评测、教程与技术解析，按发布时间排列。', source: 'all', limit: 0, pageSize: 9 } },
   ], false)
 }
 
@@ -1258,7 +1258,7 @@ function buildDownloads(): Page {
         height: 'custom',
         heightValue: 480,
         alt: '下载中心顶部横幅（待上传）',
-        title: '驱动、固件与说明书，一处取用',
+        title: '驱动、固件与说明书',
         subtitle: '按型号或资料类型检索；下载前可核对版本、更新日期与适用型号。',
         primary: { label: '按型号查找', href: '/support/models' },
         secondary: { label: '常见问题', href: '/faq' },
