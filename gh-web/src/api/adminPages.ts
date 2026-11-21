@@ -103,6 +103,27 @@ function adminToken(): string | undefined {
 
 /* ---------------- 页面（契约 §6.2） ---------------- */
 
+/** 数据审计条目：无来源的数字 / 未核实承诺，或区块被标记为待补 */
+export type DataAuditItem = {
+  pageKey: string
+  pageTitle: string
+  blockId: string
+  blockType: string
+  field: string
+  text: string
+  reason: 'pending' | 'claim-without-source'
+}
+
+export type DataAuditPayload = { items: DataAuditItem[]; total: number }
+
+/** 数据审计：GET /api/admin/data-audit（发布前提示，不阻断） */
+export function fetchDataAudit(signal?: AbortSignal): Promise<DataAuditPayload> {
+  return transport<DataAuditPayload>(
+    { path: '/api/admin/data-audit', signal, token: adminToken() },
+    () => ({ items: [], total: 0 }),
+  )
+}
+
 /** 页面列表：GET /api/admin/pages */
 export function fetchAdminPages(signal?: AbortSignal): Promise<AdminPageList> {
   return transport<AdminPageList>(

@@ -21,6 +21,7 @@ import type {
   Block,
   BlockStyle,
   BlockType,
+  Page,
   ShopChannel,
   SiteAnnouncement,
   SiteAuthConfig,
@@ -31,6 +32,7 @@ import type {
   SiteWarrantyConfig,
 } from '../data/contentTypes'
 import { normalizeSocialConfig } from '../data/contentTypes'
+import { auditPages } from '../lib/dataAudit'
 import { readParam, requireSession } from '../middleware/adminAuth'
 import { requireScope } from '../middleware/rbac'
 import { auditWrite } from '../middleware/audit'
@@ -348,6 +350,18 @@ function parseSite(raw: unknown): Partial<{
 adminPagesRouter.get('/pages', requireSession, requireScope('content'), (_req, res) => {
   const counts = pageReferenceCounts()
   const items = listPages().map((meta) => ({ ...meta, refCount: counts[meta.key] ?? 0 }))
+  res.json({ items, total: items.length })
+})
+
+/**
+ * 数据审计（发布前提示）：列出所有页面里「无来源的数字 / 未核实承诺」与标记为待补的区块。
+ * 只告警、不阻断发布；运营确认来源后把区块 dataStatus 设为 verified 并填写 dataSource 即可消除。
+ */
+adminPagesRouter.get('/data-audit', requireSession, requireScope('content'), (_req, res) => {
+  const pages = listPages()
+    .map((meta) => getPage(meta.key))
+    .filter((page): page is Page => Boolean(page))
+  const items = auditPages(pages)
   res.json({ items, total: items.length })
 })
 

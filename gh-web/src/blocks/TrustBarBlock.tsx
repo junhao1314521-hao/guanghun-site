@@ -73,12 +73,13 @@ export function TrustBarBlock({ props }: { props: Record<string, unknown> }) {
             </>
           )
           const key = `${item.text}-${index}`
+          // 信任条整项都是承诺（质保 / 包邮 / 渠道）：区块标记待补时整项隐藏，而不是留下没有依据的文案
           return item.href ? (
-            <Link className="blk-trustbar__item" to={item.href} key={key}>
+            <Link className="blk-trustbar__item" to={item.href} key={key} data-metric>
               {inner}
             </Link>
           ) : (
-            <div className="blk-trustbar__item" key={key}>
+            <div className="blk-trustbar__item" key={key} data-metric>
               {inner}
             </div>
           )

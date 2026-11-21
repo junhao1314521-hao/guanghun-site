@@ -16,7 +16,7 @@ import { usePageEffects } from '../hooks/usePageEffects'
 /** 详情页加载骨架（数据 / 模板到位前共用） */
 function DetailSkeleton() {
   return (
-    <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
+    <div className="container section--tight page-skeleton" style={{ paddingTop: 'var(--gh-space-7)' }}>
       <div className="detail-top">
         <div className="skeleton" style={{ aspectRatio: '1/1', borderRadius: 'var(--gh-radius-xl)' }} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-3)' }}>

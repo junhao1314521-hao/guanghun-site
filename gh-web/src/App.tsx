@@ -158,7 +158,7 @@ function NotFound() {
 function PageLoading() {
   const { t } = useI18n()
   return (
-    <div className="container section" role="status" aria-live="polite">
+    <div className="container section page-skeleton" role="status" aria-live="polite">
       {t('common.loading')}
     </div>
   )

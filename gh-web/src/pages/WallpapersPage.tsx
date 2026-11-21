@@ -740,6 +740,20 @@ export function WallpapersPage() {
             <p className="wp-feature__hint">拖动浏览 · 点击放大</p>
           </div>
         </section>
+      ) : loading ? (
+        /* 数据未到时按真实展台结构占位（文案块 + 封面流），高度与加载后一致，避免下方内容被下推（CLS） */
+        <section className="container wp-feature" aria-hidden="true">
+          <div className="wp-feature__stage">
+            <div className="wp-feature__top">
+              <div className="wp-feature__copy">
+                <div className="skeleton" style={{ height: 11, width: 64 }} />
+                <div className="skeleton" style={{ height: 34, width: '56%', marginTop: 14 }} />
+                <div className="skeleton" style={{ height: 14, width: '86%', marginTop: 14 }} />
+              </div>
+            </div>
+            <div className="wp-arc" />
+          </div>
+        </section>
       ) : null}
 
       <section className="container wp-browse" id="wp-all" aria-labelledby="wp-browse-title">

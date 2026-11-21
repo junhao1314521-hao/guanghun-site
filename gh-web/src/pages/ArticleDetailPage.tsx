@@ -17,7 +17,7 @@ import { useSitePages } from '../hooks/useSitePages'
 /** 详情加载骨架：沿用「封面 + 正文卡」的分栏，避免数据到位时布局跳动 */
 function ArticleDetailSkeleton() {
   return (
-    <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="文章加载中">
+    <div className="container page-skeleton" style={{ paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="文章加载中">
       <span className="skeleton" style={{ display: 'block', aspectRatio: '16 / 9', borderRadius: 'var(--gh-radius-lg)' }} />
       <div className="card" style={{ maxWidth: 860, margin: 'var(--gh-space-6) auto 0' }}>
         <div className="skeleton" style={{ height: 22, width: '40%' }} />

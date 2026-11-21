@@ -38,6 +38,11 @@ export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 's0',
     media: { kind: 'image' },
+    // 首屏第一张固定展示静态主视觉；代码动画由后台「轮播 → 代码动画」开关控制
+    poster: '/media/home/hero-1.jpg',
+    // 深色主视觉配浅色文案；关闭压暗遮罩，保留海报原始亮度
+    theme: 'dark',
+    scrim: false,
     mediaTag: '品牌主视觉',
     eyebrow: 'SUPER DISPLAY / 2026',
     title: ['把每一块屏，测给你看'],
@@ -46,8 +51,6 @@ export const HERO_SLIDES: HeroSlide[] = [
     secondary: '查看天梯榜',
     primaryTo: '/products',
     secondaryTo: '/ladder',
-    // 深色主视觉：顶栏浮于其上时保持白字（顶栏会跟随当前海报主题）
-    theme: 'dark',
     stats: [
       { value: '540 Hz', label: '最高刷新率' },
       { value: '0.03 ms', label: 'GTG 响应' },
@@ -59,8 +62,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 'poster-21x9',
     media: { kind: 'image' },
     mediaTag: '21:9 产品海报',
-    poster: '/posters/poster-21x9-v5.jpg',
-    posterMobile: '/posters/poster-21x9-v5-mobile.jpg',
+    poster: '/media/home/hero-2.jpg',
     eyebrow: 'ULTRAWIDE / 21:9',
     title: ['21:9 超宽视野'],
     desc: '宽屏比例下并排查看时间线与素材，减少窗口切换。',
@@ -74,16 +76,18 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: 's1',
-    media: { kind: 'motion' },
-    mediaTag: '主视觉动效',
+    media: { kind: 'image' },
+    mediaTag: '旗舰主视觉',
+    poster: '/media/home/hero-3.jpg',
+    scrim: false,
+    theme: 'dark',
     eyebrow: 'FLAGSHIP / 27X1QE-W54',
-    title: ['2K@540Hz', '闪电序列旗舰电竞OLED'],
-    desc: '第四代 W-OLED 面板，0.03 ms 灰阶响应与 368 万像素级控光；满速 DP 2.1 一线跑满 540Hz。',
+    title: ['2K@540Hz 闪电旗舰'],
+    desc: '第四代 W-OLED，0.03 ms 响应，DP 2.1 一线跑满 540Hz。',
     primary: '查看产品详情',
     secondary: '加入对比',
     primaryTo: '/products/gh-54027x1qe',
-    // 代码动画主视觉为深色底
-    theme: 'dark',
+    secondaryTo: '/compare',
     stats: [
       { value: '2K 540Hz', label: '分辨率 / 刷新率' },
       { value: '0.03 ms', label: 'GTG 响应' },
@@ -273,12 +277,12 @@ export const SERVICE_ENTRIES = [
 ] as const
 
 /* ---------- 商业合作 · 体验点 ---------- */
-export type Spot = { name: string; area: string; status: string; ok: boolean }
+export type Spot = { name: string; area: string; status: string; ok: boolean; /** 到店体验说明（首页卡片第二行用） */ note: string }
 
 export const SPOTS: Spot[] = [
-  { name: '光魂上海旗舰体验店', area: '上海 · 静安', status: '营业中', ok: true },
-  { name: '光魂深圳体验点', area: '广东 · 深圳', status: '营业中', ok: true },
-  { name: '光魂成都体验点', area: '四川 · 成都', status: '筹备中', ok: false },
+  { name: '光魂上海旗舰体验店', area: '上海 · 静安', status: '营业中', ok: true, note: '全系 OLED 可试玩，支持现场调参与参数讲解' },
+  { name: '光魂深圳体验点', area: '广东 · 深圳', status: '营业中', ok: true, note: '主打高刷电竞机型，支持预约到店' },
+  { name: '光魂成都体验点', area: '四川 · 成都', status: '筹备中', ok: false, note: '筹备中，开放后支持预约到店' },
 ]
 
 export const COOP_TAGS = ['赛事合作', '内容共创', '渠道分销', '品牌联名']

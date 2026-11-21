@@ -853,6 +853,16 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .builder-item--sm .builder-item__icon { width: 26px; height: 26px; }
 .builder-item__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .builder-item__name { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+/* 数据机制：区块被标记「待补」时在装修器列表里直接可见，避免带着无来源内容上线 */
+.builder-item__pending {
+  margin-left: var(--gh-space-2);
+  padding: 1px 6px;
+  border-radius: var(--gh-radius-sm);
+  background: color-mix(in srgb, var(--color-warning, #b45309) 14%, transparent);
+  color: var(--color-warning, #b45309);
+  font-size: 11px;
+  font-weight: var(--gh-weight-medium);
+}
 .builder-item__summary {
   font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
@@ -1507,6 +1517,18 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 .admin-dialog__title { margin: 0 0 var(--gh-space-3); font-size: var(--gh-font-size-body-lg); font-weight: var(--gh-weight-semibold); }
 .admin-dialog__body { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); line-height: var(--gh-line-height-body); }
+/* 发布弹窗内的数据审计提示（只提示，不阻断） */
+.admin-dialog__audit {
+  margin-top: var(--gh-space-3);
+  padding: var(--gh-space-3);
+  border: 1px solid color-mix(in srgb, var(--color-warning, #b45309) 32%, transparent);
+  border-radius: var(--gh-radius-md);
+  background: color-mix(in srgb, var(--color-warning, #b45309) 8%, transparent);
+}
+.admin-dialog__audit strong { display: block; color: var(--color-text-primary); }
+.admin-dialog__audit p { margin: var(--gh-space-2) 0 0; font-size: var(--gh-font-size-caption); }
+.admin-dialog__audit ul { margin: var(--gh-space-2) 0 0; padding-left: 18px; font-size: var(--gh-font-size-caption); }
+.admin-dialog__audit li + li { margin-top: 2px; }
 .admin-dialog__foot { display: flex; justify-content: flex-end; gap: var(--gh-space-3); margin-top: var(--gh-space-5); }
 /* 宽版对话框（装修器「插入模块」类型选择器） */
 .admin-dialog--wide { max-width: var(--gh-modal-width-md, 640px); }

@@ -11,7 +11,7 @@ import { venueLocation } from '../lib/venue'
 /** 体验点详情加载骨架 */
 function VenueDetailSkeleton() {
   return (
-    <div className="container" aria-busy="true" aria-label="体验点加载中" style={{ paddingTop: 'var(--gh-space-6)' }}>
+    <div className="container page-skeleton" aria-busy="true" aria-label="体验点加载中" style={{ paddingTop: 'var(--gh-space-6)' }}>
       <div className="skeleton" style={{ height: 14, width: '28%' }} />
       <div className="skeleton" style={{ height: 32, width: '58%', marginTop: 'var(--gh-space-4)' }} />
       <div className="skeleton" style={{ height: 16, width: '42%', marginTop: 'var(--gh-space-3)' }} />

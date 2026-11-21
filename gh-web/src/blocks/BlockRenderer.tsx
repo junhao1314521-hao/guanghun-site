@@ -179,6 +179,8 @@ export function BlockRenderer({ blocks }: { blocks: Block[] }) {
             id={normalizeAnchor(block.style?.anchor)}
             className={shellClass(block.style)}
             data-block={block.type}
+            /* 数据机制：标记待补的区块，前台隐藏内部 [data-metric]（无来源的数字 / 未核实承诺） */
+            data-data-status={block.props?.dataStatus === 'pending' ? 'pending' : undefined}
           >
             {/* 通栏（full）：不套内容容器，允许内容贴边、铺满视口宽度，由区块内部自行控制 */}
             {block.style?.container === 'full' ? (

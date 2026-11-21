@@ -1189,6 +1189,35 @@ for (const meta of BLOCK_TYPES) {
   meta.fields.push(...extra)
 }
 
+/**
+ * 数据治理字段（所有区块通用，同类放在每个类型的字段末尾）：
+ * - `dataStatus=pending`：无真实来源，前台自动隐藏该区块内带 `data-metric` 的数字 / 未核实承诺；
+ * - `dataStatus=verified` 且填写 `dataSource`：视为可核对，发布审计不列入待补清单。
+ * 二者都只写进区块 props，不新增表结构，老内容缺省即「未标注」。
+ */
+const DATA_GOVERNANCE_FIELDS: BlockFieldMeta[] = [
+  {
+    name: 'dataStatus',
+    label: '数据状态（待补 = 前台隐藏数字）',
+    kind: 'select',
+    options: [
+      { label: '未标注（默认）', value: '' },
+      { label: '待补（暂无真实来源）', value: 'pending' },
+      { label: '已核对（需填来源）', value: 'verified' },
+    ],
+  },
+  {
+    name: 'dataSource',
+    label: '数据来源（已核对时必填）',
+    kind: 'text',
+    placeholder: '如：产品库 / 测试记录编号 / 合同或官方文件',
+  },
+]
+for (const meta of BLOCK_TYPES) {
+  const has = (name: string) => meta.fields.some((field) => field.name === name)
+  meta.fields.push(...DATA_GOVERNANCE_FIELDS.filter((field) => !has(field.name)))
+}
+
 /** 按类型取目录项（未命中返回 undefined） */
 export function getBlockTypeMeta(type: BlockType): BlockTypeMeta | undefined {
   return BLOCK_TYPES.find((meta) => meta.type === type)

@@ -10,7 +10,7 @@ import { usePageEffects } from '../hooks/usePageEffects'
 /** 合作案例详情加载骨架 */
 function CaseDetailSkeleton() {
   return (
-    <div className="container" aria-busy="true" aria-label="合作案例加载中" style={{ paddingTop: 'var(--gh-space-6)' }}>
+    <div className="container page-skeleton" aria-busy="true" aria-label="合作案例加载中" style={{ paddingTop: 'var(--gh-space-6)' }}>
       <div className="skeleton" style={{ height: 14, width: '30%' }} />
       <div className="skeleton" style={{ height: 34, width: '60%', marginTop: 'var(--gh-space-4)' }} />
       <div className="skeleton" style={{ height: 16, width: '40%', marginTop: 'var(--gh-space-3)' }} />
@@ -123,7 +123,7 @@ export function BusinessCaseDetailPage() {
         <div className="grid-3">
           {detail.results.map((item) => (
             <div className="card" key={item.label}>
-              <div className="stat__value">{item.value}</div>
+              <div className="stat__value" data-metric>{item.value}</div>
               <div className="stat__label" style={{ marginTop: 'var(--gh-space-2)' }}>
                 {item.label}
               </div>

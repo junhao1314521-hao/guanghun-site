@@ -26,6 +26,7 @@ import {
   type ScheduleList,
   type ScheduleStatus,
 } from '../../api/adminPublish'
+import { fetchDataAudit } from '../../api/adminPages'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
 import { EmptyState, ErrorState, SkeletonTable } from './states'
@@ -270,6 +271,9 @@ function PublishDialog({
 }) {
   const titleId = useId()
   const noteRef = useRef<HTMLTextAreaElement>(null)
+  // 发布前数据审计：只提示「无来源数字 / 未核实承诺」，不阻断发布
+  const { data: audit } = useApi((signal) => fetchDataAudit(signal), [])
+  const pendingItems = audit?.items ?? []
 
   return (
     <div
@@ -296,6 +300,22 @@ function PublishDialog({
           <p style={{ marginTop: 0 }}>
             将快照当前全部内容并生成一条发布记录（版本号自动生成）。备注可选，便于日后识别与回滚。
           </p>
+          {pendingItems.length > 0 && (
+            <div className="admin-dialog__audit" role="status">
+              <strong>数据待确认：{pendingItems.length} 处</strong>
+              <p>
+                以下位置含无来源数字或未核实承诺。确认后把对应区块的「数据状态」设为已核对并填写来源即可消除；本条仅提示，不阻断发布。
+              </p>
+              <ul>
+                {pendingItems.slice(0, 5).map((item, index) => (
+                  <li key={`${item.pageKey}-${item.blockId}-${index}`}>
+                    {item.pageTitle} · {item.text}
+                  </li>
+                ))}
+              </ul>
+              {pendingItems.length > 5 && <p>另有 {pendingItems.length - 5} 处，可在页面装修器中逐页核对。</p>}
+            </div>
+          )}
           <label className="field" style={{ marginTop: 'var(--gh-space-3)' }}>
             <span className="field__label">发布备注</span>
             <textarea

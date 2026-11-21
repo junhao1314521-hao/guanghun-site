@@ -222,7 +222,10 @@ function BlockRow({
             <AdminIcon name={blockIcon(block.type)} size={block.type === 'layout' ? 18 : 16} />
           </span>
           <span className="builder-item__text">
-            <span className="builder-item__name">{typeName(block.type, meta)}</span>
+            <span className="builder-item__name">
+              {typeName(block.type, meta)}
+              {block.props?.dataStatus === 'pending' && <span className="builder-item__pending">数据待补</span>}
+            </span>
             <span className="builder-item__summary">{blockSummary(block)}</span>
           </span>
         </button>

@@ -21,7 +21,7 @@ import type { Block, BlockType } from './types'
 /** 页面骨架：区块到位前的占位，避免布局跳动 */
 export function PageSkeleton() {
   return (
-    <div className="container" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="内容加载中">
+    <div className="container page-skeleton" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="内容加载中">
       <div className="grid-2" style={{ alignItems: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-3)' }}>
           <div className="skeleton" style={{ height: 28, width: '72%' }} />
@@ -109,7 +109,7 @@ export function PageView({ pageKey, blockDefaults, hideSeoTitle }: Props) {
   const notFound = error instanceof ApiError && error.status === 404
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className="page-view">
       {error ? (
         <div className="container" style={{ paddingTop: 'var(--gh-space-7)', paddingBottom: 'var(--gh-space-9)' }}>
           <div className="empty">

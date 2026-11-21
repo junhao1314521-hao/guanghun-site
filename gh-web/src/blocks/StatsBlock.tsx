@@ -76,7 +76,7 @@ export function StatsBlock({ props }: { props: Record<string, unknown> }) {
         {items.map((item, index) => (
           <div className="blk-stats__item reveal" key={`${item.label}-${index}`} data-delay={String(Math.min(index + 1, 6))}>
             <span className="blk-stats__index">{String(index + 1).padStart(2, '0')}</span>
-            <div className="blk-stats__value">
+            <div className="blk-stats__value" data-metric>
               <Odometer value={String(item.value)} delay={index * 120} />
               {item.unit && <i className="blk-stats__unit">{item.unit}</i>}
             </div>

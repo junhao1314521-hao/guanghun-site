@@ -446,6 +446,9 @@
 .skeleton { background: var(--color-bg-muted); border-radius: var(--gh-radius-sm); animation: pulse 1.6s var(--gh-ease-standard) infinite; }
 @keyframes pulse { 50% { opacity: .55; } }
 
+/* 页面骨架至少占满一屏：加载期间页脚不进入视口，避免内容到位后页脚被顶走造成 CLS */
+.page-skeleton { min-height: calc(100svh - var(--gh-header-h)); }
+
 .empty {
   display: flex; flex-direction: column; align-items: center; gap: var(--gh-space-3);
   padding: var(--gh-space-8) var(--gh-space-5);

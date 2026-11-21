@@ -13,7 +13,7 @@ import { usePageEffects } from '../hooks/usePageEffects'
 /** 型号支持加载骨架 */
 function ModelSkeleton() {
   return (
-    <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="型号支持加载中">
+    <div className="container page-skeleton" style={{ paddingBottom: 'var(--gh-space-9)' }} aria-busy="true" aria-label="型号支持加载中">
       <div className="skeleton" style={{ height: 32, width: '45%' }} />
       <div className="skeleton" style={{ height: 16, width: '70%', marginTop: 'var(--gh-space-3)' }} />
       <div className="skeleton" style={{ height: 200, marginTop: 'var(--gh-space-6)' }} />

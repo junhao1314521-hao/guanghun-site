@@ -2736,3 +2736,9 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   .catalog__toolbar { align-items: stretch; }
   .catalog__sort { width: 100%; }
 }
+
+/* ============================================================
+   数据机制：区块标记 dataStatus=pending 时，前台隐藏无来源的数字与未核实承诺
+   只隐藏 [data-metric] 标记的元素，标题、说明与操作按钮保留。
+   ============================================================ */
+.blk[data-data-status='pending'] [data-metric] { display: none; }

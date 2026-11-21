@@ -75,6 +75,11 @@ body { margin: 0; }
 .skip-link:focus-visible { transform: translateY(0); }
 /* 主内容作为 skip-link 落点：隐藏整页范围的焦点环（否则 :focus-visible 会给整个 <main> 套圈） */
 main:focus, main:focus-visible { outline: none; box-shadow: none; }
+/* 首页首块用负外边距顶入顶栏下方；flow-root 阻止该外边距塌陷到 <main> 本身，
+   否则骨架切内容时整块主内容会上移 54px（CLS）。版式不变，只是不再整体位移。 */
+#main { display: flow-root; }
+/* 内容库页面根节点同样阻断外边距塌陷：首页首块负外边距只影响自身，不再带动外层整体位移 */
+.page-view { display: flow-root; }
 /* 整屏铺满页（登录 / 注册）：页脚不再留上方间距，与页面底部直接衔接，避免出现「断层」白带 */
 main.main--flush + .site-footer { margin-top: 0; }
 
@@ -2128,7 +2133,7 @@ body.drawer-open { overflow: hidden; }
    页面切换：瞬时切页 + 内容级微入场（不做全屏过渡）
    只动 transform（不动 opacity），避免影响 View Transitions 的新页快照
    ============================================================ */
-.page-enter { animation: ghPageIn .22s var(--gh-ease-accent) both; }
+.page-enter { animation: ghPageIn .22s var(--gh-ease-accent) both; display: flow-root; }
 @keyframes ghPageIn {
   from { transform: translateY(8px); }
   to   { transform: none; }
