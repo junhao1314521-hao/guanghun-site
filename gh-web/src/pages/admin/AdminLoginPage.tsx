@@ -82,7 +82,6 @@ export function AdminLoginPage() {
       <AuthShell
         variant="full"
         badge="管理端"
-        eyebrow=""
         headline="让每一帧都有据可查"
         subtitle="产品、内容与服务，改一处即刻生效。"
         points={['装修、参数与服务数据同源，无需重复录入。']}

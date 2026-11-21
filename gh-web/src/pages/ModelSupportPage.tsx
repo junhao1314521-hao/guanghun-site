@@ -48,11 +48,6 @@ export function ModelSupportPage() {
     if (loading) return <ModelSkeleton />
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-        </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">{notFound ? '未找到该型号的支持资料' : '型号与兼容加载失败'}</div>
           <p className="empty__desc">
@@ -78,13 +73,6 @@ export function ModelSupportPage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-          <span>/</span>
-          <span>{data.model}</span>
-        </nav>
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)' }}>
           <div>

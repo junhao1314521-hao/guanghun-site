@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { fetchAccountOverview } from '../../api/account'
 import { logout } from '../../api/auth'
 import { invalidateSession, useSession } from '../../hooks/useSession'
@@ -30,15 +30,6 @@ const ME_GROUPS: MeNavGroup[] = [
     ],
   },
 ]
-
-/** 路径 → 当前页名（面包屑与导航高亮共用） */
-function pageLabel(pathname: string): string {
-  if (pathname.startsWith('/me/inquiries/')) return '工单详情'
-  const hit = ME_GROUPS.flatMap((group) => group.items).find((item) =>
-    item.end ? pathname === item.to : pathname.startsWith(item.to),
-  )
-  return hit?.label ?? '个人中心'
-}
 
 /** 侧栏线性图标（16px 描边，颜色跟随 currentColor） */
 function MeIcon({ name }: { name: MeIconName }) {
@@ -144,23 +135,10 @@ export function MeLayout({ children }: { children?: ReactNode }) {
     )
   }
 
-  const current = pageLabel(location.pathname)
-  const isOverview = location.pathname === '/me'
   const stats = overview.data?.stats
 
   return (
     <div className="container me-container">
-      <nav className="breadcrumb" aria-label="面包屑">
-        <Link to="/">首页</Link>
-        <span>/</span>
-        {isOverview ? <span>个人中心</span> : <Link to="/me">个人中心</Link>}
-        {isOverview ? null : (
-          <>
-            <span>/</span>
-            <span>{current}</span>
-          </>
-        )}
-      </nav>
 
       <div className="me-layout">
         <aside className="me-aside">

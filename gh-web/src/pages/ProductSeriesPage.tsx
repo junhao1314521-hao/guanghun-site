@@ -58,13 +58,6 @@ export function ProductSeriesPage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/products">产品</Link>
-          <span>/</span>
-          <span>{series?.name ?? '产品系列'}</span>
-        </nav>
 
         {notFound ? (
           <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>

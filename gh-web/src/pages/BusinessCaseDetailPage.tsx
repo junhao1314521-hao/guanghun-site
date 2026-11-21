@@ -36,13 +36,6 @@ export function BusinessCaseDetailPage() {
   if (!detail) {
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/business">商业合作</Link>
-          <span>/</span>
-          <Link to="/business/cases">合作案例</Link>
-        </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">未找到该案例</div>
           <p className="empty__desc">{error?.message ?? '案例可能尚未公开或链接有误'}，返回案例列表重新选择。</p>
@@ -62,15 +55,6 @@ export function BusinessCaseDetailPage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/business">商业合作</Link>
-          <span>/</span>
-          <Link to="/business/cases">合作案例</Link>
-          <span>/</span>
-          <span>{detail.title}</span>
-        </nav>
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)' }}>
           <div>

@@ -124,8 +124,6 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
   { name: 'mediaTag', label: '媒体标签（无障碍 / 备用）', kind: 'text' },
   { name: 'title', label: '大标题（每行一句，必填）', kind: 'list', placeholder: '每行一句' },
   { name: 'subtitle', label: '一句话（必填）', kind: 'textarea', placeholder: '一句话说清这张海报' },
-  { name: 'eyebrow', label: '眉题', kind: 'text' },
-  { name: 'eyebrowEnabled', label: '显示眉题', kind: 'switch' },
   { name: 'stats', label: '卖点 / 数据点（一行小字）', kind: 'list' },
   { name: 'statsEnabled', label: '显示卖点 / 数据点', kind: 'switch' },
   { name: 'primary', label: '按钮①（文字 + 链接，必填）', kind: 'link' },
@@ -198,7 +196,6 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     name: '标题正文',
     group: '内容',
     fields: [
-      { name: 'eyebrow', label: '眉题', kind: 'text' },
       { name: 'title', label: '标题', kind: 'text' },
       { name: 'body', label: '正文', kind: 'textarea' },
       {
@@ -691,7 +688,6 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'productId', label: '关联产品 ID', kind: 'text', placeholder: '可选，如 gh-54027x1qe' },
       { name: 'media', label: '媒体（图/视频/GIF）', kind: 'media' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
-      { name: 'eyebrow', label: '眉题', kind: 'text' },
       { name: 'model', label: '型号', kind: 'text', placeholder: '如 27X1QE-W54' },
       { name: 'title', label: '标题', kind: 'text' },
       { name: 'desc', label: '描述', kind: 'textarea' },
@@ -877,7 +873,6 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     name: '体验点独立页',
     group: '数据',
     fields: [
-      { name: 'eyebrow', label: '眉题', kind: 'text', placeholder: 'PRODUCT EXPERIENCE' },
       { name: 'title', label: '大标题', kind: 'text', placeholder: '产品体验点' },
       { name: 'subtitle', label: '副标题', kind: 'textarea', placeholder: '先摸到那台机器，再决定。' },
       { name: 'limit', label: '数量（0=全部）', kind: 'number' },
@@ -890,7 +885,6 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     name: '联系渠道',
     group: '结构',
     fields: [
-      { name: 'eyebrow', label: '眉题', kind: 'text', placeholder: 'CONTACT' },
       { name: 'title', label: '标题', kind: 'text', placeholder: '与你，直接对话。' },
       { name: 'subtitle', label: '副标题', kind: 'textarea' },
       { name: 'items', label: '渠道', kind: 'list' },
@@ -1236,8 +1230,6 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
         mediaType: 'image',
         title: [],
         subtitle: '',
-        eyebrow: '',
-        eyebrowEnabled: false,
         stats: [],
         statsEnabled: false,
         primary: { label: '进一步了解', href: '' },

@@ -19,13 +19,6 @@ export function InquiryPage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-          <span>/</span>
-          <span>提交咨询</span>
-        </nav>
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)' }}>
           <div>

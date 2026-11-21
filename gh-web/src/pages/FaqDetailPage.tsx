@@ -45,13 +45,6 @@ export function FaqDetailPage() {
   if (error || !detail) {
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-          <span>/</span>
-          <Link to="/faq">常见问题</Link>
-        </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">{notFound ? '未找到该问答' : '问答加载失败'}</div>
           <p className="empty__desc">
@@ -76,15 +69,6 @@ export function FaqDetailPage() {
     <div ref={rootRef}>
       <JsonLdNode node={faqJsonLd(detail)} />
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-          <span>/</span>
-          <Link to="/faq">常见问题</Link>
-          <span>/</span>
-          <span>{detail.category}</span>
-        </nav>
 
         <div style={{ marginTop: 'var(--gh-space-5)' }}>
           <span className="tag tag--accent">{detail.category}</span>

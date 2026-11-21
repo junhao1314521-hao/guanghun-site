@@ -115,7 +115,6 @@ export function RegisterPage() {
         <AuthShell
           variant="page"
           badge="个人中心"
-          eyebrow="ACCOUNT / REGISTER"
           headline={config.headline || '把每一块屏的参数，测给你看'}
           subtitle={config.description || '不写形容词，只给可复现的测试记录与版本号。'}
           points={config.points && config.points.length > 0 ? config.points : ['登记与管理我的设备', '跟踪工单与预约进度', '接收固件与资料更新']}

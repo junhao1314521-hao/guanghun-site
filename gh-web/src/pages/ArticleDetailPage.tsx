@@ -89,17 +89,6 @@ export function ArticleDetailPage() {
       {article && <JsonLdNode node={articleJsonLd(article, articleCoverSrc(article.cover, article.coverImage))} />}
       {/* 面包屑 + 标题（数据未就绪时仅显示导航层级） */}
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          {listLive ? <Link to="/articles">文章</Link> : <span>文章</span>}
-          {article && (
-            <>
-              <span>/</span>
-              <span>{article.title}</span>
-            </>
-          )}
-        </nav>
 
         {article && (
           <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)' }}>

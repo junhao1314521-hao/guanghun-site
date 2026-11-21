@@ -99,13 +99,6 @@ export function ComparePage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/products">产品</Link>
-          <span>/</span>
-          <span>产品对比</span>
-        </nav>
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)', alignItems: 'flex-start' }}>
           <div>

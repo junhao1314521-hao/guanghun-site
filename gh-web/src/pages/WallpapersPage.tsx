@@ -562,7 +562,6 @@ export function WallpapersPage() {
           <div className="container wp-stage__inner">
             <div className="wp-stage__top">
               <div className="wp-stage__copy">
-                <p className="wp-eyebrow">Brand Wallpapers</p>
                 <h1 id="wp-title" className="wp-title">品牌壁纸</h1>
                 <p className="wp-lede">
                   从星海、赛博到秘境，16:9 桌面壁纸。

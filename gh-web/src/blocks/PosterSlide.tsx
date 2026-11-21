@@ -126,10 +126,6 @@ export function posterHeightStyle(data: PosterData): CSSProperties | undefined {
   return heightStyle(data.height, data.heightValue)
 }
 
-/** 是否渲染眉题 / 卖点：显式开关优先，缺省按「有内容即显示」兜底 */
-export function posterShowEyebrow(data: PosterData): boolean {
-  return data.eyebrowEnabled === undefined ? Boolean(data.eyebrow) : data.eyebrowEnabled && Boolean(data.eyebrow)
-}
 /** 是否渲染卖点数据：显式开关优先，缺省按「有数据即显示」兜底 */
 export function posterShowStats(data: PosterData): boolean {
   return data.statsEnabled === undefined ? data.stats.length > 0 : data.statsEnabled && data.stats.length > 0
@@ -178,7 +174,6 @@ export function PosterMedia({ data, src, eager }: { data: PosterData; src: strin
  */
 export function PosterOverlay({ data, titleTag = 'h2' }: { data: PosterData; titleTag?: 'h1' | 'h2' }) {
   const TitleTag = titleTag
-  const showEyebrow = posterShowEyebrow(data)
   const showStats = posterShowStats(data)
   const points = posterPointsText(data)
   // 文案 / 按钮配色（后台可配）：只在配置时注入 CSS 变量，未配时沿用既有皮肤
@@ -192,7 +187,6 @@ export function PosterOverlay({ data, titleTag = 'h2' }: { data: PosterData; tit
     data.ctaStyle === 'sweep' ? ' hero__cta--sweep' : data.ctaStyle === 'pulse' ? ' hero__cta--pulse' : ''
   const inner = (
     <>
-      {showEyebrow && <div className="hero__eyebrow">{data.eyebrow}</div>}
       {data.title.length > 0 && (
         <TitleTag className="hero__title">
           {data.title.map((line, index) => (

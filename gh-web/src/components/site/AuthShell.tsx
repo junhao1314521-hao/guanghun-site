@@ -15,7 +15,6 @@ type Props = {
   variant?: 'full' | 'card' | 'page'
   /** 品牌旁的小标签，如「管理端」「客户中心」 */
   badge?: string
-  eyebrow?: string
   headline?: string
   subtitle?: string
   points?: string[]
@@ -28,7 +27,6 @@ export function AuthShell({
   children,
   variant = 'card',
   badge = '',
-  eyebrow = 'SUPER DISPLAY',
   headline = '以实测定义性能',
   subtitle = 'OLED 电竞显示器 · 参数公开、方法公开、来源可查。',
   points = [],
@@ -49,7 +47,6 @@ export function AuthShell({
             {badge && <span className="auth-shell__badge">{badge}</span>}
           </div>
           <div className="auth-shell__pitch">
-            {eyebrow && <p className="auth-shell__eyebrow">{eyebrow}</p>}
             <h2 className="auth-shell__headline">{headline}</h2>
             <p className="auth-shell__subtitle">{subtitle}</p>
             {points.length > 0 && (

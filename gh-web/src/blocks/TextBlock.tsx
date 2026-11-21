@@ -1,14 +1,13 @@
 /**
  * 4. text 标题正文（契约 §4）
- * props: eyebrow / title / body / align:'left'|'center'
+ * props: title / body / align:'left'|'center'
  *
  * body 以 `\n` 分隔多段；标题统一用 h2（页面 h1 由页面外壳提供）。
  */
 import { asString, splitBody } from './blockUtils'
 
-/** 标题正文区块：渲染眉题、标题与按换行拆分的正文段落 */
+/** 标题正文区块：渲染标题与按换行拆分的正文段落 */
 export function TextBlock({ props }: { props: Record<string, unknown> }) {
-  const eyebrow = asString(props.eyebrow)
   const title = asString(props.title)
   const body = asString(props.body)
   const align = asString(props.align, 'left')
@@ -16,13 +15,8 @@ export function TextBlock({ props }: { props: Record<string, unknown> }) {
 
   return (
     <div style={align === 'center' ? { textAlign: 'center' } : undefined}>
-      {eyebrow && (
-        <div className="stage__eyebrow" style={{ color: 'var(--color-accent-text)' }}>
-          {eyebrow}
-        </div>
-      )}
       {title && (
-        <h2 className="section__title" style={eyebrow ? { marginTop: 'var(--gh-space-2)' } : undefined}>
+        <h2 className="section__title">
           {title}
         </h2>
       )}

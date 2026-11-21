@@ -64,19 +64,9 @@ export function LegalPage() {
 
   return (
     <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-      <nav className="breadcrumb" aria-label="面包屑">
-        <Link to="/">首页</Link>
-        <span>/</span>
-        <span>合规与协议</span>
-        <span>/</span>
-        <span>{doc.title}</span>
-      </nav>
 
       <div className="section__head" style={{ marginTop: 'var(--gh-space-4)' }}>
         <div>
-          <p className="muted" style={{ fontSize: 'var(--gh-font-size-caption)', letterSpacing: '.08em', margin: 0 }}>
-            {doc.eyebrow}
-          </p>
           <h1 className="section__title">{doc.title}</h1>
           <p className="section__desc">{doc.intro}</p>
         </div>

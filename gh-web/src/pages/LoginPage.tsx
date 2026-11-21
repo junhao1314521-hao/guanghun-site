@@ -113,7 +113,6 @@ export function LoginPage() {
         <AuthShell
           variant="page"
           badge="个人中心"
-          eyebrow="ACCOUNT / SIGN IN"
           headline={config.headline || '把每一块屏的参数，测给你看'}
           subtitle={config.description || '不写形容词，只给可复现的测试记录与版本号。'}
           points={points}

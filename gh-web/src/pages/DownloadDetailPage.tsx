@@ -49,13 +49,6 @@ export function DownloadDetailPage() {
   if (error || !detail) {
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-          <span>/</span>
-          <Link to="/downloads">下载中心</Link>
-        </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">{notFound ? '未找到该资料' : '资料加载失败'}</div>
           <p className="empty__desc">
@@ -85,15 +78,6 @@ export function DownloadDetailPage() {
     <div ref={rootRef}>
       <JsonLdNode node={downloadJsonLd(detail)} />
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/support">服务与支持</Link>
-          <span>/</span>
-          <Link to="/downloads">下载中心</Link>
-          <span>/</span>
-          <span>{detail.name}</span>
-        </nav>
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)', marginBottom: 'var(--gh-space-5)' }}>
           <div>

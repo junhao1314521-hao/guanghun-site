@@ -37,13 +37,6 @@ export function BusinessVenueDetailPage() {
   if (!detail) {
     return (
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/business">商业合作</Link>
-          <span>/</span>
-          <Link to="/business/venues">产品体验点</Link>
-        </nav>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">未找到该体验点</div>
           <p className="empty__desc">{error?.message ?? '门店可能已调整或链接有误'}，返回体验点列表重新选择。</p>
@@ -63,15 +56,6 @@ export function BusinessVenueDetailPage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <Link to="/business">商业合作</Link>
-          <span>/</span>
-          <Link to="/business/venues">产品体验点</Link>
-          <span>/</span>
-          <span>{detail.name}</span>
-        </nav>
 
         <div className="section__head" style={{ marginTop: 'var(--gh-space-4)' }}>
           <div>

@@ -89,11 +89,6 @@ export function ForgotPage() {
   return (
     <div ref={rootRef}>
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
-        <nav className="breadcrumb" aria-label="面包屑">
-          <Link to="/">首页</Link>
-          <span>/</span>
-          <span>找回密码</span>
-        </nav>
 
         <div style={{ maxWidth: 440, margin: 'var(--gh-space-7) auto 0' }}>
           <div className="card reveal">
