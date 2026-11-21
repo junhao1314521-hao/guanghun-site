@@ -45,8 +45,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     scrim: false,
     mediaTag: '品牌主视觉',
     eyebrow: 'SUPER DISPLAY / 2026',
-    title: ['把每一块屏，测给你看'],
-    desc: 'OLED 电竞显示器。自建实验室按公开方法测试，参数、方法与版本号一并公开。',
+    title: ['光魂 OLED 电竞显示器'],
+    desc: '2K 540Hz、4K 双模与 21:9 超宽；测试方法与数据来源见产品页。',
     primary: '浏览全部产品',
     secondary: '查看天梯榜',
     primaryTo: '/products',
@@ -263,7 +263,7 @@ export const TECH_ARTICLES: ArticleCard[] = [
 
 /* ---------- 品牌介绍 ---------- */
 export const BRAND_STATS = [
-  { value: '2019', label: '品牌成立', note: '从参数实测开始做产品，而不是先做包装。' },
+  { value: '2019', label: '品牌成立', note: '2019 年起做 OLED 电竞显示器。' },
   { value: '1', label: '自有测试实验室', note: '响应、亮度、色准与均匀度按公开方法测量。' },
   { value: '4', label: '产品线', note: 'OLED 旗舰 / 双模高刷 / 电竞 IPS / 桌面周边。' },
 ]

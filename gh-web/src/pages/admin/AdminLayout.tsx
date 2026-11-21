@@ -1,5 +1,5 @@
 /**
- * 后台外壳：侧边导航（分组可折叠 + 可搜索）+ 顶栏（面包屑 / 用户 / 注销）+ 内容区。
+ * 后台外壳：侧边导航（分组可折叠 + 可搜索）+ 顶栏（用户 / 注销）+ 内容区。
  * - 导航与栏目定义来自 `data/adminResources.ts`（单一真源），新增栏目无需改本文件。
  * - 桌面固定侧栏；≤1023px 收起为抽屉，由顶栏按钮开合（Esc 关闭 + 锁背景滚动）。
  * - 顶栏内层与内容同宽居中；装修器页面（.../builder）放宽到宽轨道。
@@ -21,7 +21,9 @@ import { useTheme } from '../../lib/useTheme'
 
 const SCOPE_LABEL: Record<string, string> = Object.fromEntries(ANALYTICS_SCOPES.map((s) => [s.scope, s.label]))
 
-/** 侧栏分组折叠状态持久化键 */
+/**
+ * 侧栏分组折叠状态持久化键
+ */
 const NAV_COLLAPSE_KEY = 'gh-admin-nav-collapsed'
 /** 侧栏整体折叠（桌面图标模式）状态持久化键 */
 const SIDEBAR_COLLAPSE_KEY = 'gh-admin-sidebar-collapsed'
@@ -42,37 +44,8 @@ function readSideWidth(): number {
   return 240
 }
 
-/** 由路径推导面包屑；最后一项即页面标题 */
-function adminTrail(pathname: string): { label: string; to?: string }[] {
-  const rest = pathname.split('/').filter(Boolean).slice(1) // 去掉 'admin'
-  if (rest.length === 0) return [{ label: '工作台' }]
-
-  const [first, second] = rest
-  if (first === 'analytics') {
-    return [{ label: '工作台', to: '/admin' }, { label: SCOPE_LABEL[second ?? ''] ?? '数据分析' }]
-  }
-  // 自定义页（非资源栏目），无二级路径
-  if (first === 'device-reviews') {
-    return [{ label: '工作台', to: '/admin' }, { label: '设备审核' }]
-  }
-  if (first === 'rankings-import') {
-    return [{ label: '工作台', to: '/admin' }, { label: '天梯榜导入' }]
-  }
-
-  const res = adminResource(first)
-  const trail: { label: string; to?: string }[] = [{ label: '工作台', to: '/admin' }]
-  if (!res) return [...trail, { label: '页面不存在' }]
-
-  trail.push({ label: res.label, to: second ? `/admin/${first}` : undefined })
-  if (second === 'new') trail.push({ label: '新建' })
-  else if (second === 'builder') trail.push({ label: '页面装修' })
-  else if (second) trail.push({ label: '编辑' })
-  return trail
-}
-
 /**
- * 标签页标题：比面包屑末级更明确（「编辑」单独出现无法分辨在编辑什么）。
- * 面包屑仍保留层级，标题统一为「栏目 · 动作」。
+ * 标签页标题：比「编辑」这类末级词更明确，统一为「栏目 · 动作」。
  */
 function adminTitle(pathname: string): string {
   const rest = pathname.split('/').filter(Boolean).slice(1)
@@ -104,6 +77,17 @@ function canSeeNavItem(item: AdminNavItem, scopes: readonly string[] | null): bo
   if (item.kind === 'link') return true
   if (!scopes) return true
   return hasScope(scopes, requiredScope(item.key))
+}
+
+/** 导航项对应的路由前缀（link 用自身地址，资源项用列表地址） */
+function navItemPath(item: AdminNavItem): string {
+  return item.kind === 'link' ? item.to : `/admin/${item.key}`
+}
+
+/** 当前路径是否命中某个导航项（精确匹配或子路径） */
+function navItemMatches(item: AdminNavItem, pathname: string): boolean {
+  const to = navItemPath(item)
+  return to === '/admin' ? pathname === '/admin' : pathname === to || pathname.startsWith(`${to}/`)
 }
 
 /** 单个导航项：link 为固定链接，resource 由配置解析为列表地址 */
@@ -175,7 +159,6 @@ export function AdminLayout() {
   // 桌面侧栏宽度（可拖拽调整，200–320px；折叠时使用折叠令牌宽度）
   const [sideWidth, setSideWidth] = useState<number>(() => readSideWidth())
 
-  const trail = adminTrail(pathname)
   const title = adminTitle(pathname)
   // 装修器页面放宽内容轨道
   const isWide = pathname.endsWith('/builder')
@@ -307,6 +290,21 @@ export function AdminLayout() {
       .filter((group) => group.items.length > 0)
   }, [q, scopes])
 
+  // 当前页所属的一级分组：切到任一栏目时自动展开它，避免「点了链接却看不到高亮项」
+  const activeGroupKey = useMemo(
+    () => groups.find((group) => group.items.some((item) => navItemMatches(item, pathname)))?.key ?? null,
+    [groups, pathname],
+  )
+  useEffect(() => {
+    if (q || !activeGroupKey) return
+    setCollapsed((prev) => {
+      if (!prev.has(activeGroupKey)) return prev
+      const next = new Set(prev)
+      next.delete(activeGroupKey)
+      return next
+    })
+  }, [activeGroupKey, q])
+
   return (
     <AdminTourProvider>
       <div className="admin-root">
@@ -437,28 +435,7 @@ export function AdminLayout() {
                 <IconMenu size={18} />
               </button>
 
-              <nav className="breadcrumb" aria-label="面包屑">
-                {trail.map((node, index) =>
-                  node.to ? (
-                    <span
-                      key={node.label}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--gh-space-2)' }}
-                    >
-                      {index > 0 && <span aria-hidden="true">/</span>}
-                      <Link to={node.to}>{node.label}</Link>
-                    </span>
-                  ) : (
-                    <span
-                      key={node.label}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--gh-space-2)' }}
-                    >
-                      {index > 0 && <span aria-hidden="true">/</span>}
-                      <span aria-current="page">{node.label}</span>
-                    </span>
-                  ),
-                )}
-              </nav>
-
+              {/* 顶栏左侧保持留白：层级由侧栏高亮承担，不再渲染面包屑 */}
               <span className="admin-topbar__spacer" />
 
               <Link className="btn btn--ghost btn--sm" to="/" target="_blank" rel="noreferrer">
@@ -483,7 +460,6 @@ export function AdminLayout() {
                 </span>
                 <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
                   <span className="admin-topbar__name">{profile?.name ?? '未登录'}</span>
-                  <span className="admin-topbar__role">{profile?.role ?? ''}</span>
                 </span>
               </div>
 

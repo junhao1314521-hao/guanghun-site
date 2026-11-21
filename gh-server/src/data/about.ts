@@ -50,7 +50,7 @@ export const TIMELINE: TimelineItem[] = [
     year: '2019',
     tag: '品牌',
     title: '品牌成立，首款电竞显示器上市',
-    desc: '从参数实测开始做产品，而不是先做包装。',
+    desc: '2019 年起做 OLED 电竞显示器。',
   },
 ]
 

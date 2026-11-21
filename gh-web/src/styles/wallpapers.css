@@ -9,6 +9,8 @@
 
 .wp-page {
   padding-bottom: clamp(72px, 9vw, 112px);
+  /* 环绕封面流的两侧卡片按设计会露出画框外，裁到视口内，避免窄屏出现横向滚动 */
+  overflow-x: clip;
 }
 
 /* ---------- 页头 ---------- */
@@ -395,6 +397,43 @@
   scrollbar-width: none;
 }
 
+/* 两行筛选：设备尺寸在上、主题在下；窄屏改为整宽并允许横向滑动 */
+.wp-filterbar {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  max-width: 68%;
+}
+.wp-filterbar__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.wp-filterbar__label {
+  flex: none;
+  width: 56px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+}
+.wp-filterbar .wp-seg {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.wp-filterbar .wp-seg::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 767px) {
+  .wp-browse__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .wp-filterbar {
+    max-width: 100%;
+  }
+}
+
 .wp-filters::-webkit-scrollbar {
   display: none;
 }
@@ -446,6 +485,17 @@
   transition:
     border-color var(--gh-duration-slow) var(--gh-ease-standard),
     box-shadow var(--gh-duration-slow) var(--gh-ease-standard);
+}
+
+/* 按素材真实比例展示：非 16:9 不再强行裁成横图（数据来自后端测得的宽高） */
+.wp-card__media[data-ratio='21:9'] { aspect-ratio: 21 / 9; }
+.wp-card__media[data-ratio='4:3'] { aspect-ratio: 4 / 3; }
+.wp-card__media[data-ratio='9:16'] { aspect-ratio: 9 / 16; }
+@media (min-width: 1025px) {
+  /* 竖版卡收窄一档，避免与横版同排时把整行拉得过高 */
+  .wp-card:has(.wp-card__media[data-ratio='9:16']) {
+    flex: 0 0 calc((100% - 72px) / 4);
+  }
 }
 
 .wp-card:hover .wp-card__media,

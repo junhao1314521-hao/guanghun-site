@@ -15,6 +15,7 @@ import { MEDIA } from '../../data/media'
 import { AdminIcon } from '../../components/admin/AdminIcon'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { Select } from '../../components/admin/Select'
+import { DensityToggle, useDensity } from '../../components/admin/density'
 import { EmptyState, ErrorState, SkeletonTable } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { IconClose, IconSearch } from '../../components/ui/Icon'
@@ -73,6 +74,14 @@ function priceValue(row: ProductRow): number {
   return 0
 }
 
+/** 列表价格展示：优先用文本 price，缺省回退数值 priceValue（列表接口只保证后者） */
+function priceText(row: ProductRow): string {
+  const asText = text(row.price)
+  if (asText) return asText
+  const value = priceValue(row)
+  return value > 0 ? `¥${value.toLocaleString('zh-CN')}` : '—'
+}
+
 // 产品缩略图：有图渲染图片，无图回退立方体图标，支持固定尺寸或撑满容器
 function ProductThumb({ row, size = 48, fluid = false }: { row: ProductRow; size?: number; fluid?: boolean }) {
   const src = imageOf(row)
@@ -99,6 +108,7 @@ export function AdminProductsList() {
   const [status, setStatus] = useState('')
   const [sort, setSort] = useState('recommended')
   const [view, setView] = useState<'table' | 'cards'>('table')
+  const [density, setDensity] = useDensity()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0])
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set())
@@ -270,6 +280,8 @@ export function AdminProductsList() {
 
         <span className="admin-products__spacer" />
 
+        {view === 'table' && <DensityToggle density={density} onChange={setDensity} />}
+
         {selected.size > 0 ? (
           <div className="admin-products__selected" role="status">
             <span>已选 {selected.size} 款</span>
@@ -347,7 +359,7 @@ export function AdminProductsList() {
           })}
         </div>
       ) : (
-        <div className="admin-table-wrap admin-products__table-wrap">
+        <div className={`admin-table-wrap admin-products__table-wrap${density === 'compact' ? ' admin-table-wrap--compact' : ''}`}>
           <div className="admin-table-scroll">
             <table className="table admin-table admin-products__table">
               <thead>
@@ -387,7 +399,7 @@ export function AdminProductsList() {
                       </td>
                       <td>
                         <div className="admin-product-cell">
-                          <ProductThumb row={row} />
+                          <ProductThumb row={row} size={density === 'compact' ? 32 : 48} />
                           <div className="admin-product-cell__text">
                             <Link className="admin-product-cell__name" to={`/admin/products/${id}`}>
                               {text(row.name)}
@@ -401,7 +413,7 @@ export function AdminProductsList() {
                       </td>
                       <td><span className="tag">{text(row.category) || '—'}</span></td>
                       <td><span className={`status status--${statusInfo.level}`}>{statusInfo.text}</span></td>
-                      <td className="mono" style={{ textAlign: 'right' }}>{text(row.price) || '—'}</td>
+                      <td className="mono" style={{ textAlign: 'right' }}>{priceText(row)}</td>
                       <td className="mono">{text(row.releasedAt) || '—'}</td>
                       <td>
                         <div className="admin-table__actions">

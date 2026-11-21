@@ -191,6 +191,8 @@ function AppShell() {
   const { lang, setLang, t, notice, dismissNotice } = useI18n()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const pageRef = useRef<HTMLDivElement>(null)
+  // 登录 / 注册：独立整屏页，不渲染页脚
+  const isAuthPage = pathname === '/login' || pathname === '/register'
 
   // 站点级设计令牌：加载站点配置后把 theme 白名单变量注入 <html>（仅前台外壳）
   const site = useSiteConfig()
@@ -277,11 +279,11 @@ function AppShell() {
         </div>
       )}
 
-      {/* 登录 / 注册为整屏铺满页：去掉页脚上方的全局间距，使其与页面底部无缝衔接 */}
+      {/* 登录 / 注册为独立整屏页：不渲染页脚，也不保留页脚上方的全局间距 */}
       <main
         id="main"
         tabIndex={-1}
-        className={pathname === '/login' || pathname === '/register' ? 'main--flush' : undefined}
+        className={isAuthPage ? 'main--flush' : undefined}
       >
         <PageTransition pathname={pathname}>
         {/* key=pathname：路由切换时重置错误边界，避免上一页异常「粘住」下一页 */}
@@ -349,7 +351,7 @@ function AppShell() {
         </PageTransition>
       </main>
 
-      <SiteFooter />
+      {!isAuthPage && <SiteFooter />}
 
       <FloatingActions />
 

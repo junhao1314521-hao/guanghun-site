@@ -238,7 +238,7 @@ function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: (
             <button type="button" className="btn btn--secondary btn--sm" onClick={() => inputRef.current?.click()}>
               选择图片
             </button>
-            <span>支持 JPG / PNG / WebP，单张 ≤ 10MB，建议 16:9</span>
+            <span>支持 JPG / PNG / WebP，单张 ≤ 10MB；16:9 / 21:9 / 竖屏 / 4:3 均可，前台按实际比例自动归组</span>
             <input
               ref={inputRef}
               type="file"

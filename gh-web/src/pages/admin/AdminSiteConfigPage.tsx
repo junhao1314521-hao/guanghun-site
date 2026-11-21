@@ -27,6 +27,8 @@ import type {
 import { useApi } from '../../hooks/useApi'
 import type { ShopChannel, SiteSocialItem } from '../../data/contentTypes'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { FileField } from '../../components/admin/FileField'
+import { mediaHintText, type MediaHint } from '../../components/admin/mediaHints'
 import { Select } from '../../components/admin/Select'
 import { ErrorState } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
@@ -41,6 +43,57 @@ function move<T>(list: T[], index: number, dir: -1 | 1): T[] {
   next[index] = next[target]
   next[target] = tmp
   return next
+}
+
+/** 二维码图片规格：前台按 132px 方形展示，2 倍屏需 264px，故建议 512×512 留足余量 */
+const QR_HINT: MediaHint = {
+  size: '512×512',
+  ratio: '1:1',
+  maxSize: '≤2MB',
+  formats: 'PNG（推荐）/ JPG',
+  background: 'any',
+  extra: '四周留白 ≥ 24px，不要拉伸或加滤镜',
+}
+
+/** 登录页左侧海报规格：与前台 4:5 竖版展示一致 */
+const LOGIN_POSTER_HINT: MediaHint = {
+  size: '1600×2000',
+  ratio: '4:5',
+  maxSize: '≤2MB',
+  formats: 'JPG（推荐）/ PNG',
+  subject: '主体居中偏下，避免被左下角文案遮挡',
+}
+
+/**
+ * 二维码字段：地址输入 + 上传 + 素材库选择，并在下方常驻规格提示。
+ * 上传后会实测像素与比例，不符时在字段内给出具体偏差（不阻塞保存）。
+ */
+function QrField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (url: string | undefined) => void
+}) {
+  return (
+    <div className="site-qr-field">
+      <span className="admin-filters__label">{label}</span>
+      <FileField
+        inputId={id}
+        label={label}
+        variant="image"
+        hint={QR_HINT}
+        value={value}
+        onChange={(url) => onChange(url || undefined)}
+        placeholder="上传二维码，或粘贴 /uploads/… 地址"
+      />
+      <span className="field__hint">{mediaHintText(QR_HINT)}</span>
+    </div>
+  )
 }
 
 /* ============================================================
@@ -387,6 +440,12 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     setDirty(true)
   }
 
+  // 页脚小程序二维码（留空回落到内置素材）
+  const setMiniprogramQr = (miniprogramQr: string | undefined) => {
+    setSite((prev) => ({ ...prev, miniprogramQr }))
+    setDirty(true)
+  }
+
   // 店铺渠道：顶栏「店铺」圆钮下拉（名称 / 链接，可增删排序）
   const setShopChannels = (shopChannels: ShopChannel[]) => {
     setSite((prev) => ({ ...prev, shopChannels }))
@@ -442,7 +501,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
     <div className="admin-page">
       <AdminPageHead
         title="站点配置"
-        desc={`维护全局导航与页脚（契约 §6.1 SiteConfig）${dirty ? ' · 有未保存修改' : ''}`}
+        desc={`维护主导航、店铺渠道、登录页与页脚内容；保存后前台刷新即生效${dirty ? ' · 有未保存修改' : ''}`}
         actions={
           <>
             <button type="button" className="btn btn--danger-ghost btn--sm" onClick={onReset} disabled={busy}>
@@ -754,12 +813,19 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               />
             </div>
             <div className="site-link">
-              <input
-                className="input"
-                placeholder="左侧海报地址（/media/... 或 /uploads/...）"
-                value={site.auth?.login?.poster ?? ''}
-                onChange={(event) => setLogin({ poster: event.target.value })}
-              />
+              <div className="site-qr-field">
+                <span className="admin-filters__label">左侧品牌区海报</span>
+                <FileField
+                  inputId="auth-login-poster"
+                  label="登录页左侧海报"
+                  variant="image"
+                  hint={LOGIN_POSTER_HINT}
+                  value={site.auth?.login?.poster ?? ''}
+                  onChange={(url) => setLogin({ poster: url })}
+                  placeholder="上传海报，或粘贴 /media/… 地址"
+                />
+                <span className="field__hint">{mediaHintText(LOGIN_POSTER_HINT)}</span>
+              </div>
             </div>
             <div className="site-link">
               {[0, 1, 2].map((index) => (
@@ -823,11 +889,11 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                 value={site.auth?.wechat?.appId ?? ''}
                 onChange={(event) => setWechat({ appId: event.target.value })}
               />
-              <input
-                className="input"
-                placeholder="微信二维码图片地址（/uploads/...）"
+              <QrField
+                id="auth-wechat-qr"
+                label="微信登录二维码"
                 value={site.auth?.wechat?.qr ?? ''}
-                onChange={(event) => setWechat({ qr: event.target.value })}
+                onChange={(url) => setWechat({ qr: url })}
               />
             </div>
             <div className="site-link">
@@ -851,7 +917,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </div>
           <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
             每个平台一条：只填「二维码」→ 悬停 / 点击浮层展示二维码与名称；只填「账号」→ 浮层展示「账号 + 一句提示」；
-            只填「链接」→ 直接跳转、不弹层。二维码地址在「素材库」上传后复制填入。
+            只填「链接」→ 直接跳转、不弹层。二维码可直接上传，也可从素材库选择。
             <br />
             尺寸建议：正方形 PNG，最低 480×480 px，推荐 600×600 px 或 800×800 px；白底、四周留白 ≥ 24 px，不要拉伸或压缩，保证扫码识别。链接请填官方主页完整地址。
           </p>
@@ -909,12 +975,11 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                       value={item.account ?? ''}
                       onChange={(event) => patch({ account: event.target.value || undefined })}
                     />
-                    <input
-                      className="input"
-                      type="text"
-                      placeholder="二维码图片地址（可选，/uploads/…）"
+                    <QrField
+                      id={`social-qr-${index}`}
+                      label={`${item.label || '该平台'}二维码`}
                       value={item.qr ?? ''}
-                      onChange={(event) => patch({ qr: event.target.value || undefined })}
+                      onChange={(url) => patch({ qr: url })}
                     />
                     <input
                       className="input"
@@ -936,6 +1001,22 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               + 新增社交平台
             </button>
           </div>
+        </section>
+
+        {/* —— 页脚小程序二维码：前台固定 132px 方形展示，留空回落到内置素材 —— */}
+        <section className="admin-panel">
+          <div className="admin-panel__head">
+            <h2 className="admin-panel__title">页脚小程序</h2>
+          </div>
+          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            前台页脚右下角的「微信小程序 · 扫码进入商城」卡片。留空时使用内置素材，替换后无需改代码。
+          </p>
+          <QrField
+            id="footer-miniprogram-qr"
+            label="小程序商城二维码"
+            value={site.miniprogramQr ?? ''}
+            onChange={setMiniprogramQr}
+          />
         </section>
       </div>
     </div>

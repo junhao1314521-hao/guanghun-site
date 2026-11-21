@@ -27,8 +27,8 @@ export function AuthShell({
   children,
   variant = 'card',
   badge = '',
-  headline = '以实测定义性能',
-  subtitle = 'OLED 电竞显示器 · 参数公开、方法公开、来源可查。',
+  headline = '光魂 OLED 电竞显示器',
+  subtitle = 'OLED 电竞显示器。参数、测试方法与固件版本都可以查。',
   points = [],
   poster = '',
 }: Props) {

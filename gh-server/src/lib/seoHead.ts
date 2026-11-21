@@ -18,7 +18,7 @@ type StaticMeta = { title: string; description: string; indexable: boolean; cano
 
 /** 静态路由元信息（与前端 meta.ts 保持一致；未列出的路径按 noindex 处理） */
 const STATIC_META: Record<string, StaticMeta> = {
-  '/': { title: '光魂 · OLED 电竞显示器官网', description: '以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。', indexable: true },
+  '/': { title: '光魂 · OLED 电竞显示器官网', description: '光魂 OLED 电竞显示器：2K 540Hz、4K 双模与 21:9 超宽，参数、测试方法与固件版本可查。', indexable: true },
   '/products': { title: '全部产品 · 光魂', description: '光魂 OLED 电竞显示器，覆盖 540Hz 旗舰到主流电竞 IPS，可按品类、接口与价格筛选。', indexable: true },
   '/articles': { title: '文章与评测 · 光魂', description: '产品评测、使用教程与行业观察；测试方法与数据来源公开。', indexable: true },
   '/news': { title: '新闻与动态 · 光魂', description: '产品发布、品牌动态与活动公告。', indexable: true },
@@ -218,7 +218,7 @@ export function resolveHead(pathname: string, origin: string): HeadMeta {
   if (detail) return detail
   return {
     title: '光魂 · OLED 电竞显示器官网',
-    description: '以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。',
+    description: '光魂 OLED 电竞显示器：2K 540Hz、4K 双模与 21:9 超宽，参数、测试方法与固件版本可查。',
     indexable: false,
     image: `${origin}${DEFAULT_OG_IMAGE}`,
   }

@@ -30,6 +30,7 @@ import { ProductModel3D, supports3D } from '../../components/product/ProductMode
 import { Select } from '../../components/admin/Select'
 import { mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
+import { slugify } from '../../lib/slug'
 
 /** 无 form 配置时，按列定义兜底生成字段 */
 function fallbackSections(columns: AdminColumn[]): AdminFormSection[] {
@@ -111,7 +112,14 @@ function FormField({
         <label className="field__label" htmlFor={fieldId}>
           {field.label}
         </label>
-        <input id={fieldId} className="input" type="text" value={value === undefined ? '' : String(value)} readOnly />
+        <input
+          id={fieldId}
+          className="input"
+          type="text"
+          value={value === undefined ? '' : String(value)}
+          placeholder={field.placeholder ?? '保存后自动生成'}
+          readOnly
+        />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -189,6 +197,20 @@ function FormField({
     )
   }
 
+  if (field.type === 'ref') {
+    // 资源引用：从目标栏目选择记录，值存 id；避免让人背下并手填 ID
+    return (
+      <>
+        <label className="field__label" htmlFor={fieldId}>
+          {field.label}
+          {req}
+        </label>
+        <ResourceRefField field={field} id={fieldId} invalid={invalid} value={value} onChange={(next) => onChange(field.key, next)} />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
   if (field.type === 'records') {
     // 对象数组（记录列表）：每条渲染为一张子卡片，支持增 / 删 / 上移 / 下移
     return (
@@ -197,7 +219,7 @@ function FormField({
           {field.label}
           {req}
         </span>
-        <RecordsField field={field} value={value} onChange={onChange} />
+        <RecordsField field={field} value={value} onChange={onChange} allValues={allValues} />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -283,6 +305,9 @@ function FormField({
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
         />
+        <span className="field__hint">
+          支持图片、PDF、Office、ZIP / RAR / 7Z、固件 .bin 与安装包（exe / msi / dmg / pkg）；图片 ≤10MB，文档 ≤50MB，视频 ≤200MB，安装包 ≤300MB。
+        </span>
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -368,6 +393,10 @@ function FormField({
             onChange(field.key, field.type === 'number' && event.target.value !== '' ? Number(event.target.value) : event.target.value)
           }
         />
+
+      )}
+      {field.type === 'date' && !field.hint && (
+        <span className="field__hint">格式 YYYY-MM-DD；留空表示未设置。</span>
       )}
       {field.hint && <span className="field__hint">{field.hint}</span>}
     </>
@@ -525,11 +554,92 @@ function SpecTemplateField({
 /** records 条目字段（AdminColumn）→ 表单字段（AdminField），复用 FormField 渲染原子输入 */
 function recordColumnToField(column: AdminColumn): AdminField {
   const type: AdminFieldType = column.type === 'bool' ? 'switch' : ((column.type ?? 'text') as AdminFieldType)
-  return { key: column.key, label: column.label, type, options: column.options }
+  return {
+    key: column.key,
+    label: column.label,
+    type,
+    options: column.options,
+    hint: column.hint,
+    refResource: column.refResource,
+    refLabelKey: column.refLabelKey,
+  }
+}
+
+/**
+ * 资源引用选择器：加载目标栏目列表，以下拉方式选择记录。
+ * 选项文案为「名称（id）」，历史数据里找不到的 id 也会列出，避免静默丢失引用。
+ */
+function ResourceRefField({
+  field,
+  value,
+  onChange,
+  id,
+  invalid = false,
+}: {
+  field: AdminField
+  value: unknown
+  onChange: (next: string, row?: AdminRow) => void
+  id?: string
+  invalid?: boolean
+}) {
+  const refResource = field.refResource ?? ''
+  const state = useApi<AdminList>((signal) => fetchAdminResource(refResource, signal), [refResource])
+  const rows = state.data?.items ?? []
+  const current = String(value ?? '')
+  const labelKey = field.refLabelKey
+  const labelOf = (row: AdminRow) =>
+    String(
+      (labelKey ? row[labelKey] : undefined) ??
+        row.name ??
+        row.title ??
+        row.label ??
+        row.model ??
+        row.id ??
+        '',
+    )
+  const options = [
+    { value: '', label: state.loading && !state.data ? '正在加载…' : '请选择' },
+    ...rows.map((row) => ({ value: String(row.id), label: `${labelOf(row)}（${String(row.id)}）` })),
+    ...(current && !rows.some((row) => String(row.id) === current)
+      ? [{ value: current, label: `${current}（未找到对应记录）` }]
+      : []),
+  ]
+  return (
+    <Select
+      id={id}
+      invalid={invalid}
+      value={current}
+      onChange={(next) => onChange(next, rows.find((row) => String(row.id) === next))}
+      options={options}
+      placeholder="请选择"
+    />
+  )
+}
+
+/** 记录短 ID：以父记录 ID 为前缀并避开同组内已用值（如 sku：gh-54027x1qe-01） */
+function nextRecordId(prefix: string, records: Array<Record<string, unknown>>): string {
+  const base = prefix.replace(/[^A-Za-z0-9-]/g, '').toLowerCase() || 'item'
+  const used = new Set(records.map((record) => String(record.id ?? '')))
+  for (let i = 1; i <= 999; i += 1) {
+    const candidate = `${base}-${String(i).padStart(2, '0')}`
+    if (!used.has(candidate)) return candidate
+  }
+  return `${base}-${Date.now().toString(36)}`
 }
 
 /** 对象数组编辑器：按 recordFields 渲染每条记录，提供增 / 删 / 上移 / 下移 */
-function RecordsField({ field, value, onChange }: { field: AdminField; value: unknown; onChange: (key: string, value: unknown) => void }) {
+function RecordsField({
+  field,
+  value,
+  onChange,
+  allValues,
+}: {
+  field: AdminField
+  value: unknown
+  onChange: (key: string, value: unknown) => void
+  /** 父表单当前值：记录 ID 自动生成时用作前缀（如产品 ID） */
+  allValues?: Record<string, unknown>
+}) {
   const recordFields = field.recordFields ?? []
   const records = Array.isArray(value) ? (value as Array<Record<string, unknown>>) : []
 
@@ -547,6 +657,10 @@ function RecordsField({ field, value, onChange }: { field: AdminField; value: un
   const addRecord = () => {
     const blank: Record<string, unknown> = {}
     for (const column of recordFields) blank[column.key] = column.type === 'switch' || column.type === 'bool' ? false : ''
+    // 记录 ID 自动填：新建行就有值，不再要求运营自己编
+    if (recordFields.some((column) => column.key === 'id')) {
+      blank.id = nextRecordId(String(allValues?.id ?? ''), records)
+    }
     emit([...records, blank])
   }
 
@@ -577,12 +691,31 @@ function RecordsField({ field, value, onChange }: { field: AdminField; value: un
           <div className="admin-records__grid">
             {recordFields.map((column) => (
               <div className={`field${column.type === 'textarea' ? ' admin-form__field--full' : ''}`} key={column.key}>
-                <FormField
-                  field={recordColumnToField(column)}
-                  value={record[column.key]}
-                  idPrefix={`r${index}-`}
-                  onChange={(_key, nextValue) => setRecord(index, { [column.key]: nextValue })}
-                />
+                {column.type === 'ref' ? (
+                  <>
+                    <span className="field__label">{column.label}</span>
+                    <ResourceRefField
+                      field={recordColumnToField(column)}
+                      id={`r${index}-f-${column.key}`}
+                      value={record[column.key]}
+                      onChange={(next, row) => {
+                        const patch: Record<string, unknown> = { [column.key]: next }
+                        // 选中后同步派生字段（如 关联产品 → 产品名称），避免两处手工对齐
+                        for (const [target, source] of Object.entries(column.refFills ?? {})) {
+                          patch[target] = row ? String(row[source] ?? '') : ''
+                        }
+                        setRecord(index, patch)
+                      }}
+                    />
+                  </>
+                ) : (
+                  <FormField
+                    field={recordColumnToField(column)}
+                    value={record[column.key]}
+                    idPrefix={`r${index}-`}
+                    onChange={(_key, nextValue) => setRecord(index, { [column.key]: nextValue })}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -634,7 +767,17 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
   }
 
   const setValue = (key: string, value: unknown) => {
-    setValues((prev) => ({ ...prev, [key]: value }))
+    setValues((prev) => {
+      const next: Record<string, unknown> = { ...prev, [key]: value }
+      // slug 自动生成：修改标题时，若 slug 仍为空则同步生成；已手工填写的绝不覆盖
+      if (key === 'title' && typeof value === 'string' && allFields.some((field) => field.key === 'slug')) {
+        if (!String(next.slug ?? '').trim()) {
+          const generated = slugify(value)
+          if (generated) next.slug = generated
+        }
+      }
+      return next
+    })
     setDirty(true)
     // 编辑即清除该字段的既有错误，避免「边填边报」
     setErrors((prev) => {
@@ -763,37 +906,83 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
     }
   }
 
-  return (
-    <form className="admin-form" onSubmit={submit} noValidate>
-      {sections.map((section) => (
-        <div className="admin-form__section" key={section.title}>
-          <h2 className="admin-form__section-title">{section.title}</h2>
-          <div className="admin-form__grid">
-            {section.fields.map((field) => (
-              <div
-                className={`field${field.span === 2 ? ' admin-form__field--full' : ''}${errors[field.key] ? ' has-error' : ''}`}
-                key={field.key}
-                onBlur={() => validateField(field)}
-              >
-                <FormField
-                  field={field}
-                  value={values[field.key]}
-                  onChange={setValue}
-                  required={requiredKeys.has(field.key)}
-                  invalid={Boolean(errors[field.key])}
-                  resourceKey={resource.key}
-                  allValues={values}
-                />
-                {errors[field.key] && (
-                  <span className="field__error" role="alert">
-                    {errors[field.key]}
-                  </span>
-                )}
-              </div>
-            ))}
+  // 产品 / 文章：主表单 + 右侧粘性「发布」栏（状态一眼可见，主操作不必滚到底）
+  const isSplit = resource.key === 'products' || resource.key === 'articles'
+  const statusValue = values.status
+  const statusText =
+    typeof statusValue === 'string'
+      ? statusValue
+      : statusValue && typeof statusValue === 'object' && typeof (statusValue as { text?: unknown }).text === 'string'
+        ? String((statusValue as { text?: unknown }).text)
+        : '未设置'
+
+  const sectionsNode = sections.map((section) => (
+    <div className="admin-form__section" key={section.title}>
+      <h2 className="admin-form__section-title">{section.title}</h2>
+      <div className="admin-form__grid">
+        {section.fields.map((field) => (
+          <div
+            className={`field${field.span === 2 ? ' admin-form__field--full' : ''}${errors[field.key] ? ' has-error' : ''}`}
+            key={field.key}
+            onBlur={() => validateField(field)}
+          >
+            <FormField
+              field={field}
+              value={values[field.key]}
+              onChange={setValue}
+              required={requiredKeys.has(field.key)}
+              invalid={Boolean(errors[field.key])}
+              resourceKey={resource.key}
+              allValues={values}
+            />
+            {errors[field.key] && (
+              <span className="field__error" role="alert">
+                {errors[field.key]}
+              </span>
+            )}
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+    </div>
+  ))
+
+  return (
+    <form className={`admin-form${isSplit ? ' admin-form--split' : ''}`} onSubmit={submit} noValidate>
+      {isSplit ? (
+        <>
+          <div className="admin-form__main">{sectionsNode}</div>
+          <aside className="admin-form__aside" aria-label="发布">
+            <div className="admin-form__aside-card">
+              <h2 className="admin-form__aside-title">发布</h2>
+              <dl className="admin-form__summary">
+                <div>
+                  <dt>状态</dt>
+                  <dd>{statusText}</dd>
+                </div>
+                <div>
+                  <dt>操作</dt>
+                  <dd>{isEdit ? '编辑已有记录' : '新建记录'}</dd>
+                </div>
+              </dl>
+              <button className={`btn btn--primary${submitting ? ' btn--loading' : ''}`} type="submit" disabled={submitting || done}>
+                {submitting ? (
+                  <>
+                    <span className="spinner" aria-hidden="true" />
+                    保存中…
+                  </>
+                ) : (
+                  '保存'
+                )}
+              </button>
+              <Link className="btn btn--secondary" to={`/admin/${resource.key}`}>
+                取消
+              </Link>
+            </div>
+          </aside>
+        </>
+      ) : (
+        sectionsNode
+      )}
 
       {error && (
         <div className="alert alert--danger" style={{ marginTop: 'var(--gh-space-4)' }} role="alert">
@@ -806,21 +995,23 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
         </div>
       )}
 
-      <div className="admin-form__foot">
-        <Link className="btn btn--secondary" to={`/admin/${resource.key}`}>
-          取消
-        </Link>
-        <button className={`btn btn--primary${submitting ? ' btn--loading' : ''}`} type="submit" disabled={submitting || done}>
-          {submitting ? (
-            <>
-              <span className="spinner" aria-hidden="true" />
-              保存中…
-            </>
-          ) : (
-            '保存'
-          )}
-        </button>
-      </div>
+      {!isSplit && (
+        <div className="admin-form__foot">
+          <Link className="btn btn--secondary" to={`/admin/${resource.key}`}>
+            取消
+          </Link>
+          <button className={`btn btn--primary${submitting ? ' btn--loading' : ''}`} type="submit" disabled={submitting || done}>
+            {submitting ? (
+              <>
+                <span className="spinner" aria-hidden="true" />
+                保存中…
+              </>
+            ) : (
+              '保存'
+            )}
+          </button>
+        </div>
+      )}
     </form>
   )
 }

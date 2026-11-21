@@ -65,6 +65,38 @@ function topVariant(item: WallpaperItem): WallpaperVariant {
   return variantsOf(item)[0]
 }
 
+/** 设备尺寸分组：按最高档位的宽高比归类，作为「先选设备」的筛选口径 */
+type RatioKey = 'all' | '16:9' | '21:9' | '9:16' | '4:3'
+const RATIO_OPTIONS: Array<{ key: RatioKey; label: string; hint: string }> = [
+  { key: 'all', label: '全部', hint: '不限设备' },
+  { key: '16:9', label: '16:9', hint: '桌面 / 笔记本' },
+  { key: '21:9', label: '21:9', hint: '带鱼屏' },
+  { key: '9:16', label: '9:16', hint: '手机竖屏' },
+  { key: '4:3', label: '4:3', hint: '平板' },
+]
+
+/** 各分组的基准宽高比（用于把任意素材归到最接近的一档） */
+const RATIO_TARGETS: Array<{ key: Exclude<RatioKey, 'all'>; value: number }> = [
+  { key: '16:9', value: 16 / 9 },
+  { key: '21:9', value: 21 / 9 },
+  { key: '9:16', value: 9 / 16 },
+  { key: '4:3', value: 4 / 3 },
+]
+
+/**
+ * 壁纸的尺寸分组：把素材最高档位的宽高比归到最接近的基准档。
+ * 用对数距离而不是固定阈值——32:9 归入 21:9 超宽、4:5 归入 9:16 竖屏，
+ * 上传新比例素材时不需要改代码，只会在最接近的分组里出现。
+ */
+function ratioOf(item: WallpaperItem): Exclude<RatioKey, 'all'> {
+  const top = topVariant(item)
+  if (!top.width || !top.height) return '16:9'
+  const ratio = top.width / top.height
+  return RATIO_TARGETS.reduce((best, target) =>
+    Math.abs(Math.log(ratio / target.value)) < Math.abs(Math.log(ratio / best.value)) ? target : best,
+  ).key
+}
+
 /** 文件是否可下载（服务端探测为 missing 时禁用） */
 function downloadable(item: WallpaperItem): boolean {
   return item.fileStatus !== 'missing'
@@ -489,6 +521,7 @@ export function WallpapersPage() {
   const items = useMemo(() => data?.items ?? [], [data])
   const themes = data?.themes ?? []
   const [filter, setFilter] = useState<Filter>(ALL)
+  const [ratio, setRatio] = useState<RatioKey>('all')
   const [view, setView] = useState<View>(null)
   const [toast, setToast] = useState('')
   const [ringIndex, setRingIndex] = useState(0)
@@ -503,18 +536,26 @@ export function WallpapersPage() {
 
   usePageEffects(rootRef, loading ? 'loading' : 'ready')
 
-  const feature = useMemo(() => items.find((item) => item.featured) ?? items[0], [items])
+  // 展台只放横版素材：竖图在 16:9 画框里会被裁掉主体；竖版仍完整出现在下方网格
+  const stageItems = useMemo(() => {
+    const landscape = items.filter((item) => ratioOf(item) !== '9:16')
+    return landscape.length > 0 ? landscape : items
+  }, [items])
+  const feature = useMemo(
+    () => stageItems.find((item) => item.featured) ?? stageItems[0],
+    [stageItems],
+  )
 
   // 首次拿到数据时定位到精选壁纸；之后只做越界修正，不打断用户当前选择
   useEffect(() => {
-    if (items.length === 0) return
+    if (stageItems.length === 0) return
     setRingIndex((current) => {
-      if (ringTouched.current) return Math.min(current, items.length - 1)
+      if (ringTouched.current) return Math.min(current, stageItems.length - 1)
       ringTouched.current = true
-      const featured = items.findIndex((item) => item.featured)
+      const featured = stageItems.findIndex((item) => item.featured)
       return featured >= 0 ? featured : 0
     })
-  }, [items])
+  }, [stageItems])
 
   const selectRing = (index: number) => {
     ringTouched.current = true
@@ -522,15 +563,29 @@ export function WallpapersPage() {
   }
 
   const filtered = useMemo(
-    () => (filter === ALL ? items : items.filter((item) => item.theme === filter)),
-    [items, filter],
+    () =>
+      items.filter(
+        (item) =>
+          (filter === ALL || item.theme === filter) && (ratio === 'all' || ratioOf(item) === ratio),
+      ),
+    [items, filter, ratio],
   )
+
+  /** 各尺寸分组的数量（筛选条上的计数） */
+  const ratioCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const item of items) {
+      const key = ratioOf(item)
+      counts[key] = (counts[key] ?? 0) + 1
+    }
+    return counts
+  }, [items])
   const active = view?.list[view.index]
   const activeVariants = useMemo(() => (active ? variantsOf(active) : []), [active])
   const activeVariant = activeVariants.find((variant) => variant.key === sizeKey) ?? activeVariants[0]
 
   // 精选展台文案跟随封面流当前卡，而不是固定第一张
-  const current = items[ringIndex] ?? feature
+  const current = stageItems[ringIndex] ?? feature
   const currentVariant = current ? topVariant(current) : null
 
   // dialog 开关：只在“打开 / 关闭”时切换，切换大图不能重建 dialog
@@ -588,6 +643,11 @@ export function WallpapersPage() {
     setView(null)
   }
 
+  const chooseRatio = (next: RatioKey) => {
+    setRatio(next)
+    setView(null)
+  }
+
   const openAt = (list: WallpaperItem[], index: number, opener: HTMLElement) => {
     lastFocus.current = opener
     setView({ list, index })
@@ -595,7 +655,7 @@ export function WallpapersPage() {
 
   const openCurrent = (opener: HTMLElement) => {
     if (!current) return
-    openAt(items, items.indexOf(current), opener)
+    openAt(stageItems, stageItems.indexOf(current), opener)
   }
 
   const closeLightbox = () => {
@@ -638,8 +698,8 @@ export function WallpapersPage() {
         <div className="wp-intro__copy">
           <h1 className="wp-title">品牌壁纸</h1>
           <p className="wp-lede">
-            从星海、赛博到秘境，16:9 桌面壁纸。提供 1080p 与 2K 下载，部分作品带原生 4K；
-            免登录、无水印。
+            先按设备尺寸筛选，再选主题：16:9 桌面与笔记本、21:9 带鱼屏、9:16 手机、4:3 平板。
+            提供 1080p 与 2K，部分作品带原生 4K；免登录、无水印。
           </p>
           <a className="wp-jump" href="#wp-all">
             浏览全部 {items.length || '—'} 张
@@ -732,10 +792,10 @@ export function WallpapersPage() {
             </div>
 
             <WallpaperArc
-              items={items}
+              items={stageItems}
               active={ringIndex}
               onSelect={selectRing}
-              onOpen={(index, opener) => openAt(items, index, opener)}
+              onOpen={(index, opener) => openAt(stageItems, index, opener)}
             />
             <p className="wp-feature__hint">拖动浏览 · 点击放大</p>
           </div>
@@ -762,31 +822,55 @@ export function WallpapersPage() {
             全部壁纸
             <span>{filtered.length}</span>
           </h2>
-          <div className="wp-filters">
-            <div className="segmented wp-seg" role="group" aria-label="壁纸主题">
-              <button
-                type="button"
-                className={filter === ALL ? 'is-active' : ''}
-                aria-pressed={filter === ALL}
-                onClick={() => chooseFilter(ALL)}
-              >
-                全部
-                <span>{items.length}</span>
-              </button>
-              {themes.map((theme) => (
+          <div className="wp-filterbar">
+            <div className="wp-filterbar__row">
+              <span className="wp-filterbar__label">设备尺寸</span>
+              <div className="segmented wp-seg" role="group" aria-label="壁纸尺寸">
+                {RATIO_OPTIONS.filter((option) => option.key === 'all' || (ratioCounts[option.key] ?? 0) > 0).map((option) => {
+                  const count = option.key === 'all' ? items.length : (ratioCounts[option.key] ?? 0)
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      className={ratio === option.key ? 'is-active' : ''}
+                      aria-pressed={ratio === option.key}
+                      title={option.hint}
+                      onClick={() => chooseRatio(option.key)}
+                    >
+                      {option.label}
+                      <span>{count}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="wp-filterbar__row">
+              <span className="wp-filterbar__label">主题</span>
+              <div className="segmented wp-seg" role="group" aria-label="壁纸主题">
                 <button
-                  key={theme.key}
                   type="button"
-                  className={filter === theme.key ? 'is-active' : ''}
-                  aria-pressed={filter === theme.key}
-                  disabled={theme.count === 0 && filter !== theme.key}
-                  title={theme.desc}
-                  onClick={() => chooseFilter(theme.key)}
+                  className={filter === ALL ? 'is-active' : ''}
+                  aria-pressed={filter === ALL}
+                  onClick={() => chooseFilter(ALL)}
                 >
-                  {theme.label}
-                  <span>{theme.count}</span>
+                  全部
+                  <span>{items.length}</span>
                 </button>
-              ))}
+                {themes.map((theme) => (
+                  <button
+                    key={theme.key}
+                    type="button"
+                    className={filter === theme.key ? 'is-active' : ''}
+                    aria-pressed={filter === theme.key}
+                    disabled={theme.count === 0 && filter !== theme.key}
+                    title={theme.desc}
+                    onClick={() => chooseFilter(theme.key)}
+                  >
+                    {theme.label}
+                    <span>{theme.count}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -809,9 +893,16 @@ export function WallpapersPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty">
-            <div className="empty__title">这个主题还没有壁纸</div>
-            <p className="empty__desc">换个主题看看，或稍后再来。</p>
-            <button className="btn btn--secondary btn--sm" type="button" onClick={() => chooseFilter(ALL)}>
+            <div className="empty__title">这个尺寸或主题下还没有壁纸</div>
+            <p className="empty__desc">放宽尺寸或切换主题看看，也可以直接查看全部。</p>
+            <button
+              className="btn btn--secondary btn--sm"
+              type="button"
+              onClick={() => {
+                chooseRatio('all')
+                chooseFilter(ALL)
+              }}
+            >
               查看全部壁纸
             </button>
           </div>
@@ -821,7 +912,7 @@ export function WallpapersPage() {
               const top = topVariant(item)
               return (
                 <article className="wp-card reveal" data-delay={String((index % 6) + 1)} key={item.id}>
-                  <div className="wp-card__media">
+                  <div className="wp-card__media" data-ratio={ratioOf(item)}>
                     <img
                       className="wp-card__img"
                       src={item.thumbUrl ?? item.fileUrl}
@@ -830,7 +921,10 @@ export function WallpapersPage() {
                       decoding="async"
                       onError={onImgError}
                     />
-                    {top.width >= 3840 ? <span className="wp-card__badge">4K</span> : null}
+                    <span className="wp-card__badge">
+                      {ratioOf(item)}
+                      {top.width >= 3840 ? ' · 4K' : ''}
+                    </span>
                     {downloadable(item) ? (
                       <a
                         className="wp-card__dl"
@@ -872,7 +966,9 @@ export function WallpapersPage() {
           <div>
             <h2>关于壁纸</h2>
             <p>
-              所有壁纸均为光魂原创或已获授权的品牌影像，提供 16:9 桌面尺寸，最高 4K。
+              所有壁纸均为光魂原创或已获授权的品牌影像。尺寸分组按实际上传素材自动出现：
+              目前为 16:9 桌面，后续补充 21:9、竖屏或平板素材后，对应分组会自动加入筛选；
+              卡片按素材真实比例展示，展台只轮播横版，竖版在下方网格中查看。
               免登录下载、无水印，仅限个人非商业用途；商用、二次分发或品牌联名使用，请通过
               <Link to="/inquiry"> 提交咨询 </Link>联系我们获取授权。
             </p>

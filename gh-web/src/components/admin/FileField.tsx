@@ -30,13 +30,25 @@ const VIDEO_EXT = /\.(mp4|webm|mov)$/i
 /** 允许的「媒体」类型：图片 / GIF / 视频（用于卡片、通栏等标注「媒体（图/视频/GIF）」的字段） */
 const MEDIA_ACCEPT = `${IMAGE_ACCEPT},video/mp4,video/webm,video/quicktime`
 
-/** 允许上传的非图片文件类型（与后端白名单一致；图片另行允许；.glb 用于产品 3D 预览） */
+/** 允许上传的非图片文件类型（与服务端白名单一致：图片 / PDF / Office / 压缩包 / 固件 / 安装包 / 3D） */
 const FILE_ACCEPT =
-  'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime,application/pdf,application/zip,text/plain,text/markdown,model/gltf-binary,.glb'
+  'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,' +
+  'video/mp4,video/webm,video/quicktime,' +
+  'application/pdf,application/zip,application/x-rar-compressed,application/x-7z-compressed,' +
+  'text/plain,text/markdown,text/csv,model/gltf-binary,' +
+  'application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,' +
+  'application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,' +
+  'application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,' +
+  'application/x-msdownload,application/x-msi,application/x-apple-diskimage,application/x-newton-compatible-pkg,' +
+  '.glb,.bin,.exe,.msi,.dmg,.pkg,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rar,.7z'
 
-/** 与服务端上传分档一致（图片 10MB / 文档 50MB / 视频 200MB）：上传前先拦，避免大文件白传一趟 */
+/** 与服务端上传分档一致（图片 10MB / 文档 50MB / 视频 200MB / 安装包 300MB / 3D 30MB）：上传前先拦，避免大文件白传一趟 */
 const SIZE_MB = 1024 * 1024
-const SIZE_LIMIT = { image: 10 * SIZE_MB, doc: 50 * SIZE_MB, video: 200 * SIZE_MB }
+const SIZE_LIMIT = { image: 10 * SIZE_MB, doc: 50 * SIZE_MB, video: 200 * SIZE_MB, installer: 300 * SIZE_MB, model: 30 * SIZE_MB }
+
+/** 安装包与 3D 模型的扩展名（服务端按此分档限额） */
+const INSTALLER_EXT = /\.(exe|msi|dmg|pkg)$/i
+const MODEL_EXT = /\.glb$/i
 
 /** 按文件类型取上限；部分系统上传时 MIME 为空，回退按扩展名判断（与服务端口径一致） */
 function limitOf(file: File): { bytes: number; label: string } {
@@ -46,6 +58,8 @@ function limitOf(file: File): { bytes: number; label: string } {
   const isVideoFile = type.startsWith('video/') || (!type && /\.(mp4|webm|mov)$/i.test(name))
   if (isImageFile) return { bytes: SIZE_LIMIT.image, label: '图片' }
   if (isVideoFile) return { bytes: SIZE_LIMIT.video, label: '视频' }
+  if (MODEL_EXT.test(name)) return { bytes: SIZE_LIMIT.model, label: '3D 模型' }
+  if (INSTALLER_EXT.test(name)) return { bytes: SIZE_LIMIT.installer, label: '安装包' }
   return { bytes: SIZE_LIMIT.doc, label: '文档' }
 }
 
@@ -333,7 +347,7 @@ export function FileField({
             ? '支持格式：png / jpg / jpeg / webp / gif / svg；单张 ≤10MB。填写地址、上传或从素材库选择后显示预览。'
             : isMediaMode
               ? '支持格式：图片（png / jpg / webp / gif）与视频（mp4 / webm / mov）；图片 ≤10MB，视频 ≤200MB。'
-              : '支持格式：pdf / zip / txt / md、图片与视频；图片 ≤10MB，文档 ≤50MB，视频 ≤200MB。'}
+              : '支持图片、PDF、Office、ZIP / RAR / 7Z、固件 .bin 与安装包（exe / msi / dmg / pkg）；图片 ≤10MB，文档 ≤50MB，视频 ≤200MB，安装包 ≤300MB。'}
         </span>
       )}
 

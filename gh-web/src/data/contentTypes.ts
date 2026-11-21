@@ -294,6 +294,8 @@ export type SiteConfig = {
   navFeatureEnabled?: boolean
   /** 页脚流动方块动画开关（扩展字段；缺省 false = 纯色干净页脚，后台可开） */
   footerMotion?: boolean
+  /** 页脚「微信小程序」二维码图片地址（缺省 / 空串 = 内置素材） */
+  miniprogramQr?: string
   /**
    * 留言轻量分流开关（§1.6 扩展字段；缺省 = 开启）。
    * 开启时表单顶部先选「售前咨询 / 售后报修 / 商务合作」，咨询主题随后联动，提交按类型分派。

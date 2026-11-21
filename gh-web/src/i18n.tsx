@@ -56,7 +56,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'drawer.shopHeading': '店铺',
 
     // —— 页脚 ——
-    'footer.slogan': '每一帧的光，都经得起实测。专注电竞显示的面板、固件与调校，让清晰有据可查。',
+    'footer.slogan': 'OLED 电竞显示器。参数、测试方法与固件版本都可以查。',
     'footer.hotline': '15913908438（采购与合作热线）',
     'footer.addr': '广东省深圳市 · 光魂',
     'footer.follow': '关注我们',
@@ -133,7 +133,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'blocks.pd.defaultBuyTitle': '准备入手？',
     'blocks.pd.point1': '全国联保 · 以官方保修政策为准',
     'blocks.pd.point2': '7 天无理由退换（不影响二次销售）',
-    'blocks.pd.point3': '参数公开、方法公开，结论可复现',
+    'blocks.pd.point3': '参数、测试方法与数据来源可查',
     // 产品详情四套布局（productDetailLayout）
     'blocks.pd.overview': '概览',
     'blocks.pd.compatTitle': '兼容与保修',

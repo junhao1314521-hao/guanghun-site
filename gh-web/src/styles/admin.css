@@ -67,7 +67,8 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  /* 侧栏本身不滚动：品牌区固定，导航区独立滚动 */
+  overflow: hidden;
 }
 .admin-side__brand {
   display: flex;
@@ -137,6 +138,9 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .admin-nav {
   padding: var(--gh-space-4) var(--gh-space-3) var(--gh-space-6);
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 /* 侧栏搜索框 */
 .admin-nav__search { margin-bottom: var(--gh-space-4); }
@@ -248,12 +252,11 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 .admin-topbar__inner--wide { max-width: var(--gh-admin-content-max-wide); }
 /* 移动端抽屉开合按钮（桌面隐藏）。桌面侧栏收束按钮已移至侧栏（.admin-side__collapse），
-   顶栏左侧仅保留面包屑，保持干净。 */
+   顶栏左侧留白，层级由侧栏高亮承担（不再使用面包屑）。 */
 .admin-topbar__toggle { display: none; }
 .admin-topbar__spacer { flex: 1; }
 .admin-topbar__user { display: flex; align-items: center; gap: var(--gh-space-2); }
 .admin-topbar__name { font-size: var(--gh-font-size-body-sm); }
-.admin-topbar__role { color: var(--color-text-tertiary); font-size: var(--gh-font-size-caption); }
 
 .admin-main {
   padding: var(--gh-space-6);
@@ -268,7 +271,7 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .admin-page--wide { max-width: var(--gh-admin-content-max-wide); }
 .admin-page__head {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--gh-space-4);
   margin-bottom: var(--gh-space-5);
@@ -278,7 +281,7 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   font-size: var(--gh-font-size-h3);
   font-weight: var(--gh-weight-semibold);
   letter-spacing: -0.01em;
-  margin: var(--gh-space-2) 0 var(--gh-space-1);
+  margin: 0 0 var(--gh-space-1);
 }
 .admin-page__desc { color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); margin: 0; max-width: 72ch; }
 .admin-page__actions { display: flex; gap: var(--gh-space-2); flex-wrap: wrap; }
@@ -549,12 +552,74 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 @media (max-width: 767px) { .admin-form__grid { grid-template-columns: 1fr; } }
 .admin-form__field--full { grid-column: 1 / -1; }
+
+/* 产品 / 文章编辑页：主表单 + 右侧粘性「发布」栏 */
+.admin-form--split {
+  max-width: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--gh-space-5);
+  align-items: start;
+}
+.admin-form__main { min-width: 0; }
+.admin-form__aside { position: sticky; top: calc(var(--gh-topbar-height) + var(--gh-space-4)); }
+.admin-form__aside-card {
+  display: grid;
+  gap: var(--gh-space-3);
+  padding: var(--gh-space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+}
+.admin-form__aside-title { margin: 0; font-size: var(--gh-font-size-body); font-weight: var(--gh-weight-semibold); }
+.admin-form__summary { display: grid; gap: var(--gh-space-2); margin: 0; }
+.admin-form__summary > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--gh-space-3); }
+.admin-form__summary dt { margin: 0; color: var(--color-text-tertiary); font-size: var(--gh-font-size-caption); }
+.admin-form__summary dd { margin: 0; color: var(--color-text-primary); font-size: var(--gh-font-size-body-sm); }
+.admin-form__aside .btn { width: 100%; justify-content: center; }
+.admin-form--split > .alert { grid-column: 1 / -1; }
+@media (max-width: 1100px) {
+  .admin-form--split { grid-template-columns: 1fr; }
+  .admin-form__aside { position: static; }
+}
 .admin-form__foot {
   display: flex; gap: var(--gh-space-3); justify-content: flex-end;
   margin-top: var(--gh-space-5);
   position: sticky; bottom: 0;
   padding: var(--gh-space-4) 0;
   background: linear-gradient(180deg, transparent, var(--color-bg-page) 40%);
+}
+
+/* 工具栏：列表密度切换（标准 / 紧凑，只改行高与内距，字号不变） */
+.admin-density {
+  display: inline-flex;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--adm-radius-control);
+}
+.admin-density button {
+  height: var(--adm-control-h-sm);
+  padding: 0 var(--gh-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-caption);
+  cursor: pointer;
+}
+.admin-density button + button { border-left: 1px solid var(--color-border-subtle); }
+.admin-density button.is-active { background: var(--color-accent-subtle); color: var(--color-accent-text); }
+
+/* 紧凑模式：仅桌面表格生效（≤767 为卡片式列表，不压缩） */
+@media (min-width: 768px) {
+  .admin-table-wrap--compact .table th,
+  .admin-table-wrap--compact .table td {
+    height: 36px;
+    padding: 0 var(--gh-space-2);
+  }
+  .admin-table-wrap--compact .table th { height: 32px; }
+  /* 产品表格有固定的 68px 行高与 48px 缩略图，紧凑模式同步收一档 */
+  .admin-table-wrap--compact .admin-products__table tbody tr { height: 48px; }
 }
 
 /* ---------- 记录列表（对象数组）字段 ---------- */
@@ -1235,6 +1300,9 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .site-link__badge { display: inline-flex; align-items: center; gap: var(--gh-space-3); }
 .site-link__badge .admin-select { width: auto; min-width: 96px; }
 .site-link__shake { display: inline-flex; align-items: center; gap: 6px; font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); white-space: nowrap; }
+/* 二维码字段：放在 .site-link 三列网格中时跨满整行，纵向排列控件与规格提示 */
+.site-qr-field { grid-column: 1 / -1; display: flex; flex-direction: column; gap: var(--gh-space-2); width: 100%; }
+.site-qr-field .image-field { min-width: 0; }
 .site-links > .btn,
 .site-groups > .btn { align-self: flex-start; }
 
@@ -1632,13 +1700,16 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   padding-top: var(--gh-space-4);
   border-top: 1px solid var(--color-border-subtle);
 }
-/* 分组标题：大写微字 + 字距（更像「标签」，弱化正文感） */
+/* 分组标题：中文不做字距放大与伪大写（过时的「标签化」处理），
+   改为字号 / 字重 / 颜色三层区分；当前页所在分组自动提亮 */
 .admin-nav__group-title {
   font-size: var(--gh-font-size-caption);
   font-weight: var(--gh-weight-medium);
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   padding: var(--gh-space-2) var(--gh-space-3);
+}
+.admin-nav__group:has(.admin-nav__link.is-active) .admin-nav__group-title {
+  color: var(--color-text-primary);
 }
 /* 导航项：统一高度；当前项底色更克制（靠左侧竖条区分） */
 .admin-nav__link { height: 36px; }
@@ -1667,6 +1738,8 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 /* 字段标签统一为「小号 + 中等字重」；提示与错误行同字号 */
 .admin-root .field__label { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
 .admin-root .field__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+/* 字段级错误提示：与普通说明区分（用于重名 / 占用等可立即修正的问题） */
+.admin-root .field__hint--error { color: var(--color-danger); }
 /* 下拉：去掉各端不一致的原生箭头，统一为描边内的细箭头 */
 .admin-root .select {
   appearance: none;

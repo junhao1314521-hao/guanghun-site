@@ -318,6 +318,58 @@ describe('后台页面读写与持久化（契约 §6.2 / §7）', () => {
     assert.equal(bad.status, 400)
   })
 
+  it('PUT /api/admin/site 保留登录页文案、微信配置与页脚小程序二维码', async () => {
+    // 回归：parseSite 曾只保留 auth.captcha / thirdParty，保存一次就会把登录页文案整体清空
+    const payload = {
+      nav: seed.site.nav,
+      footer: seed.site.footer,
+      auth: {
+        captcha: true,
+        thirdParty: false,
+        captchaMode: 'after3',
+        registerEnabled: false,
+        login: {
+          title: '登录测试',
+          subtitle: '副标题',
+          headline: '左侧标题',
+          description: '左侧说明',
+          poster: '/uploads/login-poster.jpg',
+          points: ['要点一', '要点二'],
+          agreement: '同意条款',
+        },
+        wechat: { enabled: true, appId: 'wx-test', qr: '/uploads/wechat-qr.png' },
+        phone: { enabled: true },
+      },
+      miniprogramQr: '/uploads/miniprogram-qr.png',
+    }
+    const res = await get('/api/admin/site', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...auth() },
+      body: JSON.stringify(payload),
+    })
+    assert.equal(res.status, 200)
+
+    const pub = (await (await get('/api/content/site')).json()) as {
+      auth?: {
+        captchaMode?: string
+        registerEnabled?: boolean
+        login?: { headline?: string; points?: string[]; agreement?: string }
+        wechat?: { enabled?: boolean; appId?: string; qr?: string }
+        phone?: { enabled?: boolean }
+      }
+      miniprogramQr?: string
+    }
+    assert.equal(pub.auth?.login?.headline, '左侧标题')
+    assert.deepEqual(pub.auth?.login?.points, ['要点一', '要点二'])
+    assert.equal(pub.auth?.login?.agreement, '同意条款')
+    assert.equal(pub.auth?.wechat?.qr, '/uploads/wechat-qr.png')
+    assert.equal(pub.auth?.wechat?.appId, 'wx-test')
+    assert.equal(pub.auth?.phone?.enabled, true)
+    assert.equal(pub.auth?.registerEnabled, false)
+    assert.equal(pub.auth?.captchaMode, 'after3')
+    assert.equal(pub.miniprogramQr, '/uploads/miniprogram-qr.png')
+  })
+
   it('PUT /api/admin/blocks/enabled 停用区块类型 → /api/content/blocks/types 标记 enabled:false', async () => {
     const all = (await (await get('/api/content/blocks/types')).json()) as { items: Array<{ type: string; enabled?: boolean }> }
     const enabled = all.items.map((item) => item.type).filter((type) => type !== 'embed')

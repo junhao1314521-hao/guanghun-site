@@ -28,6 +28,8 @@ export type AdminColumnType =
   | 'switch'
   /** 下拉选择（配合 options） */
   | 'select'
+  /** 资源引用：存被引用记录的 id（records 条目中用于关联产品等） */
+  | 'ref'
   /** 多行文本 */
   | 'textarea'
 
@@ -41,6 +43,14 @@ export type AdminColumn = {
   sortable?: boolean
   /** records 条目中 select 类型的候选项 */
   options?: string[]
+  /** records 条目字段的补充说明（显示在控件下方） */
+  hint?: string
+  /** records 条目中 ref 类型：被引用栏目的 key */
+  refResource?: string
+  /** records 条目中 ref 类型：选项展示用字段 */
+  refLabelKey?: string
+  /** records 条目中 ref 类型：选中后同步写入其它字段（目标字段 key → 被引用记录字段 key） */
+  refFills?: Record<string, string>
 }
 
 export type AdminFilter = { key: string; label: string; options: string[]; /** 从当前记录动态生成选项（用于省市等会增长的字段） */ dynamic?: boolean }
@@ -74,6 +84,8 @@ export type AdminFieldType =
   | 'modellist'
   /** 常用参数模板：按设备形态一键带入结构化参数骨架（仅产品表单使用） */
   | 'specTemplate'
+  /** 资源引用：从另一个栏目的记录中选择（如评价 → 产品），值存被引用记录的 id */
+  | 'ref'
 
 export type AdminField = {
   key: string
@@ -88,6 +100,10 @@ export type AdminField = {
   span?: 1 | 2
   /** records 类型的条目字段描述（复用 AdminColumn，支持 text/number/switch/select/list/textarea/date 等原子类型） */
   recordFields?: AdminColumn[]
+  /** ref 类型：被引用栏目的 key（如 products） */
+  refResource?: string
+  /** ref 类型：选项展示用字段（缺省依次尝试 name / title / label / id） */
+  refLabelKey?: string
 }
 
 export type AdminFormSection = { title: string; fields: AdminField[] }
@@ -315,7 +331,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             span: 2,
             hint: 'option1～option3 按规格组顺序填写；价格留空沿用产品参考价；库存填数字',
             recordFields: [
-              { key: 'id', label: 'SKU ID', type: 'text' },
+              { key: 'id', label: 'SKU ID', type: 'text', hint: '新增时自动生成（产品 ID-序号），可修改；保存后作为唯一标识' },
               { key: 'option1', label: '规格值 1', type: 'text' },
               { key: 'option2', label: '规格值 2', type: 'text' },
               { key: 'option3', label: '规格值 3', type: 'text' },
@@ -368,8 +384,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             ],
           },
           { key: 'os', label: '兼容系统', type: 'list', span: 2, hint: '每行一项，如：Windows 10 / 11' },
-          { key: 'weight', label: '整机重量（克）', type: 'number' },
-          { key: 'warranty', label: '保修政策', type: 'text', span: 2 },
+          { key: 'weight', label: '整机重量（克）', type: 'number', hint: '单位：克（g），仅填数字；留空则前台不显示重量' },
+          { key: 'warranty', label: '保修政策', type: 'text', span: 2, hint: '如「3 年质保，含 OLED 烧屏保护」；前台显示在「兼容与保修」' },
           { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：显示器 × 1、电源线 × 1；详情页显示在「规格参数」末尾的包装清单分组' },
           {
             key: 'gallery',
@@ -457,12 +473,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           {
             key: 'productId',
-            label: '关联产品 ID',
-            type: 'text',
+            label: '关联产品',
+            type: 'ref',
+            refResource: 'products',
+            refLabelKey: 'name',
             span: 2,
             required: true,
-            placeholder: 'gh-54027x1qe',
-            hint: '填写「产品」栏目里的产品 ID；保存后该评价才会出现在对应详情页',
+            hint: '从产品库选择；保存后该评价才会出现在对应详情页',
           },
           { key: 'nickname', label: '昵称', type: 'text', required: true, hint: '对外展示的评价人昵称（注意脱敏）' },
           { key: 'purchasedModel', label: '购买型号', type: 'text', placeholder: '27X1QE-W54' },
@@ -590,7 +607,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
               { key: 'rank', label: '名次', type: 'number' },
               { key: 'model', label: '型号', type: 'text' },
               { key: 'name', label: '名称', type: 'text' },
-              { key: 'productId', label: '关联产品 ID', type: 'text' },
+              { key: 'productId', label: '关联产品', type: 'ref', refResource: 'products', refLabelKey: 'name' },
               { key: 'score', label: '得分', type: 'number' },
               { key: 'tied', label: '并列', type: 'switch' },
             ],
@@ -673,7 +690,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'status', label: '发布状态', type: 'select', options: ['已发布', '审核中', '草稿'] },
           { key: 'accent', label: '强调', type: 'switch' },
           { key: 'date', label: '发布时间', type: 'date' },
-          { key: 'readingMin', label: '阅读时长（分）', type: 'number' },
+          { key: 'readingMin', label: '阅读时长（分）', type: 'number', hint: '仅填数字（分钟），用于列表显示估读时长；留空则不显示' },
           { key: 'cover', label: '封面素材键', type: 'text', placeholder: 'lab / software / brand …' },
           { key: 'coverImage', label: '真实封面图', type: 'image', span: 2, hint: '上传或从素材库选择；填写后优先于封面素材键，留空则用素材键占位图' },
           { key: 'meta', label: '元信息', type: 'text', placeholder: '实测 · 方法 v2' },
@@ -750,8 +767,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
           { key: 'type', label: '类型', type: 'select', options: ['manual', 'firmware', 'driver', 'software', 'calibration'] },
           { key: 'csOnly', label: '仅客服 / OTA 提供', type: 'switch', hint: '开启且没有公开文件时，前台显示「待更新」并提示可联系客服，不渲染下载按钮' },
-          { key: 'version', label: '版本', type: 'text' },
-          { key: 'size', label: '文件大小', type: 'text' },
+          { key: 'version', label: '版本', type: 'text', hint: '如 v2.4.1；与固件包内版本号保持一致' },
+          { key: 'size', label: '文件大小', type: 'text', hint: '如 1.2 GB；仅用于列表展示，不参与下载校验' },
           { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows / macOS', hint: '约定字段：填「Windows」或「macOS」。前台软件下载按钮据此显示系统图标与「下载 Windows 版 / 下载 macOS 版」文案；留空时回退按资源名称识别，识别不到则退化为通用文件按钮' },
           { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '全部资料统一存本机素材库：说明书 PDF、固件包、驱动、安装包（exe / dmg / msi / pkg）均可直接上传或从素材库选择；前台 PDF 支持在线预览，其余类型点击下载。文件保存在 /opt/website/data/uploads，与商城及其他项目完全隔离' },
           { key: 'date', label: '更新时间', type: 'date' },
@@ -1485,10 +1502,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '关联产品',
             type: 'records',
             span: 2,
-            hint: '引用产品的 id 与名称；可增删改与上下移动',
+            hint: '从产品库选择；产品名称会自动填入，仍可手工修改',
             recordFields: [
-              { key: 'id', label: '产品 ID', type: 'text' },
-              { key: 'name', label: '产品名称', type: 'text' },
+              { key: 'id', label: '产品', type: 'ref', refResource: 'products', refLabelKey: 'name', refFills: { name: 'name' } },
+              { key: 'name', label: '产品名称（自动填充）', type: 'text' },
             ],
           },
         ],

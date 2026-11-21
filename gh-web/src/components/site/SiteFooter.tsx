@@ -274,10 +274,14 @@ export function SiteFooter() {
             ))}
           </nav>
 
-          {/* 小程序商城：白卡 + 微信绿角标，悬停轻微上浮 */}
+          {/* 小程序商城：白卡 + 微信绿角标，悬停轻微上浮；二维码可在后台「站点配置 · 页脚」上传 */}
           <div className="site-footer__qr">
             <span className="site-footer__qr-frame">
-              <img src="/media/site/miniprogram-qr.png" alt="光魂微信小程序商城二维码" loading="lazy" />
+              <img
+                src={site?.miniprogramQr?.trim() || '/media/site/miniprogram-qr.png'}
+                alt="光魂微信小程序商城二维码"
+                loading="lazy"
+              />
               <i className="site-footer__qr-badge" aria-hidden="true"><IconWeChat size={13} /></i>
             </span>
             <b>微信小程序</b>

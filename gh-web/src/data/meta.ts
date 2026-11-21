@@ -21,7 +21,7 @@ export function siteOrigin(): string {
 export const BRAND = '光魂'
 
 export const DEFAULT_TITLE = '光魂 · OLED 电竞显示器官网'
-export const DEFAULT_DESCRIPTION = '以实测数据定义电竞装备性能。参数公开、方法公开、来源可查。'
+export const DEFAULT_DESCRIPTION = '光魂 OLED 电竞显示器：2K 540Hz、4K 双模与 21:9 超宽，参数、测试方法与固件版本可查。'
 
 /**
  * 默认分享图（Open Graph / Twitter 卡片）。

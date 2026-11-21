@@ -27,6 +27,7 @@ import { AdminProductsList } from './AdminProductsList'
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
 import { OverflowMenu, type OverflowMenuItem } from '../../components/admin/OverflowMenu'
 import { Select } from '../../components/admin/Select'
+import { DensityToggle, useDensity } from '../../components/admin/density'
 import { EmptyState, ErrorState, SkeletonGallery, SkeletonTable } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { IconClose, IconSearch } from '../../components/ui/Icon'
@@ -260,6 +261,7 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0])
+  const [density, setDensity] = useDensity()
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null)
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set())
 
@@ -480,6 +482,8 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
 
       <span className="admin-toolbar__spacer" />
 
+      <DensityToggle density={density} onChange={setDensity} />
+
       {selected.size > 0 ? (
         <div className="admin-toolbar__selected" role="status">
           <span className="admin-table__count">已选 {selected.size} 项</span>
@@ -536,7 +540,7 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
           </div>
         )
       ) : (
-        <div className="admin-table-wrap">
+        <div className={`admin-table-wrap${density === 'compact' ? ' admin-table-wrap--compact' : ''}`}>
           {state.loading && rows.length === 0 ? (
             <SkeletonTable columns={colCount} />
           ) : state.error && rows.length === 0 ? (

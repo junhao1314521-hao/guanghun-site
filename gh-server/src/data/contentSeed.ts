@@ -103,9 +103,9 @@ const SITE: SiteConfig = {
     registerEnabled: true,
     login: {
       title: '登录光魂账号',
-      subtitle: '登录后可跟踪咨询进度、管理已登记设备与订阅通知。',
-      headline: '把每一块屏的参数，测给你看',
-      description: '不写形容词，只给可复现的测试记录与版本号。',
+      subtitle: '登录后查看咨询进度、已登记设备与通知。',
+      headline: '光魂 OLED 电竞显示器',
+      description: '2K 540Hz、4K 双模与 21:9 超宽；测试方法与数据来源见产品页。',
       poster: '/media/home/showcase/poster-1.jpg',
       points: ['跟踪咨询与预约进度', '登记与管理我的设备', '收藏型号与下载资料'],
       agreement: '登录即表示同意《服务条款》与《隐私政策》',
@@ -320,7 +320,7 @@ function buildHome(): Page {
       type: 'downloadDock',
       props: {
         title: '固件与驱动',
-        desc: '保持最新版本，获得更好的兼容与调校。以下为该类型当前最新文件。',
+        desc: '当前最新版本，按类型归档；历史版本在下载中心。',
         showFirmware: true,
         showDriver: true,
         showSoftware: true,
@@ -333,8 +333,8 @@ function buildHome(): Page {
     {
       type: 'inquiryDock',
       props: {
-        title: '还有问题？找对入口，回复更快。',
-        desc: '先选问题类型，我们会带着对应模板和负责人接手；复杂问题可在工单里补图、补日志。',
+        title: '咨询与售后',
+        desc: '售前、售后与商务合作分开提交，各自有人接手。',
         points: ['工作日 09:00–21:00 在线', '售前 / 售后工单 1 个工作日首次响应', '登录后可在「我的工单」查看进度'],
         quickEnabled: true,
         quickPlaceholder: '用一句话描述你的问题，例如：27X1QE 更新固件后 HDR 偏暗',
@@ -410,7 +410,7 @@ function buildHome(): Page {
       props: {
         title: '重点产品',
         icon: 'monitor',
-        subtitle: '以实测数据说话的旗舰与主力机型。',
+        subtitle: '在售旗舰与主力机型，参数与价格可直接对比。',
         ctaLabel: '进入产品中心',
         ctaHref: '/products',
         alternate: true,
@@ -430,9 +430,9 @@ function buildHome(): Page {
       },
       style: { container: 'full', background: 'soft' },
     },
-    { enabled: false, type: 'ranking', props: { title: '实测天梯榜', icon: 'trophy', subtitle: '所有数值来自同一套可复现的测试方法。', metric: 'overall', limit: 6, teaser: true } },
-    { enabled: false, type: 'articleList', props: { title: '评测与解析', icon: 'book', subtitle: '参数公开、方法公开，结论可复现。', ctaLabel: '查看全部内容', ctaHref: '/articles', source: 'review', limit: 3 } },
-    { enabled: false, type: 'stats', props: { title: '品牌数字', icon: 'chip', subtitle: '用可核对的数字，说明我们是谁、做了些什么。', footnote: '数据截至 2026 年，均按同一套公开口径统计，可在「关于光魂」逐条核对。', items: home.BRAND_STATS } },
+    { enabled: false, type: 'ranking', props: { title: '实测天梯榜', icon: 'trophy', subtitle: '同一套测试方法与仪器，分数可横向比较。', metric: 'overall', limit: 6, teaser: true } },
+    { enabled: false, type: 'articleList', props: { title: '评测与解析', icon: 'book', subtitle: '评测、拆解与调校记录，按发布时间排列。', ctaLabel: '查看全部内容', ctaHref: '/articles', source: 'review', limit: 3 } },
+    { enabled: false, type: 'stats', props: { title: '品牌数字', icon: 'chip', subtitle: '成立年份、实验室数量与在售产品线。', footnote: '数据截至 2026 年，逐条可在「关于光魂」核对。', items: home.BRAND_STATS } },
     {
       enabled: false,
       type: 'cards',
@@ -535,8 +535,8 @@ function buildAbout(): Page {
         eyebrowEnabled: true,
         statsEnabled: false,
         // 单行整句（桌面端不折行）：方案稿是一句话，断两行会让第二行孤立
-        title: '把每一块屏的参数，测给你看',
-        subtitle: '不写形容词，只给可复现的测试记录与版本号。',
+        title: '光魂：显示器与测试实验室',
+        subtitle: '2019 年成立，1 座自有实验室，4 条产品线。测试方法与原始数据按型号公开。',
         media: '/media/home/showcase/poster-1.jpg',
         mediaType: 'image',
         mediaTag: '探索光魂 主视觉',
@@ -575,7 +575,7 @@ function buildAbout(): Page {
       type: 'cards',
       props: {
         title: '我们怎么做事',
-        subtitle: '三条能落到日常的做法，而不是三句口号。',
+        subtitle: '收样、测试、归档：三件每天都要做的事。',
         icon: 'chip',
         columns: 3,
         items: [
@@ -777,8 +777,8 @@ function buildBusiness(): Page {
         height: 'custom',
         heightValue: 480,
         alt: '商业合作顶部横幅（待上传）',
-        title: '把光魂的显示技术，带到更多场景',
-        subtitle: '渠道分销、品牌联名、赛事与内容合作，按合作类型由对应团队对接。',
+        title: '渠道、联名、赛事与内容合作',
+        subtitle: '按合作类型提交，由对应团队对接。',
         primary: { label: '提交合作申请', href: '/inquiry?type=business' },
         secondary: { label: '查看合作案例', href: '/business/cases' },
         scrim: true,
@@ -1089,7 +1089,7 @@ function buildContact(): Page {
         height: 'custom',
         heightValue: 360,
         alt: '联系我们顶部横幅（待上传）',
-        title: '找到对的人，比转接更快',
+        title: '联系光魂',
         subtitle: '采购与合作、产品咨询、售后报修，按渠道直达对应团队。',
         primary: { label: '提交咨询', href: '/inquiry' },
         secondary: { label: '常见问题', href: '/faq' },
@@ -1230,7 +1230,7 @@ function buildProducts(): Page {
 /** 天梯榜 */
 function buildLadder(): Page {
   return toPage('ladder', '/ladder', '天梯榜', '天梯榜装修 + 数据源区块。', [
-    { type: 'ranking', props: { title: '综合榜', subtitle: '所有数值来自同一套可复现的测试方法；榜单仅供选购参考。', metric: 'overall', limit: 10 } },
+    { type: 'ranking', props: { title: '综合榜', subtitle: '同一套测试方法与仪器；榜单仅供选购参考。', metric: 'overall', limit: 10 } },
     // 数据源区块：测评方法取自集合 methods（后台「测评方法」维护，改后前台即时生效）
     {
       type: 'methodList',

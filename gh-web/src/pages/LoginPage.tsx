@@ -50,7 +50,7 @@ export function LoginPage() {
 
   const config = auth.login ?? {}
   const title = config.title || '登录光魂账号'
-  const subtitle = config.subtitle || '登录后可跟踪咨询进度、管理已登记设备与订阅通知。'
+  const subtitle = config.subtitle || '登录后查看咨询进度、已登记设备与通知。'
   const points = config.points && config.points.length > 0
     ? config.points
     : ['跟踪咨询与预约进度', '登记与管理我的设备', '收藏型号与下载资料']
@@ -113,8 +113,8 @@ export function LoginPage() {
         <AuthShell
           variant="page"
           badge="个人中心"
-          headline={config.headline || '把每一块屏的参数，测给你看'}
-          subtitle={config.description || '不写形容词，只给可复现的测试记录与版本号。'}
+          headline={config.headline || '光魂 OLED 电竞显示器'}
+          subtitle={config.description || '2K 540Hz、4K 双模与 21:9 超宽；测试方法与数据来源见产品页。'}
           points={points}
           poster={config.poster || ''}
         >

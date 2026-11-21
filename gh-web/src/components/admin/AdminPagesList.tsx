@@ -27,6 +27,7 @@ import { AdminPageHead } from './AdminPageHead'
 import { Select } from './Select'
 import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { useConfirm, useToast } from './feedback'
+import { shortCode, slugify } from '../../lib/slug'
 
 /** ISO 时间 → 紧凑展示 */
 function formatTime(iso: string): string {
@@ -34,7 +35,17 @@ function formatTime(iso: string): string {
 }
 
 /** 新建页面内联表单（可选「从模板起步」） */
-function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCreated: (page: PageMeta) => void }) {
+function NewPageForm({
+  templates,
+  existingKeys,
+  existingPaths,
+  onCreated,
+}: {
+  templates: TemplateItem[]
+  existingKeys: readonly string[]
+  existingPaths: readonly string[]
+  onCreated: (page: PageMeta) => void
+}) {
   const [key, setKey] = useState('')
   const [path, setPath] = useState('')
   const [title, setTitle] = useState('')
@@ -47,12 +58,30 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
   const [templateId, setTemplateId] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // key / path 是否被手工改过：未改过时随标题自动生成，改过则尊重人工输入
+  const [keyTouched, setKeyTouched] = useState(false)
+  const [pathTouched, setPathTouched] = useState(false)
+
+  const keyDup = Boolean(key.trim()) && existingKeys.includes(key.trim())
+  const pathDup = Boolean(path.trim()) && existingPaths.includes(path.trim())
+
+  /** 标题变化 → 未手工改动的 key / path 同步生成（中文标题回落到短码） */
+  const onTitleChange = (next: string) => {
+    setTitle(next)
+    const slug = slugify(next) || `page-${shortCode()}`
+    if (!keyTouched) setKey(slug)
+    if (!pathTouched) setPath(`/${slug}`)
+  }
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
     if (!key.trim() || !path.trim() || !title.trim()) {
-      setError('key、path、title 均为必填')
+      setError('页面标题为必填；key 与路径会随标题自动生成')
+      return
+    }
+    if (keyDup || pathDup) {
+      setError(keyDup ? `页面 key「${key.trim()}」已存在` : `路径「${path.trim()}」已被占用`)
       return
     }
     setSubmitting(true)
@@ -91,22 +120,51 @@ function NewPageForm({ templates, onCreated }: { templates: TemplateItem[]; onCr
         <h2 className="admin-form__section-title">新建页面</h2>
         <div className="admin-form__grid">
           <div className="field">
+            <label className="field__label" htmlFor="np-title">
+              页面标题 <span className="req" aria-hidden="true">*</span>
+            </label>
+            <input id="np-title" className="input" type="text" value={title} onChange={(e) => onTitleChange(e.target.value)} />
+            <span className="field__hint">先填标题：key 与前台路径会自动生成，也可在下方手工修改。</span>
+          </div>
+          <div className="field">
             <label className="field__label" htmlFor="np-key">
               页面 key
             </label>
-            <input id="np-key" className="input" type="text" placeholder="如 campaign-autumn" value={key} onChange={(e) => setKey(e.target.value)} />
+            <input
+              id="np-key"
+              className={`input${keyDup ? ' input--error' : ''}`}
+              type="text"
+              placeholder="随标题自动生成"
+              value={key}
+              aria-invalid={keyDup || undefined}
+              onChange={(e) => {
+                setKey(e.target.value)
+                setKeyTouched(e.target.value.trim() !== '')
+              }}
+            />
+            <span className={`field__hint${keyDup ? ' field__hint--error' : ''}`}>
+              {keyDup ? '该 key 已存在，请换一个' : '仅支持小写字母、数字与连字符；保存后作为页面唯一标识'}
+            </span>
           </div>
           <div className="field">
             <label className="field__label" htmlFor="np-path">
               前台路径
             </label>
-            <input id="np-path" className="input" type="text" placeholder="如 /campaign/autumn" value={path} onChange={(e) => setPath(e.target.value)} />
-          </div>
-          <div className="field">
-            <label className="field__label" htmlFor="np-title">
-              页面标题
-            </label>
-            <input id="np-title" className="input" type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input
+              id="np-path"
+              className={`input${pathDup ? ' input--error' : ''}`}
+              type="text"
+              placeholder="/随标题自动生成"
+              value={path}
+              aria-invalid={pathDup || undefined}
+              onChange={(e) => {
+                setPath(e.target.value)
+                setPathTouched(e.target.value.trim() !== '')
+              }}
+            />
+            <span className={`field__hint${pathDup ? ' field__hint--error' : ''}`}>
+              {pathDup ? '该路径已被占用，请换一个' : `前台访问地址：${path || '（自动生成）'}`}
+            </span>
           </div>
           <div className="field">
             <label className="field__label" htmlFor="np-desc">
@@ -284,6 +342,8 @@ export function AdminPagesList() {
       {creating && (
         <NewPageForm
           templates={templatesState.data?.items ?? []}
+          existingKeys={rows.map((item) => item.key)}
+          existingPaths={rows.map((item) => item.path)}
           onCreated={(page) => navigate(`/admin/pages/${encodeURIComponent(page.key)}/builder`)}
         />
       )}

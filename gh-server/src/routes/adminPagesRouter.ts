@@ -210,6 +210,24 @@ function blockReferenceError(blocks: Block[]): string | null {
 }
 
 /**
+ * 解析登录页文案（`auth.login`）。
+ * 只保留字符串字段与最多 3 条权益要点；空串视为「清除该字段」。
+ */
+function parseAuthLogin(raw: unknown): NonNullable<SiteAuthConfig['login']> | undefined {
+  if (!isPlainObject(raw)) return undefined
+  const out: NonNullable<SiteAuthConfig['login']> = {}
+  for (const key of ['title', 'subtitle', 'headline', 'description', 'poster', 'agreement'] as const) {
+    const value = readString(raw[key])
+    if (value) out[key] = value
+  }
+  if (Array.isArray(raw.points)) {
+    const points = raw.points.map((point) => readString(point)).filter(Boolean).slice(0, 3)
+    if (points.length) out.points = points
+  }
+  return out
+}
+
+/**
  * 校验站点配置结构：`{ nav, footer }` 为必填；其余为可选扩展字段。
  * - `enabledBlocks`：字符串数组，且每项须为已知区块类型（否则整体不合法 → 400）；
  * - `theme`：对象，保存时按白名单过滤键（非白名单键静默丢弃，避免任意变量注入）；
@@ -231,6 +249,7 @@ function parseSite(raw: unknown): Partial<{
   defaultTheme: 'auto' | 'light' | 'dark'
   navFeatureEnabled: boolean
   footerMotion: boolean
+  miniprogramQr: string
   inquiryRouting: boolean
   centerBackdrop: boolean
 }> | null {
@@ -259,6 +278,7 @@ function parseSite(raw: unknown): Partial<{
     defaultTheme: 'auto' | 'light' | 'dark'
     navFeatureEnabled: boolean
     footerMotion: boolean
+    miniprogramQr: string
     inquiryRouting: boolean
     centerBackdrop: boolean
   }> = { nav, footer }
@@ -296,10 +316,26 @@ function parseSite(raw: unknown): Partial<{
     if (secondary) cta.secondary = secondary
     result.topCta = cta
   }
-  // —— 安全开关：captcha 缺省 true，thirdParty 缺省 false ——
+  // —— 账号与登录：captcha / thirdParty 缺省值之外，必须原样保留登录页文案、微信与注册开关 ——
+  // 注意：saveSiteConfig 是浅合并（auth 整体覆盖），这里漏字段会导致「保存一次就丢配置」。
   if (data.auth !== undefined) {
     if (!isPlainObject(data.auth)) return null
-    result.auth = { captcha: data.auth.captcha !== false, thirdParty: data.auth.thirdParty === true }
+    const a = data.auth
+    const auth: SiteAuthConfig = { captcha: a.captcha !== false, thirdParty: a.thirdParty === true }
+    const captchaMode = readString(a.captchaMode)
+    if (captchaMode === 'off' || captchaMode === 'always' || captchaMode === 'after3') auth.captchaMode = captchaMode
+    if (typeof a.registerEnabled === 'boolean') auth.registerEnabled = a.registerEnabled
+    const login = parseAuthLogin(a.login)
+    if (login && Object.keys(login).length > 0) auth.login = login
+    if (isPlainObject(a.wechat)) {
+      auth.wechat = { enabled: a.wechat.enabled === true }
+      const appId = readString(a.wechat.appId)
+      if (appId) auth.wechat.appId = appId
+      const qr = readString(a.wechat.qr)
+      if (qr) auth.wechat.qr = qr
+    }
+    if (isPlainObject(a.phone)) auth.phone = { enabled: a.phone.enabled === true }
+    result.auth = auth
   }
   // —— 保修参数：年限 / 提醒天数取正数，缺省 3 / 30；SN 解析默认关闭 ——
   if (data.warranty !== undefined) {
@@ -331,6 +367,10 @@ function parseSite(raw: unknown): Partial<{
   // —— 页脚流动方块动画：布尔，缺省 false（纯色页脚）——
   if (data.footerMotion !== undefined) {
     result.footerMotion = data.footerMotion === true
+  }
+  // —— 页脚小程序二维码：显式提交即保存；空串表示回落到内置素材 ——
+  if (data.miniprogramQr !== undefined) {
+    result.miniprogramQr = readString(data.miniprogramQr)
   }
   // —— 默认主题：'auto' | 'light' | 'dark'；非法值整体 400 ——
   if (data.defaultTheme !== undefined) {
