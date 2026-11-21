@@ -2,7 +2,7 @@
  * 产品详情 · 购买 / 咨询区块（productBuy）。
  *
  * 详情页的转化收口：左侧标题、说明与保障要点，右侧主次按钮。
- * 不使用整块白卡，保持与详情页同一张纸；文案全部来自后台区块配置。
+ * 不使用整块白卡，保持与详情页同一张纸；标题与说明同排，不单独占一行标题栏；文案全部来自后台区块配置。
  */
 import { SafeLink } from '../components/ui/SafeLink'
 import { useI18n } from '../i18n'
@@ -36,8 +36,10 @@ export function ProductBuyBlock({ props }: { props: Record<string, unknown> }) {
   return (
     <div className="pd-buy">
       <div className="pd-buy__copy">
-        <h2 className="pd-buy__title">{title}</h2>
-        {subtitle && <p className="pd-buy__sub">{subtitle}</p>}
+        <h2 className="pd-buy__title">
+          {title}
+          {subtitle && <span className="pd-buy__sub">{subtitle}</span>}
+        </h2>
         <ul className="pd-buy__points">
           {list.map((point) => (
             <li key={point}>{point}</li>

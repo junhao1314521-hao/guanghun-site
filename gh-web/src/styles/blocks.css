@@ -709,32 +709,39 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 /* —— productBuy · 购买 / 咨询收口 —— */
 .pd-buy {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
-  gap: var(--gh-space-7);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+  gap: clamp(40px, 5vw, 96px);
   align-items: center;
   padding: var(--gh-space-7) 0;
   border-top: 1px solid var(--color-border-subtle);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+/* 标题与说明同排，不再单独占一行标题栏 */
 .pd-buy__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
   margin: 0;
-  font-size: clamp(24px, 2.4vw, 30px);
-  line-height: 1.25;
+  font-size: 20px;
+  line-height: 1.4;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
 }
 
 .pd-buy__sub {
-  margin: var(--gh-space-3) 0 0;
-  font-size: var(--gh-font-size-body);
-  line-height: 1.7;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: 0;
   color: var(--color-text-secondary);
 }
 
 .pd-buy__points {
   list-style: none;
-  margin: var(--gh-space-6) 0 0;
+  margin: 22px 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
@@ -775,6 +782,10 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
     grid-template-columns: minmax(0, 1fr);
     gap: var(--gh-space-6);
     padding: var(--gh-space-6) 0;
+  }
+
+  .pd-buy__title {
+    font-size: 18px;
   }
 
   .pd-buy__actions {
