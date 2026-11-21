@@ -75,7 +75,7 @@ export function InquiryDockBlock({ props }: { props: Record<string, unknown> }) 
 
   // —— 快速提问：只填「问题 + 联系方式」，其余走服务端 quick 模式 ——
   const quickEnabled = props.quickEnabled === undefined ? true : asBool(props.quickEnabled)
-  const quickPlaceholder = asString(props.quickPlaceholder, '用一句话描述你的问题，例如：54027X1QE 更新固件后 HDR 偏暗')
+  const quickPlaceholder = asString(props.quickPlaceholder, '用一句话描述你的问题，例如：27X1QE-W54 更新固件后 HDR 偏暗')
   const quickCta = asString(props.quickCta, '快速提问')
   const quickTip = asString(props.quickTip, '提交后可在「我的工单」查看进度；需要填型号与截图时再用完整表单。')
   const [message, setMessage] = useState('')

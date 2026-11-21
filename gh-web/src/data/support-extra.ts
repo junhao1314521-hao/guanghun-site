@@ -515,7 +515,7 @@ function faqsByIds(...ids: string[]): FaqItem[] {
 export const MODEL_SUPPORTS: ModelSupport[] = [
   {
     id: 'gh-54027x1qe',
-    model: '54027X1QE-W54',
+    model: '27X1QE-W54',
     line: 'OLED旗舰',
     summary: '26.5 英寸 2K@540Hz 旗舰 OLED 电竞显示器，支持 DP 2.1 满速与 Center 调校。',
     faqs: faqsByIds('faq-driver-install', 'faq-pair-24g', 'faq-fw-check'),

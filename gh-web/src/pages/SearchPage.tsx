@@ -118,7 +118,7 @@ export function SearchPage() {
               className="input"
               id="pageSearch"
               type="search"
-              placeholder="输入型号或关键词，如 54027X1QE-W54、响应时间、保修"
+              placeholder="输入型号或关键词，如 27X1QE-W54、响应时间、保修"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
             />

@@ -225,7 +225,7 @@ export function InquiryForm({ title, desc, points, routingEnabled }: InquiryForm
               className={`input${errors.model ? ' input--error' : ''}`}
               id="inq-model"
               name="model"
-              placeholder="例如 54027X1QE-W54"
+              placeholder="例如 27X1QE-W54"
               value={form.model}
               aria-invalid={Boolean(errors.model)}
               onChange={(event) => update('model', event.target.value)}

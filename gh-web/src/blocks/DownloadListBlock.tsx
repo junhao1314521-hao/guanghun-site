@@ -242,7 +242,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   // 呈现方式：表格（默认）/ 横向滑动卡片
   const railCards = asString(props.layout, 'table') === 'rail'
   const [reloadKey, setReloadKey] = useState(0)
-  // 搜索词：按资料名称 / 型号 / 版本命中（对应清单第 5 条能力：搜 54027X1QE 或 v1.6.3 能命中）
+  // 搜索词：按资料名称 / 型号 / 版本命中（对应清单第 5 条能力：搜 27X1QE 或 v1.6.3 能命中）
   const [query, setQuery] = useState('')
   // 三入口 / 视图：仅列表页（showFilter）使用
   const [entry, setEntry] = useState<'model' | 'type' | 'category'>('model')

@@ -19,7 +19,7 @@ export function MeFavoritesPage() {
   const { data, loading, error } = useApi((signal) => fetchMyFavorites(signal), [reloadKey])
   const favorites = data?.items ?? []
 
-  // 收藏项名称以「型号 + 描述」拼接；历史数据的型号可能带前缀（如 54027X1QE-W54），
+  // 收藏项名称以「型号 + 描述」拼接；历史数据的型号可能带旧编号前缀（54027 / 28027），
   // 因此用「名称包含产品型号」匹配，兼容新旧命名。
   const productOf = useMemo(
     () => (name: string) => PRODUCTS.find((product) => name.includes(product.model)),

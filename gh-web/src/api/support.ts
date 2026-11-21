@@ -57,7 +57,7 @@ export type SupportDevice = {
 
 /** 离线回退：与 MODEL_SUPPORTS / 静态图库一致的四款在售型号 */
 const SUPPORT_DEVICES_FALLBACK: SupportDevice[] = [
-  { id: 'gh-54027x1qe', model: '54027X1QE-W54', line: 'OLED旗舰', summary: '26.5 英寸 2K@540Hz 旗舰 OLED', image: '/media/products/transparent/gh-54027x1qe.webp' },
+  { id: 'gh-54027x1qe', model: '27X1QE-W54', line: 'OLED旗舰', summary: '26.5 英寸 2K@540Hz 旗舰 OLED', image: '/media/products/transparent/gh-54027x1qe.webp' },
   { id: 'gh-32x1ue', model: '32X1UE-W16', line: '双模高刷', summary: '31.5 英寸 4K@165 / FHD@330 双模 OLED', image: '/media/products/transparent/gh-32x1ue.webp' },
   { id: 'gh-27x1qe-500', model: '27X1QE-500', line: 'OLED旗舰', summary: '26.5 英寸 2K@500Hz QD-OLED', image: '/media/products/transparent/gh-27x1qe-500.webp' },
   { id: 'gh-g27k180', model: 'G27K-180', line: '双模高刷', summary: '27 英寸 Fast IPS 双模', image: '/media/products/transparent/gh-g27k180.webp' },

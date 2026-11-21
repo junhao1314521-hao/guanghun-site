@@ -46,9 +46,9 @@ export const MEGA_PANELS: MegaPanel[] = [
       {
         eyebrow: '精选型号',
         links: [
-          { label: '54027X1QE-W54 540Hz OLED', to: '/products/gh-54027x1qe' },
+          { label: '27X1QE-W54 540Hz OLED', to: '/products/gh-54027x1qe' },
           { label: '32X1UE-W16 双模 4K OLED', to: '/products/gh-32x1ue' },
-          { label: '28027X1QE-W28 280Hz OLED', to: '/products/gh-28027x1qe' },
+          { label: '27X1QE-W28 280Hz OLED', to: '/products/gh-28027x1qe' },
         ],
       },
       {
@@ -59,7 +59,7 @@ export const MEGA_PANELS: MegaPanel[] = [
         ],
       },
     ],
-    feature: { eyebrow: 'FEATURED', title: '54027X1QE-W54', desc: '26.5 英寸 2K@540Hz · 0.03 ms GTG' },
+    feature: { eyebrow: 'FEATURED', title: '27X1QE-W54', desc: '26.5 英寸 2K@540Hz · 0.03 ms GTG' },
   },
   {
     key: 'support',

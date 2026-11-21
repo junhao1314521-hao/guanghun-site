@@ -165,7 +165,7 @@ export function MeDevicesPage() {
                 className="input"
                 id="deviceModel"
                 value={model}
-                placeholder="54027X1QE-W54"
+                placeholder="27X1QE-W54"
                 onChange={(event) => setModel(event.target.value)}
               />
             </div>
