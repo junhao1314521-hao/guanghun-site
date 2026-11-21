@@ -317,3 +317,28 @@ export function injectBootstrap(html: string, data: unknown): string {
   const json = JSON.stringify(data).replace(/</g, '\\u003c')
   return html.replace(/<\/body>/i, `<script>window.__GH_BOOTSTRAP__=${json}</script></body>`)
 }
+
+export type PreloadImage = {
+  /** 图片地址（建议已转绝对地址） */
+  href: string
+  /** 媒体条件；用于移动端 / 桌面端各预加载一张，缺省表示所有视口 */
+  media?: string
+}
+
+/**
+ * 注入首屏关键图片的 preload。
+ *
+ * 首屏图地址来自内容库 / 集合接口：浏览器必须先下载并执行 JS、再等接口返回，才能从
+ * React 渲染出的 `<img>` 里发现这张图，LCP 因此被推迟了「JS + 接口」这一整段。
+ * 服务端把同一地址写进 `<head>`，HTML 解析阶段就开始下载，渲染时直接命中缓存。
+ */
+export function injectPreloadImages(html: string, items: PreloadImage[]): string {
+  const tags = items
+    .filter((item) => item.href.trim())
+    .map(
+      (item) =>
+        `<link rel="preload" as="image" href="${escapeHtml(item.href.trim())}"${item.media ? ` media="${escapeHtml(item.media)}"` : ''} fetchpriority="high" />`,
+    )
+  if (tags.length === 0) return html
+  return html.replace(/<\/head>/i, `    ${tags.join('\n    ')}\n  </head>`)
+}

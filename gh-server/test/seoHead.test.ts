@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
-import { renderIndexHtml, resolveHead, injectBootstrap } from '../src/lib/seoHead'
+import { renderIndexHtml, resolveHead, injectBootstrap, injectPreloadImages } from '../src/lib/seoHead'
 
 const tmpDir = path.join(os.tmpdir(), `gh-seo-head-${process.pid}`)
 process.env.DB_PATH = path.join(tmpDir, 'gh.sqlite')
@@ -86,5 +86,41 @@ describe('首屏启动数据注入（公告条防 CLS）', () => {
   it('没有 body 的模板原样返回', () => {
     const raw = '<html><head></head></html>'
     assert.equal(injectBootstrap(raw, { announcement: null }), raw)
+  })
+})
+
+describe('首屏图片 preload（LCP）', () => {
+  it('空列表原样返回，不插入多余标签', () => {
+    const raw = '<html><head></head><body></body></html>'
+    assert.equal(injectPreloadImages(raw, []), raw)
+    assert.equal(injectPreloadImages(raw, [{ href: '  ' }]), raw)
+  })
+
+  it('注入到 </head> 前，带 fetchpriority=high', () => {
+    const html = injectPreloadImages('<html><head><title>t</title></head><body></body></html>', [
+      { href: 'http://example.com/a.jpg' },
+    ])
+    assert.ok(
+      html.includes('<link rel="preload" as="image" href="http://example.com/a.jpg" fetchpriority="high" />'),
+      '应插入 preload 标签',
+    )
+    assert.ok(html.indexOf('rel="preload"') < html.indexOf('</head>'), '应位于 head 内')
+  })
+
+  it('桌面 / 移动各一张时输出 media 条件', () => {
+    const html = injectPreloadImages('<html><head></head><body></body></html>', [
+      { href: '/a.jpg', media: '(min-width: 901px)' },
+      { href: '/b.jpg', media: '(max-width: 900px)' },
+    ])
+    assert.ok(html.includes('href="/a.jpg" media="(min-width: 901px)"'))
+    assert.ok(html.includes('href="/b.jpg" media="(max-width: 900px)"'))
+  })
+
+  it('地址里的引号与尖括号被转义，不会破坏属性', () => {
+    const html = injectPreloadImages('<html><head></head><body></body></html>', [
+      { href: '/a.jpg?x="><script>' },
+    ])
+    assert.ok(!html.includes('"><script>'))
+    assert.ok(html.includes('&quot;&gt;&lt;script&gt;'))
   })
 })

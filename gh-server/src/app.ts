@@ -11,8 +11,8 @@ import { syncMediaMeta } from './data/mediaStore'
 import { hiddenUploadIds } from './data/trashStore'
 import { startScheduler } from './data/publishScheduler'
 import { getCollectionItem } from './data/collectionStore'
-import { getSiteConfig } from './data/contentStore'
-import { injectBootstrap, renderIndexHtml, renderStaticHtml } from './lib/seoHead'
+import { getSiteConfig, getPage } from './data/contentStore'
+import { injectBootstrap, injectPreloadImages, renderIndexHtml, renderStaticHtml, type PreloadImage } from './lib/seoHead'
 import { getBrandProfile } from './data/brand'
 import { legacyRedirectFor } from './lib/legacyRedirects'
 import { registerRoutes } from './routes'
@@ -39,6 +39,51 @@ function siteBootstrap(): { announcement: { text: string; href?: string; dismiss
   if (a.startAt && Date.parse(a.startAt) > now) return { announcement: null }
   if (a.endAt && Date.parse(a.endAt) < now) return { announcement: null }
   return { announcement: { text: a.text, href: a.href, dismissible: a.dismissible } }
+}
+
+/**
+ * 首屏 LCP 图片（服务端 preload 用）。
+ *
+ * 这些地址在浏览器里必须等 JS 执行完 + 内容 / 集合接口返回后才能发现，
+ * 直接由服务端写进 `<head>` 可把图片下载提前到 HTML 解析阶段。
+ * 只覆盖确定是首屏大图的页面；取不到就返回空数组（不注入，避免预加载无用资源）。
+ */
+function firstScreenImages(cleanPath: string, origin: string): PreloadImage[] {
+  const toAbsolute = (value: unknown): string => {
+    const url = typeof value === 'string' ? value.trim() : ''
+    if (!url) return ''
+    if (/^https?:\/\//i.test(url)) return url
+    return `${origin}${url.startsWith('/') ? '' : '/'}${url}`
+  }
+
+  if (cleanPath === '/') {
+    const page = getPage('home')
+    const block = page?.blocks.find((item) => item.enabled !== false && (item.type === 'carousel' || item.type === 'hero'))
+    const props = (block?.props ?? {}) as Record<string, unknown>
+    const slides = Array.isArray(props.slides) ? (props.slides as Array<Record<string, unknown>>) : []
+    const first = slides[0] ?? props
+    const video = first.mediaType === 'video'
+    const desktop = toAbsolute(video ? first.poster ?? first.image : first.image ?? first.media)
+    const mobile = toAbsolute(first.imageMobile)
+    if (!desktop) return []
+    // 断点与 PosterSlide 的 <picture> 保持一致（≤900px 用竖版）
+    return mobile
+      ? [
+          { href: desktop, media: '(min-width: 901px)' },
+          { href: mobile, media: '(max-width: 900px)' },
+        ]
+      : [{ href: desktop }]
+  }
+
+  const product = /^\/products\/([^/]+)$/.exec(cleanPath)
+  if (product) {
+    const item = getCollectionItem('products', decodeURIComponent(product[1]))
+    const gallery = Array.isArray(item?.gallery) ? (item.gallery as unknown[]) : []
+    const href = toAbsolute(gallery[0])
+    return href ? [{ href }] : []
+  }
+
+  return []
 }
 
 /**
@@ -314,7 +359,8 @@ export function createApp(): Express {
         const origin =
           (process.env.SITE_ORIGIN ?? '').trim().replace(/\/+$/, '') ||
           `${req.protocol}://${req.get('host') ?? ''}`
-        res.type('html').send(injectBootstrap(renderIndexHtml(indexFile, cleanPath, origin), siteBootstrap()))
+        const html = injectPreloadImages(renderIndexHtml(indexFile, cleanPath, origin), firstScreenImages(cleanPath, origin))
+        res.type('html').send(injectBootstrap(html, siteBootstrap()))
       },
     )
     logger.info('已启用前端静态托管', { staticDir })
