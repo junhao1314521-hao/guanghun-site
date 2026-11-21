@@ -89,6 +89,7 @@ export const MEGA_PANELS: MegaPanel[] = [
         eyebrow: '品牌',
         links: [
           { label: '关于光魂', to: '/about' },
+          { label: '品牌壁纸', to: '/wallpapers' },
           // 合作网点：指向商业合作下的线下体验点/授权网点页（内容库 business-venues）
           { label: '合作网点', to: '/business/venues' },
           { label: '电竞合作', to: '/brand/esports' },
@@ -122,6 +123,7 @@ export const PAGE_NAV: Record<string, string | undefined> = {
   support: 'support',
   // 服务与支持下的独立页面（下载中心 / 常见问题 / 提交咨询）同属该一级项，顶栏需保持高亮
   downloads: 'support',
+  wallpapers: 'about',
   faq: 'support',
   inquiry: 'support',
   business: 'about',
