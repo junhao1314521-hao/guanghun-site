@@ -111,6 +111,14 @@ export const PAGE_META: PageMeta[] = [
     priority: 0.7,
   },
   {
+    path: '/support/models',
+    title: '型号与兼容 · 光魂',
+    description: '按型号查询 Center 适配、驱动、固件版本、说明书与常见问题。',
+    indexable: true,
+    changefreq: 'monthly',
+    priority: 0.7,
+  },
+  {
     path: '/wallpapers',
     title: '品牌壁纸 · 光魂',
     description: '光魂 16:9 桌面壁纸，取自产品影像与品牌光影，免登录下载、无水印，仅限个人非商业用途。',
