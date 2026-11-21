@@ -189,6 +189,8 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   }, [detail])
 
   const [photoIndex, setPhotoIndex] = useState(0)
+  // 加载失败的图集：有图但请求失败时回退到同品类矢量占位，不显示浏览器破图图标
+  const [failedPhotos, setFailedPhotos] = useState<string[]>([])
   const [mode, setMode] = useState<'photo' | 'video' | 'model'>('photo')
   const [activeNav, setActiveNav] = useState('pdv8-top')
   const [related, setRelated] = useState<Product[]>([])
@@ -432,6 +434,11 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   /** 区块入场类名：一旦进入过视口就保持 is-in */
   const sectionClass = (id: string) => `pdv8-section pdv8-reveal${revealed.includes(id) ? ' is-in' : ''}`
 
+  const activePhoto = mode === 'photo' ? photos[photoIndex] : undefined
+  const activeBroken = !!activePhoto && failedPhotos.includes(activePhoto)
+  const markPhotoFailed = (src: string) =>
+    setFailedPhotos((prev) => (prev.includes(src) ? prev : [...prev, src]))
+
   return (
     <div className="pdv8" style={{ '--pdv8-stack': `${stackHeight}px` } as CSSProperties}>
       <div className="pdv8-hero" id="pdv8-top">
@@ -445,7 +452,17 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
                 onClick={() => selectPhoto(index)}
                 aria-label={`${t('blocks.pd.view', { n: index + 1 })}`}
               >
-                <img src={src} alt="" loading="lazy" />
+                {failedPhotos.includes(src) ? (
+                  <span className="pdv8-thumb__ph" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                      <rect x="3" y="4" width="18" height="16" rx="2" />
+                      <path d="m3 16 5-5 4 4 3-3 6 6" />
+                      <circle cx="9" cy="9" r="1.4" />
+                    </svg>
+                  </span>
+                ) : (
+                  <img src={src} alt="" loading="lazy" onError={() => markPhotoFailed(src)} />
+                )}
               </button>
             ))}
             {/* 视频 / 3D 与图集共用同一条缩略图轨道，不再另起一排文字标签 */}
@@ -487,10 +504,15 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
           </div>
 
           <div className={`pdv8-stage is-${mode}`}>
-            {mode === 'photo' && photos[photoIndex] && (
-              <img className="pdv8-stage__img" src={photos[photoIndex]} alt={detail.name} />
+            {mode === 'photo' && activePhoto && !activeBroken && (
+              <img
+                className="pdv8-stage__img"
+                src={activePhoto}
+                alt={detail.name}
+                onError={() => markPhotoFailed(activePhoto)}
+              />
             )}
-            {mode === 'photo' && photos.length === 0 && (
+            {mode === 'photo' && (!activePhoto || activeBroken) && (
               <div className="pdv8-stage__art" role="img" aria-label={detail.name}>
                 <DeviceArt variant={artVariant} label={detail.name} />
               </div>
