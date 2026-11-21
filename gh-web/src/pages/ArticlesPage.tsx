@@ -8,5 +8,11 @@ import { PageView } from '../blocks/PageView'
  * 分类筛选（含 URL `?category=` 深链）与空态。
  */
 export function ArticlesPage() {
-  return <PageView pageKey="articles" blockDefaults={{ articleList: { showFilter: true } }} />
+  return (
+    <>
+      {/* 该页由区块驱动，没有自带 h1；补一个只读标题，保证页面有唯一一级标题 */}
+      <h1 className="sr-only">文章与评测</h1>
+      <PageView pageKey="articles" blockDefaults={{ articleList: { showFilter: true } }} />
+    </>
+  )
 }

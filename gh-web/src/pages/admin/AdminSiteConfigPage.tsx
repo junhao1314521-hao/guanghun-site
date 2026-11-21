@@ -12,7 +12,7 @@
  * 字段口径以 `data/contentTypes.ts` 的 `SiteConfig` 类型为准：
  *   `SiteLink = { label, href }`、`SiteFooterGroup = { title, links: SiteLink[] }`、`SiteConfig = { nav, footer }`。
  */
-import { useState } from 'react'
+import { useState, type InputHTMLAttributes } from 'react'
 import { fetchAdminSite, saveAdminSite } from '../../api/adminPages'
 import { invalidateSiteCache } from '../../api/content'
 import type {
@@ -33,6 +33,15 @@ import { Select } from '../../components/admin/Select'
 import { ErrorState } from '../../components/admin/states'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
+
+/**
+ * 站点配置里的输入框：该页字段以 placeholder 自解释，没有独立 label。
+ * 统一把 placeholder 作为可访问名称，保证屏幕阅读器能读出字段用途。
+ */
+function SiteInput(props: InputHTMLAttributes<HTMLInputElement>) {
+  const name = props['aria-label'] ?? (typeof props.placeholder === 'string' ? props.placeholder : undefined)
+  return <input {...props} aria-label={name} />
+}
 
 /** 不可变移动数组项（dir: -1 上移 / 1 下移）；越界则原样返回 */
 function move<T>(list: T[], index: number, dir: -1 | 1): T[] {
@@ -122,14 +131,14 @@ function LinkListEditor({
       {links.length === 0 && <span className="field__hint">暂无链接，点击下方「{addLabel}」添加。</span>}
       {links.map((link, index) => (
         <div className={`site-link${showBadge ? ' site-link--badge' : ''}`} key={index}>
-          <input
+          <SiteInput
             className="input"
             type="text"
             placeholder="名称（如 产品）"
             value={link.label}
             onChange={(event) => update(index, { label: event.target.value })}
           />
-          <input
+          <SiteInput
             className="input"
             type="text"
             placeholder="链接（如 /products）"
@@ -151,7 +160,7 @@ function LinkListEditor({
                   { value: 'hot', label: 'HOT' },
                 ]}
               />
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 aria-label="角标自定义文案"
@@ -210,14 +219,14 @@ function ShopChannelEditor({ channels, onChange }: { channels: ShopChannel[]; on
       {channels.length === 0 && <span className="field__hint">暂无店铺渠道，点击下方「新增店铺渠道」添加。</span>}
       {channels.map((channel, index) => (
         <div className="site-link" key={index}>
-          <input
+          <SiteInput
             className="input"
             type="text"
             placeholder="渠道名称（如 天猫）"
             value={channel.name}
             onChange={(event) => update(index, { name: event.target.value })}
           />
-          <input
+          <SiteInput
             className="input"
             type="text"
             placeholder="店铺链接（如 https://tmall.example/）"
@@ -295,7 +304,7 @@ function FooterEditor({ groups, onChange }: { groups: SiteFooterGroup[]; onChang
       {groups.map((group, index) => (
         <div className="site-group" key={index}>
           <div className="site-group__head">
-            <input
+            <SiteInput
               className="input"
               type="text"
               placeholder="分组标题（如 产品）"
@@ -539,7 +548,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           <LinkListEditor links={site.nav} onChange={setNav} addLabel="新增导航链接" showBadge />
           <div className="site-link" style={{ marginTop: 'var(--gh-space-4)' }}>
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={Boolean(site.navFeatureEnabled)}
                 onChange={(event) => setNavFeature(event.target.checked)}
@@ -577,7 +586,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           <FooterEditor groups={site.footer} onChange={setFooter} />
           <div className="site-link" style={{ marginTop: 'var(--gh-space-5)' }}>
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={site.footerMotion === true}
                 onChange={(event) =>
@@ -600,7 +609,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </p>
           <div className="site-link">
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={Boolean(site.announcement?.enabled)}
                 onChange={(event) => setAnnouncement({ enabled: event.target.checked })}
@@ -608,7 +617,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               开启公告条
             </label>
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={Boolean(site.announcement?.dismissible)}
                 onChange={(event) => setAnnouncement({ dismissible: event.target.checked })}
@@ -616,7 +625,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               允许访客关闭
             </label>
           </div>
-          <input
+          <SiteInput
             className="input"
             type="text"
             placeholder="公告文案（如：新品上市，预约到店体验）"
@@ -625,7 +634,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           />
           <div className="site-links" style={{ marginTop: 'var(--gh-space-3)' }}>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 placeholder="点击跳转（可选，如 /business/venues）"
@@ -634,7 +643,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               />
             </div>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 aria-label="生效起始时间"
@@ -642,7 +651,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                 value={site.announcement?.startAt ?? ''}
                 onChange={(event) => setAnnouncement({ startAt: event.target.value || undefined })}
               />
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 aria-label="失效时间"
@@ -664,7 +673,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </p>
           <div className="site-links">
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 placeholder="主按钮文案（如 预约体验）"
@@ -673,7 +682,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                   setTopCta({ primary: { label: event.target.value, href: site.topCta?.primary?.href ?? '' } })
                 }
               />
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 placeholder="主按钮链接（如 /business/venues）"
@@ -684,7 +693,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               />
             </div>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 placeholder="次按钮文案（如 产品总览）"
@@ -693,7 +702,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                   setTopCta({ secondary: { label: event.target.value, href: site.topCta?.secondary?.href ?? '' } })
                 }
               />
-              <input
+              <SiteInput
                 className="input"
                 type="text"
                 placeholder="次按钮链接（如 /products）"
@@ -716,7 +725,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </p>
           <div className="site-link">
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={site.auth?.captcha !== false}
                 onChange={(event) => setAuth({ captcha: event.target.checked })}
@@ -724,7 +733,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               表单图形验证码
             </label>
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={Boolean(site.auth?.thirdParty)}
                 onChange={(event) => setAuth({ thirdParty: event.target.checked })}
@@ -732,7 +741,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               第三方登录入口（预留）
             </label>
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={site.inquiryRouting !== false}
                 onChange={(event) => setInquiryRouting(event.target.checked)}
@@ -740,7 +749,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               留言轻量分流（售前 / 售后 / 商务 → 主题联动，默认开）
             </label>
             <label className="site-link__shake">
-              <input
+              <SiteInput
                 type="checkbox"
                 checked={Boolean(site.warranty?.snParse)}
                 onChange={(event) => setWarranty({ snParse: event.target.checked })}
@@ -750,7 +759,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
           </div>
           <div className="site-links" style={{ marginTop: 'var(--gh-space-3)' }}>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 type="number"
                 min={1}
@@ -758,7 +767,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                 value={String(site.warranty?.years ?? 3)}
                 onChange={(event) => setWarranty({ years: Number(event.target.value) || 3 })}
               />
-              <input
+              <SiteInput
                 className="input"
                 type="number"
                 min={1}
@@ -783,7 +792,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
 
           <div className="site-links">
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 placeholder="表单标题（如 登录光魂账号）"
                 value={site.auth?.login?.title ?? ''}
@@ -791,7 +800,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               />
             </div>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 placeholder="标题下的说明文案"
                 value={site.auth?.login?.subtitle ?? ''}
@@ -799,13 +808,13 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               />
             </div>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 placeholder="左侧品牌区标题"
                 value={site.auth?.login?.headline ?? ''}
                 onChange={(event) => setLogin({ headline: event.target.value })}
               />
-              <input
+              <SiteInput
                 className="input"
                 placeholder="左侧品牌区说明"
                 value={site.auth?.login?.description ?? ''}
@@ -829,7 +838,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             </div>
             <div className="site-link">
               {[0, 1, 2].map((index) => (
-                <input
+                <SiteInput
                   key={index}
                   className="input"
                   placeholder={`权益要点 ${index + 1}`}
@@ -843,7 +852,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               ))}
             </div>
             <div className="site-link">
-              <input
+              <SiteInput
                 className="input"
                 placeholder="底部协议提示（如 登录即表示同意《服务条款》与《隐私政策》）"
                 value={site.auth?.login?.agreement ?? ''}
@@ -866,7 +875,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                 ]}
               />
               <label className="site-link__shake">
-                <input
+                <SiteInput
                   type="checkbox"
                   checked={site.auth?.registerEnabled !== false}
                   onChange={(event) => setAuth({ registerEnabled: event.target.checked })}
@@ -876,14 +885,14 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             </div>
             <div className="site-link">
               <label className="site-link__shake">
-                <input
+                <SiteInput
                   type="checkbox"
                   checked={Boolean(site.auth?.wechat?.enabled)}
                   onChange={(event) => setWechat({ enabled: event.target.checked })}
                 />
                 微信扫码登录
               </label>
-              <input
+              <SiteInput
                 className="input"
                 placeholder="微信 AppID（留空则前台不显示入口）"
                 value={site.auth?.wechat?.appId ?? ''}
@@ -898,7 +907,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             </div>
             <div className="site-link">
               <label className="site-link__shake">
-                <input
+                <SiteInput
                   type="checkbox"
                   checked={Boolean(site.auth?.phone?.enabled)}
                   onChange={(event) => setPhoneLogin(event.target.checked)}
@@ -932,7 +941,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
               return (
                 <div className="site-group" key={index}>
                   <div className="site-group__head">
-                    <input
+                    <SiteInput
                       className="input"
                       type="text"
                       placeholder="平台名称（如 微信 / 微博 / B 站 / 抖音）"
@@ -968,7 +977,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                     </div>
                   </div>
                   <div className="site-link">
-                    <input
+                    <SiteInput
                       className="input"
                       type="text"
                       placeholder="账号（可选，如 guanghun-official）"
@@ -981,7 +990,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                       value={item.qr ?? ''}
                       onChange={(url) => patch({ qr: url })}
                     />
-                    <input
+                    <SiteInput
                       className="input"
                       type="text"
                       placeholder="链接（可选，仅有链接则直接跳转）"

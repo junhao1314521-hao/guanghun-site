@@ -164,6 +164,10 @@ export function FileField({
   crops,
 }: FileFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
+  // 未显式传 inputId 时生成稳定 id，保证每个地址输入都有可关联的标识（无障碍）
+  const autoId = useId()
+  const fieldId = inputId ?? `file-field-${autoId}`
+  const fieldLabel = label ? `${label}地址` : '文件地址'
   const toast = useToast()
   const [uploading, setUploading] = useState(false)
   // 上传进度（0–100）；用于大文件时给出百分比反馈
@@ -264,9 +268,10 @@ export function FileField({
     <div className="image-field">
       <div className="image-field__row">
         <input
-          id={inputId}
+          id={fieldId}
           className="input"
           type="text"
+          aria-label={fieldLabel}
           placeholder={
             placeholder ??
             (isImageMode ? '图片资源地址（URL 或 /uploads/...）' : isMediaMode ? '图片 / 视频地址（URL 或 /uploads/...）' : '文件地址（URL 或 /uploads/...）')

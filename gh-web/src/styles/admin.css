@@ -226,6 +226,33 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   background: var(--color-border-subtle);
 }
 
+/* 手机端提示条：默认不显示，仅窄屏出现；关闭后不再打扰（localStorage） */
+.admin-mobile-tip { display: none; }
+@media (max-width: 767px) {
+  .admin-mobile-tip {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--gh-space-3);
+    padding: var(--gh-space-3) var(--gh-space-4);
+    background: var(--color-warning-bg);
+    border-bottom: 1px solid var(--color-warning-border);
+    color: var(--color-text-primary);
+    font-size: var(--gh-font-size-caption);
+    line-height: var(--gh-line-height-body);
+  }
+  .admin-mobile-tip button {
+    flex: none;
+    padding: 0 var(--gh-space-2);
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+}
+
 /* ---------- 主体 ---------- */
 .admin-body { display: flex; flex-direction: column; min-width: 0; }
 
@@ -1324,6 +1351,8 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 @media (max-width: 767px) {
   .site-link { grid-template-columns: 1fr; }
   .site-link__actions { justify-content: flex-start; }
+  /* 复选框说明文字较长，窄屏必须允许换行，否则会撑出横向滚动 */
+  .site-link__shake { white-space: normal; align-items: flex-start; }
 }
 
 /* ---------- 图片字段（后台表单 / 区块编辑器共用 ImageField） ---------- */

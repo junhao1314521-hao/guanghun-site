@@ -200,6 +200,23 @@ export function AdminLayout() {
     }
   }
 
+  // 手机端提示：后台编辑以桌面为主，窄屏仅保留查看与紧急处理
+  const [mobileTip, setMobileTip] = useState(() => {
+    try {
+      return window.matchMedia('(max-width: 767px)').matches && window.localStorage.getItem('gh-admin-mobile-tip') !== '1'
+    } catch {
+      return false
+    }
+  })
+  const dismissMobileTip = () => {
+    setMobileTip(false)
+    try {
+      window.localStorage.setItem('gh-admin-mobile-tip', '1')
+    } catch {
+      // 隐私模式忽略
+    }
+  }
+
   const title = adminTitle(pathname)
   // 装修器页面放宽内容轨道
   const isWide = pathname.endsWith('/builder')
@@ -464,6 +481,14 @@ export function AdminLayout() {
         </aside>
 
         <div className="admin-body">
+          {mobileTip && (
+            <div className="admin-mobile-tip" role="status">
+              <span>后台编辑建议在电脑端进行；手机端仅支持查看与紧急处理。</span>
+              <button type="button" aria-label="关闭提示" onClick={dismissMobileTip}>
+                ×
+              </button>
+            </div>
+          )}
           <header className="admin-topbar">
             <div className={`admin-topbar__inner${isWide ? ' admin-topbar__inner--wide' : ''}`}>
               <button
