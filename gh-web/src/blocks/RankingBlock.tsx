@@ -8,10 +8,10 @@
  *
  * 当 `showFilter` 开启（列表页由 PageView 注入）时，在区块内保留原天梯榜页的
  * 指标切换（含 URL `?metric=` 深链）、品牌筛选（`?brand=`）与范围内名次重算；
- * 列表页默认只渲染前 50 条，底部可展开全榜（`?all=1` 记住展开状态）；
+ * 列表页默认只渲染前 50 条，底部羽化并给出「展开全部」入口（展开状态不写 URL）；
  * 输入型号时改为过滤全量数据，避免被截断挡住；首页 teaser 仍按 limit 截断。
  */
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
 import { useSitePages } from '../hooks/useSitePages'
@@ -191,12 +191,18 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
   const matched = keyword
     ? rows.filter((row) => `${row.model} ${row.name}`.toLowerCase().includes(keyword))
     : rows
-  const expanded = canFilter && params.get('all') === '1'
+  // 展开是临时 UI 状态，不写 URL：每次进入页面都只看前 50 条
+  const [expanded, setExpanded] = useState(false)
   const capped = canFilter && !keyword && !expanded
   const shown = capped ? matched.slice(0, LIST_PAGE_LIMIT) : matched
   const remaining = matched.length - shown.length
   const shownTested = canFilter ? tested : tested.slice(0, limit)
   const brands = Array.from(new Set((metric?.rows ?? []).map((row) => row.name))).sort((a, b) => a.localeCompare(b, 'zh-CN'))
+
+  // 切换指标 / 品牌时回到默认 50 条，避免展开状态带到另一份榜单
+  useEffect(() => {
+    setExpanded(false)
+  }, [metric?.id, brandScope])
 
   // 分值条生长：以「取数就绪 + 当前指标 / 条数」为刷新键，确保真实榜单渲染后再绑定观察器
   const fillKey = `${metric?.id ?? 'none'}:${shown.length}:${keyword}:${loading ? 'loading' : 'ready'}`
@@ -206,9 +212,14 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
     const next = new URLSearchParams(params)
     if (value) next.set(key, value)
     else next.delete(key)
-    // 切换指标 / 品牌时回到默认 50 条，避免展开状态带到另一份榜单
-    if (key !== 'all') next.delete('all')
     setParams(next, { replace: true })
+  }
+
+  // 收起后回到榜单顶部，否则视线会停在长页面底部
+  const collapse = () => {
+    setExpanded(false)
+    const top = rootRef.current?.getBoundingClientRect().top ?? 0
+    window.scrollTo({ top: Math.max(0, window.scrollY + top - 96), behavior: 'smooth' })
   }
 
   return (
@@ -345,7 +356,9 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
               )}
               {/* 领奖台（前三）：列表页展示，首页 teaser 省略 */}
               {!teaser && <Podium metric={metric} rows={shownTested} />}
-              <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} highlight={query} />
+              <div className={`ladder__list${capped ? ' is-capped' : ''}`}>
+                <LadderRows metric={metric} rows={shown} scoped={scoped} teaser={teaser} highlight={query} />
+              </div>
               {canFilter && (
                 <>
                   {keyword && (
@@ -354,17 +367,24 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
                       {matched.length === 0 ? '，换个型号片段试试' : ''}
                     </p>
                   )}
+                  {/* 收起态：列表底部羽化，入口压在渐变上，读作「后面还有」而不是「列表到此结束」 */}
                   {remaining > 0 && (
                     <div className="ladder__more">
-                      <button className="btn btn--ghost btn--sm" type="button" onClick={() => setParam('all', '1')}>
-                        展开全部 {matched.length} 条（还有 {remaining} 条）
+                      <button className="ladder__expand" type="button" onClick={() => setExpanded(true)}>
+                        展开全部 {matched.length} 条
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                          <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </button>
                     </div>
                   )}
                   {expanded && !keyword && (
-                    <div className="ladder__more">
-                      <button className="btn btn--ghost btn--sm" type="button" onClick={() => setParam('all', '')}>
-                        收起，只看前 {LIST_PAGE_LIMIT} 条
+                    <div className="ladder__more is-end">
+                      <button className="ladder__expand" type="button" onClick={collapse}>
+                        收起榜单
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                          <path d="m6 15 6-6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </button>
                     </div>
                   )}
