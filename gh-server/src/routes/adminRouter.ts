@@ -466,6 +466,22 @@ adminRouter.get('/resources/:key/:id', requireSession, requireResourceScope, (re
   res.json({ item })
 })
 
+/**
+ * 下载资料的适用型号必须来自产品型号库（或 all）。
+ * 手填自由文本时容易写错 id，导致固件 / 说明书在前台挂到别的型号；这里在写入前拦截。
+ */
+function downloadModelsError(body: Record<string, unknown>): string | null {
+  if (!('models' in body)) return null
+  const raw = body.models
+  const ids = (Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split('\n') : [])
+    .map((item) => String(item).trim())
+    .filter(Boolean)
+  const models = isCollectionKey('models') ? listCollection('models') : (listResource('models') ?? [])
+  const known = new Set(models.map((item) => String(item.id)))
+  const invalid = ids.filter((id) => id !== 'all' && !known.has(id))
+  return invalid.length > 0 ? `适用型号不存在：${invalid.join('、')}。请从产品型号列表中选择` : null
+}
+
 adminRouter.post(
   '/resources/:key',
   requireSession,
@@ -479,6 +495,13 @@ adminRouter.post(
   (req, res) => {
     const key = readParam(req, 'key')
     const body = (req.body ?? {}) as Record<string, unknown>
+    if (key === 'downloads') {
+      const error = downloadModelsError(body)
+      if (error) {
+        res.status(422).json({ error })
+        return
+      }
+    }
     if (isCollectionKey(key)) {
       res.status(201).json({ ok: true, item: createCollectionItem(key, body) })
       return
@@ -500,6 +523,13 @@ adminRouter.put(
     const key = readParam(req, 'key')
     const id = readParam(req, 'id')
     const body = (req.body ?? {}) as Record<string, unknown>
+    if (key === 'downloads') {
+      const error = downloadModelsError(body)
+      if (error) {
+        res.status(422).json({ error })
+        return
+      }
+    }
     const item = isCollectionKey(key)
       ? updateCollectionItem(key, id, body)
       : updateResourceItem(key, id, body as AdminRow)

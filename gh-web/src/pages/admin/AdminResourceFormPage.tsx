@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { fetchAdminResourceDetail, saveAdminResource, type AdminDetail } from '../../api/admin'
+import { fetchAdminResource, fetchAdminResourceDetail, saveAdminResource, type AdminDetail, type AdminList } from '../../api/admin'
 import {
   adminResource,
   PRODUCT_SPEC_TEMPLATES,
@@ -171,6 +171,19 @@ function FormField({
           value={listText(value)}
           onChange={(event) => onChange(field.key, event.target.value)}
         />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
+  if (field.type === 'modellist') {
+    return (
+      <>
+        <span className="field__label">
+          {field.label}
+          {req}
+        </span>
+        <ModelListField value={value} onChange={(next) => onChange(field.key, next)} />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
@@ -358,6 +371,47 @@ function FormField({
       )}
       {field.hint && <span className="field__hint">{field.hint}</span>}
     </>
+  )
+}
+
+/** 适用型号多选：选项来自「产品型号」集合，避免手填 id 把资料挂到错误型号；历史未知 id 也列出便于修正 */
+function ModelListField({ value, onChange }: { value: unknown; onChange: (next: string[]) => void }) {
+  const state = useApi<AdminList>((signal) => fetchAdminResource('models', signal), [])
+  const selected = Array.isArray(value) ? value.map(String) : []
+  const rows = state.data?.items ?? []
+  const known = rows.map((row) => ({ id: String(row.id), label: String(row.model ?? row.name ?? row.id) }))
+  const unknown = selected
+    .filter((id) => !known.some((option) => option.id === id))
+    .map((id) => ({ id, label: `${id}（未知型号）` }))
+  const options = [{ id: 'all', label: '全部支持型号' }, ...known, ...unknown]
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id])
+
+  if (state.loading && !state.data) return <span className="field__hint">正在加载产品型号…</span>
+  if (state.error) {
+    return (
+      <div className="alert alert--danger" role="alert">
+        型号列表加载失败：{state.error.message}
+      </div>
+    )
+  }
+  return (
+    <div
+      role="group"
+      aria-label="适用型号"
+      style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--gh-space-2) var(--gh-space-4)' }}
+    >
+      {options.map((option) => (
+        <label key={option.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+          <input
+            type="checkbox"
+            checked={selected.includes(option.id)}
+            onChange={() => toggle(option.id)}
+          />
+          {option.label}
+        </label>
+      ))}
+    </div>
   )
 }
 
@@ -571,7 +625,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
   /** 值是否为空（开关 / records 不参与必填判断） */
   const isEmptyValue = (field: AdminField, value: unknown): boolean => {
     if (field.type === 'switch' || field.type === 'records') return false
-    if (field.type === 'list') return toList(value).length === 0
+    if (field.type === 'list' || field.type === 'modellist') return toList(value).length === 0
     if (field.type === 'status') {
       const text = value && typeof value === 'object' ? (value as { text?: unknown }).text : undefined
       return String(text ?? '').trim() === ''
@@ -646,7 +700,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
     const payload: Record<string, unknown> = { ...values }
     for (const section of sections) {
       for (const field of section.fields) {
-        if (field.type === 'list') {
+        if (field.type === 'list' || field.type === 'modellist') {
           payload[field.key] = toList(payload[field.key])
         } else if (field.type === 'images') {
           // 多图相册：地址数组，trim + 去空（保留顺序）

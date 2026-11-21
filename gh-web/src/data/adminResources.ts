@@ -70,6 +70,8 @@ export type AdminFieldType =
   | 'images'
   /** 3D 模型地址：上传 .glb 后内嵌 3D 预览（失败回退封面） */
   | 'model3d'
+  /** 适用型号多选：选项来自「产品型号」集合，值为型号 id 数组；避免手填 id 造成资料挂错型号 */
+  | 'modellist'
   /** 常用参数模板：按设备形态一键带入结构化参数骨架（仅产品表单使用） */
   | 'specTemplate'
 
@@ -759,7 +761,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'isLatest', label: '最新版', type: 'switch', hint: '同型号同类型建议只标记一条，前台卡片显示「最新」徽标' },
           { key: 'checksumType', label: '校验算法', type: 'text', placeholder: 'SHA-256', hint: '具体校验值在下载详情页展示' },
           { key: 'supersedes', label: '替代旧版本 ID', type: 'text', span: 2, hint: '被本版本替代的资料 id（版本链路，预留）' },
-          { key: 'models', label: '适用型号', type: 'list', span: 2, hint: '每行一个型号 id（如 gh-54027x1qe）；通用资料填 all' },
+          { key: 'models', label: '适用型号', type: 'modellist', span: 2, required: true, hint: '勾选该资料实际适用的型号；通用资料勾选「全部支持型号」。前台按这里的对应关系展示，不再手填 id' },
           { key: 'note', label: '说明', type: 'textarea', span: 2 },
           {
             key: 'changelog',
