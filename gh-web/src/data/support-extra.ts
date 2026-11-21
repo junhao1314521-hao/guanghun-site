@@ -11,11 +11,33 @@
  */
 export type DownloadType = 'manual' | 'firmware' | 'driver' | 'software' | 'calibration'
 
+/** 历史版本条目（与后端契约一致） */
+export type DownloadHistoryEntry = {
+  version: string
+  date: string
+  size?: string
+  sizeBytes?: number
+  fileUrl: string
+  sha256?: string
+  notes?: string[]
+}
+
+/** 随资料提供的升级工具 / 辅助工具 */
+export type DownloadToolLink = {
+  name: string
+  fileUrl: string
+  size?: string
+  sizeBytes?: number
+  sha256?: string
+}
+
 export type DownloadItem = {
   id: string
   name: string
   category: string
   type: DownloadType
+  /** 品牌（光魂 / 极创） */
+  brand?: string
   /** 适用型号 id 列表（如 gh-54027x1qe）；通用资料用 ALL_MODELS 标记 */
   models: string[]
   /** 适用型号显示名（接口派生；前台展示优先使用） */
@@ -24,6 +46,14 @@ export type DownloadItem = {
   size: string
   date: string
   note: string
+  /** 原厂仅通过客服 / OTA 提供，暂无公开文件 */
+  csOnly?: boolean
+  /** 真实变更说明（只来自原厂公开内容） */
+  changelog?: DownloadChangelogEntry[]
+  /** 历史版本 */
+  history?: DownloadHistoryEntry[]
+  /** 对应型号的升级工具 */
+  tools?: DownloadToolLink[]
   /** 适用平台（运营维护，缺省不展示） */
   platform?: string
   /** 适用操作系统（比 platform 更细）；缺省回退 platform */
@@ -54,6 +84,7 @@ export function isDownloadable(item: { fileUrl?: string; fileStatus?: string }):
   return Boolean(item.fileUrl)
 }
 export const ALL_MODELS = 'all'
+export const DOWNLOAD_BRANDS = ['全部', '光魂', '极创']
 export const DOWNLOAD_CATEGORIES = ['全部', '软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边']
 export const DOWNLOAD_TYPES = ['全部', '说明书', '固件', '驱动', '软件', '调校配置']
 
@@ -72,24 +103,26 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: 'Center 显示器调校软件 · Windows 安装包',
     category: '软件',
     type: 'software',
+    brand: '光魂',
     models: [ALL_MODELS],
-    version: 'v1.3.3',
-    size: '4.5 MB',
-    date: '2026-11-04',
+    version: 'v1.3.4',
+    size: '4.56 MB',
+    date: '2026-11-12',
     note: '支持 Windows 10 / 11（64 位）',
     os: 'Windows 10 / 11（64 位）',
     platform: 'Windows',
-    releasedAt: '2026-11-04',
-    sizeBytes: 4713928,
+    releasedAt: '2026-11-12',
+    sizeBytes: 4777999,
     isLatest: true,
     checksumType: 'SHA-256',
-    fileUrl: '/uploads/Center-1.3.3-win64-setup.exe',
+    fileUrl: '/uploads/Center-1.3.4-win64-setup.exe',
   },
   {
     id: 'sdc-fw-tool',
     name: 'SDC 固件升级工具',
     category: '软件',
     type: 'firmware',
+    brand: '光魂',
     models: [ALL_MODELS],
     version: 'v1.6',
     size: '14.3 MB',
@@ -108,6 +141,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '极创固件升级工具',
     category: '软件',
     type: 'firmware',
+    brand: '光魂',
     models: ['gh-g27k180'],
     version: 'v1.0',
     size: '21.6 MB',
@@ -126,6 +160,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-W54 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-54027x1qe'],
     version: 'v1.0',
     size: '15.5 MB',
@@ -143,6 +178,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-W54 固件升级包',
     category: 'OLED 旗舰',
     type: 'firmware',
+    brand: '光魂',
     models: ['gh-54027x1qe'],
     version: '待上传',
     size: '待上传',
@@ -159,6 +195,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-W28 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-28027x1qe'],
     version: 'v1.0',
     size: '12.2 MB',
@@ -176,6 +213,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '32X1UE-W16 使用说明书',
     category: '双模高刷',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-32x1ue'],
     version: 'v1.0',
     size: '30.3 MB',
@@ -193,6 +231,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1UE-Q16 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1ue-q16'],
     version: 'v1.0',
     size: '24.6 MB',
@@ -210,6 +249,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '32X1UE-Q24 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-32x1ue-q24'],
     version: 'v1.0',
     size: '7.8 MB',
@@ -227,6 +267,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-Q32 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1qe-q32'],
     version: '待上传',
     size: '待上传',
@@ -244,6 +285,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-500 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1qe-500'],
     version: 'v1.1',
     size: '47.8 MB',
@@ -261,6 +303,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1UE-QD 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1ue-qd'],
     version: 'v1.0',
     size: '35.3 MB',
@@ -278,6 +321,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: 'G27K-180 使用说明书',
     category: '双模高刷',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-g27k180'],
     version: 'v1.0',
     size: '36.9 MB',
@@ -302,30 +346,6 @@ export type DownloadDetail = DownloadItem & {
   fileUrl?: string
 }
 
-/** 按类型给出变更日志与安装步骤模板，避免逐条重复 */
-const DOWNLOAD_CHANGELOG: Record<DownloadType, DownloadChangelogEntry[]> = {
-  driver: [
-    { version: 'v3.1.0', date: '2026-09-18', notes: ['新增按分辨率保存显示预设', '修复个别接口下偶发无信号'] },
-    { version: 'v3.0.4', date: '2026-07-02', notes: ['兼容新版 Center 界面', '优化显示器识别速度'] },
-  ],
-  firmware: [
-    { version: 'v1.8.2', date: '2026-08-30', notes: ['修复 DP 2.1 满速握手偶发降速', '优化 OSD 固件响应速度'] },
-    { version: 'v1.7.0', date: '2026-05-11', notes: ['提升高刷下的色彩稳定性'] },
-  ],
-  manual: [
-    { version: 'v1.3', date: '2026-07-20', notes: ['补充双模切换与 OSD 说明', '更新接口与支架示意'] },
-    { version: 'v1.2', date: '2026-04-10', notes: ['修正出厂色彩章节表述'] },
-  ],
-  software: [
-    { version: 'v2.4.1', date: '2026-09-20', notes: ['修复显示器休眠唤醒后偶发无信号', '优化色彩配置同步冲突提示'] },
-    { version: 'v2.4.0', date: '2026-08-28', notes: ['新增显示配置云同步，多台设备共用一套配置'] },
-  ],
-  calibration: [
-    { version: 'v2.1', date: '2026-09-12', notes: ['更新 sRGB / DCI-P3 双色彩配置', '修正暗部灰阶偏移'] },
-    { version: 'v2.0', date: '2026-06-18', notes: ['随新版固件同步出厂校准数据'] },
-  ],
-}
-
 const DOWNLOAD_INSTALL_STEPS: Record<DownloadType, string[]> = {
   driver: [
     '关闭其它显示调校软件',
@@ -344,25 +364,16 @@ const DOWNLOAD_INSTALL_STEPS: Record<DownloadType, string[]> = {
   calibration: ['下载对应型号的色彩配置文件（ICC）', '在系统「显示」设置中导入并指定该配置文件', '在 Center 中应用同一套显示预设后即可生效'],
 }
 
-/** 由 id 生成确定性的 64 位占位校验值，供界面展示校验字段结构（非真实摘要） */
-function placeholderSha(id: string): string {
-  let hex = ''
-  for (let i = 0; i < 64; i += 1) {
-    const code = id.charCodeAt(i % id.length) + i * 7
-    hex += (code % 16).toString(16)
-  }
-  return hex
-}
-
 /** 下载详情：命中返回详情，未命中返回 undefined（由接口层映射 404） */
 export function getDownloadDetail(id: string): DownloadDetail | undefined {
   const item = DOWNLOAD_ITEMS.find((entry) => entry.id === id)
   if (!item) return undefined
   return {
     ...item,
-    changelog: DOWNLOAD_CHANGELOG[item.type],
+    // 只展示真实录入的变更记录；没有就保持为空，不生成占位版本历史
+    changelog: item.changelog ?? [],
     installSteps: DOWNLOAD_INSTALL_STEPS[item.type],
-    sha256: placeholderSha(item.id),
+    sha256: item.sha256 ?? '',
   }
 }
 

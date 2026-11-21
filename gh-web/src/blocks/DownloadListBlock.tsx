@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SafeLink } from '../components/ui/SafeLink'
 import { fetchDownloads } from '../api/support-extra'
-import { ALL_MODELS, DOWNLOAD_TYPES, DOWNLOAD_TYPE_LABELS, isDownloadable } from '../data/support-extra'
+import { ALL_MODELS, DOWNLOAD_BRANDS, DOWNLOAD_TYPES, DOWNLOAD_TYPE_LABELS, isDownloadable } from '../data/support-extra'
 import { trackDownload } from '../lib/track'
 import { useApi } from '../hooks/useApi'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
@@ -80,6 +80,20 @@ const ENTRY_TABS = [
   { key: 'category' as const, label: '按产品线' },
 ]
 
+/** 品牌与待更新文案：旧数据没有 brand 时按光魂展示 */
+function brandOf(item: DownloadItem): string {
+  return item.brand || '光魂'
+}
+
+/** 缺版本 / 缺日期时统一显示占位，不编造数据 */
+function versionOf(item: DownloadItem): string {
+  return item.version?.trim() || '—'
+}
+
+function dateOf(item: DownloadItem): string {
+  return (item.releasedAt || item.date || '').trim() || '—'
+}
+
 /** 卡片视图：用途 / 适用型号 / 版本 / 大小 / 校验算法（下载中心默认视图） */
 function DownloadGrid({ items }: { items: DownloadItem[] }) {
   return (
@@ -91,8 +105,9 @@ function DownloadGrid({ items }: { items: DownloadItem[] }) {
           <article className={`dl-card dl-card--${item.type} reveal`} key={item.id}>
             <div className="dl-card__top">
               <span className={`dl-chip dl-chip--${item.type}`}>{DOWNLOAD_TYPE_LABELS[item.type]}</span>
+              <span className="tag">{brandOf(item)}</span>
               {item.isLatest && <span className="tag tag--accent">最新</span>}
-              <span className="dl-card__ver mono">{item.version}</span>
+              <span className="dl-card__ver mono">{versionOf(item)}</span>
             </div>
             <h3 className="dl-card__title">
               {/* PDF 直接打开原文；其它资料进详情页 */}
@@ -120,14 +135,16 @@ function DownloadGrid({ items }: { items: DownloadItem[] }) {
               </div>
               <div className="dl-kv">
                 <span className="dl-kv__k">更新</span>
-                <span className="dl-kv__v mono">{item.releasedAt ?? item.date}</span>
+                <span className="dl-kv__v mono">{dateOf(item)}</span>
               </div>
             </div>
             <div className="dl-card__foot">
               <span className="dl-card__sum" title={item.sha256 ?? undefined}>
-                {item.sha256
+                {downloadable && item.sha256
                   ? `${item.checksumType ?? 'SHA-256'} ${item.sha256.slice(0, 12)}…`
-                  : `${item.checksumType ?? 'SHA-256'} 校验`}
+                  : downloadable
+                    ? `${item.checksumType ?? 'SHA-256'} 校验`
+                    : '待更新'}
               </span>
               <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
                 <SafeLink className="btn btn--sm btn--secondary" to={`/downloads/${item.id}`}>
@@ -148,10 +165,10 @@ function DownloadGrid({ items }: { items: DownloadItem[] }) {
                   <span
                     className="btn btn--sm btn--ghost"
                     role="note"
-                    title="该资料正在整理中，可联系客服获取"
+                    title="该资料暂无公开文件，可联系客服获取"
                     style={{ opacity: 0.6, cursor: 'not-allowed' }}
                   >
-                    整理中
+                    待更新
                   </span>
                 )}
               </div>
@@ -238,6 +255,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   const readParam = (key: string) => ((showFilter || followDevice) ? params.get(key) ?? '全部' : '全部')
   const category = readParam('category')
   const type = readParam('type')
+  const brand = readParam('brand')
   const rawModel = readParam('model')
   const setParam = (key: string, option: string) => {
     const next = new URLSearchParams(params)
@@ -247,6 +265,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   }
   const setCategory = (option: string) => setParam('category', option)
   const setType = (option: string) => setParam('type', option)
+  const setBrand = (option: string) => setParam('brand', option)
   const setModel = (option: string) => setParam('model', option)
 
   const { data, loading, error } = useApi((signal) => fetchDownloads(signal), [reloadKey])
@@ -289,6 +308,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
       (!propCategory || item.category === propCategory) &&
       (model === '全部' || item.models.includes(model) || item.models.includes(ALL_MODELS)) &&
       (!showFilter || category === '全部' || item.category === category) &&
+      (!showFilter || brand === '全部' || brandOf(item) === brand) &&
       (!showFilter || type === '全部' || DOWNLOAD_TYPE_LABELS[item.type] === type) &&
       (!showFilter || matchesQuery(item)),
   )
@@ -299,7 +319,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
   const capped = limit > 0 ? filtered.slice(0, limit) : filtered
   // pageSize > 0 时启用分页（列表页），否则沿用 limit 截断（首页等策展区块）
   const pageSize = Math.max(0, asNumber(props.pageSize, 0))
-  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${propCategory}|${scope}|${category}|${type}|${model}`)
+  const { page, setPage, totalPages } = useBlockPager(capped.length, pageSize || 1, `${propCategory}|${scope}|${brand}|${category}|${type}|${model}`)
   const shown = pageSize > 0 ? capped.slice((page - 1) * pageSize, page * pageSize) : capped
 
   const resetFilters = () => {
@@ -307,6 +327,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
     const next = new URLSearchParams(params)
     next.delete('category')
     next.delete('type')
+    next.delete('brand')
     next.delete('model')
     setParams(next, { replace: true })
     setQuery('')
@@ -443,6 +464,9 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
               </div>
 
               <div className="dl-filters">
+                <div className="dl-brands">
+                  <FilterChips label="品牌" options={DOWNLOAD_BRANDS} value={brand} onChange={setBrand} />
+                </div>
                 <div className="dl-tabs" role="tablist" aria-label="筛选入口">
                   {ENTRY_TABS.map((tab) => (
                     <button
@@ -478,7 +502,7 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                 ) : (
                   <FilterChips label="产品线" options={data?.categories ?? []} value={category} onChange={setCategory} />
                 )}
-                {(model !== '全部' || type !== '全部' || category !== '全部' || query.trim()) && (
+                {(brand !== '全部' || model !== '全部' || type !== '全部' || category !== '全部' || query.trim()) && (
                   <button type="button" className="chip" onClick={resetFilters}>
                     清空筛选
                   </button>
@@ -567,9 +591,9 @@ export function DownloadListBlock({ props }: { props: Record<string, unknown> })
                       </td>
                       <td className="mono">{item.modelNames?.join(' / ') ?? item.models.join(' / ')}</td>
                       <td>{DOWNLOAD_TYPE_LABELS[item.type]}</td>
-                      <td className="mono">{item.version}</td>
+                      <td className="mono">{versionOf(item)}</td>
                       <td className="mono">{item.size}</td>
-                      <td className="mono">{item.date}</td>
+                      <td className="mono">{dateOf(item)}</td>
                       <td>
                         {showFilter ? (
                           <div className="row" style={{ gap: 'var(--gh-space-2)' }}>

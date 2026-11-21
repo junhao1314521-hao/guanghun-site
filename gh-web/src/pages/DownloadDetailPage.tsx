@@ -128,10 +128,10 @@ export function DownloadDetailPage() {
               <span
                 className="btn btn--primary"
                 role="note"
-                title="该资料正在整理中，可联系客服获取"
+                title="该资料暂无公开文件，可联系客服获取"
                 style={{ opacity: 0.6, cursor: 'not-allowed' }}
               >
-                资料整理中
+                待更新
               </span>
             )}
             <Link className="btn btn--secondary" to="/downloads">
@@ -165,16 +165,20 @@ export function DownloadDetailPage() {
               <div className="dl-meta__v">{DOWNLOAD_TYPE_LABELS[detail.type]}</div>
             </div>
             <div>
+              <div className="dl-meta__k">品牌</div>
+              <div className="dl-meta__v">{detail.brand || '光魂'}</div>
+            </div>
+            <div>
               <div className="dl-meta__k">版本</div>
-              <div className="dl-meta__v">{detail.version}</div>
+              <div className="dl-meta__v">{detail.version?.trim() || '—'}</div>
             </div>
             <div>
               <div className="dl-meta__k">大小</div>
-              <div className="dl-meta__v">{detail.size}</div>
+              <div className="dl-meta__v">{detail.size || '待更新'}</div>
             </div>
             <div>
               <div className="dl-meta__k">更新日期</div>
-              <div className="dl-meta__v">{detail.date}</div>
+              <div className="dl-meta__v">{(detail.releasedAt || detail.date || '').trim() || '—'}</div>
             </div>
             <div>
               <div className="dl-meta__k">适用型号</div>
@@ -204,7 +208,7 @@ export function DownloadDetailPage() {
                   color: 'var(--color-text-secondary)',
                 }}
               >
-                {detail.sha256 || '暂未提供'}
+                {detail.sha256 || '待更新'}
               </span>
               {detail.sha256 && (
                 <button
@@ -231,6 +235,89 @@ export function DownloadDetailPage() {
         </div>
       </div>
 
+      {(detail.history?.length || detail.tools?.length) ? (
+        <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
+          {detail.history?.length ? (
+            <section>
+              <h2 className="section__title" style={{ marginBottom: 'var(--gh-space-4)' }}>
+                历史版本
+              </h2>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>版本</th>
+                      <th>更新日期</th>
+                      <th>大小</th>
+                      <th>
+                        <span className="sr-only">操作</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detail.history.map((entry) => (
+                      <tr key={`${entry.version}-${entry.date}`}>
+                        <td className="mono">{entry.version}</td>
+                        <td className="mono">{entry.date || '—'}</td>
+                        <td className="mono">{entry.size || '—'}</td>
+                        <td>
+                          {entry.fileUrl ? (
+                            <a
+                              className="btn btn--sm btn--secondary"
+                              href={entry.fileUrl}
+                              download
+                              rel="noreferrer"
+                            >
+                              下载
+                            </a>
+                          ) : (
+                            <span className="muted">待更新</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
+
+          {detail.tools?.length ? (
+            <section style={{ marginTop: detail.history?.length ? 'var(--gh-space-7)' : 0 }}>
+              <h2 className="section__title" style={{ marginBottom: 'var(--gh-space-4)' }}>
+                升级工具
+              </h2>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>工具名称</th>
+                      <th>大小</th>
+                      <th>
+                        <span className="sr-only">操作</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detail.tools.map((tool) => (
+                      <tr key={`${tool.name}-${tool.fileUrl}`}>
+                        <td>{tool.name}</td>
+                        <td className="mono">{tool.size || '—'}</td>
+                        <td>
+                          <a className="btn btn--sm btn--secondary" href={tool.fileUrl} download rel="noreferrer">
+                            下载
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
         <h2 className="section__title" style={{ marginBottom: 'var(--gh-space-4)' }}>
           安装步骤
@@ -253,23 +340,44 @@ export function DownloadDetailPage() {
         </ol>
       </div>
 
-      <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
-        <h2 className="section__title" style={{ marginBottom: 'var(--gh-space-4)' }}>
-          更新日志
-        </h2>
-        <div className="news-list reveal">
-          {detail.changelog.map((entry) => (
-            <div className="news-row" key={entry.version}>
-              <span className="news-row__date">{entry.version}</span>
-              <span className="tag">{entry.date}</span>
-              <span className="news-row__title">{entry.notes.join('；')}</span>
-            </div>
-          ))}
+      {detail.changelog.length > 0 && (
+        <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
+          <h2 className="section__title" style={{ marginBottom: 'var(--gh-space-4)' }}>
+            更新日志
+          </h2>
+          <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-4)' }}>
+            {detail.changelog.map((entry) => (
+              <div className="card" key={entry.version}>
+                <div className="row" style={{ alignItems: 'center', gap: 'var(--gh-space-3)', marginBottom: 'var(--gh-space-3)' }}>
+                  <span className="mono" style={{ fontWeight: 'var(--gh-weight-semibold)' }}>
+                    {entry.version}
+                  </span>
+                  {entry.date && <span className="tag">{entry.date}</span>}
+                </div>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: 'var(--gh-space-5)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 'var(--gh-space-2)',
+                    color: 'var(--color-text-secondary)',
+                    fontSize: 'var(--gh-font-size-body-sm)',
+                    lineHeight: 'var(--gh-line-height-body)',
+                  }}
+                >
+                  {entry.notes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="field__hint" style={{ marginTop: 'var(--gh-space-3)' }}>
+            版本号与变更内容以官方最终公布为准。
+          </p>
         </div>
-        <p className="field__hint" style={{ marginTop: 'var(--gh-space-3)' }}>
-          版本号与变更内容以官方最终公布为准。
-        </p>
-      </div>
+      )}
 
       <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
         <div

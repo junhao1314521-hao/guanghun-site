@@ -14,11 +14,33 @@
  */
 export type DownloadType = 'manual' | 'firmware' | 'driver' | 'software' | 'calibration'
 
+/** 历史版本条目（原厂发布过的旧版本；仅收录真实存在的文件与日期） */
+export type DownloadHistoryEntry = {
+  version: string
+  date: string
+  size?: string
+  sizeBytes?: number
+  fileUrl: string
+  sha256?: string
+  notes?: string[]
+}
+
+/** 随资料提供的升级工具 / 辅助工具 */
+export type DownloadToolLink = {
+  name: string
+  fileUrl: string
+  size?: string
+  sizeBytes?: number
+  sha256?: string
+}
+
 export type DownloadItem = {
   id: string
   name: string
   category: string
   type: DownloadType
+  /** 品牌（光魂 / 极创）；用于下载中心品牌分区，缺省视为光魂 */
+  brand?: string
   /** 适用型号 id 列表（如 gh-54027x1qe）；通用资料用 ALL_MODELS 标记 */
   models: string[]
   /** 适用型号显示名（接口按 models 派生，只读；前台展示优先使用） */
@@ -27,6 +49,11 @@ export type DownloadItem = {
   size: string
   date: string
   note: string
+  /**
+   * 原厂仅通过客服 / OTA 提供，暂无公开文件。
+   * 前台统一显示「待更新」，并补充说明可联系客服获取，不渲染下载按钮。
+   */
+  csOnly?: boolean
   /** 适用平台（如 Windows 10 / 11、macOS 12+）；运营维护，缺省不展示 */
   platform?: string
   /** 适用操作系统（比 platform 更细，如「Windows 11 / macOS 14」）；缺省回退 platform */
@@ -43,12 +70,21 @@ export type DownloadItem = {
   sha256?: string
   /** 被本版本替代的旧版本 id（版本链路，预留） */
   supersedes?: string
+  /** 真实变更说明（仅录入原厂公开内容，不做模板填充） */
+  changelog?: DownloadChangelogEntry[]
+  /** 历史版本（原厂发布过的旧版本） */
+  history?: DownloadHistoryEntry[]
+  /** 对应型号的升级工具 */
+  tools?: DownloadToolLink[]
   /**
    * 文件地址（`GET /api/downloads/:id` 返回）。
    * 可为 `/uploads/<文件名>`（本服务素材库）或外部/对象存储占位地址；上线前由运营替换为真实地址。
    */
   fileUrl: string
 }
+
+/** 品牌筛选项（首项「全部」表示不筛选） */
+export const DOWNLOAD_BRANDS = ['全部', '光魂', '极创']
 
 /** 类别与类型筛选项（首项「全部」表示不筛选）；均作为下载中心 chip 的选项来源 */
 export const ALL_MODELS = 'all'
@@ -84,24 +120,26 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: 'Center 显示器调校软件 · Windows 安装包',
     category: '软件',
     type: 'software',
+    brand: '光魂',
     models: [ALL_MODELS],
-    version: 'v1.3.3',
-    size: '4.5 MB',
-    date: '2026-11-04',
+    version: 'v1.3.4',
+    size: '4.56 MB',
+    date: '2026-11-12',
     note: '支持 Windows 10 / 11（64 位）',
     os: 'Windows 10 / 11（64 位）',
     platform: 'Windows',
-    releasedAt: '2026-11-04',
-    sizeBytes: 4713928,
+    releasedAt: '2026-11-12',
+    sizeBytes: 4777999,
     isLatest: true,
     checksumType: 'SHA-256',
-    fileUrl: '/uploads/Center-1.3.3-win64-setup.exe',
+    fileUrl: '/uploads/Center-1.3.4-win64-setup.exe',
   },
   {
     id: 'sdc-fw-tool',
     name: 'SDC 固件升级工具',
     category: '软件',
     type: 'firmware',
+    brand: '光魂',
     models: [ALL_MODELS],
     version: 'v1.6',
     size: '14.3 MB',
@@ -120,6 +158,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '极创固件升级工具',
     category: '软件',
     type: 'firmware',
+    brand: '光魂',
     models: ['gh-g27k180'],
     version: 'v1.0',
     size: '21.6 MB',
@@ -138,6 +177,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-W54 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-54027x1qe'],
     version: 'v1.0',
     size: '15.5 MB',
@@ -155,6 +195,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-W54 固件升级包',
     category: 'OLED 旗舰',
     type: 'firmware',
+    brand: '光魂',
     models: ['gh-54027x1qe'],
     version: '待上传',
     size: '待上传',
@@ -171,6 +212,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-W28 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-28027x1qe'],
     version: 'v1.0',
     size: '12.2 MB',
@@ -188,6 +230,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '32X1UE-W16 使用说明书',
     category: '双模高刷',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-32x1ue'],
     version: 'v1.0',
     size: '30.3 MB',
@@ -205,6 +248,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1UE-Q16 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1ue-q16'],
     version: 'v1.0',
     size: '24.6 MB',
@@ -222,6 +266,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '32X1UE-Q24 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-32x1ue-q24'],
     version: 'v1.0',
     size: '7.8 MB',
@@ -239,6 +284,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-Q32 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1qe-q32'],
     version: '待上传',
     size: '待上传',
@@ -256,6 +302,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1QE-500 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1qe-500'],
     version: 'v1.1',
     size: '47.8 MB',
@@ -273,6 +320,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: '27X1UE-QD 使用说明书',
     category: 'OLED 旗舰',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-27x1ue-qd'],
     version: 'v1.0',
     size: '35.3 MB',
@@ -290,6 +338,7 @@ export const DOWNLOAD_ITEMS: DownloadItem[] = [
     name: 'G27K-180 使用说明书',
     category: '双模高刷',
     type: 'manual',
+    brand: '光魂',
     models: ['gh-g27k180'],
     version: 'v1.0',
     size: '36.9 MB',
@@ -312,30 +361,7 @@ export type DownloadDetail = DownloadItem & {
   sha256: string
 }
 
-/** 按类型给出变更日志与安装步骤模板，避免逐条重复 */
-const DOWNLOAD_CHANGELOG: Record<DownloadType, DownloadChangelogEntry[]> = {
-  driver: [
-    { version: 'v3.1.0', date: '2026-09-18', notes: ['新增按分辨率保存显示预设', '修复个别接口下偶发无信号'] },
-    { version: 'v3.0.4', date: '2026-07-02', notes: ['兼容新版 Center 界面', '优化显示器识别速度'] },
-  ],
-  firmware: [
-    { version: 'v1.8.2', date: '2026-08-30', notes: ['修复 DP 2.1 满速握手偶发降速', '优化 OSD 固件响应速度'] },
-    { version: 'v1.7.0', date: '2026-05-11', notes: ['提升高刷下的色彩稳定性'] },
-  ],
-  manual: [
-    { version: 'v1.3', date: '2026-07-20', notes: ['补充双模切换与 OSD 说明', '更新接口与支架示意'] },
-    { version: 'v1.2', date: '2026-04-10', notes: ['修正出厂色彩章节表述'] },
-  ],
-  software: [
-    { version: 'v2.4.1', date: '2026-09-20', notes: ['修复显示器休眠唤醒后偶发无信号', '优化色彩配置同步冲突提示'] },
-    { version: 'v2.4.0', date: '2026-08-28', notes: ['新增显示配置云同步，多台设备共用一套配置'] },
-  ],
-  calibration: [
-    { version: 'v2.1', date: '2026-09-12', notes: ['更新 sRGB / DCI-P3 双色彩配置', '修正暗部灰阶偏移'] },
-    { version: 'v2.0', date: '2026-06-18', notes: ['随新版固件同步出厂校准数据'] },
-  ],
-}
-
+/** 按类型给出安装 / 使用步骤（通用操作指引，不代表版本历史） */
 const DOWNLOAD_INSTALL_STEPS: Record<DownloadType, string[]> = {
   driver: [
     '关闭其它显示调校软件',
@@ -360,7 +386,8 @@ export function getDownloadDetail(downloads: DownloadItem[], id: string): Downlo
   if (!item) return undefined
   return {
     ...item,
-    changelog: DOWNLOAD_CHANGELOG[item.type],
+    // 只展示原厂公开的真实变更记录；没有录入时保持为空，避免编造版本历史
+    changelog: item.changelog ?? [],
     installSteps: DOWNLOAD_INSTALL_STEPS[item.type],
     // 真实摘要由调用方（/api/downloads 列表）计算并注入；外链或缺失文件为空，不做伪造
     sha256: item.sha256 ?? '',

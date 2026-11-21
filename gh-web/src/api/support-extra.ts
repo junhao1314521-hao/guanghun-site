@@ -23,6 +23,16 @@ import type {
 
 export type DownloadsPayload = { items: DownloadItem[]; categories: string[]; types: string[] }
 export type FaqPayload = { items: FaqItem[]; categories: string[] }
+
+/** 下载记录里除主文件外，历史版本与工具也带 fileUrl，一并走同一套白名单 */
+function sanitizeDownload<T extends DownloadItem>(item: T): T {
+  const next = sanitizeFileUrl(item)
+  return {
+    ...next,
+    history: next.history?.map((entry) => sanitizeFileUrl(entry)),
+    tools: next.tools?.map((tool) => sanitizeFileUrl(tool)),
+  }
+}
 /** 咨询表单载荷；captchaToken/captchaCode 为反垃圾验证码，website 为蜜罐字段（真人留空） */
 export type InquiryBody = {
   name: string
@@ -46,7 +56,7 @@ export function fetchDownloads(signal?: AbortSignal): Promise<DownloadsPayload> 
     items: DOWNLOAD_ITEMS,
     categories: DOWNLOAD_CATEGORIES,
     types: DOWNLOAD_TYPES,
-  })).then((res) => ({ ...res, items: res.items.map(sanitizeFileUrl) }))
+  })).then((res) => ({ ...res, items: res.items.map(sanitizeDownload) }))
 }
 
 /** 下载详情：按 id 查询，未命中抛 404 供页面区分「不存在」 */
@@ -55,7 +65,7 @@ export function fetchDownload(id: string, signal?: AbortSignal): Promise<Downloa
     const detail = getDownloadDetail(id)
     if (!detail) throw new ApiError('未找到该资料', 404)
     return detail
-  }).then(sanitizeFileUrl)
+  }).then(sanitizeDownload)
 }
 
 /** 常见问题列表：一次返回全部问答与类别筛选项 */

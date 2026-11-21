@@ -2390,6 +2390,9 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .dl-recognized b { font-weight: var(--gh-weight-semibold); }
 .dl-view { display: inline-flex; gap: 6px; }
 .dl-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-3); margin-bottom: var(--gh-space-5); }
+/* 品牌分区：移动端独占一行，桌面端与其它筛选项同行 */
+.dl-brands { flex: 1 1 100%; }
+@media (min-width: 900px) { .dl-brands { flex: 0 0 auto; } }
 /* 移动端：型号筛选默认收起为两行，避免筛选区占满首屏 */
 .dl-models__more { display: none; }
 @media (max-width: 640px) {

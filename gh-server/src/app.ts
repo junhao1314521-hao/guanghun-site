@@ -11,7 +11,8 @@ import { syncMediaMeta } from './data/mediaStore'
 import { hiddenUploadIds } from './data/trashStore'
 import { startScheduler } from './data/publishScheduler'
 import { getCollectionItem } from './data/collectionStore'
-import { renderIndexHtml } from './lib/seoHead'
+import { renderIndexHtml, renderStaticHtml } from './lib/seoHead'
+import { getBrandProfile } from './data/brand'
 import { legacyRedirectFor } from './lib/legacyRedirects'
 import { registerRoutes } from './routes'
 
@@ -253,29 +254,38 @@ export function createApp(): Express {
         },
       }),
     )
-    // Center 页面按 v2 稿原样托管：独立静态页，不走 SPA 渲染
-    app.get('/center', (_req: Request, res: Response) => {
+    // Center 页面按 v2 稿原样托管：独立静态页，不走 SPA 渲染。
+    // 仅在服务时注入 canonical / robots / OG，不改动页面结构与样式。
+    const originOf = (req: Request) =>
+      (process.env.SITE_ORIGIN ?? '').trim().replace(/\/+$/, '') ||
+      `${req.protocol}://${req.get('host') ?? ''}`
+    app.get('/center', (req: Request, res: Response) => {
       res.setHeader('Cache-Control', 'no-cache')
-      res.sendFile(path.join(staticDir, 'demo/center-v2.html'))
+      res.type('html').send(renderStaticHtml(path.join(staticDir, 'demo/center-v2.html'), '/center', originOf(req)))
     })
     // Center 的两个新叙事原型：解剖（结构）与光场（场景），独立静态页，暂不进导航
-    app.get('/center/anatomy', (_req: Request, res: Response) => {
+    app.get('/center/anatomy', (req: Request, res: Response) => {
       res.setHeader('Cache-Control', 'no-cache')
-      res.sendFile(path.join(staticDir, 'demo/center-anatomy.html'))
+      res.type('html').send(renderStaticHtml(path.join(staticDir, 'demo/center-anatomy.html'), '/center/anatomy', originOf(req)))
     })
-    app.get('/center/light', (_req: Request, res: Response) => {
+    app.get('/center/light', (req: Request, res: Response) => {
       res.setHeader('Cache-Control', 'no-cache')
-      res.sendFile(path.join(staticDir, 'demo/center-light.html'))
+      res.type('html').send(renderStaticHtml(path.join(staticDir, 'demo/center-light.html'), '/center/light', originOf(req)))
     })
     // SPA 回退：仅业务页面回退到 index.html；静态资源前缀未命中时直接 404，
     // 避免 /uploads、/media 等缺失文件被误判为 200 HTML（会让下载看起来成功）。
     app.get(
-      /^\/(?!api(\/|$)|healthz(\/|$)|uploads(\/|$)|assets(\/|$)|media(\/|$)|posters(\/|$)|brand(\/|$)|fonts(\/|$)|shots(\/|$)|favicon\.png$|icons\.svg$|robots\.txt$|sitemap\.xml$).*/,
+      /^\/(?!api(\/|$)|healthz(\/|$)|uploads(\/|$)|assets(\/|$)|media(\/|$)|posters(\/|$)|fonts(\/|$)|shots(\/|$)|favicon\.png$|icons\.svg$|robots\.txt$|sitemap\.xml$).*/,
       (req: Request, res: Response, next: NextFunction) => {
         if (!req.accepts('html')) return next()
         // 详情页实体不存在时返回 404 状态（页面仍由 SPA 渲染“未找到”空态），
         // 避免软 404 被搜索引擎当成有效页面收录。
         const cleanPath = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path
+        // /brand 既承载品牌页（/brand/:slug），也承载静态素材（/brand/*.svg|png）。
+        // 带扩展名的未命中素材直接 404，避免回退成 200 HTML。
+        if (/^\/brand\/[^/]+\.[a-z0-9]+$/i.test(cleanPath)) return next()
+        const brandMatch = /^\/brand\/([^/]+)$/.exec(cleanPath)
+        if (brandMatch && !getBrandProfile(decodeURIComponent(brandMatch[1]))) res.status(404)
         for (const route of DETAIL_ROUTES) {
           const matched = route.pattern.exec(cleanPath)
           if (!matched) continue
