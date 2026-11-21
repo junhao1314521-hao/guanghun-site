@@ -1,0 +1,49 @@
+# 光魂官网 · 持续集成
+# 每次 push / PR 自动跑：服务端类型检查与测试、前端类型检查与测试、生产构建。
+# 说明：服务端依赖 Node 22.5+ 的 node:sqlite，故固定 Node 22。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: 服务端 · typecheck + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gh-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: gh-server/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+
+  web:
+    name: 前端 · typecheck + test + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gh-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: gh-web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsc -b --pretty false
+      - run: npm test
+      - run: npm run build:prod
