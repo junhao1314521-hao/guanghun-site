@@ -84,6 +84,8 @@ export function PageView({ pageKey, blockDefaults, hideSeoTitle }: Props) {
   // 不再回退 page.description，那是装修用的内部说明，不能作为搜索摘要）
   useLayoutEffect(() => {
     if (!page) return
+    // 后台已下线的页面不参与索引；路由切走后由页面壳层重新写回 index,follow
+    if (page.enabled === false) upsertMeta('name', 'robots', 'noindex,follow')
     const title = page.seoTitle?.trim()
     const description = page.seoDescription?.trim()
     if (!title && !description) return

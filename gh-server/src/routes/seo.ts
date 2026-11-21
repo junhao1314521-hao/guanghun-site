@@ -52,8 +52,11 @@ function collectSitemapPaths(): string[] {
     paths.push(p)
   }
 
-  // 1) 内容库页面路径
-  for (const page of listPages()) add(page.path)
+  // 1) 内容库页面路径（后台已下线的页面不收录，避免 sitemap 指向空态页）
+  for (const page of listPages()) {
+    if (page.enabled === false) continue
+    add(page.path)
+  }
   // 2) 静态营销页（不在内容库中，但可收录）
   add('/wallpapers')
   // 3) 法律页（静态文档）

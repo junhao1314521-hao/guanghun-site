@@ -12,6 +12,7 @@ import { useApi } from '../hooks/useApi'
 import { useDetailSeo } from '../hooks/useDetailSeo'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { useSitePages } from '../hooks/useSitePages'
 
 /** 详情加载骨架：沿用「封面 + 正文卡」的分栏，避免数据到位时布局跳动 */
 function ArticleDetailSkeleton() {
@@ -44,6 +45,9 @@ export function ArticleDetailPage() {
   useHomeEffects(rootRef, readyKey)
 
   const notFound = error instanceof ApiError && error.status === 404
+  // 文章列表页可能被后台下线：此时不再指向死链，返回入口降级为首页
+  const { isPathLive } = useSitePages()
+  const listLive = isPathLive('/articles')
 
   // 富文本正文：存原文、渲染时白名单净化（见 blocks/sanitize.ts）；无 body 时回退到小节展示
   const bodyHtml = useMemo(() => (article?.body ? sanitizeRichText(article.body) : ''), [article])
@@ -88,7 +92,7 @@ export function ArticleDetailPage() {
         <nav className="breadcrumb" aria-label="面包屑">
           <Link to="/">首页</Link>
           <span>/</span>
-          <Link to="/articles">文章</Link>
+          {listLive ? <Link to="/articles">文章</Link> : <span>文章</span>}
           {article && (
             <>
               <span>/</span>
@@ -148,10 +152,16 @@ export function ArticleDetailPage() {
           <div className="container" style={{ paddingBottom: 'var(--gh-space-9)' }}>
             <div className="empty">
               <div className="empty__title">未找到该文章</div>
-              <p className="empty__desc">链接可能已失效或该文章已下线，返回文章列表重新选择。</p>
-              <Link className="btn btn--secondary btn--sm" to="/articles">
-                返回文章列表
-              </Link>
+              <p className="empty__desc">链接可能已失效或该文章已下线，返回继续浏览。</p>
+              {listLive ? (
+                <Link className="btn btn--secondary btn--sm" to="/articles">
+                  返回文章列表
+                </Link>
+              ) : (
+                <Link className="btn btn--secondary btn--sm" to="/">
+                  返回首页
+                </Link>
+              )}
             </div>
           </div>
         ) : (
