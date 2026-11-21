@@ -36,3 +36,12 @@ gh-server/*.sqlite-*
 
 # 部署私钥（持久工作区；仅本机使用，切勿提交）
 .ssh/
+
+# 过程资料与内部交付稿（保留在本地，不入库）
+/.tmp_pages/
+/.trae-attachments/
+/guanghun-manual/
+/验收证据/
+/*方案.html
+/光魂Center-软件介绍.html
+/*白底图*标注.png
