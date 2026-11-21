@@ -11,7 +11,8 @@ import { syncMediaMeta } from './data/mediaStore'
 import { hiddenUploadIds } from './data/trashStore'
 import { startScheduler } from './data/publishScheduler'
 import { getCollectionItem } from './data/collectionStore'
-import { renderIndexHtml, renderStaticHtml } from './lib/seoHead'
+import { getSiteConfig } from './data/contentStore'
+import { injectBootstrap, renderIndexHtml, renderStaticHtml } from './lib/seoHead'
 import { getBrandProfile } from './data/brand'
 import { legacyRedirectFor } from './lib/legacyRedirects'
 import { registerRoutes } from './routes'
@@ -25,6 +26,20 @@ const DETAIL_ROUTES: Array<{ pattern: RegExp; key: 'products' | 'downloads' | 'f
   { pattern: /^\/business\/cases\/([^/]+)$/, key: 'biz-cases' },
   { pattern: /^\/business\/venues\/([^/]+)$/, key: 'biz-venues' },
 ]
+
+/**
+ * 首屏启动数据：当前只带「此刻有效的公告条」。
+ * 判定条件与前台 `useSiteAnnouncement` 一致（启用 / 有文案 / 在时间窗内），
+ * 避免服务端注入的公告条挂载后立刻被隐藏，反而造成新的位移。
+ */
+function siteBootstrap(): { announcement: { text: string; href?: string; dismissible?: boolean } | null } {
+  const a = getSiteConfig().announcement
+  if (!a || !a.enabled || !a.text) return { announcement: null }
+  const now = Date.now()
+  if (a.startAt && Date.parse(a.startAt) > now) return { announcement: null }
+  if (a.endAt && Date.parse(a.endAt) < now) return { announcement: null }
+  return { announcement: { text: a.text, href: a.href, dismissible: a.dismissible } }
+}
 
 /**
  * 构建 Express 应用。
@@ -299,7 +314,7 @@ export function createApp(): Express {
         const origin =
           (process.env.SITE_ORIGIN ?? '').trim().replace(/\/+$/, '') ||
           `${req.protocol}://${req.get('host') ?? ''}`
-        res.type('html').send(renderIndexHtml(indexFile, cleanPath, origin))
+        res.type('html').send(injectBootstrap(renderIndexHtml(indexFile, cleanPath, origin), siteBootstrap()))
       },
     )
     logger.info('已启用前端静态托管', { staticDir })

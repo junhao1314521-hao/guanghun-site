@@ -302,3 +302,18 @@ export function renderIndexHtml(indexFile: string, pathname: string, origin: str
 export function renderStaticHtml(file: string, pathname: string, origin: string): string {
   return injectHead(readCached(file), pathname, origin)
 }
+
+/**
+ * 注入首屏启动数据（当前用于公告条）：
+ * 公告条由站点配置异步到达后插入，会把下方内容整体下移 36px（CLS）。服务端把「当前有效的公告」
+ * 作为同步可用的 `window.__GH_BOOTSTRAP__` 写进 HTML，React 首帧即可渲染出公告条，
+ * 配置请求返回后只做一次同值确认，不再发生插入位移。
+ *
+ * 放在 `</body>` 前：内联脚本先执行，模块脚本随后挂载时数据已就绪。
+ */
+export function injectBootstrap(html: string, data: unknown): string {
+  if (!html.includes('</body>')) return html
+  // `</script>` 注入防护：JSON 里的 `<` 统一转义
+  const json = JSON.stringify(data).replace(/</g, '\\u003c')
+  return html.replace(/<\/body>/i, `<script>window.__GH_BOOTSTRAP__=${json}</script></body>`)
+}

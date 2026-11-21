@@ -77,6 +77,16 @@ function announceDismissKey(text: string): string {
   return `gh-announce-dismissed:${text.slice(0, 60)}`
 }
 
+/** 读取某条公告是否已被用户关闭（首帧同步可用，避免先渲染再隐藏造成位移） */
+function isAnnounceDismissed(announcement: SiteAnnouncement | null): boolean {
+  if (!announcement) return false
+  try {
+    return localStorage.getItem(announceDismissKey(announcement.text)) === '1'
+  } catch {
+    return false
+  }
+}
+
 /**
  * 顶栏「商城」入口：已按客户要求从右侧操作区并入中间导航区（.site-navzone 内、一级导航最后一项之后）。
  * - 形态与一级导航项同一套文字风格：购物袋图标（18px）+「商城」文字，无品牌色实底块；
@@ -265,17 +275,10 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
   // 公告条（后台可配、可定时、可关闭）+ 顶栏 CTA（购买 / 预约体验）
   const announcement = useSiteAnnouncement()
   const topCta = useTopCta()
-  const [announceDismissed, setAnnounceDismissed] = useState(false)
+  // 首帧就要知道「是否已关闭」：否则公告条先渲染再隐藏，同样会产生位移（CLS）
+  const [announceDismissed, setAnnounceDismissed] = useState(() => isAnnounceDismissed(announcement))
   useEffect(() => {
-    if (!announcement) {
-      setAnnounceDismissed(false)
-      return
-    }
-    try {
-      setAnnounceDismissed(localStorage.getItem(announceDismissKey(announcement.text)) === '1')
-    } catch {
-      setAnnounceDismissed(false)
-    }
+    setAnnounceDismissed(isAnnounceDismissed(announcement))
   }, [announcement])
   const dismissAnnounce = () => {
     if (!announcement) return

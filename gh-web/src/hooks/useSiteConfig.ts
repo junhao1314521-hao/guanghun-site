@@ -13,6 +13,7 @@ import type {
 } from '../data/contentTypes'
 import { NAV_ITEMS, type NavItem } from '../data/nav'
 import { FALLBACK_SHOP_CHANNELS, FOOTER_GROUPS, orderShopChannels } from '../data/site'
+import { readSiteBootstrap } from '../lib/bootstrap'
 import { useApi } from './useApi'
 import { useSitePages } from './useSitePages'
 
@@ -117,7 +118,13 @@ const FALLBACK_AUTH: SiteAuthConfig = { captcha: true, thirdParty: false }
 export function useSiteAnnouncement(): SiteAnnouncement | null {
   const site = useSiteConfig()
   return useMemo(() => {
-    const a = site?.announcement
+    // 配置未到达时先用服务端注入的公告（首帧就有，避免公告条插入造成 CLS）；到达后以后台配置为准
+    const booted = site ? null : readSiteBootstrap()?.announcement
+    const a: SiteAnnouncement | null = site
+      ? (site.announcement ?? null)
+      : booted
+        ? { ...booted, enabled: true }
+        : null
     if (!a || !a.enabled || !a.text) return null
     const now = Date.now()
     if (a.startAt && Date.parse(a.startAt) > now) return null

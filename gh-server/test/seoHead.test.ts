@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
-import { renderIndexHtml, resolveHead } from '../src/lib/seoHead'
+import { renderIndexHtml, resolveHead, injectBootstrap } from '../src/lib/seoHead'
 
 const tmpDir = path.join(os.tmpdir(), `gh-seo-head-${process.pid}`)
 process.env.DB_PATH = path.join(tmpDir, 'gh.sqlite')
@@ -64,5 +64,27 @@ describe('服务端 SEO 头部', () => {
     assert.ok(!html.includes('www.guanghun.example'))
     assert.equal((html.match(/property="og:title"/g) ?? []).length, 1)
     assert.ok(html.includes('noindex') === false)
+  })
+})
+
+describe('首屏启动数据注入（公告条防 CLS）', () => {
+  it('以普通内联脚本注入到 </body> 前（模块脚本是延迟执行，首帧前已就绪）', () => {
+    const html = injectBootstrap('<html><body><div id="root"></div><script type="module" src="/a.js"></script></body></html>', {
+      announcement: { text: '测试公告' },
+    })
+    assert.ok(/<script>window\.__GH_BOOTSTRAP__=\{"announcement":\{"text":"测试公告"\}\}<\/script><\/body>/.test(html))
+  })
+
+  it('公告文案里的标签被转义，不会提前闭合脚本', () => {
+    const html = injectBootstrap('<html><body></body></html>', {
+      announcement: { text: '</script><img src=x onerror=alert(1)>' },
+    })
+    assert.ok(!html.includes('</script><img'))
+    assert.ok(html.includes('\\u003c/script>'))
+  })
+
+  it('没有 body 的模板原样返回', () => {
+    const raw = '<html><head></head></html>'
+    assert.equal(injectBootstrap(raw, { announcement: null }), raw)
   })
 })
