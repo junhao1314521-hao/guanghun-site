@@ -58,7 +58,7 @@ const INQUIRY_CONTACTS: string[] = [
 ]
 
 /** 与 ACCOUNT_TICKETS 顺序一一对应的型号（占位） */
-const INQUIRY_MODELS_LIST: string[] = ['54027X1QE-W54', '54027X1QE-W54', '32X1UE-W16', '27Q1F']
+const INQUIRY_MODELS_LIST: string[] = ['27X1QE-W54', '27X1QE-W54', '32X1UE-W16', '27Q1F']
 
 /** 与 ACCOUNT_TICKETS 顺序一一对应的问题描述（占位） */
 const INQUIRY_MESSAGES: string[] = [
@@ -106,8 +106,8 @@ export type InquiryDetail = {
 
 /** 各工单对应的产品型号 */
 const INQUIRY_MODELS: Record<string, string> = {
-  'inq-2026-0008': '54027X1QE-W54',
-  'inq-2026-0007': '54027X1QE-W54',
+  'inq-2026-0008': '27X1QE-W54',
+  'inq-2026-0007': '27X1QE-W54',
   'inq-2026-0006': '32X1UE-W16',
   'inq-2026-0005': '27Q1F',
 }

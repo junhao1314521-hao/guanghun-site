@@ -193,8 +193,8 @@ const ARTICLES_EN: Record<string, Overlay> = {
 
 const DOWNLOADS_EN: Record<string, Overlay> = {
   'center-win': { name: 'Center monitor tuning software · Windows installer', note: 'Supports Windows 10 / 11 (64-bit)' },
-  'gh-54027x1qe-firmware': { name: '54027X1QE-W54 firmware update', note: 'Improves full-speed DP 2.1 handshake and HDR tuning' },
-  'gh-54027x1qe-icc': { name: '54027X1QE-W54 color profile (ICC)', note: 'Includes sRGB / DCI-P3 profiles' },
+  'gh-54027x1qe-firmware': { name: '27X1QE-W54 firmware update', note: 'Improves full-speed DP 2.1 handshake and HDR tuning' },
+  'gh-54027x1qe-icc': { name: '27X1QE-W54 color profile (ICC)', note: 'Includes sRGB / DCI-P3 profiles' },
   'gh-32x1ue-driver': { name: '32X1UE-W16 driver (INF)', note: 'Includes dual-mode switching and color profile registration' },
   'gh-32x1ue-manual': { name: '32X1UE-W16 user manual', note: 'Covers dual-mode switching and the OSD menu' },
 }

@@ -120,7 +120,7 @@ const EXT_MIME: Record<string, string[]> = {
   zip: ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip', OCTET],
   rar: ['application/vnd.rar', 'application/x-rar-compressed', 'application/x-rar', OCTET],
   '7z': ['application/x-7z-compressed', OCTET],
-  // 二进制 · 固件包（显示器固件升级包，如 54027X1QE 的 .bin）。
+  // 二进制 · 固件包（显示器固件升级包，如 27X1QE 的 .bin）。
   // 浏览器不会执行 .bin（非「可内联执行」类，与 zip / rar 同档风险），故与压缩包一并放行。
   bin: [OCTET, 'application/x-binary', 'application/macbinary'],
   // 安装包（站内托管）：客户端安装包需支持官网直接下载，故纳入白名单。

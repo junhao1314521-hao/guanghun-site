@@ -371,7 +371,7 @@ export type ProductDetail = {
 export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
   'gh-54027x1qe': {
     id: 'gh-54027x1qe',
-    model: '54027X1QE-W54',
+    model: '27X1QE-W54',
     name: '闪电 540Hz 电竞OLED显示器',
     badges: ['旗舰', 'W-OLED · DP 2.1'],
     status: { level: 'success', text: '在售' },
@@ -409,7 +409,7 @@ const STATUS_EN: Record<string, string> = { 在售: 'In stock', 缺货: 'Out of 
 export const PRODUCT_DETAILS_EN: Record<string, ProductDetail> = {
   'gh-54027x1qe': {
     id: 'gh-54027x1qe',
-    model: '54027X1QE-W54',
+    model: '27X1QE-W54',
     name: 'Lightning 540Hz OLED Gaming Monitor',
     badges: ['Flagship', 'W-OLED · DP 2.1'],
     status: { level: 'success', text: 'In stock' },

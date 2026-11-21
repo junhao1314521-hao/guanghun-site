@@ -50,7 +50,7 @@ export const SITE_EN: NonNullable<SiteConfig['en']> = {
   // 公告条与顶栏 CTA 的英文文案：不配则英文语境下不展示（不以中文冒充英文）
   announcement: {
     enabled: true,
-    text: '54027X1QE — 4th-gen W-OLED flagship now shipping · Book an in-store demo',
+    text: '27X1QE — 4th-gen W-OLED flagship now shipping · Book an in-store demo',
     href: '/business/venues',
     dismissible: true,
   },
@@ -152,11 +152,11 @@ function buildHomeEn(): Page {
       props: {
         eyebrow: 'FLAGSHIP / 26.5" 2K@540Hz',
         eyebrowEnabled: false,
-        title: ['54027X1QE Standard'],
+        title: ['27X1QE Standard'],
         subtitle: 'A masterclass in restraint',
         media: '/media/home/showcase/poster-1.jpg',
         mediaType: 'image',
-        mediaTag: '54027X1QE key visual',
+        mediaTag: '27X1QE key visual',
         primary: { label: 'Buy now', href: '/products/gh-54027x1qe' },
         contentPosition: { x: 50, y: 16 },
         height: 'r219',
@@ -184,11 +184,11 @@ function buildHomeEn(): Page {
       props: {
         eyebrow: 'BEST SELLER / 26.5" 2K@280Hz',
         eyebrowEnabled: false,
-        title: ['28027X1QE Best seller'],
+        title: ['27X1QE Best seller'],
         subtitle: '1500 nit peak brightness, value flagship',
         media: '/media/home/showcase/gh-28027x1qe.jpg',
         mediaType: 'image',
-        mediaTag: '28027X1QE key visual',
+        mediaTag: '27X1QE key visual',
         primary: { label: 'Buy now', href: '/products/gh-28027x1qe' },
         contentPosition: { x: 50, y: 16 },
         height: 'r219',
@@ -291,9 +291,9 @@ function buildHomeEn(): Page {
         ctaHref: '/products',
         alternate: true,
         items: [
-          { productId: 'gh-54027x1qe', media: '/media/products/gh-54027x1qe.svg', mediaType: 'image', eyebrow: '54027X1QE-W54 · Flagship', title: 'Lightning 540Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-54027x1qe'], specs: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }], cta: { label: 'View details', href: '/products/gh-54027x1qe' } },
+          { productId: 'gh-54027x1qe', media: '/media/products/gh-54027x1qe.svg', mediaType: 'image', eyebrow: '27X1QE-W54 · Flagship', title: 'Lightning 540Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-54027x1qe'], specs: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }], cta: { label: 'View details', href: '/products/gh-54027x1qe' } },
           { productId: 'gh-32x1ue', media: '/media/products/gh-32x1ue.svg', mediaType: 'image', eyebrow: '32X1UE-W16 · Dual-mode', title: 'Meta Dual-mode 4K Monitor', desc: SHOWCASE_COPY_EN['gh-32x1ue'], specs: [{ k: 'Resolution', v: '4K@165 / FHD@330' }, { k: 'Panel', v: 'META OLED' }], cta: { label: 'View details', href: '/products/gh-32x1ue' } },
-          { productId: 'gh-28027x1qe', media: '/media/products/gh-28027x1qe.svg', mediaType: 'image', eyebrow: '28027X1QE-W28 · Best seller', title: 'Lightning 280Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-28027x1qe'], specs: [{ k: 'Refresh rate', v: '280 Hz' }, { k: 'Peak brightness', v: '1500 nit' }], cta: { label: 'View details', href: '/products/gh-28027x1qe' } },
+          { productId: 'gh-28027x1qe', media: '/media/products/gh-28027x1qe.svg', mediaType: 'image', eyebrow: '27X1QE-W28 · Best seller', title: 'Lightning 280Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-28027x1qe'], specs: [{ k: 'Refresh rate', v: '280 Hz' }, { k: 'Peak brightness', v: '1500 nit' }], cta: { label: 'View details', href: '/products/gh-28027x1qe' } },
         ],
       },
       style: { container: 'full', background: 'soft' },
@@ -959,7 +959,7 @@ function buildModelSupportEn(): Page {
         layout: 'grid',
         columns: 3,
         items: [
-          { tag: 'OLED flagship', title: '54027X1QE-W54', desc: '26.5" 2K@540Hz flagship OLED with DP 2.1 full speed and Center tuning.', href: '/support/model/gh-54027x1qe' },
+          { tag: 'OLED flagship', title: '27X1QE-W54', desc: '26.5" 2K@540Hz flagship OLED with DP 2.1 full speed and Center tuning.', href: '/support/model/gh-54027x1qe' },
           { tag: 'Dual-mode', title: '32X1UE-W16', desc: '31.5" 4K@165 / FHD@330 dual-mode OLED esports display.', href: '/support/model/gh-32x1ue' },
           { tag: 'OLED Flagship', title: '27X1QE-Q32', desc: '26.5" 2K@320Hz QD-OLED esports display.', href: '/support/model/gh-27x1qe-q32' },
           { tag: 'OLED Flagship', title: '27X1QE-500', desc: '26.5" 2K@500Hz QD-OLED with full-speed DP 2.1.', href: '/support/model/gh-27x1qe-500' },

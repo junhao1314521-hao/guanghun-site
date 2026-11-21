@@ -312,9 +312,9 @@ function writeSection(userId: string, section: AccountSection, value: unknown): 
 /** 生成默认收藏项（演示数据） */
 function defaultFavorites(): FavoriteItem[] {
   return [
-    { name: '54027X1QE-W54 电竞OLED显示器', spec: '26.5 英寸 2K 540Hz', subscribed: true },
+    { name: '27X1QE-W54 电竞OLED显示器', spec: '26.5 英寸 2K 540Hz', subscribed: true },
     { name: '32X1UE-W16 双模 4K 电竞显示器', spec: '4K@165 / FHD@330', subscribed: false },
-    { name: '28027X1QE-W28 电竞OLED显示器', spec: '26.5 英寸 2K 280Hz', subscribed: true },
+    { name: '27X1QE-W28 电竞OLED显示器', spec: '26.5 英寸 2K 280Hz', subscribed: true },
   ]
 }
 

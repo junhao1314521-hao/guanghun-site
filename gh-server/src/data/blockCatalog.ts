@@ -692,7 +692,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'media', label: '媒体（图/视频/GIF）', kind: 'media' },
       { name: 'mediaType', label: '媒体类型', kind: 'select', options: MEDIA_TYPES },
       { name: 'eyebrow', label: '眉题', kind: 'text' },
-      { name: 'model', label: '型号', kind: 'text', placeholder: '如 54027X1QE-W54' },
+      { name: 'model', label: '型号', kind: 'text', placeholder: '如 27X1QE-W54' },
       { name: 'title', label: '标题', kind: 'text' },
       { name: 'desc', label: '描述', kind: 'textarea' },
       { name: 'price', label: '参考价', kind: 'text', placeholder: '如 ¥4,999' },
@@ -1066,7 +1066,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
       { name: 'productId', label: '关联产品 ID（数据源 = 关联产品）', kind: 'text', placeholder: '如 gh-54027x1qe' },
       { name: 'image', label: '主图（手填 / 覆盖产品主图）', kind: 'media' },
       { name: 'imageMobile', label: '手机端图（可选，留空沿用主图）', kind: 'image' },
-      { name: 'model', label: '型号（可覆盖产品型号）', kind: 'text', placeholder: '如 54027X1QE-W54' },
+      { name: 'model', label: '型号（可覆盖产品型号）', kind: 'text', placeholder: '如 27X1QE-W54' },
       { name: 'desc', label: '一句话', kind: 'textarea' },
       { name: 'href', label: '详情链接（留空则用产品详情页）', kind: 'text', placeholder: '如 /products/gh-54027x1qe' },
       // 逐卡文案颜色：同一区块里深浅底混排时，按卡设定（留空沿用区块级 textColor / 默认色）
@@ -1296,7 +1296,7 @@ export function defaultProps(type: BlockType): Record<string, unknown> {
         desc: '先选问题类型，我们会带着对应模板和负责人接手；复杂问题可在工单里补图、补日志。',
         points: ['工作日 09:00–21:00 在线', '售前 / 售后工单 1 个工作日首次响应', '登录后可在「我的工单」查看进度'],
         quickEnabled: true,
-        quickPlaceholder: '用一句话描述你的问题，例如：54027X1QE 更新固件后 HDR 偏暗',
+        quickPlaceholder: '用一句话描述你的问题，例如：27X1QE 更新固件后 HDR 偏暗',
         quickCta: '快速提问',
         quickTip: '提交后可在「我的工单」查看进度；需要填型号与截图时再用完整表单。',
         channels: [

@@ -26,13 +26,13 @@ export const KIND_COUNTS: Record<'全部' | SearchKind, number> = {
 
 export const SEARCH_SORTS = ['相关度', '最新']
 
-export const HOT_QUERIES = ['54027X1QE-W54', '双模切换', '响应实测', '保修查询', '固件更新', 'Center 下载']
+export const HOT_QUERIES = ['27X1QE-W54', '双模切换', '响应实测', '保修查询', '固件更新', 'Center 下载']
 
 export const SEARCH_RESULTS: SearchResult[] = [
   {
     id: 'r1',
     kind: '产品',
-    title: ['54027X1QE', '-W54', ' 闪电 540Hz 电竞OLED显示器'],
+    title: ['27X1QE', '-W54', ' 闪电 540Hz 电竞OLED显示器'],
     desc: '26.5 英寸 2K@540Hz，第四代 W-OLED 面板，0.03 ms GTG 响应，满速 DP 2.1。',
     source: '产品库 · OLED 旗舰',
     date: '更新于 2026-09-20',
@@ -59,7 +59,7 @@ export const SEARCH_RESULTS: SearchResult[] = [
   {
     id: 'r4',
     kind: '支持资料',
-    title: ['54027X1QE-W54 固件与色彩配置下载'],
+    title: ['27X1QE-W54 固件与色彩配置下载'],
     desc: '固件升级包与 ICC 色彩配置，含变更说明与安装要求；适用于 Windows。',
     source: '下载中心 · 固件',
     date: '2026-09-15',

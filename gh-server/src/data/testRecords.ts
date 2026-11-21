@@ -19,8 +19,8 @@ export type TestRecord = {
 export const TEST_RECORDS: TestRecord[] = [
   {
     id: 'tr-001',
-    title: '54027X1QE-W54 响应时间实测',
-    product: '54027X1QE-W54',
+    title: '27X1QE-W54 响应时间实测',
+    product: '27X1QE-W54',
     metric: '响应时间',
     value: '0.04 ms',
     method: '高速相机',
@@ -41,8 +41,8 @@ export const TEST_RECORDS: TestRecord[] = [
   },
   {
     id: 'tr-003',
-    title: '54027X1QE-W54 色准实测',
-    product: '54027X1QE-W54',
+    title: '27X1QE-W54 色准实测',
+    product: '27X1QE-W54',
     metric: '色准 ΔE',
     value: '1.1',
     method: '色彩分析仪',
@@ -63,8 +63,8 @@ export const TEST_RECORDS: TestRecord[] = [
   },
   {
     id: 'tr-005',
-    title: '28027X1QE-W28 峰值亮度实测',
-    product: '28027X1QE-W28',
+    title: '27X1QE-W28 峰值亮度实测',
+    product: '27X1QE-W28',
     metric: 'HDR 峰值亮度',
     value: '1050 nit',
     method: '亮度计',

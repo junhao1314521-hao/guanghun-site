@@ -81,7 +81,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     poster: '/media/home/hero-3.jpg',
     scrim: false,
     theme: 'dark',
-    eyebrow: 'FLAGSHIP / 54027X1QE-W54',
+    eyebrow: 'FLAGSHIP / 27X1QE-W54',
     title: ['2K@540Hz 闪电旗舰'],
     desc: '第四代 W-OLED，0.03 ms 响应，DP 2.1 一线跑满 540Hz。',
     primary: '查看产品详情',
@@ -223,9 +223,9 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
 export type LadderRow = { rank: string; model: string; category: string; fill: string; value: string }
 
 export const LADDER_TEASER_ROWS: LadderRow[] = [
-  { rank: '01', model: '54027X1QE-W54', category: '闪电 540Hz 电竞OLED', fill: '97%', value: '96.8' },
+  { rank: '01', model: '27X1QE-W54', category: '闪电 540Hz 电竞OLED', fill: '97%', value: '96.8' },
   { rank: '02', model: '32X1UE-W16', category: 'Meta 双模 4K 电竞OLED', fill: '94%', value: '94.2' },
-  { rank: '03', model: '28027X1QE-W28', category: '闪电 280Hz 电竞OLED', fill: '93%', value: '92.5' },
+  { rank: '03', model: '27X1QE-W28', category: '闪电 280Hz 电竞OLED', fill: '93%', value: '92.5' },
 ]
 
 /* ---------- 技术评测 ---------- */
@@ -291,7 +291,7 @@ export const COOP_TAGS = ['赛事合作', '内容共创', '渠道分销', '品�
 export type NewsItem = { date: string; tag: string; title: string }
 
 export const NEWS: NewsItem[] = [
-  { date: '2026-09-20', tag: '产品发布', title: '光魂 54027X1QE-W54 540Hz OLED 正式发布' },
+  { date: '2026-09-20', tag: '产品发布', title: '光魂 27X1QE-W54 540Hz OLED 正式发布' },
   { date: '2026-09-12', tag: '品牌动态', title: '天梯榜测试方法升级至 v2（新增色准 / 均匀度）' },
   { date: '2026-08-30', tag: '活动', title: '线下体验点巡回活动预告' },
   { date: '2026-08-15', tag: '服务', title: '显示器说明书与调色配置下载中心改版说明' },

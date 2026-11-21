@@ -202,7 +202,7 @@ export type AdminRow = Record<string, string | number | boolean>
 
 export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
   products: [
-    { id: 'p-001', name: '闪电 540Hz 电竞OLED显示器', model: '54027X1QE-W54', line: 'OLED旗舰', price: 4999, status: '已上架', updatedAt: '2026-09-20', scene: '电竞对战', featured: true, desc: '面向电竞对战优化的旗舰 OLED 电竞显示器。', cover: '' },
+    { id: 'p-001', name: '闪电 540Hz 电竞OLED显示器', model: '27X1QE-W54', line: 'OLED旗舰', price: 4999, status: '已上架', updatedAt: '2026-09-20', scene: '电竞对战', featured: true, desc: '面向电竞对战优化的旗舰 OLED 电竞显示器。', cover: '' },
     { id: 'p-002', name: 'Meta 双模 4K 电竞显示器', model: '32X1UE-W16', line: '双模高刷', price: 5499, status: '已上架', updatedAt: '2026-09-05', scene: '内容创作', featured: true, desc: '支持 4K 与高刷一键切换的双模 OLED 显示器。', cover: '' },
     { id: 'p-003', name: '27 英寸 2K OLED 显示器', model: '27X1U', line: '双模高刷', price: 2199, status: '已上架', updatedAt: '2026-06-18', scene: '内容创作', featured: false, desc: '兼顾画质与电竞的 2K OLED 显示器。', cover: '' },
     { id: 'p-004', name: '27 英寸 2K 电竞显示器', model: '27Q1F', line: '电竞IPS', price: 1299, status: '已上架', updatedAt: '2026-04-10', scene: '商用办公', featured: false, desc: '高性价比 2K 高刷电竞显示器。', cover: '' },
@@ -217,11 +217,11 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'c-005', name: '调校软件', code: 'software', count: 1, order: 5, status: '停用' },
   ],
   'test-records': [
-    { id: 'tr-001', title: '54027X1QE-W54 响应时间实测', product: '54027X1QE-W54', metric: '响应时间', value: '0.04 ms', method: '高速相机', status: '已发布', date: '2026-09-25', conclusion: '过驱档位「标准」下 GTG 响应稳定在 0.04 ms 以内。' },
+    { id: 'tr-001', title: '27X1QE-W54 响应时间实测', product: '27X1QE-W54', metric: '响应时间', value: '0.04 ms', method: '高速相机', status: '已发布', date: '2026-09-25', conclusion: '过驱档位「标准」下 GTG 响应稳定在 0.04 ms 以内。' },
     { id: 'tr-002', title: '32X1UE-W16 HDR 峰值亮度实测', product: '32X1UE-W16', metric: 'HDR 峰值亮度', value: '1180 nit', method: '亮度计', status: '已发布', date: '2026-09-20', conclusion: '10% 窗口下 HDR 峰值亮度达 1180 nit。' },
-    { id: 'tr-003', title: '54027X1QE-W54 色准实测', product: '54027X1QE-W54', metric: '色准 ΔE', value: '1.1', method: '色彩分析仪', status: '已发布', date: '2026-09-22', conclusion: '平均 ΔE 1.1，覆盖 sRGB 与 DCI-P3。' },
+    { id: 'tr-003', title: '27X1QE-W54 色准实测', product: '27X1QE-W54', metric: '色准 ΔE', value: '1.1', method: '色彩分析仪', status: '已发布', date: '2026-09-22', conclusion: '平均 ΔE 1.1，覆盖 sRGB 与 DCI-P3。' },
     { id: 'tr-004', title: '27X1U 亮度均匀度实测', product: '27X1U', metric: '亮度均匀度', value: '92%', method: '9 点采样', status: '审核中', date: '2026-10-01', conclusion: '待复核采样数据后发布。' },
-    { id: 'tr-005', title: '28027X1QE-W28 峰值亮度实测', product: '28027X1QE-W28', metric: 'HDR 峰值亮度', value: '1050 nit', method: '亮度计', status: '草稿', date: '2026-09-28', conclusion: '' },
+    { id: 'tr-005', title: '27X1QE-W28 峰值亮度实测', product: '27X1QE-W28', metric: 'HDR 峰值亮度', value: '1050 nit', method: '亮度计', status: '草稿', date: '2026-09-28', conclusion: '' },
   ],
   rankings: [
     { id: 'rk-001', name: '综合榜 · 响应时间', scope: '综合榜', metric: '响应时间', entries: 10, status: '已发布', updatedAt: '2026-09-25', note: '综合各型号显示器实测数据。' },
@@ -252,13 +252,13 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
   ],
   downloads: [
     { id: 'd-001', name: 'Center 显示器调校软件 3.2.1（Windows）', type: '工具', version: '3.2.1', platform: 'Windows', size: '48.2 MB', downloads: 3240, status: '已发布', updatedAt: '2026-09-18', url: '', changelog: '支持新增显示器型号识别。' },
-    { id: 'd-002', name: '54027X1QE-W54 固件 1.6.3', type: '固件', version: '1.6.3', platform: '通用', size: '6.4 MB', downloads: 5120, status: '已发布', updatedAt: '2026-09-15', url: '', changelog: '修复 DP 2.1 满速握手偶发降速。' },
+    { id: 'd-002', name: '27X1QE-W54 固件 1.6.3', type: '固件', version: '1.6.3', platform: '通用', size: '6.4 MB', downloads: 5120, status: '已发布', updatedAt: '2026-09-15', url: '', changelog: '修复 DP 2.1 满速握手偶发降速。' },
     { id: 'd-004', name: '32X1UE-W16 说明书', type: '说明书', version: 'v1.3', platform: '通用', size: '5.6 MB', downloads: 860, status: '已发布', updatedAt: '2026-09-05', url: '', changelog: '' },
     { id: 'd-005', name: '显示器固件刷新工具', type: '工具', version: '2.0.4', platform: 'Windows', size: '9.7 MB', downloads: 640, status: '草稿', updatedAt: '2026-10-01', url: '', changelog: '待验证后发布。' },
   ],
   assets: [
     { id: 'as-001', name: '首页主视觉 · 秋季', kind: '图片', size: '2.4 MB', usage: '首页首屏', uploadedBy: '品牌组', uploadedAt: '2026-09-28', source: '', tags: '主视觉,秋季' },
-    { id: 'as-002', name: '54027X1QE-W54 产品图', kind: '图片', size: '1.8 MB', usage: '产品详情', uploadedBy: '品牌组', uploadedAt: '2026-09-20', source: '', tags: '产品图' },
+    { id: 'as-002', name: '27X1QE-W54 产品图', kind: '图片', size: '1.8 MB', usage: '产品详情', uploadedBy: '品牌组', uploadedAt: '2026-09-20', source: '', tags: '产品图' },
     { id: 'as-003', name: 'Center 功能演示视频', kind: '视频', size: '86 MB', usage: 'Center 页', uploadedBy: '品牌组', uploadedAt: '2026-09-05', source: '', tags: '演示' },
     { id: 'as-004', name: '合作案例图集', kind: '图片', size: '12 MB', usage: '商业合作案例', uploadedBy: '运营组', uploadedAt: '2026-08-30', source: '', tags: '案例' },
     { id: 'as-005', name: '品牌 VI 规范文档', kind: '文档', size: '5.6 MB', usage: '商务资料', uploadedBy: '品牌组', uploadedAt: '2026-08-12', source: '', tags: 'VI' },
@@ -308,17 +308,17 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'cu-005', name: '顾一', account: 'guyi', level: '普通', devices: 1, tickets: 0, joinedAt: '2026-08-30', status: '冻结', note: '异常登录，已冻结。' },
   ],
   inquiries: [
-    { id: 'iq-001', subject: '升级固件后显示器偶发无信号', customer: '陈屿', model: '54027X1QE-W54', priority: '高', status: '处理中', assignee: '技术支持', createdAt: '2026-10-10', reply: '' },
+    { id: 'iq-001', subject: '升级固件后显示器偶发无信号', customer: '陈屿', model: '27X1QE-W54', priority: '高', status: '处理中', assignee: '技术支持', createdAt: '2026-10-10', reply: '' },
     { id: 'iq-002', subject: '双模切换后刷新率偏低', customer: '林墨', model: '32X1UE-W16', priority: '中', status: '待处理', assignee: '未指派', createdAt: '2026-10-09', reply: '' },
     { id: 'iq-003', subject: '屏幕局部出现残影', customer: '苏晚', model: '27Q1F', priority: '中', status: '已解决', assignee: '客服组', createdAt: '2026-10-05', reply: '已指导调整过驱档位并开启像素刷新，问题解决。' },
-    { id: 'iq-004', subject: '发票与烧屏保修咨询', customer: '周航', model: '54027X1QE-W54', priority: '低', status: '已关闭', assignee: '客服组', createdAt: '2026-09-28', reply: '已提供发票与保修说明。' },
+    { id: 'iq-004', subject: '发票与烧屏保修咨询', customer: '周航', model: '27X1QE-W54', priority: '低', status: '已关闭', assignee: '客服组', createdAt: '2026-09-28', reply: '已提供发票与保修说明。' },
     { id: 'iq-005', subject: '支架安装与承重咨询', customer: '顾一', model: 'GH-ARM01', priority: '低', status: '待处理', assignee: '未指派', createdAt: '2026-10-08', reply: '' },
   ],
   devices: [
-    { id: 'dv-001', serial: 'GH-540-2026-000128', model: '54027X1QE-W54', owner: '陈屿', warranty: '保修中', registeredAt: '2026-09-20', status: '正常' },
+    { id: 'dv-001', serial: 'GH-540-2026-000128', model: '27X1QE-W54', owner: '陈屿', warranty: '保修中', registeredAt: '2026-09-20', status: '正常' },
     { id: 'dv-002', serial: 'GH-321-2026-000451', model: '32X1UE-W16', owner: '林墨', warranty: '保修中', registeredAt: '2026-09-05', status: '正常' },
     { id: 'dv-003', serial: 'GH-27Q-2026-000233', model: '27Q1F', owner: '苏晚', warranty: '保修中', registeredAt: '2026-04-10', status: '维修中' },
-    { id: 'dv-004', serial: 'GH-540-2025-000902', model: '54027X1QE-W54', owner: '周航', warranty: '已过保', registeredAt: '2025-11-20', status: '正常' },
+    { id: 'dv-004', serial: 'GH-540-2025-000902', model: '27X1QE-W54', owner: '周航', warranty: '已过保', registeredAt: '2025-11-20', status: '正常' },
     { id: 'dv-005', serial: 'GH-ARM-2026-000015', model: 'GH-ARM01', owner: '顾一', warranty: '待激活', registeredAt: '2026-05-20', status: '正常' },
   ],
   faqs: [
@@ -335,7 +335,7 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'si-004', name: '光魂成都体验点', city: '成都', type: '体验点', phone: '400-000-0003', hours: '11:00–20:00', status: '暂停', address: '高新区天府大道 66 号' },
   ],
   notifications: [
-    { id: 'nt-001', title: '54027X1QE-W54 固件 1.6.3 发布', channel: '站内信', audience: '已购客户', sentAt: '2026-09-15', status: '已发送', openRate: '62%', content: '' },
+    { id: 'nt-001', title: '27X1QE-W54 固件 1.6.3 发布', channel: '站内信', audience: '已购客户', sentAt: '2026-09-15', status: '已发送', openRate: '62%', content: '' },
     { id: 'nt-002', title: '秋季新品预告', channel: '邮件', audience: '全部客户', sentAt: '2026-10-08', status: '定时', openRate: '—', content: '' },
     { id: 'nt-003', title: '国庆服务时间调整', channel: '短信', audience: '全部客户', sentAt: '2026-09-28', status: '已发送', openRate: '78%', content: '' },
     { id: 'nt-004', title: '满意度回访', channel: '站内信', audience: '已购客户', sentAt: '2026-09-20', status: '草稿', openRate: '—', content: '' },
@@ -358,10 +358,10 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'bv-003', name: '光魂合作体验点 · 成都', city: '成都', type: '合作体验点', address: '高新区天府大道', status: '筹备中' },
   ],
   reviews: [
-    { id: 'rv-001', customer: '陈屿', model: '54027X1QE-W54', ticket: '固件升级后偶发无信号', rating: 5, summary: '工程师远程协助很及时，问题一次解决。', channel: '在线工单', date: '2026-10-06', status: '已回访' },
+    { id: 'rv-001', customer: '陈屿', model: '27X1QE-W54', ticket: '固件升级后偶发无信号', rating: 5, summary: '工程师远程协助很及时，问题一次解决。', channel: '在线工单', date: '2026-10-06', status: '已回访' },
     { id: 'rv-002', customer: '林墨', model: '32X1UE-W16', ticket: '双模切换后刷新率偏低', rating: 4, summary: '响应速度不错，希望固件尽快更新。', channel: '在线工单', date: '2026-10-05', status: '待处理' },
     { id: 'rv-003', customer: '苏晚', model: '27Q1F', ticket: '屏幕局部出现残影', rating: 5, summary: '指导调整过驱档位后残影消失，满意。', channel: '电话', date: '2026-10-04', status: '已回访' },
-    { id: 'rv-004', customer: '周航', model: '54027X1QE-W54', ticket: '发票与烧屏保修咨询', rating: 3, summary: '保修说明清楚，但等待回复时间偏长。', channel: '在线工单', date: '2026-09-30', status: '待处理' },
+    { id: 'rv-004', customer: '周航', model: '27X1QE-W54', ticket: '发票与烧屏保修咨询', rating: 3, summary: '保修说明清楚，但等待回复时间偏长。', channel: '在线工单', date: '2026-09-30', status: '待处理' },
     { id: 'rv-005', customer: '顾一', model: 'GH-ARM01', ticket: '支架安装与承重咨询', rating: 4, summary: '到店体验讲解细致，支架安装顺利。', channel: '到店体验', date: '2026-09-28', status: '已回访' },
     { id: 'rv-006', customer: '何澈', model: '27X1U', ticket: 'HDR 片源偏暗', rating: 5, summary: '提供了片源与设置建议，HDR 观感明显提升。', channel: '邮件', date: '2026-09-25', status: '已忽略' },
     { id: 'rv-007', customer: '许知', model: '27Q1F', ticket: '显示器无法被 Center 识别', rating: 2, summary: '按建议更换接口后仍未识别，需继续跟进。', channel: '在线工单', date: '2026-09-22', status: '待处理' },
