@@ -215,7 +215,9 @@
 .inq-dock__quick-submit { height: 36px; padding: 0 var(--gh-space-4); font-size: var(--gh-font-size-body-sm); }
 .captcha-inline { display: flex; align-items: center; gap: 6px; }
 .captcha-inline__code { width: 84px; height: 36px; font-size: var(--gh-font-size-body-sm); padding: 0 10px; }
-.captcha-inline__figure { height: 36px; padding: 0 4px; border-radius: 8px; }
+.captcha-inline__figure { position: relative; height: 36px; padding: 0 4px; border-radius: 8px; }
+/* 刷新按钮视觉宽度不变，命中区左右各扩 4px（17 → 25），避免手机上点不中 */
+.captcha-inline__figure::after { content: ''; position: absolute; inset: 0 -4px; }
 .captcha-inline__figure .captcha-figure__svg svg { display: block; width: auto; height: 30px; border-radius: 5px; }
 .captcha-inline__figure .captcha-figure__ph { font-size: var(--gh-font-size-caption); }
 .inq-dock__quick-tip {

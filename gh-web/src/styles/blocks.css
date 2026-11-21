@@ -195,6 +195,8 @@
 }
 .blk-hero__dot:hover { border-color: rgba(255, 255, 255, .9); }
 .blk-hero__dot.is-active { background: rgba(255, 255, 255, .92); border-color: transparent; }
+/* 命中区补到 24×24：视觉仍是 8px 圆点；容器间距 8px，扩出的透明区域与相邻圆点恰好相接 */
+.blk-hero__dot::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
 /* 浅色海报：圆点转深色 */
 .blk-hero--light .blk-hero__dot { border-color: rgba(15, 23, 42, .4); }
 .blk-hero--light .blk-hero__dot.is-active { background: rgba(15, 23, 42, .82); }
