@@ -72,6 +72,35 @@ echo "== 目录 =="
 echo "== 时间同步 =="
 timedatectl 2>/dev/null | grep -E 'System clock synchronized|NTP service' | sed 's/^/  /' || true
 
+echo "== 环境变量一致性 =="
+ENV_FILE=/opt/website/app/.env
+if [ -f "$ENV_FILE" ]; then
+  perms=$(stat -c '%a' "$ENV_FILE" 2>/dev/null || echo '')
+  [ "$perms" = "600" ] && ok ".env 权限 600" || warn ".env 权限为 ${perms:-未知}，建议 chmod 600"
+  env_get() { grep -E "^$1=" "$ENV_FILE" | tail -1 | cut -d= -f2-; }
+  origin=$(env_get SITE_ORIGIN)
+  secure=$(env_get COOKIE_SECURE)
+  proxy=$(env_get TRUST_PROXY)
+  seed_admin=$(env_get ADMIN_PASSWORD)
+  echo "  SITE_ORIGIN=${origin:-未设置}  COOKIE_SECURE=${secure:-未设置}  TRUST_PROXY=${proxy:-未设置}"
+  if [ "${secure:-0}" = "1" ]; then
+    [ "${proxy:-0}" = "1" ] && ok "HTTPS 模式：COOKIE_SECURE 与 TRUST_PROXY 已同时开启" \
+      || bad "COOKIE_SECURE=1 但 TRUST_PROXY≠1，经 Nginx 后登录会异常"
+    case "$origin" in https://*) ok "SITE_ORIGIN 为 https" ;; *) bad "COOKIE_SECURE=1 但 SITE_ORIGIN 不是 https" ;; esac
+  else
+    case "$origin" in
+      https://*) warn "SITE_ORIGIN 已是 https，但 COOKIE_SECURE=0；切 HTTPS 时三项要一起改" ;;
+      *) ok "HTTP 模式配置一致（上线 HTTPS 前再切换）" ;;
+    esac
+  fi
+  case "$seed_admin" in
+    *__ADMIN_PASSWORD__*) bad "ADMIN_PASSWORD 仍是占位符，首次部署前必须替换" ;;
+    *) ok "后台种子口令已设置" ;;
+  esac
+else
+  warn "未找到 $ENV_FILE（首次部署由 install.sh 生成）"
+fi
+
 echo
 if [ "$fail" -eq 0 ]; then
   echo "结论：未见阻断项，可继续迁移（请再人工确认 WARN 项）。"

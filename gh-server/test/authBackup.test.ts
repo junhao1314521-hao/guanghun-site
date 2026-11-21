@@ -278,3 +278,55 @@ describe('阶段 5b · 备份 / 恢复 / 重置', () => {
     assert.equal(bad.status, 400)
   })
 })
+
+describe('第三批 · 后台修改密码', () => {
+  it('校验当前密码与强度，成功后旧会话与旧口令同时失效', async () => {
+    const login = await get('/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+    })
+    assert.equal(login.status, 200)
+    const { token: oldToken } = (await login.json()) as { token: string }
+    const post = (body: unknown, bearer: string) =>
+      get('/api/admin/auth/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bearer}` },
+        body: JSON.stringify(body),
+      })
+
+    // 当前密码错误 → 400，且不泄露具体校验细节
+    const wrong = await post({ currentPassword: 'wrong-pass', newPassword: 'Guanghun2026' }, oldToken)
+    assert.equal(wrong.status, 400)
+
+    // 新口令过短 → 400
+    const weak = await post({ currentPassword: 'admin123', newPassword: 'short1' }, oldToken)
+    assert.equal(weak.status, 400)
+
+    // 合格口令 → 200，返回新 token
+    const ok = await post({ currentPassword: 'admin123', newPassword: 'Guanghun2026' }, oldToken)
+    assert.equal(ok.status, 200)
+    const { token: newToken } = (await ok.json()) as { token: string }
+    assert.ok(newToken && newToken !== oldToken, '应签发新会话')
+
+    // 旧会话立即失效，新会话有效
+    const oldMe = await get('/api/admin/auth/me', { headers: { Authorization: `Bearer ${oldToken}` } })
+    assert.equal(oldMe.status, 401)
+    const newMe = await get('/api/admin/auth/me', { headers: { Authorization: `Bearer ${newToken}` } })
+    assert.equal(newMe.status, 200)
+
+    // 旧口令无法登录，新口令可以
+    const oldLogin = await get('/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+    })
+    assert.equal(oldLogin.status, 401)
+    const newLogin = await get('/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'admin', password: 'Guanghun2026' }),
+    })
+    assert.equal(newLogin.status, 200)
+  })
+})

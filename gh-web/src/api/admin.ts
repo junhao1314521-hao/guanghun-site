@@ -39,6 +39,13 @@ export function fetchAdminMe(signal?: AbortSignal): Promise<AdminProfile> {
   })
 }
 
+/** 修改本人口令：POST /api/admin/auth/password（旧会话会被作废，返回新 token） */
+export function changeAdminPassword(body: { currentPassword: string; newPassword: string }): Promise<{ ok: boolean; token?: string }> {
+  return transport({ path: '/api/admin/auth/password', method: 'POST', body, token: getAdminToken() ?? undefined }, () => {
+    throw new ApiError('修改密码接口不可用', 503)
+  })
+}
+
 /** 工作台概览：GET /api/admin/overview */
 export function fetchAdminOverview(signal?: AbortSignal): Promise<AdminOverview> {
   return transport({ path: '/api/admin/overview', signal, token: getAdminToken() ?? undefined }, () => {

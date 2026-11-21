@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { Router, type Response } from 'express'
 import {
+  changeAdminPassword,
   getSessionUser,
   loginAdmin,
   logoutAdmin,
@@ -191,6 +192,32 @@ adminRouter.post('/auth/logout', (req, res) => {
 
 adminRouter.get('/auth/me', requireSession, (_req, res) => {
   res.json(toProfile(res.locals.adminUser))
+})
+
+/**
+ * 修改本人口令：POST /api/admin/auth/password
+ * - 需登录；校验当前密码；
+ * - 新口令 10–64 位且含字母与数字；
+ * - 成功后旧会话全部失效，并重新下发 Cookie（当前浏览器无需重新登录）。
+ */
+adminRouter.post('/auth/password', requireSession, rateLimit({ windowMs: 60_000, max: 10 }), (req, res) => {
+  const user = res.locals.adminUser as AdminUser
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const currentPassword = readString(body.currentPassword)
+  const nextPassword = readString(body.newPassword)
+  if (!currentPassword || !nextPassword) {
+    res.status(400).json({ error: '请填写当前密码与新密码' })
+    return
+  }
+  const outcome = changeAdminPassword(user.id, currentPassword, nextPassword)
+  if ('error' in outcome) {
+    appendAudit({ actor: user.username, action: 'change-password', target: '后台', detail: outcome.error, ip: clientIp(req) })
+    res.status(400).json({ error: outcome.error })
+    return
+  }
+  res.cookie(SESSION_COOKIE, outcome.token, sessionCookieOptions())
+  appendAudit({ actor: user.username, action: 'change-password', target: '后台', ip: clientIp(req) })
+  res.json({ ok: true, token: outcome.token })
 })
 
 /* ---------------- 工作台 ---------------- */

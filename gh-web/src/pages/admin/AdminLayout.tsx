@@ -5,7 +5,7 @@
  * - 顶栏内层与内容同宽居中；装修器页面（.../builder）放宽到宽轨道。
  * - 内容区外套 ErrorBoundary，避免渲染异常导致整页白屏。
  */
-import { useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_NAV, ANALYTICS_SCOPES, adminResource, type AdminNavItem } from '../../data/adminResources'
 // 「栏目 key → 所需 scope」的单一映射源（与后端 rbac.ts / roles.ts 对照，见该文件头注释）
@@ -13,6 +13,8 @@ import { hasScope, requiredScope, scopeText } from '../../data/adminScopes'
 import { AdminIcon } from '../../components/admin/AdminIcon'
 import { BrandMark } from '../../components/site/BrandMark'
 import { useAdminAuth } from '../../components/admin/AdminAuth'
+import { useToast } from '../../components/admin/feedback'
+import { changeAdminPassword } from '../../api/admin'
 import { AdminTourButton, AdminTourProvider } from '../../components/admin/AdminTour'
 import { ErrorBoundary } from '../../components/site/ErrorBoundary'
 import { IconChevronDown, IconChevronLeft, IconChevronRight, IconClose, IconMenu, IconMoon, IconSearch, IconSun } from '../../components/ui/Icon'
@@ -158,6 +160,45 @@ export function AdminLayout() {
   const [sideCollapsed, setSideCollapsed] = useState<boolean>(() => readSideCollapsed())
   // 桌面侧栏宽度（可拖拽调整，200–320px；折叠时使用折叠令牌宽度）
   const [sideWidth, setSideWidth] = useState<number>(() => readSideWidth())
+  // 修改密码弹窗
+  const toast = useToast()
+  const [pwOpen, setPwOpen] = useState(false)
+  const [pwCurrent, setPwCurrent] = useState('')
+  const [pwNext, setPwNext] = useState('')
+  const [pwConfirm, setPwConfirm] = useState('')
+  const [pwError, setPwError] = useState<string | null>(null)
+  const [pwBusy, setPwBusy] = useState(false)
+
+  const closePasswordDialog = () => {
+    if (pwBusy) return
+    setPwOpen(false)
+    setPwError(null)
+    setPwCurrent('')
+    setPwNext('')
+    setPwConfirm('')
+  }
+
+  const submitPassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setPwError(null)
+    if (pwNext !== pwConfirm) {
+      setPwError('两次输入的新密码不一致')
+      return
+    }
+    setPwBusy(true)
+    try {
+      await changeAdminPassword({ currentPassword: pwCurrent, newPassword: pwNext })
+      setPwOpen(false)
+      setPwCurrent('')
+      setPwNext('')
+      setPwConfirm('')
+      toast.success('密码已更新；其它设备上的登录已失效。')
+    } catch (ex) {
+      setPwError(ex instanceof Error ? ex.message : '修改失败，请稍后重试')
+    } finally {
+      setPwBusy(false)
+    }
+  }
 
   const title = adminTitle(pathname)
   // 装修器页面放宽内容轨道
@@ -463,6 +504,10 @@ export function AdminLayout() {
                 </span>
               </div>
 
+              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPwOpen(true)}>
+                修改密码
+              </button>
+
               <button type="button" className="btn btn--secondary btn--sm" onClick={onLogout}>
                 退出登录
               </button>
@@ -510,6 +555,73 @@ export function AdminLayout() {
       </div>
 
         <div className={`admin-overlay${navOpen ? ' is-open' : ''}`} onClick={() => setNavOpen(false)} aria-hidden="true" />
+
+        {pwOpen && (
+          <div className="admin-dialog-overlay" role="presentation" onClick={closePasswordDialog}>
+            <form
+              className="admin-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="pw-title"
+              onClick={(event) => event.stopPropagation()}
+              onSubmit={submitPassword}
+            >
+              <h2 className="admin-dialog__title" id="pw-title">
+                修改密码
+              </h2>
+              <div className="admin-dialog__body" style={{ display: 'grid', gap: 'var(--gh-space-3)' }}>
+                <label className="field">
+                  <span className="field__label">当前密码</span>
+                  <input
+                    className="input"
+                    type="password"
+                    autoComplete="current-password"
+                    value={pwCurrent}
+                    onChange={(event) => setPwCurrent(event.target.value)}
+                    required
+                    autoFocus
+                  />
+                </label>
+                <label className="field">
+                  <span className="field__label">新密码</span>
+                  <input
+                    className="input"
+                    type="password"
+                    autoComplete="new-password"
+                    value={pwNext}
+                    onChange={(event) => setPwNext(event.target.value)}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span className="field__label">确认新密码</span>
+                  <input
+                    className="input"
+                    type="password"
+                    autoComplete="new-password"
+                    value={pwConfirm}
+                    onChange={(event) => setPwConfirm(event.target.value)}
+                    required
+                  />
+                </label>
+                <span className="field__hint">新密码 10–64 位，需同时包含字母与数字；保存后其它设备需重新登录。</span>
+                {pwError && (
+                  <span className="field__error" role="alert">
+                    {pwError}
+                  </span>
+                )}
+              </div>
+              <div className="admin-dialog__foot">
+                <button type="button" className="btn btn--secondary" onClick={closePasswordDialog} disabled={pwBusy}>
+                  取消
+                </button>
+                <button className="btn btn--primary" type="submit" disabled={pwBusy}>
+                  {pwBusy ? '保存中…' : '保存'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </AdminTourProvider>
   )

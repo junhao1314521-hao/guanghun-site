@@ -188,6 +188,57 @@ export function getSessionUser(token: string | undefined): AdminUser | undefined
   return row ? rowToUser(row) : undefined
 }
 
+/** 常见弱口令（仅做最低限度的黑名单，避免明显可猜的口令） */
+const WEAK_PASSWORDS = new Set([
+  'admin1234',
+  'admin12345',
+  '1234567890',
+  'password123',
+  'guanghun123',
+  'qwerty1234',
+  '1111111111',
+])
+
+/**
+ * 后台口令强度：10–64 位，且必须同时含字母与数字。
+ * 不强制大小写与符号——后台是单人运营场景，过严会让口令被写在便签上。
+ */
+export function adminPasswordError(username: string, password: string): string | null {
+  if (password.length < 10 || password.length > 64) return '新密码需为 10–64 位'
+  if (password.toLowerCase() === username.toLowerCase()) return '新密码不能与账号名相同'
+  if (WEAK_PASSWORDS.has(password.toLowerCase())) return '该密码过于常见，请换一个'
+  if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) return '新密码需同时包含字母与数字'
+  return null
+}
+
+/**
+ * 修改后台密码：校验当前密码 → 更新 salt/hash → **作废该账号全部旧会话**并签发新会话。
+ * 返回新 token，调用方负责重新下发 Cookie；失败返回 error 文案。
+ */
+export function changeAdminPassword(
+  userId: string,
+  currentPassword: string,
+  nextPassword: string,
+): { token: string } | { error: string } {
+  const row = findUserById(userId)
+  if (!row) return { error: '账号不存在' }
+  if (!verifyPassword(currentPassword, row.salt, row.hash)) return { error: '当前密码不正确' }
+  const policy = adminPasswordError(row.username, nextPassword)
+  if (policy) return { error: policy }
+  if (verifyPassword(nextPassword, row.salt, row.hash)) return { error: '新密码不能与当前密码相同' }
+
+  const { salt, hash } = hashPassword(nextPassword)
+  getDb().prepare('UPDATE admin_users SET salt = ?, hash = ? WHERE id = ?').run(salt, hash, userId)
+
+  // 口令变更后，旧会话立即失效（含其它浏览器 / 设备），只保留本次新会话
+  for (const [token, session] of SESSIONS) {
+    if (session.userId === userId) SESSIONS.delete(token)
+  }
+  const token = randomBytes(20).toString('hex')
+  SESSIONS.set(token, { userId, expiresAt: Date.now() + sessionTtlMs() })
+  return { token }
+}
+
 /** 注销会话 */
 export function logoutAdmin(token: string | undefined): void {
   if (token) SESSIONS.delete(token)
