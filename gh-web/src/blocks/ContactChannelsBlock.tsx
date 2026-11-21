@@ -23,7 +23,7 @@ export function ContactChannelsBlock({ props }: { props: Record<string, unknown>
 
   return (
     <section className="cc">
-      <div className="cc__inner">
+      <div className="container cc__inner">
         <div className="cc__head">
           <h2 className="cc__title">{title}</h2>
           {subtitle && <p className="cc__sub">{subtitle}</p>}

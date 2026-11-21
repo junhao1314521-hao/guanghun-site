@@ -1,7 +1,7 @@
 /**
  * 服务与支持页（仅本页）。
  *
- * 页头走大疆式「居中标题 + 通栏搜索」：没有小字眉题，层级只靠字号、留白与一根底线；
+ * 首屏与全站二级页统一：左对齐标题 + 一句话说明 + 搜索动作，不使用独立渐变皮肤；
  * 设备选择是页面的核心交互：选中型号写入 ?model=，下方资料与下载自动跟随。
  */
 /* 首屏自带上下留白：取消区块外壳默认的 64px 纵向内边距，避免标题上方出现双倍间距 */
@@ -11,44 +11,42 @@
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--color-border-subtle);
-  background:
-    radial-gradient(ellipse 62% 76% at 50% -34%, color-mix(in srgb, var(--gh-blue-500) 9%, transparent), transparent 72%),
-    var(--color-bg-subtle);
+  background: var(--color-bg-subtle);
 }
 .support-hero__inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: clamp(52px, 7vw, 88px);
-  padding-bottom: clamp(44px, 6vw, 68px);
-  text-align: center;
+  align-items: flex-start;
+  padding-top: clamp(40px, 5vw, 64px);
+  padding-bottom: clamp(32px, 4vw, 48px);
+  text-align: left;
 }
 .support-hero__title {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: clamp(32px, 4vw, 52px);
-  font-weight: var(--gh-weight-semibold);
-  line-height: 1.1;
-  letter-spacing: -.03em;
+  font-size: clamp(28px, 2.5vw, 34px);
+  font-weight: var(--gh-weight-medium);
+  line-height: 1.18;
+  letter-spacing: -.022em;
 }
 .support-hero__desc {
-  max-width: 620px;
-  margin: var(--gh-space-4) 0 0;
+  max-width: 640px;
+  margin: var(--gh-space-3) 0 0;
   color: var(--color-text-secondary);
-  font-size: var(--gh-font-size-body-lg);
-  line-height: 1.75;
+  font-size: var(--gh-font-size-body);
+  line-height: 1.7;
 }
-/* 搜索：胶囊容器 + 内嵌实心按钮；聚焦时品牌色描边 + 光环 */
+/* 搜索：输入框 + 描边按钮，尺寸与全站表单控件同口径 */
 .support-hero__search {
   display: flex;
   align-items: center;
   gap: var(--gh-space-2);
-  width: min(600px, 100%);
-  margin-top: var(--gh-space-7);
-  padding: 5px 5px 5px var(--gh-space-5);
+  width: min(560px, 100%);
+  margin-top: var(--gh-space-5);
+  padding: 4px 4px 4px var(--gh-space-4);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--gh-radius-full);
+  border-radius: var(--gh-radius-lg);
   box-shadow: var(--shadow-sm);
   transition: border-color var(--gh-duration-fast) var(--gh-ease-standard),
               box-shadow var(--gh-duration-fast) var(--gh-ease-standard);
@@ -64,13 +62,13 @@
 .support-hero__search input {
   flex: 1 1 auto;
   min-width: 0;
-  height: 42px;
+  height: var(--gh-control-height-md);
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: var(--gh-font-size-body);
+  font-size: var(--gh-font-size-body-sm);
   outline: none;
 }
 .support-hero__search input::placeholder {
@@ -78,32 +76,32 @@
 }
 .support-hero__search button {
   flex: none;
-  height: 42px;
-  padding: 0 var(--gh-space-6);
+  height: var(--gh-control-height-md);
+  padding: 0 var(--gh-space-5);
   border: 0;
-  border-radius: var(--gh-radius-full);
-  background: var(--color-accent);
-  color: #fff;
+  border-radius: var(--gh-radius-btn);
+  background: var(--color-accent-solid);
+  color: var(--color-text-on-accent);
   font-family: inherit;
   font-size: var(--gh-font-size-body-sm);
-  font-weight: var(--gh-weight-semibold);
+  font-weight: var(--gh-weight-medium);
   cursor: pointer;
   transition: background-color var(--gh-duration-fast) var(--gh-ease-standard);
 }
 .support-hero__search button:hover {
-  background: var(--color-accent-strong, var(--color-accent));
-  filter: brightness(1.08);
+  background: var(--color-accent-solid-hover);
+  filter: none;
 }
 /* 热门词：一行轻量文字链，不抢搜索框视线 */
 .support-hero__hot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--gh-space-2) var(--gh-space-4);
-  margin-top: var(--gh-space-4);
+  margin-top: var(--gh-space-3);
   color: var(--color-text-tertiary);
-  font-size: var(--gh-font-size-body-sm);
+  font-size: var(--gh-font-size-caption);
 }
 .support-hero__hot a {
   color: var(--color-text-secondary);
@@ -233,12 +231,10 @@
   line-height: 1;
 }
 
-/* 深色主题：只压暗页头光晕，其余卡片沿用令牌即可 */
+/* 深色主题：首屏只用站点底色 + 发丝线，不再单独做光晕 */
 [data-theme="dark"] .support-hero {
-  border-bottom-color: rgba(255, 255, 255, .08);
-  background:
-    radial-gradient(ellipse 62% 76% at 50% -34%, rgba(91, 117, 245, .16), transparent 72%),
-    #070a12;
+  border-bottom-color: var(--color-border-subtle);
+  background: var(--color-bg-subtle);
 }
 [data-theme="dark"] .sdev.is-on {
   box-shadow: 0 0 0 3px rgba(91, 117, 245, .22);

@@ -849,6 +849,23 @@ function buildBusiness(): Page {
 /** 合作场景列表 */
 function buildBusinessScenes(): Page {
   return toPage('business-scenes', '/business/scenes', '合作场景列表', '合作场景装修 + 数据源区块。', [
+    // 首屏定调：与「商业合作」同一套宽屏海报 + 悬浮文案；主视觉图由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 420,
+        alt: '合作场景顶部横幅（待上传）',
+        title: '把方案落到具体场景里',
+        subtitle: '电竞对战、内容创作、门店陈列等场景的配置方式与落地要点。',
+        primary: { label: '提交合作申请', href: '/inquiry?type=business' },
+        secondary: { label: '查看合作案例', href: '/business/cases' },
+        scrim: true,
+      },
+      style: { container: 'full' },
+    },
     {
       type: 'cards',
       props: {
@@ -868,6 +885,23 @@ function buildBusinessScenes(): Page {
 /** 合作案例列表 */
 function buildBusinessCases(): Page {
   return toPage('business-cases', '/business/cases', '合作案例列表', '合作案例装修 + 数据源区块。', [
+    // 首屏定调：与「商业合作」同一套宽屏海报 + 悬浮文案；主视觉图由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 420,
+        alt: '合作案例顶部横幅（待上传）',
+        title: '合作不是露出，是一起把事做成',
+        subtitle: '赛事、渠道与内容共创的落地项目，按合作类型查看具体做法。',
+        primary: { label: '提交合作申请', href: '/inquiry?type=business' },
+        secondary: { label: '查看合作场景', href: '/business/scenes' },
+        scrim: true,
+      },
+      style: { container: 'full' },
+    },
     {
       type: 'caseList',
       props: {
@@ -886,13 +920,29 @@ function buildBusinessCases(): Page {
 /** 体验点列表 */
 function buildBusinessVenues(): Page {
   return toPage('business-venues', '/business/venues', '产品体验点', '全国合作体验点：地图、城市与机型筛选。', [
+    // 首屏定调：与「商业合作」同一套宽屏海报 + 悬浮文案；主视觉图由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 420,
+        alt: '产品体验点顶部横幅（待上传）',
+        title: '先摸到那台机器，再决定',
+        subtitle: '全国合作门店提供光魂与极创全系显示器实机体验，按城市、机型或距离查找。',
+        primary: { label: '企业批量采购', href: '/inquiry?type=business' },
+        secondary: { label: '联系合作团队', href: '/contact' },
+        scrim: true,
+      },
+      style: { container: 'full' },
+    },
     {
       type: 'venueExplorer',
       style: { container: 'full', paddingY: 'sm' },
       props: {
-        eyebrow: 'PRODUCT EXPERIENCE',
         title: '产品体验点',
-        subtitle: '先摸到那台机器，再决定。全国合作门店提供光魂与极创全系显示器实机体验。',
+        subtitle: '按城市、机型或距离查找，地图与列表同步筛选。',
         limit: 0,
         showMap: true,
       },
@@ -1028,6 +1078,23 @@ function buildSupport(): Page {
 /** 联系我们：联系渠道 → 服务时间 → 办事处 → 引导 */
 function buildContact(): Page {
   return toPage('contact', '/contact', '联系我们', '联系我们装修。', [
+    // 首屏定调：宽屏海报 + 悬浮文案；主视觉图由后台替换
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 360,
+        alt: '联系我们顶部横幅（待上传）',
+        title: '找到对的人，比转接更快',
+        subtitle: '采购与合作、产品咨询、售后报修，按渠道直达对应团队。',
+        primary: { label: '提交咨询', href: '/inquiry' },
+        secondary: { label: '常见问题', href: '/faq' },
+        scrim: true,
+      },
+      style: { container: 'full' },
+    },
     {
       type: 'cards',
       props: {
@@ -1076,6 +1143,21 @@ function buildContact(): Page {
 /** 新闻/资讯列表（资讯唯一列表页；默认停用，后台可开） */
 function buildNews(): Page {
   return toPage('news', '/news', '新闻列表', '新闻列表装修 + 数据源区块。', [
+    // 列表页头：与全站同一套首屏组件，矮一档、不放按钮，不做大图强制
+    {
+      type: 'fullscreenVisual',
+      props: {
+        media: '',
+        mediaType: 'image',
+        height: 'custom',
+        heightValue: 300,
+        alt: '新闻与动态顶部横幅（待上传）',
+        title: '新闻与动态',
+        subtitle: '产品发布、活动与合作进展，按时间查看。',
+        scrim: true,
+      },
+      style: { container: 'full' },
+    },
     { type: 'articleList', props: { title: '全部动态', subtitle: '产品发布、活动与资讯动态。', source: 'news', limit: 0, pageSize: 9 } },
   ], false)
 }

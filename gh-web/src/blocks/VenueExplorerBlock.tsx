@@ -3,7 +3,8 @@
  *
  * 数据源：`/api/business/venues`（集合 biz-venues）。
  * 能力：搜索 / 附近 / 城市弹层 / 机型筛选 / 地图聚合下钻 / 按省分组列表 / 门店详情浮层。
- * 设计：苹果风大留白、细分割线、玻璃浮层；省份不再平铺成筛选条。
+ * 视觉：页面定调由首屏 fullscreenVisual 承载；本区块只保留统计条 + 筛选 + 地图 + 列表，
+ *       颜色 / 圆角 / 间距全部使用全站令牌，不再维护独立皮肤。
  */
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
@@ -309,15 +310,14 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   if (loading) {
     return (
       <div className="vx-shell" aria-busy="true" aria-label="体验点加载中">
-        <div className="vx-hero"><div className="vx-hero__inner">
-          <div className="skeleton" style={{ height: 12, width: 120 }} />
-          <div className="skeleton" style={{ height: 64, width: '46%', marginTop: 22 }} />
-          <div className="skeleton" style={{ height: 16, width: '56%', marginTop: 24 }} />
-        </div></div>
-        <div className="vx-container">
+        <div className="container" style={{ paddingBlock: 'var(--gh-space-5)' }}>
+          <div className="skeleton" style={{ height: 18, width: '38%' }} />
+          <div className="skeleton" style={{ height: 52, width: '100%', marginTop: 18 }} />
+        </div>
+        <div className="container">
           <div className="vx-grid">
-            <div className="skeleton" style={{ height: 620, borderRadius: 32 }} />
-            <div className="skeleton" style={{ height: 620, borderRadius: 32 }} />
+            <div className="skeleton" style={{ height: 560, borderRadius: 'var(--gh-radius-xl)' }} />
+            <div className="skeleton" style={{ height: 560, borderRadius: 'var(--gh-radius-xl)' }} />
           </div>
         </div>
       </div>
@@ -327,7 +327,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   if (error) {
     return (
       <div className="vx-shell">
-        <div className="vx-container" style={{ paddingTop: 'var(--gh-space-8)' }}>
+        <div className="container" style={{ paddingTop: 'var(--gh-space-8)' }}>
           <div className="empty">
             <div className="empty__title">体验点加载失败</div>
             <p className="empty__desc">{error.message}。请检查网络后重试。</p>
@@ -342,13 +342,11 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
 
   return (
     <div className="vx-shell">
-      <section className="vx-hero">
-        <div className="vx-hero__inner">
-          <div className="vx-hero__copy">
-            <h2 className="vx-title">{title}</h2>
-            <p className="vx-lead">{subtitle}</p>
-          </div>
-          <div className="vx-stats" aria-label="体验点统计">
+      {/* 统计条：页面标题已由首屏承载，这里只给规模与筛选说明，不重复做第二个 Hero */}
+      <section className="vx-summary" aria-label={`${title}统计`}>
+        <div className="container vx-summary__inner">
+          <p className="vx-summary__lead">{subtitle}</p>
+          <div className="vx-stats">
             <div><span className="vx-stat-num"><Odometer value={total} /></span><span>线下合作体验点</span></div>
             <div><span className="vx-stat-num"><Odometer value={provinceCount} /></span><span>覆盖省市</span></div>
             <div><span className="vx-stat-num"><Odometer value={regionCount} /></span><span>大区覆盖</span></div>
@@ -357,7 +355,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       </section>
 
       <div className="vx-toolbar">
-        <div className="vx-toolbar__inner">
+        <div className="container vx-toolbar__inner">
           <label className="vx-search">
             <IconSearch size={15} />
             <input
@@ -383,7 +381,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
           </button>
           <span className="vx-toolbar__count">{filtered.length} 家</span>
         </div>
-        <div className="vx-toolbar__models">
+        <div className="container vx-toolbar__models">
           <span className="vx-toolbar__label">按机型</span>
           <div className="vx-model-chips" role="group" aria-label="按机型筛选">
             {VENUE_MODEL_FAMILIES.map((family) => (
@@ -402,7 +400,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       </div>
 
       {geoError && (
-        <div className="vx-container">
+        <div className="container">
           <div className="vx-notice" role="status">
             {geoError}
             <button type="button" className="vx-notice__action" onClick={openCity}>选择城市</button>
@@ -411,7 +409,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       )}
 
       {activeFilters.length > 0 && (
-        <div className="vx-container vx-active">
+        <div className="container vx-active">
           <span className="vx-active__label">筛选</span>
           {activeFilters.map((item) => (
             <span className="vx-token" key={item.key}>
@@ -425,7 +423,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
         </div>
       )}
 
-      <div className="vx-container">
+      <div className="container">
         <div className={`vx-grid${showMap ? '' : ' vx-grid--list'}`}>
           {showMap && (
             <section className="vx-map-card" aria-label="体验点地图">
