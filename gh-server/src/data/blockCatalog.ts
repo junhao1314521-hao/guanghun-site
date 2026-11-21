@@ -59,7 +59,7 @@ const POSTER_CTA_STYLES: { label: string; value: string }[] = [
 /** 海报高度档位（§1.3）：满屏 / 21:9 宽幅（高度随宽度）/ 比首屏矮一档 / 自定义（首屏轮播固定满屏） */
 const POSTER_HEIGHTS: { label: string; value: string }[] = [
   { label: '满屏高度（100vh，最高 940px）', value: 'full' },
-  { label: '21:9 宽幅（高度 = 宽度 ÷ 2.33，最高 660px）', value: 'r219' },
+  { label: '21:9 宽幅（高度 = 宽度 ÷ 2.33，完整展示不裁切）', value: 'r219' },
   { label: '矮一档（66vh，最高 600px）', value: 'short' },
   { label: '商城海报（桌面约 520px / 手机约 380px）', value: 'shop' },
   { label: '自定义固定高度（px）', value: 'custom' },
