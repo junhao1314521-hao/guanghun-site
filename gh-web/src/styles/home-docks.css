@@ -107,7 +107,8 @@
 .dl-dock__meta b { display: block; font-size: 12px; font-weight: var(--gh-weight-medium); }
 .dl-dock__meta span { display: block; margin-top: 3px; color: var(--color-text-tertiary); font-size: 11px; }
 .dl-dock__act { display: flex; justify-content: flex-end; gap: var(--gh-space-2); }
-.dl-dock__pending { opacity: .6; cursor: not-allowed; }
+/* 待整理：用弱化文字色表达不可用，不再整体降低透明度（0.6 会把对比度压到 3.4:1） */
+.dl-dock__pending { color: var(--color-text-tertiary); cursor: not-allowed; }
 
 /* —— 咨询分流 —— */
 .inq-dock { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }

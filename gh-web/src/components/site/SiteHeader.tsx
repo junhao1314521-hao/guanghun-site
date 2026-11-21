@@ -451,6 +451,16 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
     setSearchOpen(false)
   }
 
+  /**
+   * 键盘焦点离开整个页头（含宽屏下拉面板）时收起下拉。
+   * 之前只靠鼠标移出 / Esc / 点击外部收起：用 Tab 进入正文后，面板会一直盖在页面上。
+   */
+  const closeMegaOnBlur = (event: { relatedTarget: EventTarget | null }) => {
+    const next = event.relatedTarget
+    if (next instanceof Node && headerRef.current?.contains(next)) return
+    setOpenMenu(null)
+  }
+
   const activeLang = LANG_OPTIONS.find((option) => option.code === lang) ?? LANG_OPTIONS[0]
 
   return (
@@ -463,6 +473,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
           离开这个区域（含移到左侧 LOGO / 右侧操作区）才延时收起。 */}
       <header
         ref={headerRef}
+        onBlur={closeMegaOnBlur}
         className={`site-header${overHero ? ' site-header--over-hero' : ''}${overHero && posterTheme ? ` site-header--poster-${posterTheme}` : ''}${isHome ? ' site-header--home' : ''}${pathname === '/center' ? ' site-header--dark' : ''}`}
       >
       <div className="container site-header__inner" style={{ position: 'relative' }}>

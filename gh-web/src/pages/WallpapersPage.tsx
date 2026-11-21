@@ -457,7 +457,7 @@ function WallpaperArc({
     <div
       className="wp-arc"
       ref={trackRef}
-      role="group"
+      role="region"
       aria-roledescription="壁纸封面流"
       aria-label={`共 ${count} 张壁纸，拖动浏览`}
       data-dragging={dragging ? 'true' : 'false'}

@@ -1639,8 +1639,8 @@ main.main--flush + .site-footer { margin-top: 0; }
 .auth-tabs__item:hover { color: var(--color-text-primary); }
 .auth-tabs__item.is-active { background: var(--color-bg-surface); color: var(--color-text-primary); box-shadow: 0 1px 2px rgb(9 10 16 / 8%); }
 .auth-form__subtitle { margin-top: var(--gh-space-2); color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); line-height: 1.65; }
-.auth-form__inline-link { color: var(--color-accent-text); text-decoration: none; }
-.auth-form__inline-link:hover { text-decoration: underline; }
+.auth-form__inline-link { color: var(--color-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+.auth-form__inline-link:hover { text-decoration-thickness: 2px; }
 .auth-form__agreement { margin-top: var(--gh-space-4); color: var(--color-text-tertiary); font-size: var(--gh-font-size-caption); line-height: 1.6; }
 .field__label-row { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-3); }
 /* 第三方登录（配置开启后才渲染；未接入时明确提示，不误导） */

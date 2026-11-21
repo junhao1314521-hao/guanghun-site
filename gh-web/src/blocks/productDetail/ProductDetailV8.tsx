@@ -805,7 +805,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
             <header className="pdv8-section__head">
               <h2>{t('blocks.pd.v8CompareTitle')}</h2>
             </header>
-            <div className="pdv8-compare__scroll">
+            <div className="pdv8-compare__scroll" role="region" aria-label={t('blocks.pd.v8CompareTitle')} tabIndex={0}>
               <table>
                 <thead>
                   <tr>

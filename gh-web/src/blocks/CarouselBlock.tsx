@@ -99,7 +99,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
       data-poster-theme={theme}
       style={heightStyleValue}
       tabIndex={0}
-      role="group"
+      role="region"
       aria-label="首屏轮播，可用左右方向键切换"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
