@@ -1,9 +1,10 @@
 /**
  * 品牌壁纸页（/wallpapers）
  * ============================================================
- * 浅色通版页面：标题 → 精选图 → 主题筛选 → 16:9 网格。
- * 不使用面包屑与眉题，首屏只保留「标题 + 一句说明 + 数据行」。
- * 颜色统一走语义令牌，自动跟随站点明暗主题；字号 / 间距对齐 tokens.css 的 8pt 体系。
+ * 结构：标准页头（标题 / 说明 / 数据）→ 精选展台（圆角深色画框 + 环绕封面流）
+ *      → 主题筛选 + 自适应网格 → 授权说明。
+ * 颜色与间距走全站语义令牌；深色展台固定品牌夜景色，不随明暗主题翻转。
+ * 网格用 flex 换行居中：任意数量下末行都不会左侧留大洞。
  */
 
 .wp-page {
@@ -11,19 +12,17 @@
 }
 
 /* ---------- 页头 ---------- */
-.wp-head {
+.wp-intro {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  column-gap: clamp(40px, 6vw, 88px);
-  padding-top: clamp(48px, 7vh, 104px);
+  gap: 28px clamp(40px, 6vw, 88px);
+  padding-top: clamp(32px, 4.5vh, 56px);
 }
 
 .wp-title {
-  grid-column: 1;
-  grid-row: 1;
   margin: 0;
-  font-size: clamp(44px, 6.2vw, 104px);
+  font-size: clamp(40px, 5.6vw, 88px);
   font-weight: var(--gh-weight-semibold);
   line-height: 0.98;
   letter-spacing: -0.045em;
@@ -31,21 +30,38 @@
 }
 
 .wp-lede {
-  grid-column: 1;
-  grid-row: 2;
-  margin: 22px 0 0;
-  max-width: 44ch;
+  margin: 18px 0 0;
+  max-width: 52ch;
   color: var(--color-text-secondary);
   font-size: var(--gh-font-size-body-lg);
   line-height: 1.75;
 }
 
+.wp-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  color: var(--color-accent-text);
+  font-size: 13.5px;
+  font-weight: var(--gh-weight-medium);
+  text-decoration: none;
+}
+
+.wp-jump svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.25s var(--gh-ease-standard);
+}
+
+.wp-jump:hover svg {
+  transform: translateX(3px);
+}
+
 .wp-facts {
-  grid-column: 2;
-  grid-row: 1 / span 2;
   display: grid;
   grid-template-columns: repeat(2, auto);
-  gap: 24px 40px;
+  gap: 20px 40px;
   margin: 0;
   padding: 0 0 4px;
   list-style: none;
@@ -70,216 +86,187 @@
   color: var(--color-text-tertiary);
 }
 
-/* ---------- 首屏舞台：全幅背景 + 上方文案 + 底部环形封面流 ---------- */
-.wp-stage {
+/* ---------- 精选展台 ---------- */
+.wp-feature {
+  margin-top: clamp(24px, 3vw, 36px);
+}
+
+.wp-feature__stage {
   position: relative;
-  overflow: hidden;
-  /* 底色 = 页面底色：背景图底部渐隐后直接融进页面，没有分界线 */
-  background: var(--color-bg-page);
   isolation: isolate;
-}
-
-/* 背景用未模糊的精选大图铺满，中间区域完整露出，只在底部用遮罩淡出 */
-.wp-stage__bg {
-  position: absolute;
-  inset: 0;
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: cover;
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    #000 0%,
-    #000 74%,
-    rgba(0, 0, 0, 0.88) 82%,
-    rgba(0, 0, 0, 0.55) 89%,
-    rgba(0, 0, 0, 0.2) 94%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    180deg,
-    #000 0%,
-    #000 74%,
-    rgba(0, 0, 0, 0.88) 82%,
-    rgba(0, 0, 0, 0.55) 89%,
-    rgba(0, 0, 0, 0.2) 94%,
-    transparent 100%
-  );
-}
-
-.wp-stage__inner {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  /* 顶部常驻条 = 公告栏 36px + 导航 54px，留出后再撑满一屏 */
-  min-height: calc(100vh - var(--gh-header-h) - 36px);
-  min-height: calc(100svh - var(--gh-header-h) - 36px);
-  padding-top: clamp(44px, 7vh, 96px);
-  padding-bottom: clamp(56px, 7vh, 84px);
+  overflow: hidden;
+  min-height: clamp(420px, 54vh, 560px);
+  padding: clamp(22px, 2.4vw, 30px) clamp(24px, 3.2vw, 42px) clamp(14px, 1.6vw, 18px);
+  border-radius: clamp(16px, 1.5vw, 24px);
+  background: #0a0c15;
+  color: #fff;
+  box-shadow: 0 30px 70px rgba(12, 16, 32, 0.18);
 }
 
-/* 顶部一条：左侧文案 + 右侧参数，中间整块留给背景画面 */
-.wp-stage__top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  column-gap: clamp(40px, 6vw, 88px);
-  width: 100%;
+/* 当前精选作品铺底；圆角画框把画面收在容器内，不再与页面形成硬边 */
+.wp-feature__bg {
+  position: absolute;
+  inset: -2%;
+  z-index: 0;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.5;
+  transform: scale(1.03);
 }
 
-.wp-stage__copy {
-  max-width: 620px;
-  text-align: left;
+.wp-feature__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 10, 18, 0.88) 0%,
+      rgba(8, 10, 18, 0.46) 38%,
+      rgba(8, 10, 18, 0.72) 72%,
+      rgba(8, 10, 18, 0.94) 100%
+    ),
+    radial-gradient(120% 80% at 18% 0%, rgba(38, 52, 112, 0.5), transparent 62%);
 }
 
-.wp-eyebrow {
+.wp-feature__top {
+  position: relative;
+  z-index: 3;
   display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 0 0 clamp(14px, 1.8vh, 20px);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 64px);
+}
+
+.wp-feature__copy {
+  max-width: 560px;
+}
+
+.wp-feature__tag {
+  margin: 0 0 10px;
   font-family: var(--gh-font-mono);
   font-size: 11px;
-  font-weight: var(--gh-weight-medium);
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 2px 16px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.62);
 }
 
-/* 眉题前的一条短线：给悬浮文案一个"排版锚点"，不再是纯居中的大白字 */
-.wp-eyebrow::before {
-  content: '';
-  width: 34px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.wp-stage .wp-title {
+.wp-feature__title {
   margin: 0;
-  color: #fff;
-  font-size: clamp(40px, 4.9vw, 68px);
+  font-size: clamp(26px, 3vw, 38px);
   font-weight: var(--gh-weight-semibold);
-  line-height: 1.04;
-  letter-spacing: -0.042em;
-  text-align: left;
-  text-shadow:
-    0 2px 44px rgba(0, 0, 0, 0.55),
-    0 1px 3px rgba(0, 0, 0, 0.45);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
 }
 
-.wp-stage .wp-lede {
-  margin: clamp(14px, 2vh, 22px) 0 0;
-  max-width: 30ch;
-  color: rgba(255, 255, 255, 0.84);
-  font-size: clamp(15px, 1.05vw, 16.5px);
-  line-height: 1.8;
-  text-align: left;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.62),
-    0 2px 26px rgba(0, 0, 0, 0.55);
+.wp-feature__desc {
+  margin: 12px 0 0;
+  max-width: 42ch;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1.75;
 }
 
-/* 白色实心小胶囊：在杂色背景上给 CTA 一个稳定、干净的落点 */
-.wp-cta {
+.wp-feature__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.wp-feature__btn {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  height: 42px;
-  margin-top: clamp(20px, 2.6vh, 30px);
-  padding: 0 20px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.88);
-  background: rgba(255, 255, 255, 0.94);
-  color: #10131c;
-  font-size: 13.5px;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--gh-radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 13px;
   font-weight: var(--gh-weight-medium);
   text-decoration: none;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
   transition:
     background 0.25s var(--gh-ease-standard),
-    box-shadow 0.25s var(--gh-ease-standard),
+    border-color 0.25s var(--gh-ease-standard),
     transform 0.25s var(--gh-ease-standard);
 }
 
-.wp-cta:hover {
+.wp-feature__btn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.wp-feature__btn--solid {
+  border-color: #fff;
   background: #fff;
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.4);
+  color: #10131c;
+}
+
+.wp-feature__btn--solid:hover {
+  background: #fff;
   transform: translateY(-1px);
 }
 
-.wp-cta svg {
-  width: 15px;
-  height: 15px;
-  transition: transform 0.25s var(--gh-ease-standard);
-}
-
-.wp-cta:hover svg {
-  transform: translateX(3px);
-}
-
-/* 右上参数：给画面一丝产品目录感，也让右侧不至于空 */
-.wp-stage__meta {
+.wp-feature__meta {
   display: grid;
-  gap: clamp(14px, 2vh, 22px);
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
+  gap: 14px;
+  margin: 4px 0 0;
   text-align: right;
 }
 
-.wp-stage__meta li {
+.wp-feature__meta div {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
 }
 
-.wp-stage__meta span {
+.wp-feature__meta dt {
   font-family: var(--gh-font-mono);
   font-size: 10px;
-  letter-spacing: 0.26em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.68);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 16px rgba(0, 0, 0, 0.75);
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.wp-stage__meta strong {
+.wp-feature__meta dd {
+  margin: 0;
   font-family: var(--gh-font-mono);
-  font-size: 13px;
-  font-weight: var(--gh-weight-regular);
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.96);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 16px rgba(0, 0, 0, 0.8);
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-/* 卡片下沿的操作提示：落在底部渐隐后的浅色带上，用深墨色 + 品牌蓝微光 */
-.wp-stage__hint {
+.wp-feature__hint {
   position: absolute;
   left: 50%;
-  bottom: clamp(12px, 2vh, 22px);
-  z-index: 2;
+  bottom: clamp(6px, 1vw, 12px);
+  z-index: 4;
   margin: 0;
   transform: translateX(-50%);
-  color: rgba(18, 22, 34, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   letter-spacing: 0.12em;
   white-space: nowrap;
   pointer-events: none;
-  text-shadow:
-    0 0 14px rgba(147, 164, 248, 0.55),
-    0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-/* ---------- 环形封面流（中心卡最大，两侧卡后退、内转、被中心卡遮住边缘） ---------- */
+/* ---------- 环绕封面流 ---------- */
 .wp-arc {
-  --card-w: clamp(320px, 33vw, 500px);
+  --card-w: clamp(260px, 28vw, 400px);
   position: relative;
+  z-index: 2; /* 必须高于遮罩层，否则卡片只能看见、点不到 */
   width: 100%;
   margin-top: auto;
-  /* 卡高 + 两侧下沉量；±2 张的侧卡最多下沉约 60px */
-  height: calc(var(--card-w) * 0.5625 + 64px);
-  perspective: 1400px;
-  perspective-origin: 50% 38%;
+  /* 卡高 + 两侧下沉量；下方留出操作提示的高度 */
+  height: calc(var(--card-w) * 0.5625 + 56px);
+  perspective: 1200px;
+  perspective-origin: 50% 36%;
   outline: none;
   cursor: grab;
   touch-action: pan-y;
@@ -369,7 +356,7 @@
 
 /* ---------- 筛选 + 网格 ---------- */
 .wp-browse {
-  margin-top: clamp(72px, 9vw, 104px);
+  margin-top: clamp(56px, 7vw, 88px);
   scroll-margin-top: 110px;
 }
 
@@ -434,13 +421,18 @@
   cursor: not-allowed;
 }
 
+/* flex 换行 + 居中：末行无论剩 1 张还是 2 张都居中，不会空出半排 */
 .wp-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 44px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 24px;
+  row-gap: 44px;
 }
 
 .wp-card {
+  flex: 0 0 calc((100% - 48px) / 3);
+  max-width: 480px;
   min-width: 0;
 }
 
@@ -451,8 +443,9 @@
   border-radius: 12px;
   overflow: hidden;
   background: var(--color-bg-muted);
-  transition: border-color var(--gh-duration-slow) var(--gh-ease-standard),
-              box-shadow var(--gh-duration-slow) var(--gh-ease-standard);
+  transition:
+    border-color var(--gh-duration-slow) var(--gh-ease-standard),
+    box-shadow var(--gh-duration-slow) var(--gh-ease-standard);
 }
 
 .wp-card:hover .wp-card__media,
@@ -472,6 +465,22 @@
 .wp-card:hover .wp-card__img,
 .wp-card:focus-within .wp-card__img {
   transform: scale(1.03);
+}
+
+.wp-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--gh-radius-md);
+  background: rgba(10, 12, 22, 0.62);
+  color: #fff;
+  font-family: var(--gh-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  backdrop-filter: blur(6px);
 }
 
 .wp-card__open {
@@ -506,9 +515,10 @@
   color: #fff;
   opacity: 0;
   transform: translateY(-4px);
-  transition: opacity var(--gh-duration-base) var(--gh-ease-standard),
-              transform var(--gh-duration-base) var(--gh-ease-standard),
-              background var(--gh-duration-fast) var(--gh-ease-standard);
+  transition:
+    opacity var(--gh-duration-base) var(--gh-ease-standard),
+    transform var(--gh-duration-base) var(--gh-ease-standard),
+    background var(--gh-duration-fast) var(--gh-ease-standard);
   backdrop-filter: blur(6px);
 }
 
@@ -519,7 +529,7 @@
 }
 
 .wp-card__dl:hover {
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   border-color: transparent;
 }
 
@@ -627,7 +637,7 @@
 .wp-lb__panel {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 336px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   max-height: 88vh;
 }
 
@@ -662,8 +672,9 @@
   color: #fff;
   cursor: pointer;
   transform: translateY(-50%);
-  transition: background var(--gh-duration-base) var(--gh-ease-standard),
-              border-color var(--gh-duration-base) var(--gh-ease-standard);
+  transition:
+    background var(--gh-duration-base) var(--gh-ease-standard),
+    border-color var(--gh-duration-base) var(--gh-ease-standard);
   backdrop-filter: blur(6px);
 }
 
@@ -693,7 +704,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 30px 28px 26px;
+  padding: 30px 26px 26px;
   overflow-y: auto;
   border-left: 1px solid var(--color-border-subtle);
   background: var(--color-bg-surface);
@@ -713,8 +724,9 @@
   background: var(--color-bg-surface);
   color: var(--color-text-tertiary);
   cursor: pointer;
-  transition: color var(--gh-duration-fast) var(--gh-ease-standard),
-              border-color var(--gh-duration-fast) var(--gh-ease-standard);
+  transition:
+    color var(--gh-duration-fast) var(--gh-ease-standard),
+    border-color var(--gh-duration-fast) var(--gh-ease-standard);
 }
 
 .wp-lb__close:hover {
@@ -748,11 +760,61 @@
   line-height: 1.8;
 }
 
+/* 下载尺寸选择：只列真实存在的档位，缺失档位置灰 */
+.wp-lb__sizes {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.wp-lb__size {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+  background: var(--color-bg-page);
+  color: var(--color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--gh-duration-fast) var(--gh-ease-standard),
+    background var(--gh-duration-fast) var(--gh-ease-standard);
+}
+
+.wp-lb__size strong {
+  font-size: 13px;
+  font-weight: var(--gh-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.wp-lb__size span {
+  font-family: var(--gh-font-mono);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.wp-lb__size:hover {
+  border-color: var(--color-border-strong);
+}
+
+.wp-lb__size.is-active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.wp-lb__size.is-off {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .wp-lb__meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px 20px;
-  margin: 24px 0;
+  margin: 20px 0;
   padding: 18px 0;
   border-top: 1px solid var(--color-border-subtle);
   border-bottom: 1px solid var(--color-border-subtle);
@@ -760,7 +822,7 @@
 
 .wp-lb__meta div {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: 3px;
 }
 
@@ -810,52 +872,28 @@
 }
 
 /* ---------- 响应式 ---------- */
-@media (max-width: 1024px) {
-  .wp-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 1199px) and (min-width: 861px) {
+  .wp-arc {
+    --card-w: clamp(280px, 34vw, 360px);
   }
 }
 
-@media (max-width: 1199px) and (min-width: 861px) {
-  .wp-arc {
-    --card-w: clamp(280px, 38vw, 420px);
+@media (max-width: 1024px) {
+  .wp-card {
+    flex-basis: calc((100% - 24px) / 2);
   }
 }
 
 @media (max-width: 860px) {
-  /* 小屏顶栏比桌面高（导航 78px + 公告 36px），多减 24px，保证环形不被首屏截断 */
-  .wp-stage__inner {
-    min-height: calc(100vh - var(--gh-header-h) - 60px);
-    min-height: calc(100svh - var(--gh-header-h) - 60px);
-  }
-
-  /* 小屏放不下右上参数，只留左侧文案 */
-  .wp-stage__top {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .wp-stage__meta {
-    display: none;
-  }
-
-  .wp-head {
+  .wp-intro {
     grid-template-columns: 1fr;
     align-items: start;
   }
 
-  .wp-title,
-  .wp-lede,
   .wp-facts {
-    grid-column: 1;
-    grid-row: auto;
-  }
-
-  .wp-facts {
-    display: grid;
-    grid-template-columns: repeat(2, auto);
     justify-content: start;
     gap: 14px 36px;
-    margin-top: 32px;
+    margin-top: 4px;
     padding-bottom: 0;
   }
 
@@ -873,8 +911,26 @@
     font-size: var(--gh-font-size-body-sm);
   }
 
+  /* 小屏收起右上参数，把画面和操作留给壁纸本身 */
+  .wp-feature__top {
+    display: block;
+  }
+
+  .wp-feature__meta {
+    display: none;
+  }
+
+  .wp-feature__stage {
+    min-height: 0;
+    padding: 18px 16px 14px;
+  }
+
+  .wp-feature__hint {
+    display: none;
+  }
+
   .wp-arc {
-    --card-w: min(78vw, 400px);
+    --card-w: min(70vw, 300px);
   }
 
   .wp-browse__head {
@@ -903,13 +959,28 @@
   }
 
   .wp-lb__img {
-    max-height: 54vh;
+    max-height: 34vh;
   }
 
   .wp-lb__side {
     border-left: 0;
     border-top: 1px solid var(--color-border-subtle);
-    padding: 22px 20px 24px;
+    padding: 18px 18px 20px;
+  }
+
+  .wp-lb__sizes {
+    margin-top: 14px;
+    gap: 6px;
+  }
+
+  .wp-lb__meta {
+    margin: 14px 0;
+    padding: 12px 0;
+    gap: 10px 16px;
+  }
+
+  .wp-lb__hint {
+    display: none;
   }
 
   .wp-note__inner {
@@ -920,18 +991,26 @@
 }
 
 @media (max-width: 560px) {
+  /* 手机保留“张数 / 主题 / 最高分辨率”，“免登录”在说明里已有 */
+  .wp-facts li:nth-child(n + 4) {
+    display: none;
+  }
+
+  .wp-card {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
   .wp-grid {
-    grid-template-columns: 1fr;
-    gap: 36px;
+    row-gap: 36px;
   }
 
   .wp-arc {
-    --card-w: min(84vw, 340px);
+    --card-w: min(78vw, 300px);
   }
 
-  .wp-stage .wp-lede {
-    max-width: 34ch;
-    font-size: 15px;
+  .wp-feature__desc {
+    font-size: 13.5px;
   }
 
   .wp-card__dl {

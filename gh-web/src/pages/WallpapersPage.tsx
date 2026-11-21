@@ -9,7 +9,12 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchWallpapers, type WallpaperItem, type WallpaperTheme } from '../api/wallpapers'
+import {
+  fetchWallpapers,
+  type WallpaperItem,
+  type WallpaperTheme,
+  type WallpaperVariant,
+} from '../api/wallpapers'
 import { useApi } from '../hooks/useApi'
 import { usePageEffects } from '../hooks/usePageEffects'
 import '../styles/wallpapers.css'
@@ -21,14 +26,53 @@ type Filter = typeof ALL | WallpaperTheme
 /** 弹层当前浏览集合：featured 入口与网格入口可能使用不同列表 */
 type View = { list: WallpaperItem[]; index: number } | null
 
+/** 图片加载失败时的矢量回退（不在页面上留破图） */
+const FALLBACK_IMAGE = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900">' +
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" stop-color="#0d1020"/><stop offset="1" stop-color="#1b2350"/>' +
+    '</linearGradient></defs><rect width="1600" height="900" fill="url(#g)"/>' +
+    '<path d="M800 320l118 118-118 118-118-118z" fill="none" stroke="#5b75f5" stroke-opacity=".45" stroke-width="10"/>' +
+    '<text x="800" y="650" fill="#8fa0c8" font-family="sans-serif" font-size="34" text-anchor="middle">壁纸预览暂不可用</text>' +
+    '</svg>',
+)}`
+
+/** 记录一次回退后不再重复赋值，避免死循环 */
+function onImgError(event: React.SyntheticEvent<HTMLImageElement>) {
+  const img = event.currentTarget
+  if (img.dataset.fallback === '1') return
+  img.dataset.fallback = '1'
+  img.src = FALLBACK_IMAGE
+}
+
+/** 可用下载尺寸；老数据没有 variants 时回落到原图单档 */
+function variantsOf(item: WallpaperItem): WallpaperVariant[] {
+  if (item.variants && item.variants.length > 0) return item.variants
+  return [
+    {
+      key: 'original',
+      label: `${item.width}×${item.height}`,
+      width: item.width,
+      height: item.height,
+      url: item.fileUrl,
+      size: item.size,
+    },
+  ]
+}
+
+/** 最高可用尺寸（服务端已按像素从大到小返回） */
+function topVariant(item: WallpaperItem): WallpaperVariant {
+  return variantsOf(item)[0]
+}
+
 /** 文件是否可下载（服务端探测为 missing 时禁用） */
 function downloadable(item: WallpaperItem): boolean {
   return item.fileStatus !== 'missing'
 }
 
-/** 下载文件名：保留品牌前缀，避免落地后只有 w-xxx.jpg */
-function downloadName(item: WallpaperItem): string {
-  return `光魂壁纸-${item.title}.jpg`
+/** 下载文件名：品牌前缀 + 标题 + 尺寸，落地后可直接辨认 */
+function downloadName(item: WallpaperItem, variant: WallpaperVariant): string {
+  return `光魂壁纸-${item.title}-${variant.label}.jpg`
 }
 
 /** 复制文本：优先 Clipboard API，HTTP / 旧浏览器回退 execCommand */
@@ -85,9 +129,7 @@ const ARC_FADE_END = 2.6
  * 两侧卡片逐级下沉、缩小并转向弧心，形成把中心卡包住的半环。
  *
  * 位置只由连续量 `pos`（浮点索引）决定：第 i 张卡的环绕距离 k = i - pos（取最短），
- * 再按 `x = k·0.96W`、`y = 30|k|^1.3`、`scale = 1/(1+0.13|k|)`、`rotateY = -24k` 落位。
- * 旋转后卡片视觉宽度收窄，因此收紧步距也不会互相重叠；两侧卡片随距离缩小、下沉并淡出。
- *
+ * 再按 `x = k·0.55W`、`y = 18|k|^1.15`、`rotateY = -44k` 落位。
  * 交互：Pointer Events 拖拽（含 200ms 惯性、最多跳 3 张、420–650ms 缓出吸附）、
  * 点侧卡居中、点中心卡放大、← → / Home / End、横向或 Shift 滚轮。
  */
@@ -422,6 +464,7 @@ function WallpaperArc({
               draggable={false}
               loading={Math.abs(index - active) <= 2 ? 'eager' : 'lazy'}
               decoding="async"
+              onError={onImgError}
             />
             <span className="wp-arc__ring" aria-hidden="true" />
           </span>
@@ -432,11 +475,12 @@ function WallpaperArc({
 }
 
 /**
- * 品牌壁纸页：通栏海报舞台（固定背景 + 居中文案 + 3D 弧形封面流）→ 主题筛选 → 16:9 网格 → 大图弹层。
+ * 品牌壁纸页（/wallpapers）
+ * ============================================================
+ * 信息架构：标准页头（标题 / 说明 / 数据）→ 精选展台（环绕封面流）→ 主题筛选 + 网格 → 授权说明。
+ * 下载按真实文件提供 4K / 2K / 1080p 多档；图片失败回退矢量占位，文件缺失时禁用对应档位。
  *
- * 数据来自 `/api/wallpapers`（后台「品牌壁纸」同一集合）。
- * 首屏保持固定的精选背景，壁纸本身在弧形封面流里循环浏览；
- * 下方网格保留主题筛选与快速检索，点击仍可放大、下载与复制链接。
+ * 数据来自 `/api/wallpapers`（后台「品牌壁纸」同一集合），下载档位由服务端探测磁盘后返回。
  */
 export function WallpapersPage() {
   const [reloadKey, setReloadKey] = useState(0)
@@ -448,6 +492,8 @@ export function WallpapersPage() {
   const [view, setView] = useState<View>(null)
   const [toast, setToast] = useState('')
   const [ringIndex, setRingIndex] = useState(0)
+  const [sizeKey, setSizeKey] = useState('')
+  const [availability, setAvailability] = useState<Record<string, boolean>>({})
 
   const rootRef = useRef<HTMLDivElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -474,16 +520,24 @@ export function WallpapersPage() {
     ringTouched.current = true
     setRingIndex(index)
   }
+
   const filtered = useMemo(
     () => (filter === ALL ? items : items.filter((item) => item.theme === filter)),
     [items, filter],
   )
   const active = view?.list[view.index]
+  const activeVariants = useMemo(() => (active ? variantsOf(active) : []), [active])
+  const activeVariant = activeVariants.find((variant) => variant.key === sizeKey) ?? activeVariants[0]
 
-  // dialog 开关：打开时 showModal + 锁定滚动；关闭时恢复
+  // 精选展台文案跟随封面流当前卡，而不是固定第一张
+  const current = items[ringIndex] ?? feature
+  const currentVariant = current ? topVariant(current) : null
+
+  // dialog 开关：只在“打开 / 关闭”时切换，切换大图不能重建 dialog
+  const isLightboxOpen = view !== null
   useEffect(() => {
     const dialog = dialogRef.current
-    if (!view || !dialog) return
+    if (!isLightboxOpen || !dialog) return
     if (!dialog.open) {
       if (typeof dialog.showModal === 'function') dialog.showModal()
       else dialog.setAttribute('open', '')
@@ -496,7 +550,28 @@ export function WallpapersPage() {
         else dialog.removeAttribute('open')
       }
     }
-  }, [view])
+  }, [isLightboxOpen])
+
+  // 打开 / 切换大图时确认各档位文件真实可下载：不存在的档位置灰
+  useEffect(() => {
+    if (!active) return
+    const list = variantsOf(active)
+    setSizeKey((prev) => (list.some((variant) => variant.key === prev) ? prev : list[0]?.key ?? ''))
+    setAvailability({})
+    let cancelled = false
+    for (const variant of list) {
+      fetch(variant.url, { method: 'HEAD' })
+        .then((response) => {
+          if (!cancelled) setAvailability((prev) => ({ ...prev, [variant.key]: response.ok }))
+        })
+        .catch(() => {
+          if (!cancelled) setAvailability((prev) => ({ ...prev, [variant.key]: false }))
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [active])
 
   useEffect(() => {
     return () => window.clearTimeout(toastTimer.current)
@@ -518,78 +593,142 @@ export function WallpapersPage() {
     setView({ list, index })
   }
 
+  const openCurrent = (opener: HTMLElement) => {
+    if (!current) return
+    openAt(items, items.indexOf(current), opener)
+  }
+
   const closeLightbox = () => {
     setView(null)
     window.requestAnimationFrame(() => lastFocus.current?.focus())
   }
 
   const step = (delta: number) => {
-    setView((current) => {
-      if (!current || current.list.length <= 1) return current
-      const next = (current.index + delta + current.list.length) % current.list.length
-      return { ...current, index: next }
+    setView((currentView) => {
+      if (!currentView || currentView.list.length <= 1) return currentView
+      const next = (currentView.index + delta + currentView.list.length) % currentView.list.length
+      return { ...currentView, index: next }
     })
   }
 
-  const onDownload = (item: WallpaperItem) => {
+  const onDownload = (item: WallpaperItem, variant: WallpaperVariant) => {
     if (!downloadable(item)) {
       showToast('该壁纸文件暂未就位，请稍后再试')
       return
     }
-    showToast('已开始下载壁纸')
+    showToast(`已开始下载 ${variant.label} 壁纸`)
   }
 
   const onCopy = async () => {
-    if (!active) return
-    const url = `${window.location.origin}${active.fileUrl}`
+    if (!activeVariant) return
+    const url = `${window.location.origin}${activeVariant.url}`
     const ok = await copyText(url)
-    showToast(ok ? '图片链接已复制' : '复制失败，请在新窗口打开图片后复制')
+    showToast(ok ? `已复制 ${activeVariant.label} 图片链接` : '复制失败，请在新窗口打开图片后复制')
   }
 
   const themeCount = themes.filter((theme) => theme.count > 0).length
+  const maxWidth = useMemo(
+    () => items.reduce((widest, item) => Math.max(widest, topVariant(item).width), 0),
+    [items],
+  )
 
   return (
     <div className="wp-page" ref={rootRef}>
-      {feature ? (
-        /* 首屏舞台：未模糊背景 + 左上文案 + 底部环绕封面流；背景纯装饰，不响应点击 */
-        <section className="wp-stage" aria-labelledby="wp-title">
-          <div
-            className="wp-stage__bg"
-            style={{ backgroundImage: `url(${feature.previewUrl ?? feature.fileUrl})` }}
-            aria-hidden="true"
-          />
+      <header className="container wp-intro">
+        <div className="wp-intro__copy">
+          <h1 className="wp-title">品牌壁纸</h1>
+          <p className="wp-lede">
+            从星海、赛博到秘境，16:9 桌面壁纸。提供 1080p 与 2K 下载，部分作品带原生 4K；
+            免登录、无水印。
+          </p>
+          <a className="wp-jump" href="#wp-all">
+            浏览全部 {items.length || '—'} 张
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
+        </div>
+        <ul className="wp-facts">
+          <li>
+            <strong>{items.length || '—'}</strong>
+            <span>张壁纸</span>
+          </li>
+          <li>
+            <strong>{themeCount || '—'}</strong>
+            <span>个主题</span>
+          </li>
+          <li>
+            <strong>{maxWidth >= 3840 ? '4K' : maxWidth ? `${maxWidth}px` : '—'}</strong>
+            <span>最高分辨率</span>
+          </li>
+          <li>
+            <strong>免登录</strong>
+            <span>直接下载</span>
+          </li>
+        </ul>
+      </header>
 
-          <div className="container wp-stage__inner">
-            <div className="wp-stage__top">
-              <div className="wp-stage__copy">
-                <h1 id="wp-title" className="wp-title">品牌壁纸</h1>
-                <p className="wp-lede">
-                  从星海、赛博到秘境，16:9 桌面壁纸。
-                  <br />
-                  免登录、无水印，选一张留给你的桌面。
-                </p>
-                <a className="wp-cta" href="#wp-all">
-                  浏览全部壁纸
-                  <svg viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </a>
+      {current && currentVariant ? (
+        /* 精选展台：深色圆角画框，不再是通栏背景，首屏与下方内容之间没有硬边 */
+        <section className="container wp-feature" aria-label="本期精选">
+          <div className="wp-feature__stage">
+            <div
+              className="wp-feature__bg"
+              style={{ backgroundImage: `url(${current.previewUrl ?? current.fileUrl})` }}
+              aria-hidden="true"
+            />
+            <div className="wp-feature__veil" aria-hidden="true" />
+
+            <div className="wp-feature__top">
+              <div className="wp-feature__copy">
+                <p className="wp-feature__tag">{current.theme}</p>
+                <h2 className="wp-feature__title">{current.title}</h2>
+                <p className="wp-feature__desc">{current.desc}</p>
+                <div className="wp-feature__actions">
+                  <button
+                    className="wp-feature__btn"
+                    type="button"
+                    onClick={(event) => openCurrent(event.currentTarget)}
+                  >
+                    预览大图
+                  </button>
+                  {downloadable(current) ? (
+                    <a
+                      className="wp-feature__btn wp-feature__btn--solid"
+                      href={currentVariant.url}
+                      download={downloadName(current, currentVariant)}
+                      onClick={() => onDownload(current, currentVariant)}
+                    >
+                      <DownloadIcon />
+                      下载 {currentVariant.label}
+                    </a>
+                  ) : null}
+                </div>
               </div>
 
-              <ul className="wp-stage__meta">
-                <li>
-                  <span>Collection</span>
-                  <strong>{items.length || '—'} 张</strong>
-                </li>
-                <li>
-                  <span>Themes</span>
-                  <strong>{themeCount || '—'} 个主题</strong>
-                </li>
-                <li>
-                  <span>Ratio</span>
-                  <strong>16 : 9</strong>
-                </li>
-              </ul>
+              <dl className="wp-feature__meta">
+                <div>
+                  <dt>最高分辨率</dt>
+                  <dd>
+                    {currentVariant.label} · {currentVariant.width} × {currentVariant.height}
+                  </dd>
+                </div>
+                <div>
+                  <dt>文件体积</dt>
+                  <dd>{currentVariant.size}</dd>
+                </div>
+                <div>
+                  <dt>上架</dt>
+                  <dd>{current.date}</dd>
+                </div>
+              </dl>
             </div>
 
             <WallpaperArc
@@ -598,36 +737,10 @@ export function WallpapersPage() {
               onSelect={selectRing}
               onOpen={(index, opener) => openAt(items, index, opener)}
             />
+            <p className="wp-feature__hint">拖动浏览 · 点击放大</p>
           </div>
-
-          <p className="wp-stage__hint">拖动浏览 · 点击放大</p>
         </section>
-      ) : (
-        <header className="container wp-head">
-          <h1 className="wp-title">品牌壁纸</h1>
-          <p className="wp-lede">
-            从星海、赛博到秘境，16:9 桌面壁纸。免登录、无水印，选一张留给你的桌面。
-          </p>
-          <ul className="wp-facts">
-            <li>
-              <strong>{items.length || '—'}</strong>
-              <span>张壁纸</span>
-            </li>
-            <li>
-              <strong>{themeCount || '—'}</strong>
-              <span>个主题</span>
-            </li>
-            <li>
-              <strong>16:9</strong>
-              <span>桌面比例</span>
-            </li>
-            <li>
-              <strong>免登录</strong>
-              <span>直接下载</span>
-            </li>
-          </ul>
-        </header>
-      )}
+      ) : null}
 
       <section className="container wp-browse" id="wp-all" aria-labelledby="wp-browse-title">
         <div className="wp-browse__head">
@@ -636,12 +749,11 @@ export function WallpapersPage() {
             <span>{filtered.length}</span>
           </h2>
           <div className="wp-filters">
-            <div className="segmented wp-seg" role="tablist" aria-label="壁纸主题">
+            <div className="segmented wp-seg" role="group" aria-label="壁纸主题">
               <button
                 type="button"
-                role="tab"
                 className={filter === ALL ? 'is-active' : ''}
-                aria-selected={filter === ALL}
+                aria-pressed={filter === ALL}
                 onClick={() => chooseFilter(ALL)}
               >
                 全部
@@ -651,9 +763,8 @@ export function WallpapersPage() {
                 <button
                   key={theme.key}
                   type="button"
-                  role="tab"
                   className={filter === theme.key ? 'is-active' : ''}
-                  aria-selected={filter === theme.key}
+                  aria-pressed={filter === theme.key}
                   disabled={theme.count === 0 && filter !== theme.key}
                   title={theme.desc}
                   onClick={() => chooseFilter(theme.key)}
@@ -692,46 +803,52 @@ export function WallpapersPage() {
           </div>
         ) : (
           <div className="wp-grid">
-            {filtered.map((item, index) => (
-              <article className="wp-card reveal" data-delay={String((index % 6) + 1)} key={item.id}>
-                <div className="wp-card__media">
-                  <img
-                    className="wp-card__img"
-                    src={item.thumbUrl ?? item.fileUrl}
-                    alt={`${item.title} 壁纸`}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  {downloadable(item) ? (
-                    <a
-                      className="wp-card__dl"
-                      href={item.fileUrl}
-                      download={downloadName(item)}
-                      aria-label={`下载《${item.title}》`}
-                      title="下载壁纸"
-                      onClick={() => onDownload(item)}
-                    >
-                      <DownloadIcon />
-                    </a>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="wp-card__open"
-                    aria-label={`放大查看《${item.title}》`}
-                    onClick={(event) => openAt(filtered, index, event.currentTarget)}
-                  />
-                </div>
-                <div className="wp-card__body">
-                  <div className="wp-card__row">
-                    <h3 className="wp-card__title">{item.title}</h3>
-                    <span className="wp-card__theme">{item.theme}</span>
+            {filtered.map((item, index) => {
+              const top = topVariant(item)
+              return (
+                <article className="wp-card reveal" data-delay={String((index % 6) + 1)} key={item.id}>
+                  <div className="wp-card__media">
+                    <img
+                      className="wp-card__img"
+                      src={item.thumbUrl ?? item.fileUrl}
+                      alt={`${item.title} 壁纸`}
+                      loading="lazy"
+                      decoding="async"
+                      onError={onImgError}
+                    />
+                    {top.width >= 3840 ? <span className="wp-card__badge">4K</span> : null}
+                    {downloadable(item) ? (
+                      <a
+                        className="wp-card__dl"
+                        href={top.url}
+                        download={downloadName(item, top)}
+                        aria-label={`下载《${item.title}》${top.label}`}
+                        title={`下载 ${top.label}`}
+                        onClick={() => onDownload(item, top)}
+                      >
+                        <DownloadIcon />
+                      </a>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="wp-card__open"
+                      aria-label={`放大查看《${item.title}》`}
+                      onClick={(event) => openAt(filtered, index, event.currentTarget)}
+                    />
                   </div>
-                  <p className="wp-card__meta">
-                    {item.width} × {item.height} · {item.size}
-                  </p>
-                </div>
-              </article>
-            ))}
+                  <div className="wp-card__body">
+                    <div className="wp-card__row">
+                      <h3 className="wp-card__title">{item.title}</h3>
+                      <span className="wp-card__theme">{item.theme}</span>
+                    </div>
+                    <p className="wp-card__meta">
+                      {top.label.includes('×') ? '' : `${top.label} · `}
+                      {top.width} × {top.height} · {top.size}
+                    </p>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         )}
       </section>
@@ -741,8 +858,8 @@ export function WallpapersPage() {
           <div>
             <h2>关于壁纸</h2>
             <p>
-              所有壁纸均为光魂原创或已获授权的品牌影像，提供 16:9 桌面尺寸，免登录下载、无水印。
-              仅限个人非商业用途；商用、二次分发或品牌联名使用，请通过
+              所有壁纸均为光魂原创或已获授权的品牌影像，提供 16:9 桌面尺寸，最高 4K。
+              免登录下载、无水印，仅限个人非商业用途；商用、二次分发或品牌联名使用，请通过
               <Link to="/inquiry"> 提交咨询 </Link>联系我们获取授权。
             </p>
           </div>
@@ -772,13 +889,14 @@ export function WallpapersPage() {
           if (event.target === event.currentTarget) closeLightbox()
         }}
       >
-        {active && view && (
+        {active && view && activeVariant && (
           <div className="wp-lb__panel">
             <div className="wp-lb__stage">
               <img
                 className="wp-lb__img"
                 src={active.previewUrl ?? active.fileUrl}
                 alt={`${active.title} 壁纸大图`}
+                onError={onImgError}
               />
               {view.list.length > 1 && (
                 <>
@@ -806,11 +924,35 @@ export function WallpapersPage() {
               <h2 className="wp-lb__title">{active.title}</h2>
               <p className="wp-lb__desc">{active.desc}</p>
 
+              <div className="wp-lb__sizes" role="radiogroup" aria-label="下载尺寸">
+                {activeVariants.map((variant) => {
+                  const unavailable = availability[variant.key] === false
+                  return (
+                    <button
+                      key={variant.key}
+                      type="button"
+                      role="radio"
+                      aria-checked={activeVariant.key === variant.key}
+                      className={`wp-lb__size ${activeVariant.key === variant.key ? 'is-active' : ''} ${
+                        unavailable ? 'is-off' : ''
+                      }`}
+                      disabled={unavailable}
+                      onClick={() => setSizeKey(variant.key)}
+                    >
+                      <strong>{variant.label}</strong>
+                      <span>
+                        {unavailable ? '文件暂未就位' : `${variant.width}×${variant.height} · ${variant.size}`}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
               <dl className="wp-lb__meta">
                 <div>
                   <dt>尺寸</dt>
                   <dd>
-                    {active.width} × {active.height}
+                    {activeVariant.width} × {activeVariant.height}
                   </dd>
                 </div>
                 <div>
@@ -819,7 +961,7 @@ export function WallpapersPage() {
                 </div>
                 <div>
                   <dt>体积</dt>
-                  <dd>{active.size}</dd>
+                  <dd>{availability[activeVariant.key] === false ? '—' : activeVariant.size}</dd>
                 </div>
                 <div>
                   <dt>上架</dt>
@@ -828,18 +970,23 @@ export function WallpapersPage() {
               </dl>
 
               <div className="wp-lb__actions">
-                {downloadable(active) ? (
-                  <a className="btn btn--primary" href={active.fileUrl} download={downloadName(active)} onClick={() => onDownload(active)}>
+                {downloadable(active) && availability[activeVariant.key] !== false ? (
+                  <a
+                    className="btn btn--primary"
+                    href={activeVariant.url}
+                    download={downloadName(active, activeVariant)}
+                    onClick={() => onDownload(active, activeVariant)}
+                  >
                     <DownloadIcon />
-                    下载这张壁纸
+                    下载 {activeVariant.label} 壁纸
                   </a>
                 ) : (
                   <span className="btn btn--secondary" aria-disabled="true">
-                    文件暂未就位
+                    该尺寸文件暂未就位
                   </span>
                 )}
                 <button className="btn btn--secondary" type="button" onClick={() => void onCopy()}>
-                  复制图片链接
+                  复制 {activeVariant.label} 图片链接
                 </button>
               </div>
 

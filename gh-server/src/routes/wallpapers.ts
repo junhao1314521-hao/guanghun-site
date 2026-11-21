@@ -3,6 +3,7 @@ import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
 import { WALLPAPER_THEMES } from '../data/wallpapers'
 import { fileStatusOf } from '../lib/fileStatus'
+import { wallpaperVariantsOf } from '../lib/wallpaperVariants'
 
 /**
  * 品牌壁纸公开端点（挂载于 /api）：
@@ -17,6 +18,8 @@ wallpapersRouter.get('/wallpapers', (req, res) => {
   const items = listCollection('wallpapers', readLocale(req)).map((item) => ({
     ...item,
     ...fileStatusOf(item.fileUrl),
+    // 前台按此列表提供 4K / 2K / 1080p 下载；仅返回磁盘上真实存在的档位
+    variants: wallpaperVariantsOf(item),
   }))
   const counts = new Map<string, number>()
   for (const item of items) counts.set(item.theme, (counts.get(item.theme) ?? 0) + 1)
