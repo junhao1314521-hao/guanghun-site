@@ -532,7 +532,11 @@ function faqsByIds(...ids: string[]): FaqItem[] {
 /** 型号支持页 / 设备选择器用的型号主图（与产品图库同一份静态资源） */
 export const MODEL_IMAGES: Record<string, string> = {
   'gh-54027x1qe': '/media/products/transparent/gh-54027x1qe.webp',
+  'gh-28027x1qe': '/media/products/transparent/gh-28027x1qe.webp',
   'gh-32x1ue': '/media/products/transparent/gh-32x1ue.webp',
+  'gh-32x1ue-q24': '/media/products/transparent/gh-32x1ue-q24.webp',
+  'gh-27x1ue-q16': '/media/products/transparent/gh-27x1ue-q16.webp',
+  'gh-27x1ue-qd': '/media/products/transparent/gh-27x1ue-qd.webp',
   'gh-27x1qe-500': '/media/products/transparent/gh-27x1qe-500.webp',
   'gh-g27k180': '/media/products/transparent/gh-g27k180.webp',
 }
@@ -540,7 +544,7 @@ export const MODEL_IMAGES: Record<string, string> = {
 export const MODEL_SUPPORTS: ModelSupport[] = [
   {
     id: 'gh-54027x1qe',
-    model: '54027X1QE-W54',
+    model: '27X1QE-W54',
     line: 'OLED旗舰',
     summary: '26.5 英寸 2K@540Hz 旗舰 OLED 电竞显示器，支持 DP 2.1 满速与 Center 调校。',
     faqs: faqsByIds('faq-driver-install', 'faq-pair-24g', 'faq-fw-check'),
@@ -594,6 +598,53 @@ export const MODEL_SUPPORTS: ModelSupport[] = [
     guides: [
       { title: '双模切换', desc: '5K@180 与 2K@330 两种模式的切换与取舍。' },
       { title: 'OSD 与 HDR', desc: 'HDR 调校与亮度设置的用法。' },
+    ],
+  },
+  {
+    id: 'gh-28027x1qe',
+    model: '27X1QE-W28',
+    line: 'OLED旗舰',
+    summary: '26.5 英寸 2K@280Hz W-OLED 电竞显示器，1500 nit 峰值亮度与 368 万像素级控光。',
+    faqs: faqsByIds('faq-pair-24g', 'faq-fw-check', 'faq-warranty-serial'),
+    guides: [
+      { title: '快速上手', desc: '开箱、支架安装与 DP 2.1 连接的基础操作。' },
+      { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
+    ],
+  },
+  {
+    id: 'gh-27x1ue-q16',
+    model: '27X1UE-Q16',
+    line: 'OLED旗舰',
+    summary: '26.5 英寸 4K@165Hz QD-OLED 电竞显示器，量子点广色域与 0.03 ms 灰阶响应。',
+    faqs: faqsByIds('faq-pair-24g', 'faq-pair-notfound', 'faq-warranty-serial'),
+    guides: [
+      { title: '快速上手', desc: '开箱、支架安装与 HDMI 2.1 连接的基础操作。' },
+      { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
+      { title: '接口排障', desc: '无信号、刷新率不达标与识别不到的排查路径。' },
+    ],
+  },
+  {
+    id: 'gh-32x1ue-q24',
+    model: '32X1UE-Q24',
+    line: 'OLED旗舰',
+    summary: '31.5 英寸 4K@240Hz 第四代 QD-OLED 电竞显示器，满速 DP 2.1 与 BLACKSHIELD 抗反涂层。',
+    faqs: faqsByIds('faq-pair-24g', 'faq-pair-notfound', 'faq-warranty-serial'),
+    guides: [
+      { title: '快速上手', desc: '开箱、支架安装与 DP 2.1 满速连接的基础操作。' },
+      { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
+      { title: '接口排障', desc: '无信号、刷新率不达标与识别不到的排查路径。' },
+    ],
+  },
+  {
+    id: 'gh-27x1ue-qd',
+    model: '27X1UE-QD',
+    line: 'OLED旗舰',
+    summary: '26.5 英寸 4K@240Hz QD-OLED 电竞显示器，满速 DP 2.1 与硬件低蓝光。',
+    faqs: faqsByIds('faq-pair-24g', 'faq-pair-notfound', 'faq-warranty-serial'),
+    guides: [
+      { title: '快速上手', desc: '开箱、支架安装与 DP 2.1 满速连接的基础操作。' },
+      { title: '色彩与护眼', desc: '色域、亮度与低蓝光相关设置说明。' },
+      { title: '接口排障', desc: '无信号、刷新率不达标与识别不到的排查路径。' },
     ],
   },
 ]
