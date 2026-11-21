@@ -142,7 +142,7 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
   { name: 'textColor', label: '文案颜色（留空用默认；如 #FAFAFB / rgba(255,255,255,.8)）', kind: 'text' },
   { name: 'accentColor', label: '按钮配色（留空用默认；主按钮实底 / 次按钮描边；如 #2040ED）', kind: 'text' },
   // 按钮样式（后台可切换，hero 与 carousel 每张 slide 各自配置）；缺省 / 老数据 / 非法值一律按 plain 渲染
-  { name: 'ctaStyle', label: '按钮样式（立即购买）', kind: 'select', options: POSTER_CTA_STYLES },
+  { name: 'ctaStyle', label: '按钮样式（主按钮）', kind: 'select', options: POSTER_CTA_STYLES },
 ]
 
 /**

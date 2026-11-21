@@ -21,7 +21,7 @@ export const SERIES: ProductSeries[] = [
     name: 'OLED 旗舰系列',
     line: 'OLED旗舰',
     cover: 'monitor',
-    desc: '第四代 W-OLED / QD-OLED 面板，540Hz 高刷与 0.03 ms 响应，追求极致运动清晰度与纯黑对比。',
+    desc: '第四代 W-OLED / QD-OLED 面板，540Hz 高刷与 0.03 ms 响应，更看重运动清晰度与纯黑对比。',
   },
   {
     slug: 'dual',

@@ -45,8 +45,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     scrim: false,
     mediaTag: '品牌主视觉',
     eyebrow: 'SUPER DISPLAY / 2026',
-    title: ['为极致而生'],
-    desc: 'OLED 电竞显示器，以实测数据定义性能。',
+    title: ['把每一块屏，测给你看'],
+    desc: 'OLED 电竞显示器。自建实验室按公开方法测试，参数、方法与版本号一并公开。',
     primary: '浏览全部产品',
     secondary: '查看天梯榜',
     primaryTo: '/products',
@@ -65,8 +65,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     poster: '/media/home/hero-2.jpg',
     eyebrow: 'ULTRAWIDE / 21:9',
     title: ['21:9 超宽视野'],
-    desc: '光魂超宽屏电竞显示器',
-    primary: '立即购买',
+    desc: '宽屏比例下并排查看时间线与素材，减少窗口切换。',
+    primary: '查看产品',
     secondary: '',
     primaryTo: '/products',
     stats: [],
@@ -145,7 +145,7 @@ export const SCENES: Scene[] = [
   {
     id: 'scene-04',
     label: 'SCENE 04',
-    title: '沉浸 · 影音',
+    title: '影音 · 主机',
     desc: 'OLED 纯黑与 HDR 高亮，主机与影音场景同样从容。',
     tag: '影音娱乐',
     accentTag: false,
@@ -201,7 +201,7 @@ export const FEATURED_PRODUCTS: FeaturedProduct[] = [
     specs: ['26.5 英寸 2K', '280 Hz', '1500 nit'],
     price: '',
     tag: '热销',
-    features: ['第四代 W-OLED，1500 nit 峰值亮度', '26.5 英寸 2K@280Hz，平民超跑', 'CNC 阳极氧化铝背板 · 石墨烯散热'],
+    features: ['第四代 W-OLED，1500 nit 峰值亮度', '26.5 英寸 2K@280Hz，主流高刷规格', 'CNC 阳极氧化铝背板 · 石墨烯散热'],
     background:
       'radial-gradient(120% 100% at 70% 14%, rgba(34,211,238,.4), transparent 58%), linear-gradient(165deg, #0C121E, #131C2C)',
     art: 'monitor',
@@ -263,15 +263,15 @@ export const TECH_ARTICLES: ArticleCard[] = [
 
 /* ---------- 品牌介绍 ---------- */
 export const BRAND_STATS = [
-  { value: '2016', label: '成立年份', note: '从评测起步，坚持自有实验室与仪器实测。' },
-  { value: '40', unit: '+', label: '研发与测试团队', note: '覆盖面板、驱动、结构与色彩验证全链路。' },
-  { value: '1,200', unit: '+', label: '累计测试记录', note: '每一条都可追溯到原始测试条件与样机编号。' },
+  { value: '2019', label: '品牌成立', note: '从参数实测开始做产品，而不是先做包装。' },
+  { value: '1', label: '自有测试实验室', note: '响应、亮度、色准与均匀度按公开方法测量。' },
+  { value: '4', label: '产品线', note: 'OLED 旗舰 / 双模高刷 / 电竞 IPS / 桌面周边。' },
 ]
 
 /* ---------- 服务入口 ---------- */
 export const SERVICE_ENTRIES = [
   { id: 'model', title: '型号与兼容', desc: '按型号查看结构化参数、实测记录与常见问题。' },
-  { id: 'download', title: '下载中心', desc: '说明书、调色配置与固件，公开资料无需注册即可下载。' },
+  { id: 'download', title: '下载中心', desc: '说明书、调校配置与固件，公开资料无需注册即可下载。' },
   { id: 'faq', title: '常见问题', desc: '安装、连接、HDR 调校与售后相关的高频问答。' },
   { id: 'contact', title: '联系与咨询', desc: '产品服务与商业合作咨询，统一进入同一套工单系统。' },
 ] as const
@@ -294,5 +294,5 @@ export const NEWS: NewsItem[] = [
   { date: '2026-09-20', tag: '产品发布', title: '光魂 27X1QE-W54 540Hz OLED 正式发布' },
   { date: '2026-09-12', tag: '品牌动态', title: '天梯榜测试方法升级至 v2（新增色准 / 均匀度）' },
   { date: '2026-08-30', tag: '活动', title: '线下体验点巡回活动预告' },
-  { date: '2026-08-15', tag: '服务', title: '显示器说明书与调色配置下载中心改版说明' },
+  { date: '2026-08-15', tag: '服务', title: '显示器说明书与调校配置下载中心改版说明' },
 ]

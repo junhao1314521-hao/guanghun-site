@@ -143,7 +143,7 @@ const SITE: SiteConfig = {
 const SHOWCASE_COPY: Record<string, string> = {
   'gh-54027x1qe': '闪电序列旗舰：26.5 英寸 2K@540Hz，第四代 W-OLED 面板与 0.03 ms 灰阶响应。',
   'gh-32x1ue': 'Meta 双模切换：4K@165Hz 与 FHD@330Hz 一机两用，进口 LG META OLED 面板。',
-  'gh-28027x1qe': '26.5 英寸 2K@280Hz，1500 nit 峰值亮度与 368 万像素级控光，平民超跑。',
+  'gh-28027x1qe': '26.5 英寸 2K@280Hz，1500 nit 峰值亮度与 368 万像素级控光。',
   'gh-27x1qe-500': '26.5 英寸 2K@500Hz QD-OLED，满速 DP 2.1 与 0.03 ms 灰阶响应。',
 }
 
@@ -158,11 +158,11 @@ const SERVICE_HREF: Record<string, string> = {
 
 /** 服务支持页「快速入口」的跳转目标已并入 QUICK_ENTRIES（entry.href），不再单独映射 */
 
-/** 首屏 / 全屏海报的统一按钮口径：只保留一个「立即购买」按钮，
- *  链接保持原来的产品详情页（品牌 / 场景类海报回退到产品总览）；文案与链接后台均可改。 */
+/** 首屏 / 全屏海报的统一按钮口径：海报只负责引导到产品详情，
+ *  购买动作在详情页由真实购买链接承接；文案与链接后台均可改。 */
 function posterButtons(detailHref: string): { primary: Record<string, unknown> } {
   return {
-    primary: { label: '立即购买', href: detailHref },
+    primary: { label: '查看产品', href: detailHref },
   }
 }
 
@@ -189,9 +189,11 @@ function buildHome(): Page {
             ...(slide.mediaContain ? { mediaContain: true } : {}),
             ...(slide.scrim === false ? { scrim: false } : {}),
             ...(slide.theme ? { theme: slide.theme } : {}),
-            // 大疆官网式文案：主按钮「立即购买」+ 次按钮「了解更多」
-            primary: { label: '立即购买', href: detail },
-            secondary: { label: '了解更多', href: slide.secondaryTo ?? detail },
+            // 主按钮直达产品详情；次按钮按幻灯片配置的真实目标命名，未配置则不显示
+            primary: { label: '查看产品', href: detail },
+            ...(slide.secondary
+              ? { secondary: { label: slide.secondary, href: slide.secondaryTo ?? detail } }
+              : {}),
             stats: slide.stats,
             statsEnabled: false,
             contentPosition: slide.position ?? POSTER_POSITION,
@@ -209,7 +211,7 @@ function buildHome(): Page {
       style: { theme: 'dark', container: 'full' },
     },
     // —— 三张全屏海报（§1.3）：一张海报 = 一个区块（hero），各自独立、上下无缝衔接 ——
-    // 与首屏同一套字段 / 口径：默认关眉题与数据点、文案居中偏上、只留一个「立即购买」按钮；
+    // 与首屏同一套字段 / 口径：默认关眉题与数据点、文案居中偏上、只留一个「查看产品」按钮；
     // 高度档位统一为 21:9 宽幅（h-r219，高度随宽度、不裁切）；
     // 通栏满宽、无圆角、无上下留白，相邻海报之间不留间隙。
     {
@@ -218,8 +220,8 @@ function buildHome(): Page {
         eyebrow: 'FLAGSHIP / 26.5" 2K@540Hz',
         eyebrowEnabled: false,
         statsEnabled: false,
-        title: ['27X1QE 标准款'],
-        subtitle: '八面出锋 大巧不工',
+        title: ['27X1QE-W54'],
+        subtitle: '2K@540Hz · 第四代 W-OLED',
         media: '/media/home/showcase/poster-1.jpg',
         mediaType: 'image',
         mediaTag: '27X1QE 主视觉',
@@ -237,8 +239,8 @@ function buildHome(): Page {
         eyebrow: 'DUAL-MODE / 4K@165 · FHD@330',
         eyebrowEnabled: false,
         statsEnabled: false,
-        title: ['32X1UE 双模款'],
-        subtitle: '一机两用 高分辨与高刷兼得',
+        title: ['32X1UE-W16'],
+        subtitle: '4K@165Hz / FHD@330Hz 双模切换',
         media: '/media/home/showcase/poster-2.jpg',
         mediaType: 'image',
         mediaTag: '32X1UE 主视觉',
@@ -256,8 +258,8 @@ function buildHome(): Page {
         eyebrow: 'BEST SELLER / 26.5" 2K@280Hz',
         eyebrowEnabled: false,
         statsEnabled: false,
-        title: ['27X1QE 热销款'],
-        subtitle: '平民超跑 1500 nit 峰值亮度',
+        title: ['27X1QE-W28'],
+        subtitle: '2K@280Hz · 1500 nit 峰值亮度',
         media: '/media/home/showcase/poster-3.jpg',
         mediaType: 'image',
         mediaTag: '27X1QE 主视觉',
@@ -284,28 +286,28 @@ function buildHome(): Page {
             productId: 'gh-54027x1qe',
             desc: '26.5 英寸 2K@540Hz 第四代 W-OLED 旗舰',
             buttons: [
-              { label: '进一步了解', href: '/products/gh-54027x1qe' },
+              { label: '查看产品', href: '/products/gh-54027x1qe' },
             ],
           },
           {
             productId: 'gh-32x1ue',
             desc: '4K@165 / FHD@330 双模 OLED，一机两用',
             buttons: [
-              { label: '进一步了解', href: '/products/gh-32x1ue' },
+              { label: '查看产品', href: '/products/gh-32x1ue' },
             ],
           },
           {
             productId: 'gh-28027x1qe',
-            desc: '2K@280Hz，1500 nit 峰值亮度的超跑之选',
+            desc: '26.5 英寸 2K@280Hz，1500 nit 峰值亮度',
             buttons: [
-              { label: '进一步了解', href: '/products/gh-28027x1qe' },
+              { label: '查看产品', href: '/products/gh-28027x1qe' },
             ],
           },
           {
             productId: 'gh-27x1ue-qd',
             desc: '26.5 英寸 4K@240Hz QD-OLED，满速 DP 2.1',
             buttons: [
-              { label: '进一步了解', href: '/products/gh-27x1ue-qd' },
+              { label: '查看产品', href: '/products/gh-27x1ue-qd' },
             ],
           },
         ],
@@ -838,7 +840,7 @@ function buildBusiness(): Page {
         channel: 'business',
         showForm: true,
         // R5.2：联系方式只留邮箱与地址，并入表单左栏，不再单独占一个区块
-        points: ['商务合作邮箱：business@guanghun.example', '办公地址：广东省深圳市 · 光魂（到访需提前预约）'],
+        points: ['商务合作邮箱：1009742523@qq.com', '商务热线：15913908438（李经理）', '办公地址：广东省广州市（到访需提前预约）'],
       },
       // R5.5：表单区块上下留白收紧（md → sm），整块高度下降
       style: { paddingY: 'sm' },

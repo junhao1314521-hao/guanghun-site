@@ -135,9 +135,9 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
       '赛后回收设备并统一清洁、固件校验与显示配置复位',
     ],
     results: [
-      { label: '覆盖高校', value: '12 所' },
-      { label: '对战台位', value: '64 个' },
-      { label: '赛前调试耗时', value: '下降约 40%' },
+      { label: '合作范围', value: '校级与区域联赛' },
+      { label: '设备方案', value: '统一型号与显示档' },
+      { label: '赛后流程', value: '清洁 / 校验 / 复位' },
     ],
     gallery: [
       '/media/business/cases/campus-esports-01.svg',
@@ -155,9 +155,9 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
       '试机后引导扫码登记，接入线上咨询与到店预约',
     ],
     results: [
-      { label: '试机台位', value: '18 个' },
-      { label: '试用登记率', value: '提升约 2.3 倍' },
-      { label: '平均停留时长', value: '+9 分钟' },
+      { label: '台位规划', value: '按门店动线统一布置' },
+      { label: '试用入口', value: '扫码登记' },
+      { label: '线上承接', value: '咨询与到店预约' },
     ],
     gallery: [
       '/media/business/cases/venue-experience-01.svg',
@@ -175,9 +175,9 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
       '首发采用限量发售，配套联名周边与收藏卡',
     ],
     results: [
-      { label: '联名型号', value: '3 款' },
-      { label: '首发售罄', value: '48 小时内' },
-      { label: '内容曝光', value: '覆盖 6 个平台' },
+      { label: '联名内容', value: '配色与限定包装' },
+      { label: '发售方式', value: '限量发售' },
+      { label: '渠道覆盖', value: '线下陈列 + 线上内容' },
     ],
     gallery: [
       '/media/business/cases/cobrand-series-01.svg',

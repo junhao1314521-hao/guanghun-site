@@ -44,12 +44,12 @@ function isRenderableMedia(src: string, mediaType: PosterData['mediaType']): boo
 /** 「代码动画」作为第 1 张时的默认文案（未配置任何幻灯片时使用） */
 const MOTION_FALLBACK: PosterData = toPoster({
   eyebrow: 'SUPER DISPLAY',
-  // 首屏默认与产品口径一致：不显示眉题 / 数据点，文案居中偏上，只留一个「立即购买」按钮
+  // 首屏默认与产品口径一致：不显示眉题 / 数据点，文案居中偏上，只留一个产品入口
   eyebrowEnabled: false,
-  title: ['为极致而生'],
-  subtitle: 'OLED 电竞显示器，以实测数据定义性能。',
+  title: ['把每一块屏，测给你看'],
+  subtitle: 'OLED 电竞显示器。自建实验室按公开方法测试，参数、方法与版本号一并公开。',
   mediaTag: '代码动画',
-  primary: { label: '立即购买', href: '/products' },
+  primary: { label: '查看产品', href: '/products' },
   statsEnabled: false,
   contentPosition: { x: 50, y: 32 },
 })

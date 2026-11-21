@@ -112,12 +112,12 @@ export function BusinessCaseDetailPage() {
         </div>
       </div>
 
-      {/* 合作成果 */}
+      {/* 合作落地 */}
       <div className="container" style={{ paddingBottom: 'var(--gh-space-8)' }}>
         <div className="section__head">
           <div>
-            <h2 className="section__title">合作成果</h2>
-            <p className="section__desc">关键数据来自合作双方共同确认；口径与统计范围以最终公布为准。</p>
+            <h2 className="section__title">合作落地</h2>
+            <p className="section__desc">以下为双方确认的合作范围与执行内容；具体数量与效果数据以正式公布为准。</p>
           </div>
         </div>
         <div className="grid-3">
