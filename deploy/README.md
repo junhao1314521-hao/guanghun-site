@@ -83,3 +83,35 @@ bash /opt/website/app/deploy/rollback.sh /opt/website/backups/app-YYYYmmdd-HHMMS
 - 不占用 3001
 - 不使用 `/opt/guanghun` 下的数据库与上传目录
 - 端口冲突检查：`ss -lntp | grep 3002`
+
+## 8. 切换 HTTPS（域名与证书就绪后）
+
+前置：域名 A 记录已指向本机公网 IP、安全组放行 80/443、当前 HTTP 反代可用。
+
+```bash
+# 只检查，不改任何文件
+sudo bash deploy/enable-https.sh --domain xxrsm.com --check
+
+# 执行切换（certbot 自动签证书 + 写入 80→443 跳转）
+sudo bash deploy/enable-https.sh --domain xxrsm.com --email ops@xxrsm.com
+```
+
+脚本按顺序执行并逐步自检：
+
+1. 校验 nginx / certbot / `.env` / `nginx -t` / 80·443·3002 端口
+2. 比对域名解析与本机公网 IP（CDN 场景可加 `--force`）
+3. 备份 `.env` 与 Nginx 站点配置到 `/opt/website/backups/`
+4. `certbot --nginx --redirect` 申请证书并写入 443
+5. 改 `.env` 三项：`SITE_ORIGIN=https://域名`、`COOKIE_SECURE=1`、`TRUST_PROXY=1`
+6. 重载 Nginx、重启 website，验证 `https://域名/healthz` 与 80 跳转、canonical
+
+任一步失败会自动还原 `.env` 与 Nginx 配置。证书续期由 certbot systemd timer 负责
+（`systemctl list-timers | grep certbot`）。HSTS 不自动开启，确认稳定后再人工评估。
+
+手工回滚：
+
+```bash
+cp -p /opt/website/backups/env-https-<时间戳>.bak /opt/website/app/.env
+tar -xzf /opt/website/backups/nginx-https-<时间戳>.tar.gz -C /etc/nginx
+systemctl reload nginx && systemctl restart website
+```
