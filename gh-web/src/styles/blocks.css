@@ -2530,10 +2530,13 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .dl-kv { min-width: 0; }
 .dl-kv__k { display: block; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 .dl-kv__v { display: block; margin-top: 3px; font-size: var(--gh-font-size-body-sm); color: var(--color-text-primary); overflow-wrap: anywhere; }
+/* 卡片页脚固定为两行：校验值一行、操作按钮一行。
+   不能随校验值长短改变按钮排布，否则同一页每张卡的「详情 / 下载」位置都不一样。 */
 .dl-card__foot {
-  margin-top: auto; display: flex; align-items: center; justify-content: space-between;
-  gap: var(--gh-space-3); padding-top: var(--gh-space-3); border-top: 1px solid var(--color-border-subtle);
+  margin-top: auto; display: flex; flex-direction: column; align-items: stretch;
+  gap: var(--gh-space-2); padding-top: var(--gh-space-3); border-top: 1px solid var(--color-border-subtle);
 }
+.dl-card__foot > .row { justify-content: flex-end; flex-wrap: nowrap; }
 
 /* 资料详情 · PDF 内嵌预览（说明书不用再跳一次） */
 .pdf-viewer {
@@ -2553,7 +2556,10 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 @media (max-width: 767px) {
   .pdf-viewer__frame { height: 62vh; }
 }
-.dl-card__sum { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); white-space: nowrap; }
+.dl-card__sum {
+  min-width: 0; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 @media (max-width: 767px) {
   .dl-cards { grid-template-columns: 1fr; }
   .dl-toolbar .input { max-width: none !important; flex: 1 1 100% !important; }

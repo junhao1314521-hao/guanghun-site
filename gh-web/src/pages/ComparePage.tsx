@@ -181,7 +181,8 @@ export function ComparePage() {
                     {section.title}
                   </h2>
                   <div className="table-wrap">
-                    <table className="table">
+                    {/* 固定列宽下给每个产品列留足「立即购买 + 预约体验」的宽度，窄屏改为横向滚动而不是挤压按钮 */}
+                    <table className="table cmp-table" style={{ minWidth: Math.max(680, 240 + items.length * 220) }}>
                       <thead>
                         <tr>
                           <th style={{ width: '22%' }}>参数</th>

@@ -628,11 +628,15 @@ main.main--flush + .site-footer { margin-top: 0; }
 }
 
 /* 对比表头（§4.19）：产品名 + 立即购买 / 预约体验；「移除」改为悬停才出现的小 ✕（触屏常显） */
+/* 表头内容（产品名 + 按钮）比「参数」标签高，统一顶对齐，避免标签垂直居中后与产品名错行 */
+/* 固定列宽：每个分区（基本参数 / 标称 / 实测）的同一产品列必须落在同一竖线上，不随内容宽度漂移 */
+.cmp-table { table-layout: fixed; }
+.cmp-table th { vertical-align: top; padding-top: var(--gh-space-3); padding-bottom: var(--gh-space-3); }
 .cmp-th { position: relative; }
 .cmp-head { display: flex; flex-direction: column; gap: var(--gh-space-2); padding-right: var(--gh-space-5); }
 .cmp-head__model { color: inherit; text-decoration: none; font-weight: var(--gh-weight-medium); }
 .cmp-head__model:hover { color: var(--color-accent-text); }
-.cmp-head__actions { display: flex; gap: var(--gh-space-2); flex-wrap: wrap; }
+.cmp-head__actions { display: flex; gap: var(--gh-space-2); flex-wrap: nowrap; }
 .cmp-remove {
   position: absolute; top: var(--gh-space-2); right: var(--gh-space-2);
   display: inline-flex; align-items: center; justify-content: center;
