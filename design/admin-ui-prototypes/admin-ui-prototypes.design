@@ -1,0 +1,276 @@
+{
+  "data": [
+    {
+      "id": "page-workbench",
+      "title": "工作台 · 桌面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1795325000000,
+      "devMetadata": {
+        "htmlSrc": "pages/workbench.html",
+        "interactions": [
+          {
+            "domId": "workbench-builder",
+            "targetPageId": "page-builder",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-products",
+            "targetPageId": "page-products",
+            "hideEdge": true
+          },
+          {
+            "domId": "workbench-product-stock",
+            "targetPageId": "page-products",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-site",
+            "targetPageId": "page-site-config",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-builder",
+            "targetPageId": "page-builder",
+            "hideEdge": true
+          }
+        ]
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      }
+    },
+    {
+      "id": "page-products",
+      "title": "产品列表 · 桌面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1795325000000,
+      "devMetadata": {
+        "htmlSrc": "pages/products.html",
+        "interactions": [
+          {
+            "domId": "products-edit",
+            "targetPageId": "page-product-edit"
+          },
+          {
+            "domId": "products-create",
+            "targetPageId": "page-product-edit",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-workbench",
+            "targetPageId": "page-workbench",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-site",
+            "targetPageId": "page-site-config",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-builder",
+            "targetPageId": "page-builder",
+            "hideEdge": true
+          }
+        ]
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      }
+    },
+    {
+      "id": "page-mobile-workbench",
+      "title": "工作台 · 手机",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1795325000000,
+      "devMetadata": {
+        "htmlSrc": "pages/mobile-workbench.html",
+        "interactions": []
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      }
+    },
+    {
+      "id": "page-product-edit",
+      "title": "产品编辑 · 桌面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1795325000000,
+      "devMetadata": {
+        "htmlSrc": "pages/product-edit.html",
+        "interactions": [
+          {
+            "domId": "edit-back",
+            "targetPageId": "page-products",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-workbench",
+            "targetPageId": "page-workbench",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-products",
+            "targetPageId": "page-products",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-site",
+            "targetPageId": "page-site-config",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-builder",
+            "targetPageId": "page-builder",
+            "hideEdge": true
+          }
+        ]
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 1
+      }
+    },
+    {
+      "id": "page-site-config",
+      "title": "站点配置 · 桌面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1795325000000,
+      "devMetadata": {
+        "htmlSrc": "pages/site-config.html",
+        "interactions": [
+          {
+            "domId": "nav-workbench",
+            "targetPageId": "page-workbench",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-products",
+            "targetPageId": "page-products",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-builder",
+            "targetPageId": "page-builder",
+            "hideEdge": true
+          }
+        ]
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 1
+      }
+    },
+    {
+      "id": "page-builder",
+      "title": "页面装修器 · 桌面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1795325000000,
+      "devMetadata": {
+        "htmlSrc": "pages/builder.html",
+        "interactions": [
+          {
+            "domId": "builder-back",
+            "targetPageId": "page-workbench",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-workbench",
+            "targetPageId": "page-workbench",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-products",
+            "targetPageId": "page-products",
+            "hideEdge": true
+          },
+          {
+            "domId": "nav-site",
+            "targetPageId": "page-site-config",
+            "hideEdge": true
+          }
+        ]
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 1
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "产品图 · 闪电 540Hz",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1795324274922,
+      "devMetadata": {
+        "imageSrc": "assets/product-54027.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "产品图 · 闪电 280Hz",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1795324274923,
+      "devMetadata": {
+        "imageSrc": "assets/product-28027.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "产品图 · Meta 双模 4K",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1795324274924,
+      "devMetadata": {
+        "imageSrc": "assets/product-32x1ue.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-004",
+      "title": "产品图 · 27 英寸 2K OLED",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1795324274925,
+      "devMetadata": {
+        "imageSrc": "assets/product-27x1qe.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "光魂后台 UI 高保真原型",
+    "designLibrary": null
+  }
+}

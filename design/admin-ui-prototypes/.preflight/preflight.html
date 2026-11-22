@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preflight</title>
+    <style id="theme-vars">
+/* 光魂后台 · 高保真原型设计令牌（free-explore，单一品牌色） */
+:root {
+  --gh-background: #f5f6f8;
+  --gh-foreground: #16181d;
+  --gh-card: #ffffff;
+  --gh-card-foreground: #16181d;
+  --gh-popover: #ffffff;
+  --gh-popover-foreground: #16181d;
+  --gh-primary: #2040ed;
+  --gh-primary-foreground: #ffffff;
+  --gh-muted: #f0f2f5;
+  --gh-muted-foreground: #5f6673;
+  --gh-border: #e4e7ec;
+  --gh-input: #d8dde5;
+  --gh-ring: #2040ed;
+
+  --gh-primary-50: #eef2ff;
+  --gh-primary-100: #dde5ff;
+  --gh-primary-200: #c7d2fe;
+  --gh-primary-600: #1a34c4;
+  --gh-primary-700: #152a9e;
+
+  --gh-surface: #ffffff;
+  --gh-surface-2: #f0f2f5;
+  --gh-surface-3: #e8ebf0;
+  --gh-bg: #f5f6f8;
+  --gh-ink: #16181d;
+  --gh-ink-2: #5f6673;
+  --gh-ink-3: #8a8f98;
+  --gh-line: #e4e7ec;
+  --gh-line-strong: #d3d8e0;
+
+  --state-success: #15803d;
+  --state-success-bg: #ecfdf3;
+  --state-warning: #b45309;
+  --state-warning-bg: #fffbeb;
+  --state-error: #dc2626;
+  --state-error-bg: #fef2f2;
+  --state-info: #475569;
+  --state-info-bg: #f1f5f9;
+
+  --gh-radius-small: 4px;
+  --gh-radius-medium: 8px;
+  --gh-radius-large: 12px;
+  --gh-radius-full: 9999px;
+
+  --gh-font-sans: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --gh-font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --gh-shadow-float: 0 12px 32px -12px rgba(15, 23, 42, 0.18);
+  --gh-shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  --gh-side-width: 240px;
+  --gh-topbar-height: 56px;
+  --gh-content-max: 1280px;
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: light; }
+body {
+  margin: 0;
+  background: var(--gh-bg);
+  color: var(--gh-ink);
+  font-family: var(--gh-font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; }
+.mono { font-family: var(--gh-font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--gh-ink-3); }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--gh-background);
+    --color-foreground: var(--gh-foreground);
+    --color-card: var(--gh-card);
+    --color-card-foreground: var(--gh-card-foreground);
+    --color-popover: var(--gh-popover);
+    --color-popover-foreground: var(--gh-popover-foreground);
+    --color-primary: var(--gh-primary);
+    --color-primary-foreground: var(--gh-primary-foreground);
+    --color-muted: var(--gh-muted);
+    --color-muted-foreground: var(--gh-muted-foreground);
+    --color-border: var(--gh-border);
+    --color-input: var(--gh-input);
+    --color-ring: var(--gh-ring);
+    --radius-sm: var(--gh-radius-small);
+    --radius-md: var(--gh-radius-medium);
+    --radius-lg: var(--gh-radius-large);
+  }
+  @layer base {
+    body { background: var(--gh-background); color: var(--gh-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--gh-background); }
+      .text-background { color: var(--gh-background); }
+      .border-background { border-color: var(--gh-background); }
+      .ring-background { --tw-ring-color: var(--gh-background); }
+      .bg-foreground { background-color: var(--gh-foreground); }
+      .text-foreground { color: var(--gh-foreground); }
+      .border-foreground { border-color: var(--gh-foreground); }
+      .ring-foreground { --tw-ring-color: var(--gh-foreground); }
+      .bg-card { background-color: var(--gh-card); }
+      .text-card { color: var(--gh-card); }
+      .border-card { border-color: var(--gh-card); }
+      .ring-card { --tw-ring-color: var(--gh-card); }
+      .bg-card-foreground { background-color: var(--gh-card-foreground); }
+      .text-card-foreground { color: var(--gh-card-foreground); }
+      .border-card-foreground { border-color: var(--gh-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--gh-card-foreground); }
+      .bg-popover { background-color: var(--gh-popover); }
+      .text-popover { color: var(--gh-popover); }
+      .border-popover { border-color: var(--gh-popover); }
+      .ring-popover { --tw-ring-color: var(--gh-popover); }
+      .bg-popover-foreground { background-color: var(--gh-popover-foreground); }
+      .text-popover-foreground { color: var(--gh-popover-foreground); }
+      .border-popover-foreground { border-color: var(--gh-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--gh-popover-foreground); }
+      .bg-primary { background-color: var(--gh-primary); }
+      .text-primary { color: var(--gh-primary); }
+      .border-primary { border-color: var(--gh-primary); }
+      .ring-primary { --tw-ring-color: var(--gh-primary); }
+      .bg-primary-foreground { background-color: var(--gh-primary-foreground); }
+      .text-primary-foreground { color: var(--gh-primary-foreground); }
+      .border-primary-foreground { border-color: var(--gh-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--gh-primary-foreground); }
+      .bg-muted { background-color: var(--gh-muted); }
+      .text-muted { color: var(--gh-muted); }
+      .border-muted { border-color: var(--gh-muted); }
+      .ring-muted { --tw-ring-color: var(--gh-muted); }
+      .bg-muted-foreground { background-color: var(--gh-muted-foreground); }
+      .text-muted-foreground { color: var(--gh-muted-foreground); }
+      .border-muted-foreground { border-color: var(--gh-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--gh-muted-foreground); }
+      .bg-border { background-color: var(--gh-border); }
+      .text-border { color: var(--gh-border); }
+      .border-border { border-color: var(--gh-border); }
+      .ring-border { --tw-ring-color: var(--gh-border); }
+      .bg-input { background-color: var(--gh-input); }
+      .text-input { color: var(--gh-input); }
+      .border-input { border-color: var(--gh-input); }
+      .ring-input { --tw-ring-color: var(--gh-input); }
+      .bg-ring { background-color: var(--gh-ring); }
+      .text-ring { color: var(--gh-ring); }
+      .border-ring { border-color: var(--gh-ring); }
+      .ring-ring { --tw-ring-color: var(--gh-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

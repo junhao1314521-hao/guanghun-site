@@ -1,0 +1,120 @@
+{
+  "success": true,
+  "outcome": "passed",
+  "repairable": true,
+  "terminalViolations": [],
+  "terminalBlockingSummary": null,
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.10.13.09.48.16",
+    "version_source": "skill-release-manifest.json",
+    "runtime_skill_dir": null,
+    "recorded_at": null,
+    "expected_version": "2026.10.13.09.48.16",
+    "status": "matched",
+    "read_status": "ok"
+  },
+  "operatingMode": "free-explore",
+  "renderBlockingErrorCount": 0,
+  "softWarningCount": 2,
+  "renderBlockingErrors": [],
+  "errorSignatures": [],
+  "softWarnings": [
+    "[html-quality] colors_and_type.css: free-explore brand CSS must use one primary hue only; forbidden secondary/accent brand variables found (--secondary). Use --state-success/warning/error/info only for semantic states.",
+    "[html-quality] builder.html: hardcoded colors are forbidden outside <style id=\"theme-vars\">. Use brand CSS variables from the token reference."
+  ],
+  "repairPlanHints": [
+    {
+      "errorClass": "hardcoded-color-in-body",
+      "owner": "sub-agent",
+      "repairScope": "targeted-token-replace",
+      "strategy": "targeted_token_replace_once",
+      "affectedFiles": [
+        "builder.html"
+      ],
+      "repairReportPath": null,
+      "repairAlreadyAttempted": false,
+      "allowSourceRead": "no-full-html-read",
+      "maxValidationRuns": 2
+    }
+  ],
+  "repairActionTable": [],
+  "errorCount": 0,
+  "warningCount": 2,
+  "errors": [],
+  "warnings": [
+    "[html-quality] colors_and_type.css: free-explore brand CSS must use one primary hue only; forbidden secondary/accent brand variables found (--secondary). Use --state-success/warning/error/info only for semantic states.",
+    "[html-quality] builder.html: hardcoded colors are forbidden outside <style id=\"theme-vars\">. Use brand CSS variables from the token reference."
+  ],
+  "validationRunDisciplineStatus": {
+    "declared": true,
+    "restoreMode": false,
+    "maxFullValidationRuns": 2,
+    "validationHistoryCount": 0,
+    "repairLedgerCount": 0,
+    "softWarningsTriggerRepair": false,
+    "terminalState": null,
+    "nextAction": null,
+    "violations": [],
+    "success": true
+  },
+  "terminalState": null,
+  "nextCheck": {
+    "type": "finish-readiness",
+    "command": "node '/data/user/plugins/trae-remote-official/trae-design/0.1.3/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs' '/workspace/design/admin-ui-prototypes' --check=all",
+    "fullValidationAllowed": false,
+    "reason": "workspace validation passed; run complete finish readiness before final delivery"
+  },
+  "repairBatch": [],
+  "repairContextPacket": {
+    "schema_version": "1.0",
+    "purpose": "small-context repair packet; read this before full validation-report.json",
+    "success": true,
+    "terminalState": null,
+    "skillProvenance": {
+      "name": "solo-design",
+      "version": "2026.10.13.09.48.16",
+      "version_source": "skill-release-manifest.json",
+      "runtime_skill_dir": null,
+      "recorded_at": null,
+      "expected_version": "2026.10.13.09.48.16",
+      "status": "matched",
+      "read_status": "ok"
+    },
+    "renderBlockingErrorCount": 0,
+    "softWarningCount": 2,
+    "renderBlockingErrors": [],
+    "repairActionTable": [],
+    "nextCheck": {
+      "type": "finish-readiness",
+      "command": "node '/data/user/plugins/trae-remote-official/trae-design/0.1.3/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs' '/workspace/design/admin-ui-prototypes' --check=all",
+      "fullValidationAllowed": false,
+      "reason": "workspace validation passed; run complete finish readiness before final delivery"
+    },
+    "forbidden": [
+      "do not read validator source",
+      "do not rerun full validation when nextCheck.fullValidationAllowed=false",
+      "do not start preview/browser unless user explicitly asks",
+      "do not hand-edit repair ledger fields"
+    ]
+  },
+  "projectFileHashes": {
+    "admin-ui-prototypes.design": "c943c2ddce0519e6559268b453cad1462753cedc2242daa9f799ae782900fe90",
+    "colors_and_type.css": "97d384fb2ffe8af16347ec6d61dd353d7b3e7fd8b6dadca060577b330918838e",
+    "runtime-orchestration-summary.json": "2959136bc20444d5abedb3f6ce6178d8749a00f1b5a39719c4cef7d1b1a3d21a",
+    "pages/builder.html": "01fd00c9daf356931be28c791add6a4a700c9b009bcf5866bd80c5ef5da92540",
+    "pages/mobile-workbench.html": "913d145886cdda972feb45b49c6cb29592d487c79018b6929d01f16c6d59279e",
+    "pages/product-edit.html": "0dff2d626378e5972fd0c391e05c09536871204fb8c42471738b5dadca6616f3",
+    "pages/products.html": "f656a6d6ceb1983cd840f35054ca1f45085eacf6e4dc50b5a761410669f50862",
+    "pages/site-config.html": "9322469c97c4fa9050ac34f07a69cabf9cc85a48d0f344fee24d45a19b2ede6c",
+    "pages/workbench.html": "74f56255f9f2fb49d596cd96d45376153006c3007b1745c83afcdf84fbbdd79d",
+    "assets/product-27x1qe.jpg": "c9c0f99be2d4f53e277c2062259cd099f04e2ea9076b59a3cd2a328db49fcffd",
+    "assets/product-28027.jpg": "24f4660894cc6cd1665e71b7bbb657afa0c670c005bf9ada239d98b0bb95b4d3",
+    "assets/product-32x1ue.jpg": "440bdf3208112bdccae4eda57ce5d692a0ddcd2dd5addb826fb747317ec6c604",
+    "assets/product-54027.jpg": "1d5275cc6c568a83e50c486810e28f0d8c86213a264c9937e4d7a864b29840bc"
+  },
+  "designDir": "/workspace/design/admin-ui-prototypes",
+  "expectedPages": 6,
+  "requireInteractions": "nav-products:workbench.html,nav-workbench:products.html,products-edit:products.html,edit-back:product-edit.html,builder-back:builder.html",
+  "checkedAt": "2026-11-22T05:19:25.794Z"
+}

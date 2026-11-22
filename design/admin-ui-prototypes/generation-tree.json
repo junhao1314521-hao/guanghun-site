@@ -1,0 +1,104 @@
+{
+  "root": {
+    "nodeId": "gen-project-shell",
+    "kind": "project-shell",
+    "pageIds": [],
+    "output": "partials/project-shell.html",
+    "sharedRegions": ["font stack", "color tokens", "component radius", "status color semantics", "focus ring", "background"],
+    "privateRegions": [],
+    "mutableSlots": [],
+    "status": "generated",
+    "children": [
+      {
+        "nodeId": "gen-desktop-shell",
+        "kind": "shared-branch",
+        "pageIds": ["page-workbench", "page-products", "page-product-edit", "page-site-config", "page-builder"],
+        "output": "partials/desktop-shell.html",
+        "sharedRegions": ["left sidebar", "brand block", "nav groups", "top bar", "account menu", "content max width"],
+        "privateRegions": [],
+        "mutableSlots": ["activeNavItem", "pageTitle", "pageDescription", "pageActions", "pageBody"],
+        "status": "generated",
+        "children": [
+          {
+            "nodeId": "gen-page-workbench",
+            "kind": "page-leaf",
+            "pageIds": ["page-workbench"],
+            "output": "pages/workbench.html",
+            "sharedRegions": ["desktop shell", "sidebar", "topbar"],
+            "privateRegions": ["focus grid", "KPI row", "activity list", "quick links"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageDescription", "pageActions", "pageBody"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-products",
+            "kind": "page-leaf",
+            "pageIds": ["page-products"],
+            "output": "pages/products.html",
+            "sharedRegions": ["desktop shell", "sidebar", "topbar"],
+            "privateRegions": ["toolbar", "filter bar", "product table", "pagination"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageDescription", "pageActions", "pageBody"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-product-edit",
+            "kind": "page-leaf",
+            "pageIds": ["page-product-edit"],
+            "output": "pages/product-edit.html",
+            "sharedRegions": ["desktop shell", "sidebar", "topbar"],
+            "privateRegions": ["section nav", "form sections", "publish card"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageDescription", "pageActions", "pageBody"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-site-config",
+            "kind": "page-leaf",
+            "pageIds": ["page-site-config"],
+            "output": "pages/site-config.html",
+            "sharedRegions": ["desktop shell", "sidebar", "topbar"],
+            "privateRegions": ["section nav", "nav links editor", "shop channels", "footer hint"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageDescription", "pageActions", "pageBody"],
+            "status": "planned",
+            "children": []
+          },
+          {
+            "nodeId": "gen-page-builder",
+            "kind": "page-leaf",
+            "pageIds": ["page-builder"],
+            "output": "pages/builder.html",
+            "sharedRegions": ["desktop shell", "sidebar", "topbar"],
+            "privateRegions": ["block list", "preview stage", "property panel", "builder toolbar"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageDescription", "pageActions", "pageBody"],
+            "status": "planned",
+            "children": []
+          }
+        ]
+      },
+      {
+        "nodeId": "gen-mobile-shell",
+        "kind": "shared-branch",
+        "pageIds": ["page-mobile-workbench"],
+        "output": "partials/mobile-shell.html",
+        "sharedRegions": ["mobile top bar", "mobile tip", "content padding", "bottom safe area"],
+        "privateRegions": [],
+        "mutableSlots": ["activeNavItem", "pageTitle", "pageActions", "pageBody"],
+        "status": "generated",
+        "children": [
+          {
+            "nodeId": "gen-page-mobile-workbench",
+            "kind": "page-leaf",
+            "pageIds": ["page-mobile-workbench"],
+            "output": "pages/mobile-workbench.html",
+            "sharedRegions": ["mobile shell", "mobile top bar"],
+            "privateRegions": ["focus cards", "KPI list", "quick actions"],
+            "mutableSlots": ["activeNavItem", "pageTitle", "pageActions", "pageBody"],
+            "status": "planned",
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

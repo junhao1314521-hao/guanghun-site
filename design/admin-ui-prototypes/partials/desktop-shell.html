@@ -1,0 +1,106 @@
+<div class="app">
+  <aside class="side" aria-label="后台导航">
+    <div class="side__brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <path d="M15 2.5 27.5 15 15 27.5 2.5 15 15 2.5Z" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M15 8.5 21.5 15 15 21.5 8.5 15 15 8.5Z" fill="currentColor" opacity=".22"/>
+          <path d="M15 8.5 21.5 15 15 21.5 8.5 15 15 8.5Z" stroke="currentColor" stroke-width="1.4"/>
+        </svg>
+      </span>
+      <span class="brand-name">光魂</span>
+      <span class="brand-badge">管理端</span>
+    </div>
+    <div class="side__search">
+      <label class="search-box">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <span class="sr-only">搜索栏目</span>
+        <input class="sr-only" type="search" placeholder="搜索栏目…" />
+        <span aria-hidden="true">搜索栏目…</span>
+      </label>
+    </div>
+    <nav class="side__nav">
+      <div class="nav-group">
+        <div class="nav-group__label">总览</div>
+        <a class="nav-item" href="workbench.html" data-dom-id="nav-workbench">
+          <i data-lucide="layout-dashboard" aria-hidden="true"></i><span>工作台</span>
+        </a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group__label">产品与评测</div>
+        <a class="nav-item" href="products.html" data-dom-id="nav-products">
+          <i data-lucide="monitor" aria-hidden="true"></i><span>产品</span><span class="nav-item__count">9</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="star" aria-hidden="true"></i><span>商品评价</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="settings-2" aria-hidden="true"></i><span>分类与参数</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="clipboard-check" aria-hidden="true"></i><span>测试记录</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="bar-chart-3" aria-hidden="true"></i><span>天梯榜</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="upload" aria-hidden="true"></i><span>天梯榜导入</span>
+        </a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group__label">内容与资源</div>
+        <a class="nav-item" href="#">
+          <i data-lucide="file-text" aria-hidden="true"></i><span>文章</span><span class="nav-item__count">7</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="tags" aria-hidden="true"></i><span>分类与标签</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="download" aria-hidden="true"></i><span>下载中心</span><span class="nav-item__count">53</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="image" aria-hidden="true"></i><span>品牌壁纸</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="folder-open" aria-hidden="true"></i><span>素材库</span>
+        </a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group__label">网站与装修</div>
+        <a class="nav-item" href="builder.html" data-dom-id="nav-builder">
+          <i data-lucide="layout-template" aria-hidden="true"></i><span>页面装修</span>
+        </a>
+        <a class="nav-item" href="site-config.html" data-dom-id="nav-site">
+          <i data-lucide="settings" aria-hidden="true"></i><span>站点配置</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="palette" aria-hidden="true"></i><span>设计令牌</span>
+        </a>
+        <a class="nav-item" href="#">
+          <i data-lucide="send" aria-hidden="true"></i><span>发布管理</span>
+        </a>
+      </div>
+    </nav>
+    <div class="side__foot">光魂官网 · 管理端 v2.4</div>
+  </aside>
+
+  <div class="body">
+    <header class="topbar">
+      <span class="topbar__crumb">光魂官网</span>
+      <span class="topbar__spacer"></span>
+      <button class="icon-btn" type="button" aria-label="帮助"><i data-lucide="help-circle"></i></button>
+      <button class="icon-btn" type="button" aria-label="切换主题"><i data-lucide="moon"></i></button>
+      <button class="account" type="button" aria-haspopup="menu">
+        <span class="avatar" aria-hidden="true">管</span>
+        <span class="account__name">管理员</span>
+        <i data-lucide="chevron-down" aria-hidden="true"></i>
+      </button>
+    </header>
+    <main class="content">
+      <!-- SLOT: pageTitle -->
+      <!-- SLOT: pageDescription -->
+      <!-- SLOT: pageActions -->
+      <!-- SLOT: pageBody -->
+    </main>
+  </div>
+</div>
