@@ -196,7 +196,7 @@ function MoveButtons({
 }
 
 /** 组件：渲染多行文本编辑列表，支持增删行与上下移动。 */
-function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines: string[]) => void }) {
+function LineListEditor({ lines, onChange, label }: { lines: string[]; onChange: (lines: string[]) => void; label: string }) {
   return (
     <div className="builder-lines">
       {lines.map((line, index) => (
@@ -204,6 +204,7 @@ function LineListEditor({ lines, onChange }: { lines: string[]; onChange: (lines
           <input
             className="input"
             type="text"
+            aria-label={`${label} 第 ${index + 1} 行`}
             value={line}
             onChange={(event) => {
               const next = lines.slice()
@@ -398,6 +399,7 @@ function FieldControl({
         <input
           className="input"
           type="text"
+          aria-label={`${field.label}（按钮文字）`}
           placeholder="按钮文字"
           value={typeof record.label === 'string' ? record.label : ''}
           onChange={(event) => setPart('label', event.target.value)}
@@ -405,6 +407,7 @@ function FieldControl({
         <input
           className="input"
           type="text"
+          aria-label={`${field.label}（链接地址）`}
           placeholder="链接地址（如 /products）"
           value={typeof record.href === 'string' ? record.href : ''}
           onChange={(event) => setPart('href', event.target.value)}
@@ -425,6 +428,7 @@ function FieldControl({
     return (
       <Select
         id={fieldId}
+        aria-label={field.label}
         value={typeof value === 'string' ? value : ''}
         onChange={onChange}
         options={[{ value: '', label: '请选择' }, ...(field.options ?? []).map((option) => ({ value: option.value, label: option.label }))]}
@@ -448,6 +452,7 @@ function FieldControl({
       <textarea
         id={fieldId}
         className="textarea builder-code"
+        aria-label={field.label}
         rows={10}
         spellCheck={false}
         placeholder={field.placeholder}
@@ -462,6 +467,7 @@ function FieldControl({
       <textarea
         id={fieldId}
         className="textarea"
+        aria-label={field.label}
         rows={4}
         placeholder={field.placeholder}
         value={typeof value === 'string' ? value : ''}
@@ -475,6 +481,7 @@ function FieldControl({
       id={fieldId}
       className="input"
       type={field.kind === 'number' ? 'number' : 'text'}
+      aria-label={field.label}
       placeholder={field.placeholder}
       value={value === undefined || value === null ? '' : String(value)}
       onChange={(event) =>
@@ -605,7 +612,7 @@ function ListFieldEditor({
 }) {
   if (isStringList(field, value)) {
     const lines = Array.isArray(value) ? (value as unknown[]).filter((line): line is string => typeof line === 'string') : []
-    return <LineListEditor lines={lines} onChange={onChange} />
+    return <LineListEditor lines={lines} onChange={onChange} label={field.label} />
   }
 
   const itemFields = resolveItemFields(meta, field)

@@ -342,6 +342,7 @@ function StylePanel({ style, onChange }: { style: BlockStyle | undefined; onChan
         <div className="field" key={field.key}>
           <span className="field__label">{field.label}</span>
           <Select
+            aria-label={field.label}
             value={typeof current[field.key] === 'string' ? (current[field.key] as string) : ''}
             onChange={(next) => set(field.key, next)}
             options={field.options.map((option) => ({ value: option.value, label: option.label }))}
@@ -353,6 +354,7 @@ function StylePanel({ style, onChange }: { style: BlockStyle | undefined; onChan
         <span className="field__label">页内锚点</span>
         <input
           className="input"
+          aria-label="页内锚点"
           value={typeof current.anchor === 'string' ? (current.anchor as string) : ''}
           placeholder="如 warranty"
           onChange={(event) => set('anchor', event.target.value)}

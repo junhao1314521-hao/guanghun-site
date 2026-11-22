@@ -198,9 +198,13 @@
   --color-success-bg:     #F0FDF4;
   --color-success-border: #BBF7D0;
   --color-warning:        #B45309;
+  /* 告警文字（深一档）：保证在 #EAEAEE 等浅灰面 ≥ 4.5:1 */
+  --color-warning-text:   #8A4B08;
   --color-warning-bg:     #FFFBEB;
   --color-warning-border: #FDE68A;
   --color-danger:         #DC2626;
+  /* 危险文字（深一档）：浅灰底上的文字按钮 ≥ 4.5:1 */
+  --color-danger-text:    #B42318;
   --color-danger-bg:      #FEF2F2;
   --color-danger-border:  #FECACA;
   --color-info:           #0369A1;
@@ -266,9 +270,11 @@
   --color-success-bg:     rgba(52, 211, 153, 0.12);
   --color-success-border: rgba(52, 211, 153, 0.30);
   --color-warning:        #FBBF24;
+  --color-warning-text:   #FBBF24;
   --color-warning-bg:     rgba(251, 191, 36, 0.12);
   --color-warning-border: rgba(251, 191, 36, 0.30);
   --color-danger:         #F87171;
+  --color-danger-text:    #F87171;
   --color-danger-bg:      rgba(248, 113, 113, 0.12);
   --color-danger-border:  rgba(248, 113, 113, 0.30);
   --color-info:           #38BDF8;

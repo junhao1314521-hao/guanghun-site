@@ -18,7 +18,7 @@ import { useToast } from '../../components/admin/feedback'
 import { changeAdminPassword } from '../../api/admin'
 import { AdminTourButton, AdminTourProvider } from '../../components/admin/AdminTour'
 import { ErrorBoundary } from '../../components/site/ErrorBoundary'
-import { IconChevronDown, IconChevronLeft, IconChevronRight, IconClose, IconMenu, IconMoon, IconSearch, IconSun } from '../../components/ui/Icon'
+import { IconAccount, IconChevronDown, IconChevronLeft, IconChevronRight, IconClose, IconMenu, IconMoon, IconSearch, IconSun } from '../../components/ui/Icon'
 import { toggleTheme } from '../../lib/theme'
 import { useTheme } from '../../lib/useTheme'
 
@@ -565,11 +565,13 @@ export function AdminLayout() {
               </button>
 
               <OverflowMenu
-                label="账号菜单"
+                label={`账号菜单：${profile?.name ?? '未登录'}`}
                 trigger={
                   <span className="admin-topbar__account">
+                    {/* 头像用图形而非姓名首字：可见文字只保留姓名，
+                        避免「管管理员」与 aria-label 不一致（WCAG 2.5.3） */}
                     <span className="avatar" aria-hidden="true">
-                      {(profile?.name ?? '?').slice(0, 1)}
+                      <IconAccount size={16} />
                     </span>
                     <span className="admin-topbar__name">{profile?.name ?? '未登录'}</span>
                   </span>

@@ -65,7 +65,14 @@ export function OverflowMenu({
         title={label}
         onClick={() => setOpen((value) => !value)}
       >
-        {trigger ?? <span aria-hidden="true">⋯</span>}
+        {/* 触发器用图形而不是「⋯」字符：可见文字与 aria-label 不一致会触发 WCAG 2.5.3 */}
+        {trigger ?? (
+          <svg viewBox="0 0 18 4" width="18" height="4" aria-hidden="true" focusable="false">
+            <circle cx="2" cy="2" r="1.6" fill="currentColor" />
+            <circle cx="9" cy="2" r="1.6" fill="currentColor" />
+            <circle cx="16" cy="2" r="1.6" fill="currentColor" />
+          </svg>
+        )}
       </button>
       {open && (
         <div className={`admin-menu__list${align === 'end' ? ' admin-menu__list--end' : ''}`} role="menu" id={menuId}>

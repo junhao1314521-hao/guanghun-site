@@ -1439,10 +1439,10 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .image-field__error { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-danger); }
 /* 上传后的规格校验结果：符合规范用中性色，不符合用警示色（不阻断保存） */
 .image-field__audit { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
-.image-field__audit--warn { color: var(--color-warning, #b45309); }
+.image-field__audit--warn { color: var(--color-warning-text); }
 /* 下游裁切预览：按真实版式比例给出小缩略框 */
 .image-field__crops { margin-top: var(--gh-space-2); }
-.image-field__crops-title { display: block; margin-bottom: 6px; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.image-field__crops-title { display: block; margin-bottom: 6px; font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
 .image-crops { display: flex; flex-wrap: wrap; gap: var(--gh-space-3); }
 .image-crops__item { margin: 0; width: 148px; }
 .image-crops__frame {
@@ -1452,7 +1452,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .image-crops__frame--dark { background: #0b0e14; border-color: rgba(255, 255, 255, 0.14); }
 .image-crops__frame img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .image-crops__frame img.is-contain { object-fit: contain; }
-.image-crops__label { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--color-text-tertiary); }
+.image-crops__label { margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--color-text-secondary); }
 .image-field__preview { margin-top: var(--gh-space-1); }
 .image-field__img {
   display: block; width: 100%; max-width: 260px; aspect-ratio: 16 / 9;
@@ -1840,7 +1840,8 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 /* ---------- ③ 表单 / 字段 / 输入框 / 下拉 统一 ---------- */
 /* 字段标签统一为「小号 + 中等字重」；提示与错误行同字号 */
 .admin-root .field__label { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
-.admin-root .field__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+/* 提示文字：产品表单的次行卡片底色为 #EAEAEE，tertiary 仅 4.39:1，改用 secondary */
+.admin-root .field__hint { font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
 /* 字段级错误提示：与普通说明区分（用于重名 / 占用等可立即修正的问题） */
 .admin-root .field__hint--error { color: var(--color-danger); }
 /* 下拉：去掉各端不一致的原生箭头，统一为描边内的细箭头 */
@@ -2651,3 +2652,11 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   }
   .admin-chipbar > .admin-chip { flex: none; }
 }
+
+/* ============================================================
+   阶段 M7：无障碍与对比度收口
+   ============================================================ */
+
+/* 浅灰卡片底色（#EAEAEE）上的文字按钮 / 错误提示改用深一档语义色 */
+.admin-root .btn--danger-ghost { color: var(--color-danger-text); }
+.admin-root .field__hint--error { color: var(--color-danger-text); }

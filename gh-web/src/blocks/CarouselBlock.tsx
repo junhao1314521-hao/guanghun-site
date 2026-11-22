@@ -121,6 +121,8 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
               key={`${slide.mediaTag}-${i}`}
               className={`blk-hero__slide${active ? ' is-active' : ''}${i === motionIndex ? ' is-motion' : ''}`}
               aria-hidden={!active}
+              // 非当前张对读屏隐藏，同时移出 Tab 顺序（否则隐藏幻灯片里的 CTA 仍可聚焦）
+              inert={!active}
             >
               {i === motionIndex && active && <CodeBackdrop className="blk-hero__anim" theme={theme} />}
               <div

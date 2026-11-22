@@ -82,7 +82,7 @@ export function CaptchaField({ code, onCodeChange, onTokenChange, error, disable
           onClick={() => void load()}
         >
           {challenge?.svg ? (
-            <span className="captcha-figure__svg" dangerouslySetInnerHTML={{ __html: challenge.svg }} />
+            <span className="captcha-figure__svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: challenge.svg }} />
           ) : (
             <span className="captcha-figure__ph">{loading ? '加载中…' : '获取'}</span>
           )}
@@ -118,7 +118,7 @@ export function CaptchaField({ code, onCodeChange, onTokenChange, error, disable
           onClick={() => void load()}
         >
           {challenge?.svg ? (
-            <span className="captcha-figure__svg" dangerouslySetInnerHTML={{ __html: challenge.svg }} />
+            <span className="captcha-figure__svg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: challenge.svg }} />
           ) : (
             <span className="captcha-figure__ph">{loading ? '加载中…' : '点击获取'}</span>
           )}
