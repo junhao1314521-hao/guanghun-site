@@ -118,6 +118,12 @@ export type UploadItem = {
   variants: MediaVariant[]
   /** 被多少处页面 / 草稿 / 站点配置 / 集合记录引用（列表接口下发；旧接口可能缺省） */
   refCount?: number
+  /** 上传响应附加：同文件夹已有同内容文件，本次已复用（不重复占磁盘） */
+  reused?: boolean
+  /** 上传响应附加：复用的已有文件名 */
+  duplicateOf?: string
+  /** 上传响应附加：其他文件夹存在同内容文件（仅提示，不阻断） */
+  duplicates?: Array<{ id: string; name: string; url: string }>
 }
 
 /** 一条素材引用位置（`to` 为后台可跳转地址，如装修器 / 记录编辑页） */
@@ -154,6 +160,15 @@ function endpoint(path: string): string {
   return API_BASE ? new URL(path, API_BASE).toString() : path
 }
 
+/** 上传接口响应（含 P2 去重附加字段） */
+type UploadResponsePayload = {
+  item?: UploadItem
+  error?: string
+  reused?: boolean
+  duplicateOf?: string
+  duplicates?: Array<{ id: string; name: string; url: string }>
+}
+
 /** 以原始字节流 POST 文件（XHR：只有它能拿到上传进度）；返回素材条目或抛 ApiError */
 function postFile(path: string, file: File, onProgress?: (percent: number) => void): Promise<UploadItem> {
   const token = getAdminToken()
@@ -168,14 +183,19 @@ function postFile(path: string, file: File, onProgress?: (percent: number) => vo
       if (event.lengthComputable && onProgress) onProgress(Math.round((event.loaded / event.total) * 100))
     }
     xhr.onload = () => {
-      let payload: { item?: UploadItem; error?: string } | null = null
+      let payload: UploadResponsePayload | null = null
       try {
-        payload = JSON.parse(xhr.responseText) as { item?: UploadItem; error?: string }
+        payload = JSON.parse(xhr.responseText) as UploadResponsePayload
       } catch {
         payload = null
       }
       if (xhr.status >= 200 && xhr.status < 300 && payload?.item) {
-        resolve(payload.item)
+        resolve({
+          ...payload.item,
+          ...(payload.reused ? { reused: true } : {}),
+          ...(payload.duplicateOf ? { duplicateOf: payload.duplicateOf } : {}),
+          ...(payload.duplicates && payload.duplicates.length > 0 ? { duplicates: payload.duplicates } : {}),
+        })
         return
       }
       reject(new ApiError(payload?.error || `上传失败（HTTP ${xhr.status}）`, xhr.status))
@@ -184,6 +204,159 @@ function postFile(path: string, file: File, onProgress?: (percent: number) => vo
     xhr.onabort = () => reject(new ApiError('上传已取消', 0))
     xhr.send(file)
   })
+}
+
+/* ============================================================
+   大文件分片上传（P2）
+   ============================================================ */
+
+/** 超过该阈值改走分片上传（5MB 分片 × 2 片） */
+const CHUNK_THRESHOLD = 8 * 1024 * 1024
+/** 断点续传记录前缀：key 含文件名 / 大小 / 修改时间，避免串到别的文件 */
+const CHUNK_STORAGE_PREFIX = 'gh-upload-chunk:'
+
+type ChunkInit = { uploadId: string; chunkSize: number; totalChunks: number; received: number[] }
+type ChunkStatus = ChunkInit & { name: string; size: number; complete: boolean }
+
+/** 读取本地续传任务（隐私模式下失败返回 null） */
+function readChunkTask(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+/** 写入 / 清理本地续传任务 */
+function writeChunkTask(key: string, uploadId: string | null): void {
+  try {
+    if (uploadId) window.localStorage.setItem(key, uploadId)
+    else window.localStorage.removeItem(key)
+  } catch {
+    // 忽略：断点续传是增强能力，不能阻断上传
+  }
+}
+
+/** PUT 单个分片（XHR：可上报片内进度） */
+function putChunk(uploadId: string, index: number, blob: Blob, onProgress?: (loaded: number) => void): Promise<void> {
+  const token = getAdminToken()
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', endpoint(`/api/admin/uploads/chunks/${uploadId}/${index}`))
+    xhr.withCredentials = true
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded)
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve()
+        return
+      }
+      let message = `上传分片失败（HTTP ${xhr.status}）`
+      try {
+        message = (JSON.parse(xhr.responseText) as { error?: string }).error || message
+      } catch {
+        // 保留默认文案
+      }
+      reject(new ApiError(message, xhr.status))
+    }
+    xhr.onerror = () => reject(new ApiError('网络连接失败，请稍后重试', 0))
+    xhr.onabort = () => reject(new ApiError('上传已取消', 0))
+    xhr.send(blob)
+  })
+}
+
+/**
+ * 分片上传（含断点续传）：初始化 → 逐片上传 → 合并。
+ * 进度按已发送字节 / 总字节计算；中断后重试会读取服务端已收到的分片继续。
+ */
+async function uploadFileChunked(
+  file: File,
+  folderId: string | null | undefined,
+  onProgress?: (percent: number) => void,
+): Promise<UploadItem> {
+  const taskKey = `${CHUNK_STORAGE_PREFIX}${file.name}:${file.size}:${file.lastModified}`
+  let status: ChunkStatus | null = null
+
+  const savedId = readChunkTask(taskKey)
+  if (savedId) {
+    try {
+      const res = await transport<ChunkStatus>(
+        { path: `/api/admin/uploads/chunks/${savedId}`, token: getAdminToken() ?? undefined },
+        () => {
+          throw new ApiError('分片任务已失效', 404)
+        },
+      )
+      if (res.size === file.size) status = res
+      else writeChunkTask(taskKey, null)
+    } catch {
+      writeChunkTask(taskKey, null)
+    }
+  }
+
+  if (!status) {
+    const init = await transport<ChunkInit>(
+      {
+        path: '/api/admin/uploads/chunks',
+        method: 'POST',
+        body: { name: file.name, size: file.size, mime: file.type || undefined, folderId: folderId ?? null },
+        token: getAdminToken() ?? undefined,
+      },
+      () => {
+        throw new ApiError('无法初始化分片上传', 0)
+      },
+    )
+    writeChunkTask(taskKey, init.uploadId)
+    status = { ...init, name: file.name, size: file.size, complete: false }
+  }
+
+  const totalChunks = status.totalChunks
+  const chunkSize = status.chunkSize
+  const received = new Set(status.received)
+  let sent = 0
+  for (let index = 0; index < totalChunks; index += 1) {
+    if (received.has(index)) {
+      sent += Math.min(chunkSize, file.size - index * chunkSize)
+    }
+  }
+  onProgress?.(Math.round((sent / file.size) * 100))
+
+  for (let index = 0; index < totalChunks; index += 1) {
+    if (received.has(index)) continue
+    const start = index * chunkSize
+    const end = Math.min(file.size, start + chunkSize)
+    const blob = file.slice(start, end)
+    await putChunk(status.uploadId, index, blob, (loaded) => {
+      onProgress?.(Math.min(99, Math.round(((sent + loaded) / file.size) * 100)))
+    })
+    sent += blob.size
+    onProgress?.(Math.round((sent / file.size) * 100))
+  }
+
+  const res = await transport<{
+    item: UploadItem
+    reused?: boolean
+    duplicateOf?: string
+    duplicates?: Array<{ id: string; name: string; url: string }>
+  }>(
+    {
+      path: `/api/admin/uploads/chunks/${status.uploadId}/complete`,
+      method: 'POST',
+      token: getAdminToken() ?? undefined,
+    },
+    () => {
+      throw new ApiError('合并分片失败，请稍后重试', 0)
+    },
+  )
+  writeChunkTask(taskKey, null)
+  return {
+    ...res.item,
+    ...(res.reused ? { reused: true } : {}),
+    ...(res.duplicateOf ? { duplicateOf: res.duplicateOf } : {}),
+    ...(res.duplicates && res.duplicates.length > 0 ? { duplicates: res.duplicates } : {}),
+  }
 }
 
 /**
@@ -197,6 +370,8 @@ export function uploadFile(
   folderId?: string | null,
   onProgress?: (percent: number) => void,
 ): Promise<UploadItem> {
+  // 大文件走分片（可续传）；小文件保持单请求，避免为 1KB 图片创建分片任务
+  if (file.size > CHUNK_THRESHOLD) return uploadFileChunked(file, folderId, onProgress)
   const query = folderId ? `?folderId=${encodeURIComponent(folderId)}` : ''
   return postFile(`/api/admin/uploads${query}`, file, onProgress)
 }

@@ -237,13 +237,17 @@ export function AdminUploadsList() {
     setUploading(true)
     let ok = 0
     let failed = 0
+    let reused = 0
+    let duplicated = 0
     let lastError = ''
     for (const file of files) {
       try {
         setUploadProgress({ name: file.name, percent: 0 })
-        await uploadImage(file, uploadTargetId || null, (percent) =>
+        const item = await uploadImage(file, uploadTargetId || null, (percent) =>
           setUploadProgress({ name: file.name, percent }),
         )
+        if (item.reused) reused += 1
+        else if (item.duplicates && item.duplicates.length > 0) duplicated += 1
         ok += 1
       } catch (ex) {
         failed += 1
@@ -254,8 +258,10 @@ export function AdminUploadsList() {
     }
     setUploading(false)
     refresh()
-    if (failed === 0) toast.success(`已上传 ${ok} 个文件`)
-    else if (ok === 0) toast.error(`上传失败：${lastError}`)
+    if (failed === 0) {
+      const extra = reused > 0 ? `（${reused} 个复用已有文件）` : duplicated > 0 ? `（${duplicated} 个与其他文件夹内容相同）` : ''
+      toast.success(`已上传 ${ok} 个文件${extra}`)
+    } else if (ok === 0) toast.error(`上传失败：${lastError}`)
     else toast.toast(`成功 ${ok} 个，失败 ${failed} 个（${lastError}）`, 'info')
   }
 

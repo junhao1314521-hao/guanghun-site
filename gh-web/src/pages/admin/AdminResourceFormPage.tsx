@@ -345,11 +345,12 @@ function FormField({
 
   if (field.type === 'file') {
     // 文件地址：上传任意允许类型文件 + 从素材库选择（复用 FileField）
-    // 下载中心固件：已有文件时锁定，禁止原地覆盖，只能走「发布新版本」
+    // 下载中心：固件 / 驱动已有文件时锁定，禁止原地覆盖，只能走「发布新版本」
+    const binaryType = String(allValues?.type ?? '')
     const firmwareLocked =
       resourceKey === 'downloads' &&
       field.key === 'fileUrl' &&
-      String(allValues?.type ?? '') === 'firmware' &&
+      (binaryType === 'firmware' || binaryType === 'driver') &&
       Boolean(String(value ?? '').trim())
     return (
       <>
@@ -374,8 +375,13 @@ function FormField({
   }
 
   if (field.type === 'downloadVersion') {
-    // 固件版本管理：当前版本摘要 + 发布新版本 + 历史版本列表
-    return <DownloadVersionField values={allValues ?? {}} onChange={onChange} />
+    // 版本管理：当前版本摘要 + 发布新版本 + 历史版本列表（撤回 / 恢复）
+    return (
+      <>
+        <span className="field__label">{field.label}</span>
+        <DownloadVersionField values={allValues ?? {}} onChange={onChange} />
+      </>
+    )
   }
 
   if (field.type === 'productMedia') {

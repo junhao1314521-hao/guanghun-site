@@ -229,7 +229,7 @@ describe('发布新版本', () => {
     assert.match(((await res.json()) as { error: string }).error, /历史版本/)
   })
 
-  it('非固件资源不支持发布新版本 → 422', async () => {
+  it('说明书 / 软件等非固件类型也可以发布新版本', async () => {
     const created = await fetch(`${base}/api/admin/resources/downloads`, {
       method: 'POST',
       headers: jsonAuth(),
@@ -242,6 +242,72 @@ describe('发布新版本', () => {
       headers: jsonAuth(),
       body: JSON.stringify({ version: 'v1.1', fileUrl: v2Url }),
     })
-    assert.equal(res.status, 422)
+    assert.equal(res.status, 201)
+    const { item } = (await res.json()) as { item: DownloadRow }
+    assert.equal(item.version, 'v1.1')
+    assert.equal(item.history?.[0]?.version, 'v1.0')
+  })
+
+  it('驱动文件同样不允许原地覆盖', async () => {
+    const created = await fetch(`${base}/api/admin/resources/downloads`, {
+      method: 'POST',
+      headers: jsonAuth(),
+      body: JSON.stringify({ name: 'QA 驱动', type: 'driver', models: ['all'], version: 'v1.0', fileUrl: v1Url }),
+    })
+    assert.equal(created.status, 201)
+    const row = ((await created.json()) as { item: DownloadRow }).item
+    const res = await save({ ...row, fileUrl: v2Url })
+    assert.equal(res.status, 409)
+    assert.match(((await res.json()) as { error: string }).error, /驱动文件不允许原地覆盖/)
+  })
+})
+
+describe('历史版本撤回 / 恢复', () => {
+  it('撤回后前台详情不再展示，后台可恢复', async () => {
+    const current = await detail(firmware.id)
+    const archivedVersion = String(current.history?.[0]?.version ?? '')
+    assert.ok(archivedVersion, '应有可撤回的历史版本')
+
+    const withdraw = await fetch(
+      `${base}/api/admin/resources/downloads/${firmware.id}/versions/${encodeURIComponent(archivedVersion)}/withdraw`,
+      { method: 'POST', headers: auth() },
+    )
+    assert.equal(withdraw.status, 200)
+    const withdrawnItem = ((await withdraw.json()) as { item: DownloadRow }).item
+    assert.equal(withdrawnItem.history?.[0]?.withdrawn, true)
+    assert.ok(withdrawnItem.history?.[0]?.withdrawnAt, '应记录撤回时间')
+
+    const publicDetail = (await (await fetch(`${base}/api/downloads/${firmware.id}`)).json()) as {
+      history?: Array<{ version: string }>
+    }
+    assert.ok(
+      !(publicDetail.history ?? []).some((entry) => entry.version === archivedVersion),
+      '撤回的版本不应出现在前台详情',
+    )
+
+    const restore = await fetch(
+      `${base}/api/admin/resources/downloads/${firmware.id}/versions/${encodeURIComponent(archivedVersion)}/restore`,
+      { method: 'POST', headers: auth() },
+    )
+    assert.equal(restore.status, 200)
+    const restoredItem = ((await restore.json()) as { item: DownloadRow }).item
+    assert.equal(restoredItem.history?.[0]?.withdrawn, false)
+    assert.equal(restoredItem.history?.[0]?.withdrawnAt, undefined, '恢复后应清空撤回时间')
+
+    const publicAgain = (await (await fetch(`${base}/api/downloads/${firmware.id}`)).json()) as {
+      history?: Array<{ version: string }>
+    }
+    assert.ok(
+      (publicAgain.history ?? []).some((entry) => entry.version === archivedVersion),
+      '恢复后应重新出现在前台详情',
+    )
+  })
+
+  it('撤回不存在的版本 → 404', async () => {
+    const res = await fetch(
+      `${base}/api/admin/resources/downloads/${firmware.id}/versions/__nope__/withdraw`,
+      { method: 'POST', headers: auth() },
+    )
+    assert.equal(res.status, 404)
   })
 })

@@ -224,7 +224,9 @@ describe('回收站：素材文件（软删除 / 恢复 / 彻底删除）', () =
     const variantUrls: string[] = []
     const payload: Array<{ width: number; url: string; size: number; type: string }> = []
     for (const width of [320, 640]) {
-      const res = await upload(WEBP_BYTES, `变体主图-${width}.webp`, 'image/webp')
+      // 真实变体内容不同；带上宽度避免被 P2 的同内容去重合并成同一文件
+      const bytes = Buffer.concat([WEBP_BYTES, Buffer.from(`-${width}`)])
+      const res = await upload(bytes, `变体主图-${width}.webp`, 'image/webp')
       assert.equal(res.status, 201)
       const { item } = (await res.json()) as { item: { url: string; size: number } }
       variantUrls.push(item.url)

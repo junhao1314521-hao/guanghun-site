@@ -111,6 +111,22 @@ export function publishDownloadVersion(
   )
 }
 
+/** 下载中心 · 撤回 / 恢复历史版本（撤回后前台不再展示，文件保留） */
+export function setDownloadVersionWithdrawn(
+  id: string,
+  version: string,
+  withdrawn: boolean,
+): Promise<{ ok: boolean; item: AdminRow }> {
+  return transport(
+    {
+      path: `/api/admin/resources/downloads/${id}/versions/${encodeURIComponent(version)}/${withdrawn ? 'withdraw' : 'restore'}`,
+      method: 'POST',
+      token: getAdminToken() ?? undefined,
+    },
+    () => ({ ok: true, item: {} }),
+  )
+}
+
 /* ---------------- 法律条款 · Word 导入 ---------------- */
 
 /** 解析结果（与后端 ParsedLegalDoc 一致） */

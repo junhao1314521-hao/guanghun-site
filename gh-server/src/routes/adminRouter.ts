@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { Router, type Response } from 'express'
+import { Router, type Request, type Response } from 'express'
 import {
   changeAdminPassword,
   getSessionUser,
@@ -587,17 +587,19 @@ function toNotes(raw: unknown): string[] {
 }
 
 /**
- * 固件文件不允许原地覆盖（R-下载 P1）：
+ * 二进制文件（固件 / 驱动）不允许原地覆盖：
  * - 主文件从「有」改成另一个文件 → 必须走「发布新版本」，旧文件自动归档；
- * - 历史版本里已有文件的条目也不允许换文件（按版本号匹配）；
  * - 清空（待更新）或首次从空上传不受限制。
+ * 历史版本文件对所有类型都不允许改写（版本链路一经发布即固定）。
  */
-function firmwareOverwriteError(existing: Record<string, unknown>, body: Record<string, unknown>): string | null {
-  if (String(existing.type ?? '') !== 'firmware') return null
+function binaryOverwriteError(existing: Record<string, unknown>, body: Record<string, unknown>): string | null {
+  const type = String(existing.type ?? '')
   const prevUrl = typeof existing.fileUrl === 'string' ? existing.fileUrl.trim() : ''
   const nextUrl = typeof body.fileUrl === 'string' ? body.fileUrl.trim() : prevUrl
-  if (prevUrl && nextUrl && nextUrl !== prevUrl) {
-    return '固件文件不允许原地覆盖，请使用「发布新版本」'
+  if (type === 'firmware' || type === 'driver') {
+    if (prevUrl && nextUrl && nextUrl !== prevUrl) {
+      return `${type === 'firmware' ? '固件' : '驱动'}文件不允许原地覆盖，请使用「发布新版本」`
+    }
   }
   const prevHistory = Array.isArray(existing.history) ? (existing.history as Array<Record<string, unknown>>) : []
   const nextHistory = Array.isArray(body.history) ? (body.history as Array<Record<string, unknown>>) : []
@@ -672,7 +674,7 @@ adminRouter.put(
       }
       const existing = getCollectionItem('downloads', id)
       if (existing) {
-        const overwriteError = firmwareOverwriteError(existing as unknown as Record<string, unknown>, body)
+        const overwriteError = binaryOverwriteError(existing as unknown as Record<string, unknown>, body)
         if (overwriteError) {
           res.status(409).json({ error: overwriteError })
           return
@@ -713,10 +715,6 @@ adminRouter.post(
     const existing = getCollectionItem('downloads', id)
     if (!existing) {
       res.status(404).json({ error: '未找到该记录' })
-      return
-    }
-    if (String(existing.type) !== 'firmware') {
-      res.status(422).json({ error: '仅固件资源支持发布新版本' })
       return
     }
 
@@ -788,6 +786,61 @@ adminRouter.post(
     }
     res.status(201).json({ ok: true, item, previousVersion: existing.version })
   },
+)
+
+/**
+ * 历史版本撤回 / 恢复（下载中心 P1 补充）。
+ * 撤回后前台详情页不再展示该版本（文件仍保留在素材库），后台可恢复。
+ */
+function historyWithdrawHandler(withdrawn: boolean) {
+  return (req: Request, res: Response) => {
+    const key = readParam(req, 'key')
+    if (key !== 'downloads') {
+      res.status(404).json({ error: '该栏目不支持版本撤回' })
+      return
+    }
+    const id = readParam(req, 'id')
+    const version = readParam(req, 'version').trim()
+    const existing = getCollectionItem('downloads', id)
+    if (!existing) {
+      res.status(404).json({ error: '未找到该记录' })
+      return
+    }
+    const history = Array.isArray(existing.history) ? existing.history : []
+    const target = version.toLowerCase()
+    const index = history.findIndex((entry) => String(entry.version ?? '').trim().toLowerCase() === target)
+    if (index < 0) {
+      res.status(404).json({ error: `未找到历史版本 ${version}` })
+      return
+    }
+    const next = history.map((entry, i) =>
+      i === index
+        ? {
+            ...entry,
+            withdrawn,
+            withdrawnAt: withdrawn ? new Date().toISOString() : undefined,
+          }
+        : entry,
+    )
+    const item = updateCollectionItem('downloads', id, { history: next })
+    res.json({ ok: true, item })
+  }
+}
+
+adminRouter.post(
+  '/resources/:key/:id/versions/:version/withdraw',
+  requireSession,
+  requireResourceScope,
+  auditWrite('update', (req) => `${readParam(req, 'key')}/${readParam(req, 'id')}/withdraw/${readParam(req, 'version')}`),
+  historyWithdrawHandler(true),
+)
+
+adminRouter.post(
+  '/resources/:key/:id/versions/:version/restore',
+  requireSession,
+  requireResourceScope,
+  auditWrite('update', (req) => `${readParam(req, 'key')}/${readParam(req, 'id')}/restore/${readParam(req, 'version')}`),
+  historyWithdrawHandler(false),
 )
 
 adminRouter.delete(

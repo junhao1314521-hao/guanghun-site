@@ -406,6 +406,23 @@ export function getMediaById(id: string): MediaItem | undefined {
   return toMediaItem(item, metaMap().get(id), variantsFor(id))
 }
 
+/**
+ * 按 SHA-256（可选字节数）查找同内容素材（P2 去重）。
+ * 排除变体文件与回收站素材；返回全部命中（调用方自行判断是否同文件夹 / 是否提示）。
+ */
+export function mediaBySha(sha256: string, sizeBytes?: number): MediaItem[] {
+  const sha = sha256.trim()
+  if (!sha) return []
+  const meta = metaMap()
+  const variants = variantsMap()
+  const hidden = variantIdSet(variants)
+  const softDeleted = hiddenUploadIds()
+  return listUploads()
+    .filter((item) => !hidden.has(item.id) && !softDeleted.has(item.id))
+    .map((item) => toMediaItem(item, meta.get(item.id), variants.get(item.id) ?? []))
+    .filter((item) => item.sha256 === sha && (sizeBytes === undefined || (item.sizeBytes ?? item.size) === sizeBytes))
+}
+
 /* ============================================================
    文件夹 CRUD
    ============================================================ */

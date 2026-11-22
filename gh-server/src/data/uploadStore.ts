@@ -351,15 +351,16 @@ function publicUrl(filename: string): string {
   return `/uploads/${encodeURIComponent(filename)}`
 }
 
+/** 上传预检结果：成功时带安全文件名 / 扩展名 / 最终 MIME */
+export type UploadPrecheck =
+  | { ok: true; safeName: string; ext: string; mime: string }
+  | { ok: false; status: number; error: string }
+
 /**
- * 保存上传的原始字节流。
- * 校验顺序：文件名 / 扩展名白名单（415）→ 内容类型白名单（415）→ 落盘。
+ * 上传前校验（不含字节内容）：文件名 / 扩展名白名单、内容类型白名单、按类型大小分档。
+ * 单文件上传与分片上传（init 阶段）共用同一口径，避免两条链路标准不一致。
  */
-export function saveUpload(
-  bytes: Buffer,
-  originalName: string,
-  contentType: string | undefined,
-): SaveUploadResult {
+export function precheckUpload(originalName: string, size: number, contentType: string | undefined): UploadPrecheck {
   const safeName = sanitizeBaseName(originalName)
   const ext = extOf(safeName)
   const allowed = ext ? EXT_MIME[ext] : undefined
@@ -370,41 +371,56 @@ export function saveUpload(
   if (mime && !allowed.includes(mime)) {
     return { ok: false, status: 415, error: `文件内容类型不被允许：${mime}` }
   }
-  // 大小限额按类型分档（图片 / 文档 / 视频）；超限给出含类型与限额的中文提示
+  if (size <= 0) {
+    return { ok: false, status: 400, error: '文件内容为空' }
+  }
   const kind = sizeKindOf(ext)
   const limit = limitForKind(kind)
-  if (bytes.length > limit) {
+  if (size > limit) {
     return {
       ok: false,
       status: 413,
-      error: `${LIMIT_LABEL[kind]}超过大小限制：最大 ${formatLimit(limit)}（当前 ${formatLimit(bytes.length)}）`,
+      error: `${LIMIT_LABEL[kind]}超过大小限制：最大 ${formatLimit(limit)}（当前 ${formatLimit(size)}）`,
     }
   }
+  return { ok: true, safeName, ext, mime: mime || EXT_DEFAULT_MIME[ext] }
+}
+
+/**
+ * 保存上传的原始字节流。
+ * 校验顺序：文件名 / 扩展名白名单（415）→ 内容类型白名单（415）→ 大小分档（413）→ 落盘。
+ */
+export function saveUpload(
+  bytes: Buffer,
+  originalName: string,
+  contentType: string | undefined,
+): SaveUploadResult {
+  const check = precheckUpload(originalName, bytes.length, contentType)
+  if (!check.ok) return check
   const dir = ensureUploadDir()
   // 磁盘配额：避免素材库无限增长拖垮服务器（管理员上传才触发，开销可接受）
   const quota = uploadQuotaBytes()
   if (quota > 0 && uploadDirBytes(dir) + bytes.length > quota) {
     return { ok: false, status: 507, error: `上传空间已满（配额 ${formatLimit(quota)}），请先清理素材` }
   }
-  const filename = `${Date.now()}-${randomBytes(4).toString('hex')}-${safeName}`
+  const filename = `${Date.now()}-${randomBytes(4).toString('hex')}-${check.safeName}`
   const file = path.join(dir, filename)
   writeFileSync(file, bytes)
   const stat = statSync(file)
-  const mimeType = mime || EXT_DEFAULT_MIME[ext]
   upsertUploadMeta(filename, {
     sizeBytes: stat.size,
     sha256: sha256Of(bytes),
-    mime: mimeType,
+    mime: check.mime,
     kind: kindOfFile(filename),
   })
   return {
     ok: true,
     item: {
       id: filename,
-      name: safeName,
+      name: check.safeName,
       url: publicUrl(filename),
       size: stat.size,
-      type: mimeType,
+      type: check.mime,
       uploadedAt: new Date(stat.mtimeMs).toISOString(),
     },
   }

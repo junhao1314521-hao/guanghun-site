@@ -1,5 +1,6 @@
 import express, { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express'
-import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload } from '../data/uploadStore'
+import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload, type SaveUploadResult } from '../data/uploadStore'
+import { CHUNK_SIZE, assembleChunks, chunkUploadMeta, chunkUploadStatus, initChunkUpload, putChunk, removeChunkUpload } from '../data/chunkStore'
 import { generateImageVariants } from '../data/imageVariants'
 import { mediaReferenceCounts, referencesToUrl } from '../data/pageRefs'
 import {
@@ -10,6 +11,7 @@ import {
   listFolders,
   listMedia,
   MEDIA_CATEGORIES,
+  mediaBySha,
   mediaItem,
   moveFiles,
   setFileCategory,
@@ -110,6 +112,44 @@ function uploadTargetFolder(req: Request): string | null | undefined {
   return normalizeFolderId(raw)
 }
 
+/** 分片请求体解析器（单片上限 + 1MB 余量；惰性创建） */
+let chunkParser: RequestHandler | null = null
+function rawChunkBody(req: Request, res: Response, next: NextFunction): void {
+  if (!chunkParser) chunkParser = express.raw({ type: '*/*', limit: CHUNK_SIZE + 1024 * 1024 })
+  chunkParser(req, res, next)
+}
+
+/**
+ * 上传收尾（单文件 / 分片共用）：
+ * 1) 目标文件夹归属（调用方已校验存在性）；
+ * 2) SHA-256 去重：同文件夹已有同内容素材 → 丢弃新文件并复用已有素材；
+ * 3) 其他文件夹存在同内容 → 保留新文件，但返回 duplicates 供前端提示；
+ * 4) 位图生成变体。
+ */
+async function finishUpload(res: Response, saved: SaveUploadResult, folderId: string | null): Promise<void> {
+  if (!saved.ok) {
+    res.status(saved.status).json({ error: saved.error })
+    return
+  }
+  if (folderId) setFileFolder(saved.item.id, folderId)
+  const item = mediaItem(saved.item)
+  const sha = item.sha256 ?? ''
+  const duplicates = sha ? mediaBySha(sha, item.sizeBytes ?? item.size).filter((entry) => entry.id !== item.id) : []
+  const sameFolder = duplicates.find((entry) => entry.folderId === item.folderId)
+  if (sameFolder) {
+    // 同文件夹同内容：不重复占用磁盘，直接复用已有素材
+    deleteUpload(item.id)
+    res.status(201).json({ item: sameFolder, reused: true, duplicateOf: sameFolder.name })
+    return
+  }
+  // 位图：服务端自动生成多尺寸 webp 变体并登记；失败仅记日志、保持单张原图（不抛出）
+  await generateImageVariants(saved.item)
+  res.status(201).json({
+    item: mediaItem(saved.item),
+    duplicates: duplicates.map((entry) => ({ id: entry.id, name: entry.name, url: entry.url })),
+  })
+}
+
 uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWrite('upload', (req) => readFileName(req) || 'upload'), rawBody, async (req, res) => {
   const name = readFileName(req)
   if (!name) {
@@ -133,11 +173,122 @@ uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWri
     res.status(400).json({ error: '目标文件夹不存在' })
     return
   }
-  if (folderId) setFileFolder(result.item.id, folderId)
-  // 位图：服务端自动生成多尺寸 webp 变体并登记；失败仅记日志、保持单张原图（不抛出）
-  await generateImageVariants(result.item)
-  res.status(201).json({ item: mediaItem(result.item) })
+  await finishUpload(res, result, folderId ?? null)
 })
+
+/* ---------------- 大文件分片上传（P2） ---------------- */
+
+/** 初始化：校验文件名 / 类型 / 总大小后返回 uploadId 与分片计划 */
+uploadsRouter.post(
+  '/uploads/chunks',
+  requireSession,
+  requireScope('content'),
+  auditWrite('upload-init', (req) => String((req.body as { name?: unknown })?.name ?? 'upload')),
+  (req, res) => {
+    const body = (req.body ?? {}) as { name?: unknown; size?: unknown; mime?: unknown; folderId?: unknown }
+    const name = typeof body.name === 'string' ? body.name : ''
+    const size = Number(body.size)
+    if (!name || !Number.isFinite(size)) {
+      res.status(400).json({ error: '缺少文件名或文件大小' })
+      return
+    }
+    const folderId = typeof body.folderId === 'string' ? normalizeFolderId(body.folderId) : null
+    if (folderId && !folderExists(folderId)) {
+      res.status(400).json({ error: '目标文件夹不存在' })
+      return
+    }
+    const result = initChunkUpload({
+      name,
+      size,
+      mime: typeof body.mime === 'string' ? body.mime : undefined,
+      folderId,
+    })
+    if (!result.ok) {
+      res.status(result.status).json({ error: result.error })
+      return
+    }
+    res.status(201).json(result)
+  },
+)
+
+/** 查询已收分片（断点续传） */
+uploadsRouter.get('/uploads/chunks/:id', requireSession, requireScope('content'), (req, res) => {
+  const status = chunkUploadStatus(readParam(req, 'id'))
+  if (!status) {
+    res.status(404).json({ error: '分片任务不存在或已过期' })
+    return
+  }
+  res.json(status)
+})
+
+/** 上传单一片（幂等覆盖；非最后一片必须满 5MB） */
+uploadsRouter.put(
+  '/uploads/chunks/:id/:index',
+  requireSession,
+  requireScope('content'),
+  rawChunkBody,
+  (req, res) => {
+    const body = req.body
+    if (!Buffer.isBuffer(body) || body.length === 0) {
+      res.status(400).json({ error: '分片内容为空' })
+      return
+    }
+    const result = putChunk(readParam(req, 'id'), Number(readParam(req, 'index')), body)
+    if (!result.ok) {
+      res.status(result.status).json({ error: result.error })
+      return
+    }
+    res.json(result)
+  },
+)
+
+/** 合并并落盘：复用 saveUpload 的校验 / 配额 / 元数据链路 */
+uploadsRouter.post(
+  '/uploads/chunks/:id/complete',
+  requireSession,
+  requireScope('content'),
+  auditWrite('upload-complete', (req) => readParam(req, 'id')),
+  async (req, res) => {
+    const uploadId = readParam(req, 'id')
+    const meta = chunkUploadMeta(uploadId)
+    if (!meta) {
+      res.status(404).json({ error: '分片任务不存在或已过期' })
+      return
+    }
+    if (meta.folderId && !folderExists(meta.folderId)) {
+      res.status(400).json({ error: '目标文件夹不存在' })
+      return
+    }
+    const assembled = assembleChunks(uploadId)
+    if (!assembled.ok) {
+      res.status(assembled.status).json({ error: assembled.error, missing: assembled.missing })
+      return
+    }
+    const saved = saveUpload(assembled.bytes, meta.name, meta.mime)
+    if (!saved.ok) {
+      // 保留分片，客户端补齐条件（如清理配额）后可重试 complete
+      res.status(saved.status).json({ error: saved.error })
+      return
+    }
+    await finishUpload(res, saved, meta.folderId)
+    removeChunkUpload(uploadId)
+  },
+)
+
+/** 放弃分片任务 */
+uploadsRouter.delete(
+  '/uploads/chunks/:id',
+  requireSession,
+  requireScope('content'),
+  auditWrite('upload-abort', (req) => readParam(req, 'id')),
+  (req, res) => {
+    if (!removeChunkUpload(readParam(req, 'id'))) {
+      res.status(404).json({ error: '分片任务不存在或已过期' })
+      return
+    }
+    res.json({ ok: true })
+  },
+)
 
 uploadsRouter.post('/uploads/:id/variants', requireSession, requireScope('content'), auditWrite('register-variants', (req) => readParam(req, 'id')), (req, res) => {
   const id = readParam(req, 'id')

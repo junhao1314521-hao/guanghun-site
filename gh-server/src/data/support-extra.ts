@@ -23,6 +23,10 @@ export type DownloadHistoryEntry = {
   fileUrl: string
   sha256?: string
   notes?: string[]
+  /** 运营已撤回：前台不再展示该版本，文件仍保留在素材库（可恢复） */
+  withdrawn?: boolean
+  /** 撤回时间（ISO） */
+  withdrawnAt?: string
 }
 
 /** 随资料提供的升级工具 / 辅助工具 */
@@ -386,6 +390,8 @@ export function getDownloadDetail(downloads: DownloadItem[], id: string): Downlo
   if (!item) return undefined
   return {
     ...item,
+    // 已撤回的历史版本不在前台展示（文件仍保留在素材库，后台可恢复）
+    history: (item.history ?? []).filter((entry) => !entry.withdrawn),
     // 只展示原厂公开的真实变更记录；没有录入时保持为空，避免编造版本历史
     changelog: item.changelog ?? [],
     installSteps: DOWNLOAD_INSTALL_STEPS[item.type],

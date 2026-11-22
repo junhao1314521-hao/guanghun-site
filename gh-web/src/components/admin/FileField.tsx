@@ -264,6 +264,12 @@ export function FileField({
       // 图片会附带多尺寸变体（位图），其余文件等同普通上传
       const item = await uploadImage(file, null, setUploadPercent)
       onChange(item.url)
+      // P2：同内容去重提示（同文件夹复用 / 其他文件夹存在同内容）
+      if (item.reused) {
+        toast.toast(`检测到相同文件，已复用「${item.duplicateOf ?? '已有素材'}」`, 'info')
+      } else if (item.duplicates && item.duplicates.length > 0) {
+        toast.toast(`素材库已有相同文件「${item.duplicates[0].name}」，本次仍新增一份`, 'info')
+      }
     } catch (ex) {
       fail(ex instanceof Error ? ex.message : '上传失败，请稍后重试')
     } finally {
@@ -343,7 +349,7 @@ export function FileField({
           </p>
         )}
 
-        {locked && <span className="field__hint">固件文件不允许原地覆盖；请使用下方「发布新版本」，旧文件会自动归档</span>}
+        {locked && <span className="field__hint">该文件不允许原地覆盖；请使用下方「发布新版本」，旧文件会自动归档</span>}
 
         {!locked && (
           <details className="media-advanced">

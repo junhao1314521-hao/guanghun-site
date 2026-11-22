@@ -11,9 +11,9 @@
  * 成功后把服务端返回的版本相关字段写回表单，其余未保存修改保持不变。
  */
 import { useEffect, useId, useState } from 'react'
-import { publishDownloadVersion } from '../../api/admin'
+import { publishDownloadVersion, setDownloadVersionWithdrawn } from '../../api/admin'
 import { FileField } from './FileField'
-import { useToast } from './feedback'
+import { useConfirm, useToast } from './feedback'
 
 /** 服务端返回后需要回写到表单的字段（与版本发布直接相关） */
 const APPLY_KEYS = [
@@ -40,6 +40,8 @@ type HistoryEntry = {
   fileUrl?: unknown
   sha256?: unknown
   notes?: unknown
+  withdrawn?: unknown
+  withdrawnAt?: unknown
 }
 
 /** 文件名（取 URL 最后一段） */
@@ -57,12 +59,17 @@ export type DownloadVersionFieldProps = {
 /** 组件：当前版本摘要 + 发布新版本 + 历史版本列表 */
 export function DownloadVersionField({ values, onChange }: DownloadVersionFieldProps) {
   const toast = useToast()
+  const confirm = useConfirm()
   const [open, setOpen] = useState(false)
+  /** 正在撤回 / 恢复的版本号（防重复点击） */
+  const [busyVersion, setBusyVersion] = useState<string | null>(null)
 
   const id = String(values.id ?? '').trim()
   const version = String(values.version ?? '').trim()
   const fileUrl = String(values.fileUrl ?? '').trim()
   const size = String(values.size ?? '').trim()
+  const type = String(values.type ?? '').trim()
+  const binaryLocked = type === 'firmware' || type === 'driver'
   const history = Array.isArray(values.history) ? (values.history as HistoryEntry[]) : []
 
   if (!id) {
@@ -70,6 +77,32 @@ export function DownloadVersionField({ values, onChange }: DownloadVersionFieldP
   }
 
   const knownVersions = [version, ...history.map((entry) => String(entry.version ?? '').trim())].filter(Boolean)
+
+  /** 撤回 / 恢复历史版本：撤回前二次确认，成功后直接写回表单的 history */
+  const toggleWithdrawn = async (entry: HistoryEntry) => {
+    const targetVersion = String(entry.version ?? '').trim()
+    if (!targetVersion) return
+    const withdrawn = Boolean(entry.withdrawn)
+    if (!withdrawn) {
+      const ok = await confirm({
+        title: `撤回版本 ${targetVersion}？`,
+        message: '撤回后前台详情页不再展示该版本；文件仍保留在素材库，可随时恢复。',
+        confirmText: '撤回',
+        danger: true,
+      })
+      if (!ok) return
+    }
+    setBusyVersion(targetVersion)
+    try {
+      const result = await setDownloadVersionWithdrawn(id, targetVersion, !withdrawn)
+      if (Array.isArray(result.item.history)) onChange('history', result.item.history)
+      toast.success(withdrawn ? `已恢复 ${targetVersion}` : `已撤回 ${targetVersion}`)
+    } catch (ex) {
+      toast.error(ex instanceof Error ? ex.message : '操作失败，请稍后重试')
+    } finally {
+      setBusyVersion(null)
+    }
+  }
 
   return (
     <div className="version-field">
@@ -86,7 +119,9 @@ export function DownloadVersionField({ values, onChange }: DownloadVersionFieldP
           发布新版本
         </button>
       </div>
-      <p className="field__hint">发布后当前文件自动归档到历史版本；固件文件不允许原地覆盖</p>
+      <p className="field__hint">
+        {binaryLocked ? '固件 / 驱动不允许原地覆盖；' : ''}发布后当前文件自动归档到历史版本；撤回后前台不再展示，可恢复
+      </p>
 
       {history.length > 0 && (
         <div className="version-field__history">
@@ -94,9 +129,17 @@ export function DownloadVersionField({ values, onChange }: DownloadVersionFieldP
           <ul className="version-list">
             {history.map((entry, index) => {
               const href = String(entry.fileUrl ?? '').trim()
+              const entryVersion = String(entry.version ?? '').trim()
+              const withdrawn = Boolean(entry.withdrawn)
               return (
-                <li className="version-list__item" key={`${String(entry.version ?? '')}-${String(entry.date ?? '')}-${index}`}>
-                  <span className="version-list__version">{String(entry.version ?? '') || '未命名'}</span>
+                <li
+                  className={`version-list__item${withdrawn ? ' is-withdrawn' : ''}`}
+                  key={`${entryVersion}-${String(entry.date ?? '')}-${index}`}
+                >
+                  <span className="version-list__version">
+                    {entryVersion || '未命名'}
+                    {withdrawn && <span className="version-list__badge">已撤回</span>}
+                  </span>
                   <span className="version-list__meta">
                     {String(entry.date ?? '') || '—'} · {String(entry.size ?? '') || '—'}
                   </span>
@@ -107,6 +150,14 @@ export function DownloadVersionField({ values, onChange }: DownloadVersionFieldP
                   ) : (
                     <span className="version-list__link is-muted">待更新</span>
                   )}
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => void toggleWithdrawn(entry)}
+                    disabled={busyVersion === entryVersion}
+                  >
+                    {withdrawn ? '恢复' : '撤回'}
+                  </button>
                 </li>
               )
             })}

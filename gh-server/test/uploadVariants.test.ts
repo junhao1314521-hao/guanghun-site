@@ -109,7 +109,9 @@ describe('图片多尺寸变体', () => {
   it('上传 3 个变体文件（独立素材）+ 登记到主图 → item.variants 升序', async () => {
     const generated: Variant[] = []
     for (const width of [320, 640, 1280]) {
-      const res = await upload(WEBP_BYTES, `主图-${width}.webp`, 'image/webp')
+      // 真实变体内容不同；带上宽度避免被 P2 的同内容去重合并成同一文件
+      const bytes = Buffer.concat([WEBP_BYTES, Buffer.from(`-${width}`)])
+      const res = await upload(bytes, `主图-${width}.webp`, 'image/webp')
       assert.equal(res.status, 201)
       const { item } = (await res.json()) as { item: Item }
       generated.push({ width, url: item.url, size: item.size, type: item.type })

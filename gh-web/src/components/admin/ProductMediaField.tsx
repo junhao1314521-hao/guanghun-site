@@ -163,12 +163,18 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
     setError(null)
     setBusy(true)
     const added: string[] = []
+    let reused = 0
+    let duplicated = 0
     try {
       for (const file of files) {
         setProgress({ name: file.name, percent: 0 })
         const item = await uploadImage(file, null, (percent) => setProgress({ name: file.name, percent }))
         added.push(item.url)
+        if (item.reused) reused += 1
+        else if (item.duplicates && item.duplicates.length > 0) duplicated += 1
       }
+      if (reused > 0) toast.toast(`检测到相同文件，已复用 ${reused} 个已有素材`, 'info')
+      else if (duplicated > 0) toast.toast(`素材库已有相同文件，本次仍新增 ${duplicated} 个`, 'info')
       if (target.kind === 'gallery') {
         onChange('gallery', [...gallery, ...added.filter((url) => !gallery.includes(url))])
       } else if (target.kind === 'replace') {
