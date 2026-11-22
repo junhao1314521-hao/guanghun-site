@@ -2607,7 +2607,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   .builder-actions__compact { display: inline-flex; }
 }
 
-/* ③ 组件库：移动端说明只露两行，完整字段清单仍在 title 与桌面上 */
+/* ② 组件库：移动端说明只露两行，完整字段清单仍在 title 与桌面上 */
 @media (max-width: 767px) {
   .admin-components__desc-text {
     display: -webkit-box;
@@ -2617,7 +2617,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   }
 }
 
-/* ② 站点配置：中等宽度下链接行改为两行（名称 / 链接 / 操作 + 角标独占一行） */
+/* ③ 站点配置：中等宽度下链接行改为两行（名称 / 链接 / 操作 + 角标独占一行） */
 @media (min-width: 768px) and (max-width: 1279px) {
   /* 两行一组：名称 / 链接 / 操作一行，角标一行；发丝线把整组圈成一条记录 */
   .site-link--badge {
@@ -2629,4 +2629,25 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   .site-link--badge > .site-link__badge { grid-column: 1 / -1; grid-row: 2; }
   .site-link--badge > .site-link__actions { grid-column: 3; grid-row: 1; }
   .site-link--badge:last-child { padding-bottom: 0; border-bottom: 0; }
+}
+
+/* ============================================================
+   阶段 M5：客户与业务页（移动端筛选）
+   ============================================================ */
+
+/* 移动端筛选：省份 / 城市等长选项不再铺满整屏，
+   每组筛选压成一行可横向滑动的芯片条 */
+@media (max-width: 767px) {
+  .admin-filters { flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
+  .admin-filters__label { padding-left: 2px; }
+  .admin-chipbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    overscroll-behavior-x: contain;
+    /* 关键：inline-flex 的 min-content 是全部芯片宽度，不压住会把整页顶宽 */
+    min-width: 0;
+    max-width: 100%;
+  }
+  .admin-chipbar > .admin-chip { flex: none; }
 }

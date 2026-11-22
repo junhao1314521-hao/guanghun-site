@@ -675,10 +675,10 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
                                 style={column.align === 'right' ? { textAlign: 'right' } : undefined}
                                 title={clipped && text ? text : undefined}
                               >
-                                {column.secondaryKeys?.length ? (
+                                {column.secondaryKeys?.length && secondaryText(row, column) ? (
                                   <span className="admin-cell__stack">
                                     <span className="admin-cell__main">{renderCell(row[column.key], column)}</span>
-                                    <span className="admin-cell__sub">{secondaryText(row, column) || '—'}</span>
+                                    <span className="admin-cell__sub">{secondaryText(row, column)}</span>
                                   </span>
                                 ) : (
                                   renderCell(row[column.key], column)

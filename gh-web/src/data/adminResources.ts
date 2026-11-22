@@ -1182,16 +1182,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     deletable: true,
     searchKeys: ['title', 'name', 'topic', 'tag', 'contact', 'model'],
     columns: [
-      { key: 'title', label: '主题', type: 'strong' },
-      { key: 'name', label: '称呼' },
-      { key: 'topic', label: '主题分类', type: 'tag' },
+      // 称呼 / 主题分类并入主题次行；「强调」「状态级别」是内部字段，不再占列
+      { key: 'title', label: '主题', type: 'strong', secondaryKeys: ['name', 'topic'] },
       { key: 'tag', label: '状态', type: 'status' },
       { key: 'contact', label: '联系方式', type: 'mono' },
       { key: 'model', label: '型号', type: 'mono' },
       { key: 'message', label: '问题描述' },
       { key: 'date', label: '日期', type: 'date' },
-      { key: 'accent', label: '强调', type: 'bool' },
-      { key: 'status', label: '状态级别', type: 'mono' },
     ],
     filters: [
       { key: 'tag', label: '状态', options: ['处理中', '等待补充', '已解决', '已关闭'] },
@@ -1585,11 +1582,15 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     deletable: true,
     searchKeys: ['name', 'city'],
     columns: [
-      { key: 'name', label: '体验点名称', type: 'strong' },
-      { key: 'province', label: '省份', type: 'tag' },
-      { key: 'city', label: '城市', type: 'tag' },
-      { key: 'area', label: '区域' },
-      { key: 'type', label: '类型', type: 'tag' },
+      // 省市并入名称次行；「区域」长期为空不再占列；类型显示中文
+      { key: 'name', label: '体验点名称', type: 'strong', secondaryKeys: ['province', 'city'] },
+      {
+        key: 'type',
+        label: '类型',
+        type: 'tag',
+        options: ['flagship', 'experience', 'service'],
+        optionLabels: { flagship: '旗舰店', experience: '体验点', service: '服务点' },
+      },
       { key: 'status', label: '状态', type: 'status' },
       { key: 'ok', label: '正常营业', type: 'bool' },
       { key: 'address', label: '地址' },
@@ -1599,7 +1600,12 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     filters: [
       { key: 'province', label: '省份', options: [], dynamic: true },
       { key: 'city', label: '城市', options: [], dynamic: true },
-      { key: 'type', label: '类型', options: ['flagship', 'experience', 'service'] },
+      {
+        key: 'type',
+        label: '类型',
+        options: ['flagship', 'experience', 'service'],
+        optionLabels: { flagship: '旗舰店', experience: '体验点', service: '服务点' },
+      },
       { key: 'status', label: '状态', options: ['营业中', '调整中', '筹备中'] },
     ],
     form: [
