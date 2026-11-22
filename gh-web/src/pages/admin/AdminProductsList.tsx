@@ -218,7 +218,7 @@ export function AdminProductsList() {
   return (
     <div className="admin-page admin-products">
       <AdminPageHead
-        title="产品列表"
+        title="产品上架"
         desc="管理在售、缺货与草稿产品；列表只保留决策所需信息，详情与完整参数进入编辑页。"
         actions={
           <Link className="btn btn--primary btn--sm" to="/admin/products/new">

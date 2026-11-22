@@ -99,6 +99,8 @@ export type FileFieldProps = {
   hint?: MediaHint
   /** 下游裁切预览：按真实出现位置的宽高比渲染缩略框 */
   crops?: CropPreviewSpec[]
+  /** 隐藏空值时的通用格式说明（父级已渲染更具体的提示时使用，避免同一条信息出现两次） */
+  hideDefaultHint?: boolean
 }
 
 /** 图片实测结果：真实像素、宽高比、是否带透明通道 */
@@ -162,6 +164,7 @@ export function FileField({
   variant = 'file',
   hint,
   crops,
+  hideDefaultHint = false,
 }: FileFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   // 未显式传 inputId 时生成稳定 id，保证每个地址输入都有可关联的标识（无障碍）
@@ -346,7 +349,7 @@ export function FileField({
             </a>
           </span>
         </div>
-      ) : (
+      ) : hideDefaultHint ? null : (
         <span className="field__hint">
           {isImageMode
             ? '支持格式：png / jpg / jpeg / webp / gif / svg；单张 ≤10MB。填写地址、上传或从素材库选择后显示预览。'

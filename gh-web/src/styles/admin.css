@@ -1188,6 +1188,51 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   padding: var(--gh-space-3); border-top: 1px solid var(--color-border-subtle);
 }
 
+/* 轮播「海报列表」：顶部缩略图条 + 下方单张编辑面板（避免后续海报被首张长表单挤出视野） */
+.builder-deck { display: flex; flex-direction: column; gap: var(--gh-space-3); }
+.builder-deck__tip { margin: 0; font-size: var(--gh-font-size-caption); line-height: 1.6; color: var(--color-text-secondary); }
+.builder-deck__tabs {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--gh-space-2);
+}
+.builder-deck__tab {
+  display: flex; flex-direction: column; gap: 6px;
+  width: auto; padding: 8px;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-subtle); text-align: left; cursor: pointer;
+}
+.builder-deck__tab:hover { border-color: var(--color-border-strong); }
+.builder-deck__tab.is-active { border-color: var(--color-accent); background: var(--color-accent-subtle); }
+.builder-deck__tab:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.builder-deck__thumb {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+  border-radius: 4px; background: var(--color-bg-muted);
+}
+.builder-deck__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.builder-deck__thumb-empty { font-size: 11px; color: var(--color-text-tertiary); }
+.builder-deck__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.builder-deck__meta strong { font-size: 12px; font-weight: 600; color: var(--color-text-primary); white-space: nowrap; }
+.builder-deck__meta em {
+  overflow: hidden; font-style: normal; font-size: 11px;
+  color: var(--color-text-tertiary); text-overflow: ellipsis; white-space: nowrap;
+}
+.builder-deck__add {
+  flex: 0 0 auto; min-height: 96px;
+  border: 1px dashed var(--color-border-strong); border-radius: var(--gh-radius-md);
+  background: transparent; color: var(--color-text-secondary); font-size: 12px; cursor: pointer;
+}
+.builder-deck__add:hover { border-color: var(--color-accent); color: var(--color-accent-text); }
+.builder-deck__add:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.builder-deck__panel {
+  display: flex; flex-direction: column; gap: var(--gh-space-3);
+  padding: var(--gh-space-3);
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-surface);
+}
+.builder-deck__panel-head { display: flex; align-items: center; gap: var(--gh-space-2); }
+.builder-deck__panel-head strong { flex: 1; font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+
 /* 样式面板 */
 .builder-style { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-4); }
 @media (max-width: 767px) { .builder-style { grid-template-columns: 1fr; } }

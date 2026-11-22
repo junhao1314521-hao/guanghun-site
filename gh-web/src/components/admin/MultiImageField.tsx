@@ -20,10 +20,12 @@ export type MultiImageFieldProps = {
   hint?: MediaHint
   /** 下游裁切预览：逐张按真实出现位置渲染缩略框 */
   crops?: CropPreviewSpec[]
+  /** 父级已渲染更具体的说明时，逐张隐藏通用格式提示 */
+  hideDefaultHint?: boolean
 }
 
 /** 组件：多图相册字段，支持逐张编辑、增删与排序。 */
-export function MultiImageField({ value, onChange, label, hint, crops }: MultiImageFieldProps) {
+export function MultiImageField({ value, onChange, label, hint, crops, hideDefaultHint }: MultiImageFieldProps) {
   const items = Array.isArray(value) ? value : []
 
   const setItem = (index: number, url: string) => onChange(items.map((item, i) => (i === index ? url : item)))
@@ -66,6 +68,7 @@ export function MultiImageField({ value, onChange, label, hint, crops }: MultiIm
             label={`${label ?? '相册图片'} ${index + 1}`}
             hint={hint}
             crops={index === 0 ? crops : undefined}
+            hideDefaultHint={hideDefaultHint}
             onChange={(url) => setItem(index, url)}
           />
         </div>

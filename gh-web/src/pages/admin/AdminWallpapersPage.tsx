@@ -12,7 +12,7 @@ import { EmptyState, ErrorState, SkeletonTable } from '../../components/admin/st
 import '../../styles/admin-wallpapers.css'
 
 const MAX_FILE = 10 * 1024 * 1024
-const THEME_VALUES = WALLPAPER_THEME_OPTIONS.map((theme) => theme.value)
+const THEME_VALUES: string[] = WALLPAPER_THEME_OPTIONS.map((theme) => theme.value)
 
 /** 字节数 → 展示文本 */
 function formatSize(bytes: number): string {
@@ -114,6 +114,8 @@ function ReplaceButton({ row, onDone }: { row: AdminRow; onDone: () => void }) {
 function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const toast = useToast()
   const [theme, setTheme] = useState<string>(THEME_VALUES[0])
+  // 自定义主题：输入即选用，上传时按该值写入（前台 chips 自动出现）
+  const [customTheme, setCustomTheme] = useState('')
   const [entries, setEntries] = useState<BatchEntry[]>([])
   const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -267,6 +269,36 @@ function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: (
                 <span>{item.desc}</span>
               </label>
             ))}
+            {customTheme.trim() && !THEME_VALUES.includes(customTheme.trim()) && (
+              <label className={`wp-admin-theme${theme === customTheme.trim() ? ' is-active' : ''}`}>
+                <input
+                  type="radio"
+                  name="wp-batch-theme"
+                  value={customTheme.trim()}
+                  checked={theme === customTheme.trim()}
+                  disabled={busy}
+                  onChange={() => setTheme(customTheme.trim())}
+                />
+                <strong>{customTheme.trim()}</strong>
+                <span>自定义主题</span>
+              </label>
+            )}
+          </div>
+
+          <div className="wp-admin-theme-new">
+            <input
+              className="input"
+              type="text"
+              aria-label="新增壁纸主题"
+              placeholder="新增主题，如「极简」"
+              value={customTheme}
+              disabled={busy}
+              onChange={(event) => {
+                setCustomTheme(event.target.value)
+                if (event.target.value.trim()) setTheme(event.target.value.trim())
+              }}
+            />
+            <span>输入新主题后会自动选中，上传的壁纸即归入该主题</span>
           </div>
 
           {entries.length > 0 && (
@@ -332,6 +364,11 @@ export function AdminWallpapersPage() {
   }, [data])
 
   const reload = () => setReloadKey((key) => key + 1)
+
+  // 主题选项 = 内置主题 + 现有壁纸里出现过的自定义主题
+  const themeOptions = Array.from(
+    new Set<string>([...WALLPAPER_THEME_OPTIONS.map((item) => item.value), ...rows.map((row) => String(row.theme ?? '')).filter(Boolean)]),
+  )
 
   const filtered = rows.filter((row) => {
     const title = String(row.title ?? '').toLowerCase()
@@ -401,7 +438,7 @@ export function AdminWallpapersPage() {
           <Select
             value={themeFilter}
             onChange={setThemeFilter}
-            options={[{ value: 'all', label: '全部主题' }, ...THEME_VALUES.map((value) => ({ value, label: value }))]}
+            options={[{ value: 'all', label: '全部主题' }, ...themeOptions.map((value) => ({ value, label: value }))]}
             aria-label="按主题筛选"
           />
         </div>
@@ -447,18 +484,21 @@ export function AdminWallpapersPage() {
                       <span className="wp-admin-date">{String(row.date ?? '')}</span>
                     </td>
                     <td>
-                      <select
+                      {/* 输入框 + 建议列表：既可选已有主题，也可直接输入新主题 */}
+                      <input
+                        key={`${String(row.id)}-${String(row.theme ?? '')}`}
                         className="wp-admin-theme-select"
-                        value={String(row.theme ?? THEME_VALUES[0])}
+                        list="wp-theme-options"
+                        defaultValue={String(row.theme ?? '')}
                         aria-label={`修改《${String(row.title ?? '')}》的主题`}
-                        onChange={(event) => void changeTheme(row, event.target.value)}
-                      >
-                        {THEME_VALUES.map((value) => (
-                          <option key={value} value={value}>
-                            {value}
-                          </option>
-                        ))}
-                      </select>
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') event.currentTarget.blur()
+                        }}
+                        onBlur={(event) => {
+                          const next = event.target.value.trim()
+                          if (next && next !== row.theme) void changeTheme(row, next)
+                        }}
+                      />
                     </td>
                     <td className="mono">
                       {String(row.width ?? '—')} × {String(row.height ?? '—')}
@@ -485,6 +525,13 @@ export function AdminWallpapersPage() {
           </div>
         )}
       </div>
+
+      {/* 行内主题输入的建议列表：内置 + 已用过的自定义主题 */}
+      <datalist id="wp-theme-options">
+        {themeOptions.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
 
       {batchOpen && (
         <BatchUploadDialog

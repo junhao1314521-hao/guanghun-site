@@ -232,3 +232,17 @@
   font-size: 12px;
   color: var(--color-text-tertiary);
 }
+
+/* 批量上传：新增主题输入（可选已有主题，也可直接定义新主题） */
+.wp-admin-theme-new {
+  display: flex;
+  align-items: center;
+  gap: var(--gh-space-3);
+  margin-top: var(--gh-space-3);
+  flex-wrap: wrap;
+}
+.wp-admin-theme-new .input { max-width: 260px; height: 32px; }
+.wp-admin-theme-new span { font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+
+/* 行内主题输入：与下拉一致的观感 */
+.wp-admin-theme-select { width: 96px; font-size: 12px; }

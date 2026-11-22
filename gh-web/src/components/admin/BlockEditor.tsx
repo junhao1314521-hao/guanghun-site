@@ -20,7 +20,7 @@ import { isStringList, newItem, resolveItemFields } from './blockBuilderUtils'
 import { ImageField, MediaField } from './ImageField'
 import { RichTextField } from './RichTextField'
 import { Select } from './Select'
-import { mediaHintText, resolveMediaHint, isSafetyAreaField, type MediaHint } from './mediaHints'
+import { hasMediaHint, mediaHintText, resolveMediaHint, isSafetyAreaField, type MediaHint } from './mediaHints'
 import { MediaSafetyPreview } from './MediaSafetyPreview'
 
 /** 挑选器条目：统一呈现（主文案 / 次文案 / 分类） */
@@ -332,7 +332,10 @@ function MediaFieldExtra({
   itemProps?: Record<string, unknown>
 }) {
   if (field.kind !== 'image' && field.kind !== 'media') return null
-  const hint = resolveMediaHint({ blockType, fieldName: field.name, blockProps, itemProps })
+  const input = { blockType, fieldName: field.name, blockProps, itemProps }
+  // 未配置明确规格的字段不再套用兜底尺寸，避免每个图片位都重复同一句建议
+  if (!hasMediaHint(input)) return null
+  const hint = resolveMediaHint(input)
   return (
     <>
       <span className="field__hint">{mediaHintText(hint)}</span>
@@ -372,6 +375,7 @@ function FieldControl({
         label={field.label}
         placeholder={field.placeholder ?? '图片资源地址（URL 或 /uploads/...）'}
         hint={hint}
+        hideDefaultHint={Boolean(hint)}
         value={typeof value === 'string' ? value : ''}
         onChange={(url) => onChange(url)}
       />
@@ -385,6 +389,7 @@ function FieldControl({
         label={field.label}
         placeholder={field.placeholder ?? '图片 / GIF / 视频地址（URL 或 /uploads/...）'}
         hint={hint}
+        hideDefaultHint={Boolean(hint)}
         value={typeof value === 'string' ? value : ''}
         onChange={(url) => onChange(url)}
       />
@@ -575,7 +580,11 @@ function ItemListEditor({
                       <FieldControl
                         field={itemField}
                         value={item[itemField.name]}
-                        hint={resolveMediaHint({ blockType, fieldName: itemField.name, blockProps, itemProps: item })}
+                        hint={
+                          hasMediaHint({ blockType, fieldName: itemField.name, blockProps, itemProps: item })
+                            ? resolveMediaHint({ blockType, fieldName: itemField.name, blockProps, itemProps: item })
+                            : undefined
+                        }
                         onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
                       />
                       <MediaFieldExtra blockType={blockType} field={itemField} blockProps={blockProps} itemProps={item} />
@@ -590,6 +599,178 @@ function ItemListEditor({
       <button type="button" className="btn btn--secondary btn--sm" onClick={() => onChange([...items, newItem(meta, itemFields)])}>
         + 新增{field.label}
       </button>
+    </div>
+  )
+}
+
+/** 轮播缩略图：优先视频封面，其次媒体地址，最后旧图片字段；占位 SVG 不显示 */
+function deckThumb(item: Record<string, unknown>): string {
+  const pick = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
+  const usable = (src: string) =>
+    Boolean(src) && !/\.svg(\?|#|$)/i.test(src) && !/\.(mp4|webm|mov)(\?|#|$)/i.test(src)
+  const poster = pick(item.poster)
+  if (usable(poster)) return poster
+  const media = pick(item.media)
+  if (usable(media)) return media
+  const image = pick(item.image)
+  return usable(image) ? image : ''
+}
+
+/** 轮播条目摘要：大标题 → 一句话 → 图片说明（截断，避免条目标题过长） */
+function deckSummary(item: Record<string, unknown>): string {
+  const title = Array.isArray(item.title)
+    ? item.title.filter((line): line is string => typeof line === 'string' && line.trim() !== '').join(' / ')
+    : ''
+  const subtitle = typeof item.subtitle === 'string' ? item.subtitle.trim() : ''
+  const mediaTag = typeof item.mediaTag === 'string' ? item.mediaTag.trim() : ''
+  return (title || subtitle || mediaTag || '未填写文案').slice(0, 28)
+}
+
+/** 代码动画那张不生效的媒体字段：隐藏，避免「填了却不显示」的困惑 */
+const MOTION_SLIDE_HIDDEN_FIELDS = new Set(['media', 'mediaType', 'image', 'imageMobile', 'poster', 'mediaContain'])
+
+/**
+ * 轮播「海报列表」专用编辑器：
+ * 顶部缩略图条一眼看全所有海报（第几张、文案摘要），点哪张就在下方编辑哪张，
+ * 不再把第 1 张的长表单铺开、把后续海报挤到屏幕之外。
+ */
+function PosterDeckEditor({
+  items,
+  itemFields,
+  meta,
+  blockType,
+  blockProps,
+  onChange,
+}: {
+  items: Record<string, unknown>[]
+  itemFields: BlockFieldMeta[]
+  meta: BlockTypeMeta | undefined
+  blockType: BlockType
+  blockProps: Record<string, unknown>
+  onChange: (items: Record<string, unknown>[]) => void
+}) {
+  // motion 缺省为 true（与 CarouselBlock 的 asBool(props.motion, true) 保持一致）
+  const codeFirst = blockProps.motion !== false
+  const [active, setActive] = useState(0)
+  const index = items.length === 0 ? -1 : Math.max(0, Math.min(active, items.length - 1))
+  const isMotionSlide = codeFirst && index === 0
+  const visibleFields = isMotionSlide
+    ? itemFields.filter((itemField) => !MOTION_SLIDE_HIDDEN_FIELDS.has(itemField.name))
+    : itemFields
+
+  const removeAt = (target: number) => {
+    onChange(items.filter((_, i) => i !== target))
+    setActive(Math.max(0, target - 1))
+  }
+
+  return (
+    <div className="builder-deck">
+      <p className="builder-deck__tip">
+        {items.length === 0 ? '还没有海报。' : `共 ${items.length} 张，按顺序轮播；点缩略图切换编辑。`}
+        {codeFirst
+          ? ' 第 1 张是代码动画（只显示文案，不显示海报图片），从第 2 张起才是各自的海报。'
+          : ' 第 1 张会最先出现。'}
+      </p>
+
+      <div className="builder-deck__tabs" role="tablist" aria-label="海报列表">
+        {items.map((item, itemIndex) => {
+          const thumb = deckThumb(item)
+          const motionItem = codeFirst && itemIndex === 0
+          return (
+            <button
+              key={itemIndex}
+              type="button"
+              role="tab"
+              aria-selected={itemIndex === index}
+              className={`builder-deck__tab${itemIndex === index ? ' is-active' : ''}`}
+              onClick={() => setActive(itemIndex)}
+            >
+              <span className="builder-deck__thumb">
+                {thumb ? (
+                  <img src={thumb} alt="" />
+                ) : (
+                  <span className="builder-deck__thumb-empty">{motionItem ? '代码动画' : '无图'}</span>
+                )}
+              </span>
+              <span className="builder-deck__meta">
+                <strong>
+                  第 {itemIndex + 1} 张{motionItem ? ' · 代码动画' : ''}
+                </strong>
+                <em>{deckSummary(item)}</em>
+              </span>
+            </button>
+          )
+        })}
+        <button
+          type="button"
+          className="builder-deck__add"
+          onClick={() => {
+            onChange([...items, newItem(meta, itemFields)])
+            setActive(items.length)
+          }}
+        >
+          ＋ 新增一张
+        </button>
+      </div>
+
+      {index >= 0 ? (
+        <div className="builder-deck__panel">
+          <div className="builder-deck__panel-head">
+            <strong>
+              正在编辑：第 {index + 1} 张{isMotionSlide ? '（代码动画）' : ''}
+            </strong>
+            <MoveButtons
+              index={index}
+              total={items.length}
+              onMove={(from, to) => {
+                const next = moveItem(items, from, to)
+                if (next === items) return
+                onChange(next)
+                setActive(to)
+              }}
+            />
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => removeAt(index)}>
+              删除这张
+            </button>
+          </div>
+          {isMotionSlide && (
+            <p className="field__hint">
+              这一张使用代码动画背景，媒体字段已隐藏；改文案、按钮和位置即可。需要这一张也显示海报图片时，关闭上方「第 1 张用代码动画」。
+            </p>
+          )}
+          {visibleFields.map((itemField) => (
+            <div className="field" key={itemField.name}>
+              <span className="field__label">{itemField.label}</span>
+              {itemField.kind === 'list' ? (
+                <ListFieldEditor
+                  field={itemField}
+                  value={items[index][itemField.name]}
+                  meta={meta}
+                  blockType={blockType}
+                  blockProps={blockProps}
+                  onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
+                />
+              ) : (
+                <>
+                  <FieldControl
+                    field={itemField}
+                    value={items[index][itemField.name]}
+                    hint={
+                      hasMediaHint({ blockType, fieldName: itemField.name, blockProps, itemProps: items[index] })
+                        ? resolveMediaHint({ blockType, fieldName: itemField.name, blockProps, itemProps: items[index] })
+                        : undefined
+                    }
+                    onChange={(value) => onChange(updateItemField(items, index, itemField.name, value))}
+                  />
+                  <MediaFieldExtra blockType={blockType} field={itemField} blockProps={blockProps} itemProps={items[index]} />
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <span className="field__hint">点「＋ 新增一张」添加第一张海报。</span>
+      )}
     </div>
   )
 }
@@ -624,6 +805,19 @@ function ListFieldEditor({
         item && typeof item === 'object' && !Array.isArray(item) ? (item as Record<string, unknown>) : {},
       )
     : []
+  // 轮播海报：用缩略图条 + 单张编辑面板，避免后续海报被首张长表单挤出视野
+  if (blockType === 'carousel' && field.name === 'slides') {
+    return (
+      <PosterDeckEditor
+        items={items}
+        itemFields={itemFields}
+        meta={meta}
+        blockType={blockType}
+        blockProps={blockProps}
+        onChange={onChange}
+      />
+    )
+  }
   return (
     <ItemListEditor
       field={field}
@@ -683,7 +877,11 @@ export function BlockEditor({
                 <FieldControl
                   field={field}
                   value={value}
-                  hint={resolveMediaHint({ blockType: block.type, fieldName: field.name, blockProps: block.props })}
+                  hint={
+                    hasMediaHint({ blockType: block.type, fieldName: field.name, blockProps: block.props })
+                      ? resolveMediaHint({ blockType: block.type, fieldName: field.name, blockProps: block.props })
+                      : undefined
+                  }
                   onChange={(value) => setProp(field.name, value)}
                 />
                 <MediaFieldExtra blockType={block.type} field={field} blockProps={block.props} />

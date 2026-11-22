@@ -112,37 +112,37 @@ const CARD_ICONS: { label: string; value: string }[] = [
  * `subtitle` 为「一句话」，渲染层同时兼容历史字段 `desc`。
  */
 const POSTER_FIELDS: BlockFieldMeta[] = [
-  { name: 'media', label: '媒体（图片 / 视频 / GIF / 代码动画）', kind: 'media' },
+  { name: 'media', label: '媒体（图片 / 视频 / GIF）', kind: 'media' },
   { name: 'mediaType', label: '媒体类型', kind: 'select', options: POSTER_MEDIA_TYPES },
-  { name: 'image', label: '图片（旧字段；未填「媒体」时使用）', kind: 'image' },
+  { name: 'image', label: '旧图片（未填「媒体」时使用）', kind: 'image' },
   { name: 'imageMobile', label: '手机竖版图（可选）', kind: 'image' },
   { name: 'poster', label: '视频封面图（可选）', kind: 'image' },
   // 图片展示方式：默认 cover 铺满；开启后 contain 完整显示（不裁切、不做缓慢放大）
-  { name: 'mediaContain', label: '图片完整显示（不裁切、不缩放）', kind: 'switch' },
+  { name: 'mediaContain', label: '图片完整显示（不裁切）', kind: 'switch' },
   // 压暗遮罩：默认开启以保证文案可读；关闭后完整呈现海报细节
-  { name: 'scrim', label: '压暗背景遮罩（默认开启）', kind: 'switch' },
-  { name: 'mediaTag', label: '媒体标签（无障碍 / 备用）', kind: 'text' },
-  { name: 'title', label: '大标题（每行一句，必填）', kind: 'list', placeholder: '每行一句' },
-  { name: 'subtitle', label: '一句话（必填）', kind: 'textarea', placeholder: '一句话说清这张海报' },
-  { name: 'stats', label: '卖点 / 数据点（一行小字）', kind: 'list' },
-  { name: 'statsEnabled', label: '显示卖点 / 数据点', kind: 'switch' },
-  { name: 'primary', label: '按钮①（文字 + 链接，必填）', kind: 'link' },
-  { name: 'secondary', label: '按钮②（留空则只显示 1 个）', kind: 'link' },
+  { name: 'scrim', label: '压暗背景（保证文字清晰）', kind: 'switch' },
+  { name: 'mediaTag', label: '图片说明（无障碍用）', kind: 'text' },
+  { name: 'title', label: '大标题（每行一句）', kind: 'list', placeholder: '每行一句' },
+  { name: 'subtitle', label: '一句话介绍', kind: 'textarea', placeholder: '一句话说清这张海报' },
+  { name: 'stats', label: '卖点数据（一行小字）', kind: 'list' },
+  { name: 'statsEnabled', label: '显示卖点数据', kind: 'switch' },
+  { name: 'primary', label: '主按钮（文字 + 链接）', kind: 'link' },
+  { name: 'secondary', label: '次按钮（可留空）', kind: 'link' },
   // 海报底部悬浮下载条：从下载中心勾选条目（保存 ID 列表，顺序即展示顺序）；
   // 前台按 ID 取真实版本 / 大小与文件地址，渲染成底部的下载按钮（留空则不显示）
-  { name: 'downloadIds', label: '底部下载按钮（从下载中心勾选，留空则不显示）', kind: 'ref', source: 'downloads' },
-  { name: 'contentPosition', label: '文案位置（九宫格 + 拖拽）', kind: 'position' },
-  { name: 'height', label: '高度档位', kind: 'select', options: POSTER_HEIGHTS },
+  { name: 'downloadIds', label: '底部下载按钮（从下载中心选）', kind: 'ref', source: 'downloads' },
+  { name: 'contentPosition', label: '文案位置', kind: 'position' },
+  { name: 'height', label: '高度', kind: 'select', options: POSTER_HEIGHTS },
   { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },
-  { name: 'theme', label: '背景主题', kind: 'select', options: [
+  { name: 'theme', label: '明暗主题', kind: 'select', options: [
     { label: '暗色', value: 'dark' },
     { label: '浅色', value: 'light' },
   ] },
   // 文案 / 按钮配色（后台可改）：kind 用 text，值为 CSS 颜色字符串（如 #FAFAFB / rgba(255,255,255,.8)）；留空沿用既有皮肤
-  { name: 'textColor', label: '文案颜色（留空用默认；如 #FAFAFB / rgba(255,255,255,.8)）', kind: 'text' },
-  { name: 'accentColor', label: '按钮配色（留空用默认；主按钮实底 / 次按钮描边；如 #2040ED）', kind: 'text' },
+  { name: 'textColor', label: '文字颜色（留空用默认）', kind: 'text', placeholder: '如 #FAFAFB / rgba(255,255,255,.8)' },
+  { name: 'accentColor', label: '按钮颜色（留空用默认）', kind: 'text', placeholder: '如 #2040ED' },
   // 按钮样式（后台可切换，hero 与 carousel 每张 slide 各自配置）；缺省 / 老数据 / 非法值一律按 plain 渲染
-  { name: 'ctaStyle', label: '按钮样式（主按钮）', kind: 'select', options: POSTER_CTA_STYLES },
+  { name: 'ctaStyle', label: '主按钮样式', kind: 'select', options: POSTER_CTA_STYLES },
 ]
 
 /**
@@ -158,7 +158,7 @@ const POSTER_FIELDS: BlockFieldMeta[] = [
 export const BLOCK_TYPES: BlockTypeMeta[] = [
   {
     type: 'hero',
-    name: '海报（满屏 / 21:9 / 固定高度）',
+    name: '单张海报',
     group: '内容',
     // 与 carousel 单张 slide 共用同一套字段（后台只有一套「海报编辑器」）
     fields: POSTER_FIELDS,
@@ -166,14 +166,14 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
   },
   {
     type: 'carousel',
-    name: '轮播',
+    name: '首屏海报轮播',
     group: '内容',
     fields: [
-      { name: 'motion', label: '代码动画（作为第 1 张；关闭后第 1 张使用海报图片）', kind: 'switch' },
-      { name: 'slides', label: '幻灯片（后续第 2、3… 张）', kind: 'list' },
-      { name: 'autoplay', label: '自动播放', kind: 'switch' },
+      { name: 'motion', label: '第 1 张用代码动画（不显示海报图片）', kind: 'switch' },
+      { name: 'slides', label: '海报列表', kind: 'list' },
+      { name: 'autoplay', label: '自动轮播', kind: 'switch' },
       // 大疆商城式轮播：默认只留底部圆点，不显示左右箭头
-      { name: 'arrows', label: '显示左右切换按钮（默认关闭）', kind: 'switch' },
+      { name: 'arrows', label: '显示左右切换按钮', kind: 'switch' },
       // 整组幻灯片统一高度：r219 = 21:9（上传 21:9 海报按原比例展示，不裁切）
       { name: 'height', label: '海报高度', kind: 'select', options: POSTER_HEIGHTS },
       { name: 'heightValue', label: '自定义高度(px)', kind: 'number', placeholder: '高度档位 = 自定义时生效' },

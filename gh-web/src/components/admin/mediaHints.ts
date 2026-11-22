@@ -192,6 +192,23 @@ export function resolveMediaHint(input: MediaHintInput): MediaHint {
   return BLOCK_MEDIA_HINTS[`${blockType}.${fieldName}`] ?? DEFAULT_MEDIA_HINT
 }
 
+/**
+ * 该字段是否配置了明确的尺寸规格。
+ * 只有明确配置时才渲染「建议上传…」与上传校验；
+ * 否则不再用兜底值冒充建议（避免每个图片字段都重复同一句 1600×900）。
+ */
+export function hasMediaHint(input: MediaHintInput): boolean {
+  const { blockType, fieldName, resourceKey, fieldKey } = input
+  if (resourceKey && fieldKey) return Boolean(RESOURCE_MEDIA_HINTS[`${resourceKey}.${fieldKey}`])
+  if (!blockType || !fieldName) return false
+  if (blockType === 'hero' || blockType === 'carousel') {
+    if (fieldName === 'imageMobile') return true
+    if (POSTER_RATIO_FIELDS.has(fieldName)) return true
+  }
+  if (blockType === 'productMatrix' && (fieldName === 'image' || fieldName === 'imageMobile')) return true
+  return Boolean(BLOCK_MEDIA_HINTS[`${blockType}.${fieldName}`])
+}
+
 /** 是否需要渲染「虚线安全区预览」：海报主体图 + 产品矩阵图 */
 export function isSafetyAreaField(blockType: BlockType | undefined, fieldName: string): boolean {
   if (!blockType) return false

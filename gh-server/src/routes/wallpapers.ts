@@ -23,6 +23,13 @@ wallpapersRouter.get('/wallpapers', (req, res) => {
   }))
   const counts = new Map<string, number>()
   for (const item of items) counts.set(item.theme, (counts.get(item.theme) ?? 0) + 1)
-  const themes = WALLPAPER_THEMES.map((theme) => ({ ...theme, count: counts.get(theme.key) ?? 0 }))
+  // 主题不再写死：内置主题保留顺序与说明，后台上传时新填的主题按出现顺序追加
+  const builtin = new Set<string>(WALLPAPER_THEMES.map((theme) => theme.key))
+  const themes = [
+    ...WALLPAPER_THEMES.map((theme) => ({ ...theme, count: counts.get(theme.key) ?? 0 })),
+    ...[...counts.keys()]
+      .filter((key) => !builtin.has(key))
+      .map((key) => ({ key, label: key, desc: '', count: counts.get(key) ?? 0 })),
+  ]
   res.json({ items, themes })
 })

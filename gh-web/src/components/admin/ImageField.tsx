@@ -29,6 +29,8 @@ export type ImageFieldProps = {
   hint?: MediaHint
   /** 下游裁切预览：按真实出现位置的宽高比渲染缩略框 */
   crops?: CropPreviewSpec[]
+  /** 父级已渲染更具体的说明时，隐藏通用格式提示 */
+  hideDefaultHint?: boolean
 }
 
 /** 组件：图片字段，FileField 的图片模式封装，仅接受图片并提供预览。 */

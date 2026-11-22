@@ -28,7 +28,7 @@ import { FileField } from '../../components/admin/FileField'
 import { RichTextField } from '../../components/admin/RichTextField'
 import { ProductModel3D, supports3D } from '../../components/product/ProductModel3D'
 import { Select } from '../../components/admin/Select'
-import { mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
+import { hasMediaHint, mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 import { slugify } from '../../lib/slug'
 
@@ -96,8 +96,11 @@ function FormField({
   const req = required ? <span className="req" aria-hidden="true">*</span> : null
   const inputClass = `input${invalid ? ' input--error' : ''}`
   const textareaClass = `textarea${invalid ? ' input--error' : ''}`
-  // 图片字段的规格与下游裁切预览（资源 key 缺省时不提示）
-  const mediaHint = resourceKey ? resolveMediaHint({ resourceKey, fieldKey: field.key }) : undefined
+  // 图片字段的规格与下游裁切预览：仅在该字段明确配置了规格时才提示（未配置不再套用兜底尺寸）
+  const mediaHint =
+    resourceKey && hasMediaHint({ resourceKey, fieldKey: field.key })
+      ? resolveMediaHint({ resourceKey, fieldKey: field.key })
+      : undefined
   const mediaCrops = mediaHint ? resolveMediaCrops(resourceKey ?? '', field.key, mediaHint) : undefined
 
   if (field.type === 'switch') {
@@ -250,6 +253,7 @@ function FormField({
           placeholder={field.placeholder}
           hint={mediaHint}
           crops={mediaCrops}
+          hideDefaultHint={Boolean(mediaHint)}
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
         />
@@ -292,6 +296,7 @@ function FormField({
           label={field.label}
           hint={mediaHint}
           crops={mediaCrops}
+          hideDefaultHint={Boolean(mediaHint)}
           onChange={(next) => onChange(field.key, next)}
         />
         {mediaHint && <span className="field__hint">{mediaHintText(mediaHint)}</span>}
@@ -313,12 +318,10 @@ function FormField({
           inputId={fieldId}
           label={field.label}
           placeholder={field.placeholder}
+          hideDefaultHint={Boolean(field.hint)}
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
         />
-        <span className="field__hint">
-          支持图片、PDF、Office、ZIP / RAR / 7Z、固件 .bin 与安装包（exe / msi / dmg / pkg）；图片 ≤10MB，文档 ≤50MB，视频 ≤200MB，安装包 ≤300MB。
-        </span>
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )

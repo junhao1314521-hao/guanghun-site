@@ -327,7 +327,7 @@ export function blockSummary(block: Block): string {
     case 'hero':
       return first(p.title) || str(p.eyebrow) || '未填写标题'
     case 'carousel':
-      return `${len(p.slides)} 张幻灯片`
+      return `${len(p.slides)} 张海报`
     case 'video':
       return str(p.title) || str(p.url) || '未填写视频'
     case 'text':

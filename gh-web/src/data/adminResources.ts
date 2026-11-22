@@ -248,12 +248,12 @@ export const PRODUCT_SPEC_TEMPLATES: Record<
    ============================================================ */
 
 export const ADMIN_RESOURCES: AdminResource[] = [
-  /* ---------- 产品与评测 ---------- */
+  /* ---------- 产品管理 ---------- */
   {
     key: 'products',
-    label: '产品',
+    label: '产品上架',
     icon: 'cube',
-    title: '产品',
+    title: '产品上架',
     desc: '管理在售与草稿产品的基础信息、定价与库存状态。',
     creatable: true,
     editable: true,
@@ -308,7 +308,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             type: 'file',
             span: 2,
             placeholder: '/uploads/xxxx.mp4',
-            hint: 'mp4 / webm；详情页主图区出现「视频」切换，留空则不显示视频入口。≤ 30MB',
+            hint: 'mp4 / webm；详情页主图区出现「视频」切换，留空则不显示视频入口。建议 ≤ 30MB（上传上限 200MB）',
           },
           {
             key: 'videoPoster',
@@ -915,7 +915,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'title', label: '标题', type: 'text', span: 2, required: true },
           { key: 'desc', label: '说明', type: 'textarea', span: 2, hint: '大图弹层展示的一句话说明' },
-          { key: 'theme', label: '主题', type: 'select', options: ['星海', '赛博', '秘境'], required: true },
+          {
+            key: 'theme',
+            label: '主题',
+            type: 'text',
+            required: true,
+            hint: '可直接输入新主题（前台 chips 会自动出现）；已有：星海 / 赛博 / 秘境',
+          },
           { key: 'featured', label: '本期精选', type: 'switch', hint: '精选壁纸会作为首屏背景；建议同时只标记 1 条' },
           { key: 'width', label: '像素宽', type: 'number', hint: '按下载文件填写，16:9 建议 2560 × 1440' },
           { key: 'height', label: '像素高', type: 'number' },
@@ -1927,7 +1933,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
 export const ADMIN_NAV: AdminNavGroup[] = [
   {
     key: 'product',
-    label: '产品与评测',
+    label: '产品管理',
     items: [
       { kind: 'resource', key: 'products' },
       { kind: 'resource', key: 'product-reviews' },
