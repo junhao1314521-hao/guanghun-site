@@ -808,11 +808,17 @@ function Builder({ pageKey, initial, hasDraftOnLoad }: { pageKey: string; initia
     return () => window.removeEventListener('keydown', onKey)
   }, [historyUndo, historyRedo, insertSlot])
 
-  // 选中联动：左列表对应项滚动到可见区（nearest 仅在需要时滚动）
+  // 选中联动：左列表对应项滚动到可见区。
+  // 只滚左栏自己的滚动容器；堆叠布局（≤1279px）下左栏没有内部滚动，不触发整页滚动。
   useEffect(() => {
     if (!activeId) return
     const el = document.querySelector<HTMLElement>(`.builder-items [data-block-id="${activeId}"]`)
-    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' })
+    const rail = el?.closest<HTMLElement>('.builder-rail__body')
+    if (!el || !rail || rail.scrollHeight <= rail.clientHeight + 1) return
+    const er = el.getBoundingClientRect()
+    const rr = rail.getBoundingClientRect()
+    if (er.top < rr.top) rail.scrollTop -= rr.top - er.top
+    else if (er.bottom > rr.bottom) rail.scrollTop += er.bottom - rr.bottom
   }, [activeId])
 
   // 插入选择器：Esc 关闭；打开时聚焦首个类型按钮（键盘可达）
@@ -958,32 +964,66 @@ function Builder({ pageKey, initial, hasDraftOnLoad }: { pageKey: string; initia
                     }))}
                 />
               )}
-              <Link className="btn btn--secondary btn--sm" to="/admin/pages">
-                返回列表
-              </Link>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={onReset} disabled={saving}>
-                重置为初始
-              </button>
-              {hasDraft && (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={onDiscardDraft} disabled={saving || publishing}>
-                  放弃草稿
+              {/* 宽屏：常用/低频操作全部平铺；≤1279px：收进「更多操作」，避免页头换成三四行 */}
+              <span className="builder-actions__inline">
+                <Link className="btn btn--secondary btn--sm" to="/admin/pages">
+                  返回列表
+                </Link>
+                <button type="button" className="btn btn--secondary btn--sm" onClick={onReset} disabled={saving}>
+                  重置为初始
                 </button>
-              )}
-              <a className="btn btn--secondary btn--sm" href={previewHref} target="_blank" rel="noreferrer">
-                打开前台
-              </a>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                aria-pressed={autoSave}
-                title="开启后：停止编辑 2.5 秒自动保存草稿（不清空撤销历史）"
-                onClick={() => setAutoSave((value) => !value)}
-              >
-                自动保存：{autoSave ? '开' : '关'}
-              </button>
-              <Link className="btn btn--secondary btn--sm" to="/admin/publish">
-                定时发布 / 版本
-              </Link>
+                {hasDraft && (
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={onDiscardDraft} disabled={saving || publishing}>
+                    放弃草稿
+                  </button>
+                )}
+                <a className="btn btn--secondary btn--sm" href={previewHref} target="_blank" rel="noreferrer">
+                  打开前台
+                </a>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  aria-pressed={autoSave}
+                  title="开启后：停止编辑 2.5 秒自动保存草稿（不清空撤销历史）"
+                  onClick={() => setAutoSave((value) => !value)}
+                >
+                  自动保存：{autoSave ? '开' : '关'}
+                </button>
+                <Link className="btn btn--secondary btn--sm" to="/admin/publish">
+                  定时发布 / 版本
+                </Link>
+              </span>
+              <span className="builder-actions__compact">
+                <OverflowMenu
+                  label="更多操作"
+                  align="end"
+                  items={[
+                    { key: 'back', label: '返回列表', to: '/admin/pages' },
+                    { key: 'reset', label: '重置为初始', disabled: saving, onClick: onReset },
+                    ...(hasDraft
+                      ? [
+                          {
+                            key: 'discard',
+                            label: '放弃草稿',
+                            disabled: saving || publishing,
+                            onClick: onDiscardDraft,
+                          },
+                        ]
+                      : []),
+                    {
+                      key: 'preview',
+                      label: '打开前台',
+                      onClick: () => window.open(previewHref, '_blank', 'noreferrer'),
+                    },
+                    {
+                      key: 'autosave',
+                      label: `自动保存：${autoSave ? '开' : '关'}`,
+                      onClick: () => setAutoSave((value) => !value),
+                    },
+                    { key: 'publish', label: '定时发布 / 版本', to: '/admin/publish' },
+                  ]}
+                />
+              </span>
             </span>
             {/* 主操作组：保存草稿 / 发布 */}
             <span className="builder-actions__primary">

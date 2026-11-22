@@ -184,7 +184,7 @@ function LinkListEditor({
                   type="text"
                   aria-label="角标自定义文案"
                   placeholder="角标文案（可留空）"
-                  style={{ width: 120 }}
+                  style={{ width: 160 }}
                   disabled={!link.badge}
                   value={link.badgeText ?? ''}
                   onChange={(event) => update(index, { badgeText: event.target.value || undefined })}

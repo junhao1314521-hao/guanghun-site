@@ -510,6 +510,8 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   .admin-table tr:last-child { margin-bottom: 0; }
   .admin-table td {
     position: static;
+    /* 覆盖 .table td 的固定行高：长文本（如组件说明）要能撑开，否则会压到下一行 */
+    height: auto;
     border: 0; padding: 3px 0; white-space: normal;
     display: flex; align-items: baseline; justify-content: space-between; gap: var(--gh-space-4);
   }
@@ -904,7 +906,9 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 
 .builder-stage { grid-area: stage; min-width: 0; }
 
-@media (max-width: 1023px) {
+/* 三栏需要约 1100px 内容宽度；≤1279px 时侧栏占位后画布只剩 200px 左右，
+   直接堆叠为「预览 → 结构 → 属性」，避免三栏互相挤压。 */
+@media (max-width: 1279px) {
   .builder-shell { grid-template-columns: 1fr; grid-template-areas: 'stage' 'left' 'right'; }
   .builder-shell.is-left-collapsed,
   .builder-shell.is-right-collapsed,
@@ -2589,4 +2593,40 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 @media (max-width: 767px) {
   .admin-table--actions th:last-child,
   .admin-table--actions td:last-child { position: static; box-shadow: none; background: transparent; }
+}
+
+/* ============================================================
+   阶段 M4：站点配置与装修器（中等宽度下的可用性）
+   ============================================================ */
+
+/* ① 装修器页头：≤1279px 把低频工具收进「更多操作」，避免操作区换成三四行 */
+.builder-actions__inline { display: inline-flex; align-items: center; gap: var(--gh-space-2); flex-wrap: wrap; }
+.builder-actions__compact { display: none; align-items: center; }
+@media (max-width: 1279px) {
+  .builder-actions__inline { display: none; }
+  .builder-actions__compact { display: inline-flex; }
+}
+
+/* ③ 组件库：移动端说明只露两行，完整字段清单仍在 title 与桌面上 */
+@media (max-width: 767px) {
+  .admin-components__desc-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* ② 站点配置：中等宽度下链接行改为两行（名称 / 链接 / 操作 + 角标独占一行） */
+@media (min-width: 768px) and (max-width: 1279px) {
+  /* 两行一组：名称 / 链接 / 操作一行，角标一行；发丝线把整组圈成一条记录 */
+  .site-link--badge {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto;
+    row-gap: var(--gh-space-2);
+    padding-bottom: var(--gh-space-3);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .site-link--badge > .site-link__badge { grid-column: 1 / -1; grid-row: 2; }
+  .site-link--badge > .site-link__actions { grid-column: 3; grid-row: 1; }
+  .site-link--badge:last-child { padding-bottom: 0; border-bottom: 0; }
 }

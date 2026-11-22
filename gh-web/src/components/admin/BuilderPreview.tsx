@@ -420,11 +420,20 @@ export function BuilderPreview({
     return () => document.removeEventListener('keydown', onKey)
   }, [fullscreen, onToggleFullscreen])
 
-  // 选中态（含从左结构列表选中）→ 预览滚动到该块可见区（nearest 仅在需要时滚动）
+  // 选中态（含从左结构列表选中）→ 预览滚动到该块可见区。
+  // 只滚动预览框自身，不用 scrollIntoView：后者会连带把整页滚走，
+  // 让吸顶的操作条压住画布顶部（窄屏尤其明显）。
   useEffect(() => {
     if (!selectedId) return
     const el = rootRef.current?.querySelector<HTMLElement>(`[data-block-id="${selectedId}"]`)
-    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' })
+    const frame = el?.closest<HTMLElement>('.builder-preview__frame')
+    if (!el || !frame) return
+    const er = el.getBoundingClientRect()
+    const fr = frame.getBoundingClientRect()
+    if (er.top < fr.top) frame.scrollTop -= fr.top - er.top
+    else if (er.bottom > fr.bottom) frame.scrollTop += er.bottom - fr.bottom
+    if (er.left < fr.left) frame.scrollLeft -= fr.left - er.left
+    else if (er.right > fr.right) frame.scrollLeft += er.right - fr.right
   }, [selectedId])
 
   const canvasClass = [

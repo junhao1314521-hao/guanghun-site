@@ -121,8 +121,8 @@ export function AdminComponentsList() {
                         <td style={{ textAlign: 'right' }} data-label="字段数">
                           <span className="mono">{meta.fields.length}</span>
                         </td>
-                        <td className="admin-cell--clip" data-label="说明" title={describeType(meta)}>
-                          {describeType(meta)}
+                        <td className="admin-cell--clip admin-components__desc" data-label="说明" title={describeType(meta)}>
+                          <span className="admin-components__desc-text">{describeType(meta)}</span>
                         </td>
                         <td style={{ textAlign: 'right' }} data-label="启用状态">
                           <label className="switch" style={{ justifyContent: 'flex-end' }}>
