@@ -7,6 +7,7 @@
  *
  * 新增栏目：在此登记 → 侧边栏 / 路由 / 列表 / 表单自动生效。
  */
+import { ADMIN_ACTION_LABELS } from './adminAuditActions'
 
 export type AdminColumnType =
   | 'text'
@@ -1876,18 +1877,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         key: 'action',
         label: '动作',
         type: 'tag',
-        options: ['login', 'create', 'update', 'delete', 'save-page', 'save-site', 'reset', 'upload', 'save-center-backdrop'],
-        optionLabels: {
-          login: '登录',
-          create: '新建',
-          update: '更新',
-          delete: '删除',
-          'save-page': '保存页面',
-          'save-site': '保存站点配置',
-          reset: '重置',
-          upload: '上传',
-          'save-center-backdrop': '保存售后中心背景',
-        },
+        options: Object.keys(ADMIN_ACTION_LABELS),
+        optionLabels: ADMIN_ACTION_LABELS,
       },
       { key: 'target', label: '对象' },
       { key: 'ip', label: 'IP', type: 'mono' },

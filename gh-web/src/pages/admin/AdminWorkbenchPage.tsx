@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom'
 import { fetchAdminOverview } from '../../api/admin'
 import { useApi } from '../../hooks/useApi'
 import { adminResource } from '../../data/adminResources'
+import { actionLabel } from '../../data/adminAuditActions'
 import { AdminIcon } from '../../components/admin/AdminIcon'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ErrorState } from '../../components/admin/states'
@@ -206,7 +207,7 @@ export function AdminWorkbenchPage() {
                       <span className="admin-activity__dot" aria-hidden="true" />
                       <span className="admin-activity__main">
                         <span className="admin-activity__who">{row.who}</span>
-                        <span className="admin-activity__action">{row.action}</span>
+                        <span className="admin-activity__action">{actionLabel(row.action)}</span>
                         <span className="admin-activity__target">{row.target}</span>
                       </span>
                       <time className="admin-activity__at mono" dateTime={row.at}>
