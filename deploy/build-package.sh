@@ -14,7 +14,7 @@ echo "[1/4] 构建前端（生产参数）"
 
 echo "[2/4] 组装部署包"
 mkdir -p "$WORK/website/app/gh-server" "$WORK/website/app/gh-web"
-cp -a "$ROOT/gh-server/src" "$ROOT/gh-server/package.json" "$ROOT/gh-server/package-lock.json" "$ROOT/gh-server/tsconfig.json" "$WORK/website/app/gh-server/"
+cp -a "$ROOT/gh-server/src" "$ROOT/gh-server/scripts" "$ROOT/gh-server/package.json" "$ROOT/gh-server/package-lock.json" "$ROOT/gh-server/tsconfig.json" "$WORK/website/app/gh-server/"
 cp -a "$ROOT/gh-web/dist" "$WORK/website/app/gh-web/"
 cp -a "$ROOT/deploy" "$WORK/website/deploy"
 cp "$ROOT/deploy/.env.example" "$WORK/website/.env.example"

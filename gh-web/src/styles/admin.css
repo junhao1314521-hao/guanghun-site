@@ -1547,6 +1547,160 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 .file-field__chip a { color: var(--color-accent-text); word-break: break-all; }
 
+/* ---------- 商品媒体总控（产品上架：相册 / 视频 / 3D） ----------
+   目标：一块区域内完成全部媒体编辑，避免每个字段各占一行地址输入；
+   相册为淘宝式缩略图宫格（第一张标主图、拖拽排序、单击编辑）。 */
+.media-manager { display: flex; flex-direction: column; gap: var(--gh-space-4); }
+.media-manager__status {
+  display: flex; align-items: center; gap: 8px; margin: 0;
+  font-size: var(--gh-font-size-caption); color: var(--color-text-secondary);
+}
+.media-block {
+  display: flex; flex-direction: column; gap: var(--gh-space-3); min-width: 0;
+  padding: var(--gh-space-4);
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-lg);
+  background: var(--color-bg-surface);
+}
+.media-block__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--gh-space-3); flex-wrap: wrap;
+}
+.media-block__title {
+  display: flex; align-items: baseline; gap: 8px; margin: 0;
+  font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-semibold);
+}
+.media-block__count {
+  font-size: var(--gh-font-size-caption); font-weight: var(--gh-weight-regular);
+  color: var(--color-text-tertiary);
+}
+.media-block__note {
+  margin: 4px 0 0; font-size: var(--gh-font-size-caption); line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.media-block__actions { display: flex; align-items: center; gap: var(--gh-space-2); flex-wrap: wrap; }
+.media-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-4); }
+@media (max-width: 1023px) { .media-grid { grid-template-columns: 1fr; } }
+
+/* 相册宫格：1:1 缩略图，白底承托透明 PNG */
+.media-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--gh-space-3); }
+.media-tile {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 1 / 1; padding: 0; overflow: hidden; cursor: grab;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-muted);
+}
+.media-tile:focus-visible { outline: 2px solid var(--color-accent-solid); outline-offset: 2px; }
+.media-tile.is-main { border-color: var(--color-accent-solid); box-shadow: inset 0 0 0 1px var(--color-accent-solid); }
+.media-tile.is-dragging { opacity: 0.45; }
+.media-tile.is-over { border-color: var(--color-accent-solid); background: var(--color-bg-subtle); }
+.media-tile__img { width: 100%; height: 100%; display: block; object-fit: contain; background: #fff; }
+.media-tile__badge {
+  position: absolute; top: 6px; left: 6px; padding: 1px 6px; border-radius: 999px;
+  background: var(--color-accent-solid); color: #fff; font-size: 11px; line-height: 1.6;
+}
+.media-tile__grip {
+  position: absolute; top: 6px; right: 6px; color: var(--color-text-tertiary);
+  opacity: 0; transition: opacity 0.15s;
+}
+.media-tile:hover .media-tile__grip { opacity: 1; }
+.media-tile__actions {
+  position: absolute; inset: auto 0 0 0; display: flex; justify-content: center; gap: 4px;
+  padding: 4px; background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+  opacity: 0; transition: opacity 0.15s;
+}
+.media-tile:hover .media-tile__actions, .media-tile:focus-within .media-tile__actions { opacity: 1; }
+.media-tile__action {
+  padding: 2px 4px; border: 0; background: transparent; color: #fff;
+  font-size: 11px; line-height: 1.6; cursor: pointer;
+}
+.media-tile__action:hover { text-decoration: underline; }
+.media-tile__action--danger { color: #ffb4b4; }
+.media-tile--add {
+  flex-direction: column; gap: 4px; border-style: dashed; cursor: pointer;
+  background: var(--color-bg-subtle);
+  font-size: var(--gh-font-size-caption); color: var(--color-text-secondary);
+}
+.media-tile--add small { font-size: 11px; color: var(--color-text-tertiary); }
+.media-tile--add:hover { border-color: var(--color-accent-solid); color: var(--color-accent-text); }
+
+/* 视频：16:9 播放器 / 上传块 + 封面选择 */
+.media-video__frame {
+  display: block; width: 100%; aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: #000;
+}
+.media-cover { display: flex; align-items: center; gap: var(--gh-space-3); }
+.media-cover__thumb {
+  flex: 0 0 auto; width: 72px; aspect-ratio: 16 / 9; overflow: hidden;
+  display: grid; place-items: center;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-sm);
+  background: var(--color-bg-muted);
+}
+.media-cover__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-cover__empty { font-size: 11px; color: var(--color-text-tertiary); }
+.media-cover__body { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.media-cover__label { font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+.media-dropzone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  width: 100%; min-height: 120px; padding: var(--gh-space-4);
+  border: 1px dashed var(--color-border-strong); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-subtle); color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm); cursor: pointer;
+}
+.media-dropzone--video { aspect-ratio: 16 / 7; min-height: 0; }
+.media-dropzone small { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.media-dropzone:hover { border-color: var(--color-accent-solid); color: var(--color-accent-text); }
+
+/* 3D：模型条 + 预览台 + 折叠的上传要求 */
+.media-model3d { display: flex; flex-direction: column; gap: var(--gh-space-2); }
+.media-model3d.is-off { opacity: 0.72; }
+.media-model3d__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-3); }
+.media-model3d__name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--gh-font-size-caption); color: var(--color-text-secondary);
+}
+.media-model3d__stage {
+  position: relative; height: 220px; overflow: hidden;
+  border-radius: var(--gh-radius-md); background: var(--color-bg-muted);
+}
+.media-model3d__stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.media-model3d__placeholder {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: var(--gh-space-3);
+  text-align: center; font-size: var(--gh-font-size-caption); color: var(--color-text-secondary);
+}
+.media-model3d__off { margin: 0; font-size: var(--gh-font-size-caption); color: var(--color-warning-text); }
+
+/* 高级手动填写：默认折叠，避免地址输入挤占主视觉 */
+.media-advanced { font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+.media-advanced > summary { cursor: pointer; color: var(--color-text-tertiary); }
+.media-advanced > summary:hover { color: var(--color-accent-text); }
+.media-advanced .input { margin-top: var(--gh-space-2); }
+.media-advanced__list { margin: var(--gh-space-2) 0; padding-left: 18px; line-height: 1.7; }
+
+/* 单图编辑弹层 */
+.media-edit__preview {
+  display: grid; place-items: center; padding: var(--gh-space-3);
+  border-radius: var(--gh-radius-md); background: var(--color-bg-muted);
+}
+.media-edit__preview img { max-width: 100%; max-height: 340px; object-fit: contain; }
+.media-edit__actions { display: flex; flex-wrap: wrap; gap: var(--gh-space-2); margin-top: var(--gh-space-3); }
+
+/* 素材库多选 */
+.image-picker__tile.is-picked { border-color: var(--color-accent-solid); box-shadow: inset 0 0 0 1px var(--color-accent-solid); }
+.image-picker__thumb { position: relative; }
+.image-picker__check {
+  position: absolute; top: 6px; right: 6px; width: 20px; height: 20px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--color-accent-solid); color: #fff; font-size: 12px;
+}
+.image-picker__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-3);
+  padding: var(--gh-space-3) var(--gh-space-4);
+  border-top: 1px solid var(--color-border-default);
+}
+.image-picker__count { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
+.image-picker__foot-actions { display: flex; gap: var(--gh-space-2); }
+
 /* ---------- 海报 / 矩阵图片字段的「安全区」虚线预览 ----------
    外框 = 当前比例的半透明虚线框（无投影，随容器自适应、窄屏不溢出）；
    内框 = 安全区虚线框（向内缩约 7%）。沿用后台既有令牌。 */

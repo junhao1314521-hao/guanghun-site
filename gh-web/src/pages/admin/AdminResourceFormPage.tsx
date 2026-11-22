@@ -6,7 +6,7 @@
  * 结构：外层负责取详情并处理加载 / 错误 / 未命中；内层表单在数据就绪后挂载，
  * 用 props 初始化 state，避免「用 effect 反向同步」。
  */
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { fetchAdminResource, fetchAdminResourceDetail, saveAdminResource, type AdminDetail, type AdminList } from '../../api/admin'
 import {
@@ -26,8 +26,8 @@ import { ImageField } from '../../components/admin/ImageField'
 import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
 import { ProductSpecEditor } from '../../components/admin/ProductSpecEditor'
+import { ProductMediaField } from '../../components/admin/ProductMediaField'
 import { RichTextField } from '../../components/admin/RichTextField'
-import { ProductModel3D, supports3D } from '../../components/product/ProductModel3D'
 import { Select } from '../../components/admin/Select'
 import { hasMediaHint, mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
@@ -364,27 +364,9 @@ function FormField({
     )
   }
 
-  if (field.type === 'model3d') {
-    // 3D 模型：上传 / 选择 .glb 后就地渲染预览，失败时回退封面
-    const poster = String(allValues?.model3dPoster ?? '').trim()
-    const gallery = Array.isArray(allValues?.gallery) ? (allValues.gallery as unknown[]) : []
-    return (
-      <>
-        <label className="field__label" htmlFor={fieldId}>
-          {field.label}
-          {req}
-        </label>
-        <Model3DField
-          inputId={fieldId}
-          label={field.label}
-          placeholder={field.placeholder}
-          value={value === undefined || value === null ? '' : String(value)}
-          fallbackSrc={poster || (gallery.length > 0 ? String(gallery[0]) : '')}
-          onChange={(url) => onChange(field.key, url)}
-        />
-        {field.hint && <span className="field__hint">{field.hint}</span>}
-      </>
-    )
+  if (field.type === 'productMedia') {
+    // 商品媒体总控：相册 / 主图视频 / 3D 预览合并为一块淘宝式编辑区
+    return <ProductMediaField values={allValues ?? {}} onChange={onChange} />
   }
 
   if (field.type === 'specEditor') {
@@ -513,63 +495,6 @@ function ModelListField({ value, onChange }: { value: unknown; onChange: (next: 
         </label>
       ))}
     </div>
-  )
-}
-
-/** 3D 模型字段：地址输入 / 上传（复用 FileField）+ 内嵌 3D 预览；失败回退封面图 */
-function Model3DField({
-  value,
-  fallbackSrc,
-  inputId,
-  label,
-  placeholder,
-  onChange,
-}: {
-  value: string
-  fallbackSrc: string
-  inputId: string
-  label: string
-  placeholder?: string
-  onChange: (url: string) => void
-}) {
-  const [failed, setFailed] = useState(false)
-  // 地址变化后重新尝试预览（避免一次失败后永久停在封面）
-  useEffect(() => setFailed(false), [value])
-  const isGlb = /\.glb(?:$|[?#])/i.test(value.trim())
-  const canPreview = isGlb && supports3D()
-  return (
-    <>
-      <FileField variant="file" inputId={inputId} label={label} placeholder={placeholder} value={value} onChange={onChange} />
-      {isGlb && (
-        <div
-          style={{
-            position: 'relative',
-            marginTop: 'var(--gh-space-2)',
-            height: 300,
-            borderRadius: 'var(--gh-radius-lg)',
-            overflow: 'hidden',
-            background: 'var(--color-bg-muted)',
-          }}
-        >
-          {canPreview && !failed ? (
-            <ProductModel3D key={value} src={value} label={label} onError={() => setFailed(true)} />
-          ) : fallbackSrc ? (
-            <img
-              src={fallbackSrc}
-              alt={`${label}预览封面`}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          ) : (
-            <span
-              className="field__hint"
-              style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', padding: 'var(--gh-space-3)', textAlign: 'center' }}
-            >
-              {canPreview ? '模型预览加载失败，请检查 .glb 文件是否完整' : '当前浏览器不支持 3D 预览，模型地址已保留'}
-            </span>
-          )}
-        </div>
-      )}
-    </>
   )
 }
 
@@ -830,7 +755,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
 
   /** 值是否为空（开关 / records 不参与必填判断） */
   const isEmptyValue = (field: AdminField, value: unknown): boolean => {
-    if (field.type === 'switch' || field.type === 'records') return false
+    if (field.type === 'switch' || field.type === 'records' || field.type === 'productMedia') return false
     if (field.type === 'list' || field.type === 'modellist') return toList(value).length === 0
     if (field.type === 'status' || field.type === 'statusSelect') {
       const text = value && typeof value === 'object' ? (value as { text?: unknown }).text : undefined
@@ -956,6 +881,10 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
               value: String(row.value ?? '').trim(),
             }))
             .filter((row) => row.label !== '')
+        } else if (field.type === 'productMedia') {
+          // 商品媒体总控：相册数组 trim + 去空（主图顺序即数组顺序）
+          const raw = Array.isArray(payload.gallery) ? (payload.gallery as unknown[]) : []
+          payload.gallery = raw.map((item) => String(item).trim()).filter(Boolean)
         }
       }
     }

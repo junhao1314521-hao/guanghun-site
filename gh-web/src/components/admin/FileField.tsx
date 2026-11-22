@@ -388,16 +388,22 @@ export function FileField({
  */
 export function MediaPickerDialog({
   filter = 'all',
+  multiple = false,
   onClose,
   onSelect,
+  onSelectMany,
 }: {
   filter?: 'image' | 'media' | 'all'
+  /** 多选模式：点选多张后一次回传（相册批量添加） */
+  multiple?: boolean
   onClose: () => void
   onSelect: (item: UploadItem) => void
+  onSelectMany?: (items: UploadItem[]) => void
 }) {
   const titleId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set())
   // 取数复用 useApi（统一 loading / error / 中止语义）
   const state = useApi<UploadItem[]>(
     (signal) =>
@@ -436,7 +442,7 @@ export function MediaPickerDialog({
       >
         <div className="image-picker__head">
           <h2 className="image-picker__title" id={titleId}>
-            从素材库选择
+            {multiple ? '从素材库选择（可多选）' : '从素材库选择'}
           </h2>
           <button ref={closeRef} type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
             关闭
@@ -472,29 +478,71 @@ export function MediaPickerDialog({
 
           {items && items.length > 0 && (
             <div className="image-picker__grid">
-              {items.map((item) => (
-                <button
-                  type="button"
-                  className="image-picker__tile"
-                  key={item.id}
-                  title={item.name}
-                  onClick={() => onSelect(item)}
-                >
-                  <span className="image-picker__thumb">
-                    {isImage(item) ? (
-                      <MediaImg src={item.url} alt={item.name} />
-                    ) : isVideo(item) ? (
-                      <video src={item.url} muted playsInline preload="metadata" />
-                    ) : (
-                      <AdminIcon name="doc" size={28} />
-                    )}
-                  </span>
-                  <span className="image-picker__name">{item.name}</span>
-                </button>
-              ))}
+              {items.map((item) => {
+                const checked = picked.has(item.id)
+                return (
+                  <button
+                    type="button"
+                    className={`image-picker__tile${multiple && checked ? ' is-picked' : ''}`}
+                    key={item.id}
+                    title={item.name}
+                    aria-pressed={multiple ? checked : undefined}
+                    onClick={() => {
+                      if (multiple) {
+                        setPicked((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(item.id)) next.delete(item.id)
+                          else next.add(item.id)
+                          return next
+                        })
+                        return
+                      }
+                      onSelect(item)
+                    }}
+                  >
+                    <span className="image-picker__thumb">
+                      {isImage(item) ? (
+                        <MediaImg src={item.url} alt={item.name} />
+                      ) : isVideo(item) ? (
+                        <video src={item.url} muted playsInline preload="metadata" />
+                      ) : (
+                        <AdminIcon name="doc" size={28} />
+                      )}
+                      {multiple && checked && (
+                        <span className="image-picker__check" aria-hidden="true">
+                          ✓
+                        </span>
+                      )}
+                    </span>
+                    <span className="image-picker__name">{item.name}</span>
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
+
+        {multiple && (
+          <div className="image-picker__foot">
+            <span className="image-picker__count">已选 {picked.size} 张</span>
+            <div className="image-picker__foot-actions">
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
+                取消
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={picked.size === 0}
+                onClick={() => {
+                  const selectedItems = (items ?? []).filter((item) => picked.has(item.id))
+                  if (selectedItems.length > 0) onSelectMany?.(selectedItems)
+                }}
+              >
+                添加所选
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

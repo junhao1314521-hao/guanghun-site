@@ -96,6 +96,8 @@ export type AdminFieldType =
   | 'specTemplate'
   /** 结构化参数编辑器：参数名与取值均从常用目录下拉选择（仅产品表单使用） */
   | 'specEditor'
+  /** 商品媒体总控：相册 / 主图视频 / 3D 预览合并在一个区块内编辑（仅产品表单使用） */
+  | 'productMedia'
   /** 资源引用：从另一个栏目的记录中选择（如评价 → 产品），值存被引用记录的 id */
   | 'ref'
 
@@ -311,47 +313,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         title: '商品图片与视频',
         fields: [
           {
-            key: 'gallery',
-            label: '相册图片',
-            type: 'images',
+            key: 'mediaBundle',
+            label: '商品媒体',
+            type: 'productMedia',
             span: 2,
-            hint: '第一张即列表卡 / 详情页主图；可排序，建议 ≤ 20 张；留空回退内置 4 视角图',
-          },
-          {
-            key: 'videoUrl',
-            label: '主图视频',
-            type: 'file',
-            span: 2,
-            placeholder: '/uploads/xxxx.mp4',
-            hint: 'mp4 / webm；详情页主图区出现「视频」切换，留空则不显示视频入口。建议 ≤ 30MB（上传上限 200MB）',
-          },
-          {
-            key: 'videoPoster',
-            label: '视频封面',
-            type: 'image',
-            span: 2,
-            hint: '可选；留空则用相册第一张图作为封面',
-          },
-          {
-            key: 'model3dEnabled',
-            label: '启用 3D 预览',
-            type: 'switch',
-            hint: '关闭时前台完全看不到 3D 入口；模型未就绪请保持关闭。打开后需先上传下方模型才会生效',
-          },
-          {
-            key: 'model3d',
-            label: '3D 模型文件（.glb）',
-            type: 'model3d',
-            span: 2,
-            placeholder: '/uploads/xxxx.glb',
-            hint: '只收单文件 .glb（贴图需内嵌），≤ 30 MB；不要 .gltf + 外部贴图。建议几何 ≤ 15 万面、贴图 ≤ 2048、Y 轴向上、正面朝 +Z、原点在底座中心。上传后自动生成 3D 预览，打开上方开关并保存即可生效',
-          },
-          {
-            key: 'model3dPoster',
-            label: '3D 首帧封面',
-            type: 'image',
-            span: 2,
-            hint: '可选，模型加载时先显示这张图；留空则用相册第一张图',
           },
         ],
       },
