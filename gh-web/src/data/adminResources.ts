@@ -41,6 +41,11 @@ export type AdminColumn = {
   align?: 'right'
   /** 是否可排序（默认 true；显式 false 关闭） */
   sortable?: boolean
+  /**
+   * 次行信息：把低优先级字段以内联小字并入本列，
+   * 避免宽表为展示次要字段而横向滚动（如资源名称下补「品牌 · 分类」）。
+   */
+  secondaryKeys?: string[]
   /** records 条目中 select 类型的候选项 */
   options?: string[]
   /** select 候选项的展示文案（值 → 文案）；缺省直接显示值 */
@@ -673,9 +678,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     deletable: true,
     searchKeys: ['title', 'tag', 'author'],
     columns: [
-      { key: 'title', label: '标题', type: 'strong' },
+      // 标签并入标题次行，避免宽表横向滚动；分类 / 作者仍单列便于扫读
+      { key: 'title', label: '标题', type: 'strong', secondaryKeys: ['tags'] },
       { key: 'categoryLabel', label: '分类', type: 'tag' },
-      { key: 'tags', label: '标签', type: 'list' },
       { key: 'author', label: '作者' },
       { key: 'status', label: '状态', type: 'status' },
       { key: 'accent', label: '强调', type: 'bool' },
@@ -751,15 +756,15 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     deletable: true,
     searchKeys: ['name', 'category'],
     columns: [
-      { key: 'name', label: '资源名称', type: 'strong' },
-      { key: 'brand', label: '品牌', type: 'tag' },
-      { key: 'category', label: '分类', type: 'tag' },
+      // 品牌 / 分类降为名称列次行，宽表因此不再横向滚动；两者仍可在上方筛选
+      { key: 'name', label: '资源名称', type: 'strong', secondaryKeys: ['brand', 'category'] },
       { key: 'type', label: '类型', type: 'tag', options: ['manual', 'firmware', 'driver', 'software', 'calibration'], optionLabels: { manual: '说明书', firmware: '固件', driver: '驱动', software: '软件', calibration: '校色文件' } },
       { key: 'version', label: '版本', type: 'mono' },
       { key: 'isLatest', label: '最新', type: 'bool' },
       { key: 'size', label: '大小', type: 'mono' },
       { key: 'fileUrl', label: '文件', type: 'file' },
-      { key: 'models', label: '适用型号', type: 'list' },
+      // 列表用后端回填的中文型号名（modelNames），避免显示 gh-54027x1qe 这类内部 id
+      { key: 'modelNames', label: '适用型号', type: 'list' },
       { key: 'date', label: '更新时间', type: 'date' },
     ],
     filters: [

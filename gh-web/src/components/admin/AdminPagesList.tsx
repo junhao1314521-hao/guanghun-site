@@ -27,6 +27,7 @@ import { AdminPageHead } from './AdminPageHead'
 import { Select } from './Select'
 import { EmptyState, ErrorState, SkeletonTable } from './states'
 import { useConfirm, useToast } from './feedback'
+import { IconClose, IconSearch } from '../ui/Icon'
 import { shortCode, slugify } from '../../lib/slug'
 
 /** ISO 时间 → 紧凑展示 */
@@ -271,8 +272,16 @@ export function AdminPagesList() {
   /** 引用清单：当前展开的页面 key 与其引用明细缓存 */
   const [expanded, setExpanded] = useState<string | null>(null)
   const [refs, setRefs] = useState<Record<string, PageReferenceList>>()
+  /** 关键词：匹配页面标题 / key / 前台路径 */
+  const [query, setQuery] = useState('')
 
-  const rows = (state.data?.items ?? []).filter((item) => !removed.has(item.key))
+  const allRows = (state.data?.items ?? []).filter((item) => !removed.has(item.key))
+  const q = query.trim().toLowerCase()
+  const rows = q
+    ? allRows.filter((item) =>
+        [item.title, item.key, item.path].some((value) => value.toLowerCase().includes(q)),
+      )
+    : allRows
 
   /** 页面是否启用：本地覆盖优先，其次接口返回值（缺省视为 true） */
   const isEnabled = (item: AdminPageListItem): boolean => enabledOverride[item.key] ?? item.enabled !== false
@@ -342,11 +351,36 @@ export function AdminPagesList() {
       {creating && (
         <NewPageForm
           templates={templatesState.data?.items ?? []}
-          existingKeys={rows.map((item) => item.key)}
-          existingPaths={rows.map((item) => item.path)}
+          existingKeys={allRows.map((item) => item.key)}
+          existingPaths={allRows.map((item) => item.path)}
           onCreated={(page) => navigate(`/admin/pages/${encodeURIComponent(page.key)}/builder`)}
         />
       )}
+
+      <div className="admin-toolbar">
+        <div className="admin-toolbar__search search">
+          <span className="search__icon" aria-hidden="true">
+            <IconSearch size={16} />
+          </span>
+          <input
+            className="input"
+            type="search"
+            value={query}
+            placeholder="搜索标题 / key / 路径"
+            aria-label="搜索页面"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {query && (
+            <button type="button" className="admin-search__clear" aria-label="清空搜索" onClick={() => setQuery('')}>
+              <IconClose size={14} />
+            </button>
+          )}
+        </div>
+        <span className="admin-toolbar__spacer" />
+        <span className="admin-table__count">
+          共 {rows.length} 个页面{rows.length !== allRows.length ? `（筛选自 ${allRows.length} 个）` : ''}
+        </span>
+      </div>
 
       <div className="admin-table-wrap">
         {state.loading && rows.length === 0 ? (
@@ -357,11 +391,15 @@ export function AdminPagesList() {
           </div>
         ) : rows.length === 0 ? (
           <div className="admin-table__empty">
-            <EmptyState icon="globe" title="暂无页面" desc="点击右上角「新建页面」创建第一个页面。" />
+            {q ? (
+              <EmptyState icon="doc" title="没有匹配的页面" desc="换个关键词，或清空搜索查看全部页面。" />
+            ) : (
+              <EmptyState icon="globe" title="暂无页面" desc="点击右上角「新建页面」创建第一个页面。" />
+            )}
           </div>
         ) : (
           <div className="admin-table-scroll">
-            <table className="table admin-table">
+            <table className="table admin-table admin-table--actions">
               <thead>
                 <tr>
                   <th scope="col">页面标题</th>
@@ -439,7 +477,7 @@ export function AdminPagesList() {
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div className="admin-table__actions" style={{ justifyContent: 'flex-end' }}>
-                            <Link className="btn btn--primary btn--sm" to={`/admin/pages/${encodeURIComponent(item.key)}/builder`}>
+                            <Link className="btn btn--secondary btn--sm" to={`/admin/pages/${encodeURIComponent(item.key)}/builder`}>
                               装修
                             </Link>
                             <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => onDelete(item)}>

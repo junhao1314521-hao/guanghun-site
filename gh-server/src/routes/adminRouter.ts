@@ -42,6 +42,7 @@ import { listBackups } from '../data/backupStore'
 import { resolveDbPath } from '../data/db'
 import { listPages } from '../data/contentStore'
 import { resolveUploadDir } from '../data/uploadStore'
+import { withModelNames } from '../data/support-extra'
 
 /**
  * 后台管理系统端点（挂载于 /api/admin）。
@@ -470,7 +471,13 @@ adminRouter.get('/resources/:key', requireSession, requireResourceScope, (req, r
   }
   if (isCollectionKey(key)) {
     // 分类与参数：关联产品数按产品库实况计算，不用库里手写的 count
-    const items = key === 'product-categories' ? listProductCategories() : listCollection(key)
+    // 下载中心：额外返回 modelNames，列表直接展示中文型号名而不是型号 id
+    const items =
+      key === 'product-categories'
+        ? listProductCategories()
+        : key === 'downloads'
+          ? withModelNames(listCollection('downloads'), listCollection('models'))
+          : listCollection(key)
     res.json({ items, total: items.length })
     return
   }

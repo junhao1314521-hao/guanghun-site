@@ -895,20 +895,9 @@ export function AdminUploadsList() {
                         </span>
                       </span>
                     </button>
+                    {/* 卡片较窄：只保留高频的「分类 / 预览」，其余动作收进「⋯」，
+                        避免按钮在 200px 宽的卡片里被裁切 */}
                     <div className="admin-upload-tile__actions">
-                      {item.refCount ? (
-                        <button
-                          type="button"
-                          className="btn btn--ghost btn--sm"
-                          title="查看被哪些页面 / 记录引用"
-                          onClick={() => void openReferences(item)}
-                        >
-                          引用 {item.refCount}
-                        </button>
-                      ) : null}
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPreview(item)}>
-                        预览
-                      </button>
                       <Select
                         className="admin-upload-tile__cat"
                         value={item.category}
@@ -917,18 +906,33 @@ export function AdminUploadsList() {
                         onChange={(next) => void onCategory(item, next as MediaCategory)}
                         options={MEDIA_CATEGORIES.map((key) => ({ value: key, label: CATEGORY_LABELS[key] }))}
                       />
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        title="保持链接不变，用新文件替换"
-                        disabled={replacing !== null}
-                        onClick={() => onPickReplace(item)}
-                      >
-                        {replacing?.id === item.id ? `替换中 ${replacing.percent}%` : '替换'}
+                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPreview(item)}>
+                        预览
                       </button>
-                      <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => void onDelete(item)}>
-                        删除
-                      </button>
+                      <OverflowMenu
+                        label={`「${item.name}」更多操作`}
+                        align="end"
+                        items={[
+                          ...(item.refCount
+                            ? [
+                                {
+                                  key: 'refs',
+                                  label: `引用位置（${item.refCount}）`,
+                                  title: '查看被哪些页面 / 记录引用',
+                                  onClick: () => void openReferences(item),
+                                },
+                              ]
+                            : []),
+                          {
+                            key: 'replace',
+                            label: replacing?.id === item.id ? `替换中 ${replacing.percent}%` : '替换文件',
+                            title: '保持链接不变，用新文件替换',
+                            disabled: replacing !== null,
+                            onClick: () => onPickReplace(item),
+                          },
+                          { key: 'delete', label: '删除', danger: true, onClick: () => void onDelete(item) },
+                        ]}
+                      />
                     </div>
                   </div>
                 )

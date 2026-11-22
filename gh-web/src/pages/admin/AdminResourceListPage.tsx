@@ -92,6 +92,14 @@ function isClippedColumn(column: AdminColumn): boolean {
   return column.type === 'list' || column.type === undefined || column.type === 'text'
 }
 
+/** 次行信息：把 column.secondaryKeys 对应字段拼成一行小字（空值自动跳过） */
+function secondaryText(row: AdminRow, column: AdminColumn): string {
+  return (column.secondaryKeys ?? [])
+    .map((key) => cellText(row[key]))
+    .filter((text) => text && text !== '—')
+    .join(' · ')
+}
+
 /** 按列类型渲染单元格（兼容对象 status / 字符串数组等规范形状） */
 function renderCell(value: unknown, column: AdminColumn) {
   // 文件列：区分「素材库文件 / 外链」并显式展示「有 / 无」。
@@ -133,7 +141,14 @@ function renderCell(value: unknown, column: AdminColumn) {
     case 'records':
       return <span>{Array.isArray(value) ? `${value.length} 条` : String(value)}</span>
     case 'bool':
-      return <span className={`tag${value ? ' tag--accent' : ''}`}>{value ? '是' : '否'}</span>
+      // 是 / 否一眼可辨，但不让整列绿色标签抢走注意力
+      return value ? (
+        <span className="admin-bool" title="是">
+          ✓<span className="sr-only">是</span>
+        </span>
+      ) : (
+        <span className="admin-cell--muted" title="否">—</span>
+      )
     case 'number':
       return <span className="mono">{typeof value === 'number' ? value.toLocaleString('zh-CN') : String(value)}</span>
     case 'date': {
@@ -577,7 +592,7 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
           ) : (
             <>
               <div className="admin-table-scroll">
-                <table className="table admin-table">
+                <table className={`table admin-table${hasActions ? ' admin-table--actions' : ''}`}>
                   <thead>
                     <tr>
                       {canSelect && (
@@ -660,7 +675,14 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
                                 style={column.align === 'right' ? { textAlign: 'right' } : undefined}
                                 title={clipped && text ? text : undefined}
                               >
-                                {renderCell(row[column.key], column)}
+                                {column.secondaryKeys?.length ? (
+                                  <span className="admin-cell__stack">
+                                    <span className="admin-cell__main">{renderCell(row[column.key], column)}</span>
+                                    <span className="admin-cell__sub">{secondaryText(row, column) || '—'}</span>
+                                  </span>
+                                ) : (
+                                  renderCell(row[column.key], column)
+                                )}
                               </td>
                             )
                           })}

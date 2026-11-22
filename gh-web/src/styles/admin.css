@@ -2528,3 +2528,65 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
     padding: 2px 5px;
   }
 }
+
+/* ============================================================
+   阶段 M3：高频内容页（列表密度与操作可达性）
+   ============================================================ */
+
+/* ⓪ 宽表隔离：表格内部的横向滚动与亚像素宽度不再传导到整页，
+      避免出现「整页可横向拖动 1px」的现象（滚动仍由 .admin-table-scroll 承担） */
+.admin-table-scroll { contain: paint; }
+
+/* ① 主列次行：把品牌 / 分类 / 标签等次要信息并入主列，避免宽表横向滚动 */
+.admin-cell__stack { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.admin-cell__main { display: block; min-width: 0; }
+.admin-cell__sub {
+  display: block;
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+  line-height: 1.45;
+}
+
+/* ② 布尔列：只用一枚对勾表达「是」，不给整列上绿色标签 */
+.admin-bool {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: var(--gh-radius-full);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  font-size: 11px; font-weight: var(--gh-weight-semibold); line-height: 1;
+}
+
+/* ③ 素材卡操作行：分类 + 预览 + 更多，单行不换行、不裁切 */
+.admin-upload-tile__actions {
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+/* 更多菜单展开在卡片外：卡片本身不裁剪，只裁剪封面图圆角 */
+.admin-upload-tile { overflow: visible; }
+.admin-upload-tile .admin-tile__media {
+  overflow: hidden;
+  border-radius: calc(var(--gh-radius-lg) - 1px) calc(var(--gh-radius-lg) - 1px) 0 0;
+}
+.admin-upload-tile__actions .admin-menu { margin-left: auto; }
+.admin-upload-tile__actions .btn--sm { padding: 0 8px; }
+.admin-upload-tile__cat { min-width: 0; flex: 0 1 auto; }
+.admin-upload-tile__name,
+.admin-upload-tile .admin-tile__name { min-width: 0; }
+
+/* ④ 行操作列固定在右侧：窄窗口横向滚动时「编辑 / 删除」始终可见 */
+.admin-table--actions th:last-child,
+.admin-table--actions td:last-child {
+  position: sticky; right: 0;
+  background: var(--color-bg-surface);
+  box-shadow: -10px 0 14px -14px rgba(0, 0, 0, 0.35);
+}
+.admin-table--actions thead th:last-child { z-index: 3; background: var(--color-bg-subtle); }
+.admin-table--actions tbody tr:hover td:last-child { background: var(--color-bg-subtle); }
+@media (max-width: 767px) {
+  .admin-table--actions th:last-child,
+  .admin-table--actions td:last-child { position: static; box-shadow: none; background: transparent; }
+}
