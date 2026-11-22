@@ -251,6 +251,7 @@ function parseSite(raw: unknown): Partial<{
   footerMotion: boolean
   miniprogramQr: string
   inquiryRouting: boolean
+  caseListVisible: boolean
   centerBackdrop: boolean
 }> | null {
   if (!raw || typeof raw !== 'object') return null
@@ -280,6 +281,7 @@ function parseSite(raw: unknown): Partial<{
     footerMotion: boolean
     miniprogramQr: string
     inquiryRouting: boolean
+    caseListVisible: boolean
     centerBackdrop: boolean
   }> = { nav, footer }
   if (data.enabledBlocks !== undefined) {
@@ -359,6 +361,10 @@ function parseSite(raw: unknown): Partial<{
   // —— 留言轻量分流开关（§1.6）：布尔，缺省 true（开启）——
   if (data.inquiryRouting !== undefined) {
     result.inquiryRouting = data.inquiryRouting !== false
+  }
+  // —— 合作案例列表开关：布尔，缺省 false（不展示，前台显示整理中引导）——
+  if (data.caseListVisible !== undefined) {
+    result.caseListVisible = data.caseListVisible === true
   }
   // —— 下拉面板推荐卡开关：布尔，缺省 false（不渲染）——
   if (data.navFeatureEnabled !== undefined) {

@@ -124,6 +124,8 @@ const SITE: SiteConfig = {
       { label: '抖音', account: '光魂官方旗舰店', qr: '/media/site/douyin-qr-placeholder.svg' },
     ],
   },
+  // —— 合作案例：暂无可公开的真实案例，关闭列表，前台显示「案例整理中」引导卡 ——
+  caseListVisible: false,
   // —— 店铺渠道：顶栏「店铺」圆钮下拉用；链接取自官网对外公布入口 ——
   shopChannels: [
     { name: '京东', href: 'https://mall.jd.com/index-12338213.html' },
@@ -821,13 +823,15 @@ function buildBusiness(): Page {
       },
     },
     {
-      type: 'cards',
+      // 合作案例：由集合驱动并受站点开关控制；没有真实案例时前台显示整理中引导
+      type: 'caseList',
       props: {
-        title: '精选合作案例',
+        title: '合作案例',
+        subtitle: '案例整理中；可先预约体验点或直接联系我们。',
+        scope: 'all',
+        limit: 3,
         columns: 3,
-        items: business.COOP_CASES.map((item) => ({ tag: item.tag, title: item.title, desc: item.desc, href: '/business/cases' })),
-        ctaLabel: '查看全部案例',
-        ctaHref: '/business/cases',
+        showMeta: true,
       },
     },
     // 品牌资料（B 端）：由独立集合 brand-assets 驱动，锚点 brand-assets
@@ -909,7 +913,7 @@ function buildBusinessCases(): Page {
         heightValue: 420,
         alt: '合作案例顶部横幅（待上传）',
         title: '合作案例',
-        subtitle: '赛事、渠道与内容共创的落地项目，按合作类型查看具体做法。',
+        subtitle: '光魂商业合作案例；暂未公开案例时，可先预约体验点或联系我们。',
         primary: { label: '提交合作申请', href: '/inquiry?type=business' },
         secondary: { label: '查看合作场景', href: '/business/scenes' },
         scrim: true,
@@ -920,7 +924,7 @@ function buildBusinessCases(): Page {
       type: 'caseList',
       props: {
         title: '合作案例',
-        subtitle: '与战队、渠道与媒体的合作项目。',
+        subtitle: '案例整理中；可先预约体验点或直接联系我们。',
         scope: 'all',
         limit: 0,
         pageSize: 9,

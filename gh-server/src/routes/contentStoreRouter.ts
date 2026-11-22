@@ -68,6 +68,8 @@ contentStoreRouter.get('/site', (req, res) => {
     ...(site.miniprogramQr ? { miniprogramQr: site.miniprogramQr } : {}),
     // 留言轻量分流开关（未设置则不返回，前台缺省 = 开启）
     ...(site.inquiryRouting !== undefined ? { inquiryRouting: site.inquiryRouting } : {}),
+    // 合作案例列表开关（未设置则不返回，前台缺省 = 不展示案例列表）
+    ...(site.caseListVisible !== undefined ? { caseListVisible: site.caseListVisible } : {}),
     // 站点默认主题（未设置则不返回，前台缺省 'auto' = 跟随系统）
     ...(site.defaultTheme ? { defaultTheme: site.defaultTheme } : {}),
     // Center 独立页的背景装饰开关（未设置则不返回，缺省 = 开启）

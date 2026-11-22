@@ -39,19 +39,25 @@ function AnalyticsBody({ scope }: { scope: string }) {
             <div className="admin-panel__head">
               <h2 className="admin-panel__title">趋势</h2>
             </div>
-            <div className="admin-chart">
-              {data.series.map((point) => {
-                const max = Math.max(...data.series.map((s) => s.value), 1)
-                const height = Math.max(4, Math.round((point.value / max) * 100))
-                return (
-                  <div className="admin-chart__col" key={point.label}>
-                    <span className="admin-chart__value">{point.value.toLocaleString('zh-CN')}</span>
-                    <div className="admin-chart__bar" style={{ height: `${height}%` }} />
-                    <span className="admin-chart__label">{point.label}</span>
-                  </div>
-                )
-              })}
-            </div>
+            {data.series.some((point) => point.value > 0) ? (
+              <div className="admin-chart">
+                {data.series.map((point) => {
+                  const max = Math.max(...data.series.map((s) => s.value), 1)
+                  const height = Math.max(4, Math.round((point.value / max) * 100))
+                  return (
+                    <div className="admin-chart__col" key={point.label}>
+                      <span className="admin-chart__value">{point.value.toLocaleString('zh-CN')}</span>
+                      <div className="admin-chart__bar" style={{ height: `${height}%` }} />
+                      <span className="admin-chart__label">{point.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="admin-chart__empty" role="status">
+                所选周期内暂无数据；有访问后这里会按日显示趋势。
+              </p>
+            )}
           </section>
 
           <section className="admin-panel" style={{ marginTop: 'var(--gh-space-5)' }}>

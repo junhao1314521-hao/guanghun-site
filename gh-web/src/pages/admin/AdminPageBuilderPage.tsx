@@ -1023,6 +1023,15 @@ function Builder({ pageKey, initial, hasDraftOnLoad }: { pageKey: string; initia
         }
       />
 
+      {/* 窄屏不提供装修编辑（三栏布局在手机上没有可用空间），给出明确出口 */}
+      <div className="builder-mobile-notice">
+        <strong>装修器需要更大的屏幕</strong>
+        <p>手机端仅支持查看；请在电脑端编辑页面区块与样式。</p>
+        <a className="btn btn--secondary btn--sm" href={previewHref} target="_blank" rel="noreferrer">
+          预览前台页面
+        </a>
+      </div>
+
       <div
         className={`builder-shell${leftOpen ? '' : ' is-left-collapsed'}${rightOpen ? '' : ' is-right-collapsed'}${
           fullscreen ? ' is-fullscreen' : ''

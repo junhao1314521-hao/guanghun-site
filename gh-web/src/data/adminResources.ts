@@ -43,6 +43,8 @@ export type AdminColumn = {
   sortable?: boolean
   /** records 条目中 select 类型的候选项 */
   options?: string[]
+  /** select 候选项的展示文案（值 → 文案）；缺省直接显示值 */
+  optionLabels?: Record<string, string>
   /** records 条目字段的补充说明（显示在控件下方） */
   hint?: string
   /** records 条目中 ref 类型：被引用栏目的 key */
@@ -53,7 +55,7 @@ export type AdminColumn = {
   refFills?: Record<string, string>
 }
 
-export type AdminFilter = { key: string; label: string; options: string[]; /** 从当前记录动态生成选项（用于省市等会增长的字段） */ dynamic?: boolean }
+export type AdminFilter = { key: string; label: string; options: string[]; /** 选项展示文案（值 → 文案） */ optionLabels?: Record<string, string>; /** 从当前记录动态生成选项（用于省市等会增长的字段） */ dynamic?: boolean }
 
 export type AdminFieldType =
   | 'text'
@@ -92,6 +94,8 @@ export type AdminField = {
   label: string
   type: AdminFieldType
   options?: string[]
+  /** select 候选项的展示文案（值 → 文案）；缺省直接显示值 */
+  optionLabels?: Record<string, string>
   hint?: string
   placeholder?: string
   /** 必填：失焦与提交时逐字段校验，错误内联显示在字段下方 */
@@ -272,7 +276,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'model', label: '型号', type: 'text', placeholder: '27X1QE-W54' },
           { key: 'category', label: '分类', type: 'select', options: ['OLED旗舰', '双模高刷', '电竞IPS', '周边'] },
           { key: 'connection', label: '接口', type: 'select', options: ['DP 2.1', 'HDMI 2.1', 'USB-C'] },
-          { key: 'variant', label: '设备形态', type: 'select', options: ['monitor', 'mouse', 'keyboard', 'headset', 'pad'] },
+          {
+            key: 'variant',
+            label: '设备形态',
+            type: 'select',
+            options: ['monitor', 'mouse', 'keyboard', 'headset', 'pad'],
+            optionLabels: { monitor: '显示器', mouse: '鼠标', keyboard: '键盘', headset: '耳机', pad: '鼠标垫' },
+          },
           { key: 'flag', label: '标记', type: 'text', placeholder: '旗舰 / 联名' },
           { key: 'status', label: '状态', type: 'status', hint: '状态文案 + 级别色调' },
           { key: 'price', label: '价格', type: 'text', placeholder: '¥899' },
@@ -744,7 +754,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
       { key: 'name', label: '资源名称', type: 'strong' },
       { key: 'brand', label: '品牌', type: 'tag' },
       { key: 'category', label: '分类', type: 'tag' },
-      { key: 'type', label: '类型', type: 'tag' },
+      { key: 'type', label: '类型', type: 'tag', options: ['manual', 'firmware', 'driver', 'software', 'calibration'], optionLabels: { manual: '说明书', firmware: '固件', driver: '驱动', software: '软件', calibration: '校色文件' } },
       { key: 'version', label: '版本', type: 'mono' },
       { key: 'isLatest', label: '最新', type: 'bool' },
       { key: 'size', label: '大小', type: 'mono' },
@@ -755,7 +765,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     filters: [
       { key: 'brand', label: '品牌', options: ['光魂', '极创'] },
       { key: 'category', label: '分类', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
-      { key: 'type', label: '类型', options: ['manual', 'firmware', 'driver', 'software', 'calibration'] },
+      { key: 'type', label: '类型', options: ['manual', 'firmware', 'driver', 'software', 'calibration'], optionLabels: { manual: '说明书', firmware: '固件', driver: '驱动', software: '软件', calibration: '校色文件' } },
     ],
     form: [
       {
@@ -765,7 +775,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'name', label: '资源名称', type: 'text', span: 2, required: true },
           { key: 'brand', label: '品牌', type: 'select', options: ['光魂', '极创'], hint: '下载中心按品牌分区展示；旧数据留空时按光魂处理' },
           { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
-          { key: 'type', label: '类型', type: 'select', options: ['manual', 'firmware', 'driver', 'software', 'calibration'] },
+          { key: 'type', label: '类型', type: 'select', options: ['manual', 'firmware', 'driver', 'software', 'calibration'], optionLabels: { manual: '说明书', firmware: '固件', driver: '驱动', software: '软件', calibration: '校色文件' } },
           { key: 'csOnly', label: '仅客服 / OTA 提供', type: 'switch', hint: '开启且没有公开文件时，前台显示「待更新」并提示可联系客服，不渲染下载按钮' },
           { key: 'version', label: '版本', type: 'text', hint: '如 v2.4.1；与固件包内版本号保持一致' },
           { key: 'size', label: '文件大小', type: 'text', hint: '如 1.2 GB；仅用于列表展示，不参与下载校验' },

@@ -55,6 +55,14 @@ function fallbackSections(columns: AdminColumn[]): AdminFormSection[] {
 /** 状态级别选项（{ level, text } 的 level），与前台 .status--* 对应 */
 const STATUS_LEVEL_OPTIONS = ['success', 'warning', 'info', 'muted']
 
+/** 状态级别展示文案：级别是内部色板键，直接显示英文对运营不可读 */
+const STATUS_LEVEL_LABELS: Record<string, string> = {
+  success: '绿色 · 正常',
+  warning: '橙色 · 提醒',
+  info: '蓝色 · 信息',
+  muted: '灰色 · 弱化',
+}
+
 /** 字符串数组字段：读取时数组 → 多行文本；编辑时以原始文本暂存，提交前再拆分 */
 function listText(value: unknown): string {
   if (Array.isArray(value)) return value.map(String).join('\n')
@@ -154,7 +162,10 @@ function FormField({
             onChange={(next) => setStatus({ level: next })}
             options={[
               { value: '', label: '请选择级别' },
-              ...(field.options ?? STATUS_LEVEL_OPTIONS).map((option) => ({ value: option, label: option })),
+              ...(field.options ?? STATUS_LEVEL_OPTIONS).map((option) => ({
+                value: option,
+                label: field.optionLabels?.[option] ?? STATUS_LEVEL_LABELS[option] ?? option,
+              })),
             ]}
           />
         </div>
@@ -378,7 +389,10 @@ function FormField({
           onChange={(next) => onChange(field.key, next)}
           options={[
             { value: '', label: '请选择' },
-            ...(field.options ?? []).map((option) => ({ value: option, label: option })),
+            ...(field.options ?? []).map((option) => ({
+              value: option,
+              label: field.optionLabels?.[option] ?? option,
+            })),
           ]}
         />
       ) : (
@@ -559,6 +573,7 @@ function recordColumnToField(column: AdminColumn): AdminField {
     label: column.label,
     type,
     options: column.options,
+    optionLabels: column.optionLabels,
     hint: column.hint,
     refResource: column.refResource,
     refLabelKey: column.refLabelKey,

@@ -39,7 +39,7 @@ const STATIC_META: Record<string, StaticMeta> = {
   '/contact': { title: '联系我们 · 光魂', description: '客服热线、商务邮箱、办事处地址与服务时间。', indexable: true },
   '/business': { title: '商业合作 · 光魂', description: '媒体送测、渠道分销与品牌联名等合作方式及联系方式。', indexable: true },
   '/business/scenes': { title: '场景与方案 · 光魂', description: '面向电竞、创作、办公与差旅的场景化装备方案。', indexable: true },
-  '/business/cases': { title: '合作案例 · 光魂', description: '赛事、高校与品牌联名等合作案例。', indexable: true },
+  '/business/cases': { title: '合作案例 · 光魂', description: '光魂商业合作案例；暂未公开案例时可预约体验点或联系我们。', indexable: true },
   '/business/venues': { title: '产品体验点 · 光魂', description: '全国合作体验点地图：按城市、省份与机型查找实机体验。', indexable: true },
   '/about': { title: '探索光魂 · 品牌与测试方法', description: '品牌主张、在售产品线、公开的测试方法与服务承诺。', indexable: true },
   '/legal/privacy': { title: '隐私政策 · 光魂', description: '光魂官网隐私政策。', indexable: true },

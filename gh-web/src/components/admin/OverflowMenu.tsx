@@ -4,7 +4,7 @@
  * 键盘可达：按钮 aria-haspopup="menu"/aria-expanded；点外部、Esc 关闭；
  * 支持「跳转项」（Link，如编辑）与「动作项」（button），破坏性项用 danger 呈现。
  */
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 export type OverflowMenuItem = {
@@ -25,10 +25,13 @@ export function OverflowMenu({
   items,
   label = '更多操作',
   align = 'end',
+  trigger,
 }: {
   items: OverflowMenuItem[]
   label?: string
   align?: 'start' | 'end'
+  /** 自定义触发器内容（如头像 + 用户名）；缺省为「⋯」 */
+  trigger?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -62,7 +65,7 @@ export function OverflowMenu({
         title={label}
         onClick={() => setOpen((value) => !value)}
       >
-        <span aria-hidden="true">⋯</span>
+        {trigger ?? <span aria-hidden="true">⋯</span>}
       </button>
       {open && (
         <div className={`admin-menu__list${align === 'end' ? ' admin-menu__list--end' : ''}`} role="menu" id={menuId}>

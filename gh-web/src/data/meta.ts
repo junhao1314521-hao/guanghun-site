@@ -169,7 +169,7 @@ export const PAGE_META: PageMeta[] = [
   {
     path: '/business/cases',
     title: '合作案例 · 光魂',
-    description: '赛事、高校与品牌联名等合作案例。',
+    description: '光魂商业合作案例；暂未公开案例时可预约体验点或联系我们。',
     indexable: true,
     changefreq: 'monthly',
     priority: 0.6,
@@ -279,7 +279,7 @@ export function pageMetaFor(pathname: string): PageMeta {
     return { path: pathname, title: '问答详情 · 光魂', description: '光魂常见问题解答。', indexable: true }
   }
   if (/^\/business\/cases\/[^/]+$/.test(pathname)) {
-    return { path: pathname, title: '合作案例 · 光魂', description: '光魂合作案例的背景、方案与成果。', indexable: true }
+    return { path: pathname, title: '合作案例 · 光魂', description: '光魂商业合作案例的背景与方案。', indexable: true }
   }
   if (/^\/business\/venues\/[^/]+$/.test(pathname)) {
     return { path: pathname, title: '产品体验点详情 · 光魂', description: '门店地址、可体验机型与到店导航。', indexable: true }

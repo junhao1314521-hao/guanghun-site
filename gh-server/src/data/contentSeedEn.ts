@@ -612,17 +612,15 @@ function buildBusinessEn(): Page {
       },
     },
     {
-      type: 'cards',
+      // Case studies: data-source block, gated by the same `caseListVisible` site switch
+      type: 'caseList',
       props: {
-        title: 'Selected case studies',
+        title: 'Case studies',
+        subtitle: 'Case studies are being prepared; book a venue visit or contact us in the meantime.',
+        scope: 'all',
+        limit: 3,
         columns: 3,
-        items: [
-          { tag: 'Esports', title: 'Team sponsorship', desc: 'Multi-year gear supply', href: '/business/cases' },
-          { tag: 'Retail', title: 'Flagship store', desc: 'Shenzhen Nanshan', href: '/business/cases' },
-          { tag: 'Press', title: 'Editorial review', desc: 'Independent teardown', href: '/business/cases' },
-        ],
-        ctaLabel: 'View all cases',
-        ctaHref: '/business/cases',
+        showMeta: true,
       },
     },
     {
@@ -678,7 +676,7 @@ function buildBusinessCasesEn(): Page {
       type: 'caseList',
       props: {
         title: 'Case studies',
-        subtitle: 'Partnerships with teams, retail and press.',
+        subtitle: 'Case studies are being prepared; book a venue visit or contact us in the meantime.',
         scope: 'all',
         limit: 0,
         pageSize: 9,

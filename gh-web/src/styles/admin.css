@@ -276,21 +276,36 @@ html[data-admin] *::-webkit-scrollbar { width: 0; height: 0; display: none; }
   height: 100%;
   max-width: var(--gh-admin-content-max);
   margin: 0 auto;
+  flex-wrap: nowrap;
 }
+.admin-topbar__inner > * { flex: none; }
 .admin-topbar__inner--wide { max-width: var(--gh-admin-content-max-wide); }
 /* 移动端抽屉开合按钮（桌面隐藏）。桌面侧栏收束按钮已移至侧栏（.admin-side__collapse），
    顶栏左侧留白，层级由侧栏高亮承担（不再使用面包屑）。 */
 .admin-topbar__toggle { display: none; }
 .admin-topbar__spacer { flex: 1; }
 .admin-topbar__user { display: flex; align-items: center; gap: var(--gh-space-2); }
-.admin-topbar__name { font-size: var(--gh-font-size-body-sm); }
+.admin-topbar__account { display: inline-flex; align-items: center; gap: var(--gh-space-2); white-space: nowrap; }
+.admin-topbar__name { font-size: var(--gh-font-size-body-sm); white-space: nowrap; }
 
 .admin-main {
   padding: var(--gh-space-6);
   flex: 1;
   min-width: 0;
 }
-@media (max-width: 767px) { .admin-main { padding: var(--gh-space-4); } .admin-topbar { padding: 0 var(--gh-space-4); } }
+@media (max-width: 767px) {
+  .admin-main { padding: var(--gh-space-4); }
+  .admin-topbar { padding: 0 var(--gh-space-4); }
+  /* 窄屏：压缩间距并隐藏用户名，避免「管理员 / 修改密码 / 退出登录」横向挤爆 */
+  .admin-topbar__inner { gap: var(--gh-space-2); }
+  .admin-topbar__name { display: none; }
+  .admin-topbar__visit-text { display: none; }
+  .admin-topbar__visit { padding-inline: var(--gh-space-3); }
+  .admin-topbar__visit::before {
+    content: '官网';
+    font-size: var(--gh-font-size-caption);
+  }
+}
 
 /* ---------- 页面 ---------- */
 /* 内容轨道：默认与顶栏内层同宽；装修器用 --wide 放宽 */
@@ -606,8 +621,25 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-form__aside .btn { width: 100%; justify-content: center; }
 .admin-form--split > .alert { grid-column: 1 / -1; }
 @media (max-width: 1100px) {
-  .admin-form--split { grid-template-columns: 1fr; }
-  .admin-form__aside { position: static; }
+  /* 单列时把「发布」卡提到表单顶部并吸顶，避免保存按钮落在几千像素长表单的末尾 */
+  .admin-form--split { display: flex; flex-direction: column; gap: var(--gh-space-4); align-items: stretch; }
+  .admin-form__main { order: 2; }
+  .admin-form__aside {
+    order: 1;
+    position: sticky;
+    top: var(--gh-topbar-height);
+    z-index: 4;
+  }
+  .admin-form__aside-card {
+    display: flex;
+    align-items: center;
+    gap: var(--gh-space-3);
+    padding: var(--gh-space-3) var(--gh-space-4);
+    box-shadow: var(--shadow-md);
+  }
+  .admin-form__aside-title { margin-right: auto; }
+  .admin-form__summary { display: none; }
+  .admin-form__aside .btn { width: auto; }
 }
 .admin-form__foot {
   display: flex; gap: var(--gh-space-3); justify-content: flex-end;
@@ -710,6 +742,16 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 
 /* ---------- 图表（纯 CSS 柱状） ---------- */
 .admin-chart { display: flex; align-items: flex-end; gap: var(--gh-space-3); height: 200px; padding-top: var(--gh-space-4); }
+.admin-chart__empty {
+  display: grid;
+  place-items: center;
+  height: 200px;
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--gh-font-size-body-sm);
+  background: var(--color-bg-subtle);
+  border-radius: var(--gh-radius-md);
+}
 .admin-chart__col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--gh-space-2); min-width: 0; }
 .admin-chart__bar {
   width: 100%;
@@ -812,6 +854,26 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .builder-shell.is-left-collapsed { grid-template-columns: 52px minmax(0, 1fr) minmax(280px, 320px); }
 .builder-shell.is-right-collapsed { grid-template-columns: minmax(176px, 220px) minmax(0, 1fr) 52px; }
 .builder-shell.is-left-collapsed.is-right-collapsed { grid-template-columns: 52px minmax(0, 1fr) 52px; }
+
+/* 手机端装修器占位：不渲染三栏编辑器，只给出口 */
+.builder-mobile-notice { display: none; }
+@media (max-width: 767px) {
+  .builder-page .builder-shell { display: none; }
+  .builder-page .builder-actions__status,
+  .builder-page .builder-actions__tools { display: none; }
+  .builder-page .builder-mobile-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gh-space-3);
+    padding: var(--gh-space-5);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--gh-radius-lg);
+  }
+  .builder-mobile-notice strong { font-size: var(--gh-font-size-body-lg); }
+  .builder-mobile-notice p { margin: 0; color: var(--color-text-secondary); font-size: var(--gh-font-size-body-sm); }
+}
 
 .builder-rail {
   position: sticky;
@@ -1323,6 +1385,9 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   align-items: center;
 }
 .site-link--badge { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto auto; }
+.site-link__field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+/* 字段名只在窄屏单列时出现；桌面由列位置区分，避免增加视觉噪声 */
+.site-link__caption { display: none; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 .site-link__actions { display: flex; align-items: center; gap: var(--gh-space-1); }
 .site-link__badge { display: inline-flex; align-items: center; gap: var(--gh-space-3); }
 .site-link__badge .admin-select { width: auto; min-width: 96px; }
@@ -1349,7 +1414,12 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   align-items: center;
 }
 @media (max-width: 767px) {
-  .site-link { grid-template-columns: 1fr; }
+  .site-link,
+  .site-link--badge { grid-template-columns: 1fr; }
+  .site-link__caption { display: block; }
+  .site-link__badge { display: grid; grid-template-columns: 1fr; width: 100%; gap: var(--gh-space-2); }
+  .site-link__badge .admin-select { width: 100%; min-width: 0; }
+  .site-link__badge .input { width: 100% !important; }
   .site-link__actions { justify-content: flex-start; }
   /* 复选框说明文字较长，窄屏必须允许换行，否则会撑出横向滚动 */
   .site-link__shake { white-space: normal; align-items: flex-start; }
@@ -2321,4 +2391,13 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .admin-root .textarea:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* 产品表移动端复位（必须晚于桌面固定列宽 / 行高规则，否则被覆盖） */
+@media (max-width: 767px) {
+  .admin-products__table { table-layout: auto; }
+  .admin-products__table tbody tr { height: auto; }
+  .admin-products__table th,
+  .admin-products__table td { width: auto !important; }
+  .admin-products__table tbody td { position: static; }
 }

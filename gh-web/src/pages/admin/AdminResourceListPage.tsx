@@ -108,13 +108,16 @@ function renderCell(value: unknown, column: AdminColumn) {
     )
   }
   if (value === undefined || value === null || value === '') return <span className="admin-cell--muted">—</span>
+  // 枚举列（options + optionLabels）：列表展示中文文案，存储仍保留原值
+  const raw = String(value)
+  const optionLabel = column.options?.includes(raw) ? (column.optionLabels?.[raw] ?? raw) : raw
   switch (column.type) {
     case 'strong':
-      return <strong>{String(value)}</strong>
+      return <strong>{raw}</strong>
     case 'mono':
-      return <span className="mono">{String(value)}</span>
+      return <span className="mono">{raw}</span>
     case 'tag':
-      return <span className="tag">{String(value)}</span>
+      return <span className="tag">{optionLabel}</span>
     case 'status': {
       // 规范形状：products 为对象 { level, text }；其余栏目为字符串
       if (typeof value === 'object') {
@@ -133,8 +136,28 @@ function renderCell(value: unknown, column: AdminColumn) {
       return <span className={`tag${value ? ' tag--accent' : ''}`}>{value ? '是' : '否'}</span>
     case 'number':
       return <span className="mono">{typeof value === 'number' ? value.toLocaleString('zh-CN') : String(value)}</span>
+    case 'date': {
+      // 纯日期（2026-09-20）原样展示；带时间的 ISO（操作日志 / 删除时间）转本地可读格式
+      const text = String(value)
+      if (!text.includes('T')) return <span className="mono">{text}</span>
+      const date = new Date(text)
+      if (Number.isNaN(date.getTime())) return <span className="mono">{text}</span>
+      return (
+        <span className="mono">
+          {date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          })}
+        </span>
+      )
+    }
     default:
-      return <>{String(value)}</>
+      return <>{optionLabel}</>
   }
 }
 
@@ -472,7 +495,7 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
                     setPage(1)
                   }}
                 >
-                  {option}
+                  {filter.optionLabels?.[option] ?? option}
                 </button>
               ))}
             </div>

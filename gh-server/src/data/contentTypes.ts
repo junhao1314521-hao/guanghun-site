@@ -334,6 +334,11 @@ export type SiteConfig = {
    */
   inquiryRouting?: boolean
   /**
+   * 合作案例列表开关（扩展字段；缺省 false = 不展示案例列表）。
+   * 没有可公开的真实案例时关闭，前台改为「案例整理中」引导卡。
+   */
+  caseListVisible?: boolean
+  /**
    * 站点默认主题（扩展字段；缺省 'auto'）。
    * - 'auto'：跟随访客系统；'light' / 'dark'：新访客（无本地记录）按此渲染；
    * - 访客在顶栏的手动选择（localStorage）始终优先于站点默认。

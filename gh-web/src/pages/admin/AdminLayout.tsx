@@ -11,6 +11,7 @@ import { ADMIN_NAV, ANALYTICS_SCOPES, adminResource, type AdminNavItem } from '.
 // 「栏目 key → 所需 scope」的单一映射源（与后端 rbac.ts / roles.ts 对照，见该文件头注释）
 import { hasScope, requiredScope, scopeText } from '../../data/adminScopes'
 import { AdminIcon } from '../../components/admin/AdminIcon'
+import { OverflowMenu } from '../../components/admin/OverflowMenu'
 import { BrandMark } from '../../components/site/BrandMark'
 import { useAdminAuth } from '../../components/admin/AdminAuth'
 import { useToast } from '../../components/admin/feedback'
@@ -504,8 +505,8 @@ export function AdminLayout() {
               {/* 顶栏左侧保持留白：层级由侧栏高亮承担，不再渲染面包屑 */}
               <span className="admin-topbar__spacer" />
 
-              <Link className="btn btn--ghost btn--sm" to="/" target="_blank" rel="noreferrer">
-                查看官网
+              <Link className="btn btn--ghost btn--sm admin-topbar__visit" to="/" target="_blank" rel="noreferrer" aria-label="查看官网（新窗口打开）">
+                <span className="admin-topbar__visit-text">查看官网</span>
               </Link>
 
               <AdminTourButton />
@@ -520,22 +521,21 @@ export function AdminLayout() {
                 {theme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
               </button>
 
-              <div className="admin-topbar__user">
-                <span className="avatar" aria-hidden="true">
-                  {(profile?.name ?? '?').slice(0, 1)}
-                </span>
-                <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
-                  <span className="admin-topbar__name">{profile?.name ?? '未登录'}</span>
-                </span>
-              </div>
-
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setPwOpen(true)}>
-                修改密码
-              </button>
-
-              <button type="button" className="btn btn--secondary btn--sm" onClick={onLogout}>
-                退出登录
-              </button>
+              <OverflowMenu
+                label="账号菜单"
+                trigger={
+                  <span className="admin-topbar__account">
+                    <span className="avatar" aria-hidden="true">
+                      {(profile?.name ?? '?').slice(0, 1)}
+                    </span>
+                    <span className="admin-topbar__name">{profile?.name ?? '未登录'}</span>
+                  </span>
+                }
+                items={[
+                  { key: 'password', label: '修改密码', onClick: () => setPwOpen(true) },
+                  { key: 'logout', label: '退出登录', onClick: onLogout, danger: true },
+                ]}
+              />
             </div>
           </header>
 

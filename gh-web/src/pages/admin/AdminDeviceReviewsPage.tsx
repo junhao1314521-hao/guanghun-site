@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { fetchDeviceRegistrations, reviewDeviceRegistration, type AdminDeviceRegistration } from '../../api/admin'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { EmptyState } from '../../components/admin/states'
 import { useToast } from '../../components/admin/feedback'
 
 /** 筛选标签：全部 / 待审核 / 在保 / 已驳回 */
@@ -105,7 +106,22 @@ export function AdminDeviceReviewsPage() {
             </button>
           </div>
         ) : items.length === 0 ? (
-          <div className="admin-table__empty">暂无设备登记</div>
+          <EmptyState
+            icon="keyboard"
+            title={status === '' ? '暂无设备登记' : '该状态下暂无设备登记'}
+            desc={
+              status === ''
+                ? '会员提交购买凭证后，会出现在这里等待审核；通过后按购买日期起算 36 个月保修。'
+                : '可切换到「全部」查看其它状态的登记。'
+            }
+            action={
+              status !== '' ? (
+                <button className="btn btn--secondary btn--sm" type="button" onClick={() => setStatus('')}>
+                  查看全部
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="admin-table-scroll">
             <table className="table admin-table">

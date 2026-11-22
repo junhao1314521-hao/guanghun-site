@@ -49,6 +49,20 @@ function formatUptime(sec: number): string {
   return `${minutes} 分钟`
 }
 
+/** ISO 时间 → 本地「YYYY-MM-DD HH:mm」；解析失败时原样返回 */
+function formatWhen(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 // 后台工作台：拉取概览数据，展示今日焦点待办、关键指标与快捷入口
 export function AdminWorkbenchPage() {
   const state = useApi((signal) => fetchAdminOverview(signal), [])
@@ -195,7 +209,9 @@ export function AdminWorkbenchPage() {
                         <span className="admin-activity__action">{row.action}</span>
                         <span className="admin-activity__target">{row.target}</span>
                       </span>
-                      <time className="admin-activity__at mono">{row.at}</time>
+                      <time className="admin-activity__at mono" dateTime={row.at}>
+                        {formatWhen(row.at)}
+                      </time>
                     </li>
                   ))}
                 </ul>

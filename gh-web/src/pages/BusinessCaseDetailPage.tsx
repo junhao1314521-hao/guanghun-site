@@ -6,6 +6,7 @@ import { MediaImg } from '../components/ui/MediaImg'
 import { useApi } from '../hooks/useApi'
 import { useHomeEffects } from '../hooks/useHomeEffects'
 import { usePageEffects } from '../hooks/usePageEffects'
+import { useSiteConfig } from '../hooks/useSiteConfig'
 
 /** 合作案例详情加载骨架 */
 function CaseDetailSkeleton() {
@@ -26,12 +27,33 @@ export function BusinessCaseDetailPage() {
   const [reloadKey, setReloadKey] = useState(0)
 
   const { data: detail, loading, error } = useApi((signal) => fetchBizCase(id, signal), [id, reloadKey])
+  const site = useSiteConfig()
 
   const readyKey = `${id}:${reloadKey}:${loading ? 'loading' : 'ready'}`
   usePageEffects(rootRef, readyKey)
   useHomeEffects(rootRef, readyKey)
 
-  if (loading) return <CaseDetailSkeleton />
+  if (loading || !site) return <CaseDetailSkeleton />
+
+  // 案例列表关闭时，详情也一并隐藏，避免通过直链绕过开关看到未公开内容
+  if (site.caseListVisible !== true) {
+    return (
+      <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
+        <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
+          <div className="empty__title">真实案例整理中</div>
+          <p className="empty__desc">暂未整理好可公开的合作案例。可以先预约到线下体验点实机体验，或联系我们沟通合作方案。</p>
+          <div style={{ display: 'flex', gap: 'var(--gh-space-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link className="btn btn--secondary btn--sm" to="/business/venues">
+              预约体验点
+            </Link>
+            <Link className="btn btn--primary btn--sm" to="/contact">
+              联系我们
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!detail) {
     return (

@@ -12,7 +12,7 @@
  * 字段口径以 `data/contentTypes.ts` 的 `SiteConfig` 类型为准：
  *   `SiteLink = { label, href }`、`SiteFooterGroup = { title, links: SiteLink[] }`、`SiteConfig = { nav, footer }`。
  */
-import { useState, type InputHTMLAttributes } from 'react'
+import { useState, type InputHTMLAttributes, type ReactNode } from 'react'
 import { fetchAdminSite, saveAdminSite } from '../../api/adminPages'
 import { invalidateSiteCache } from '../../api/content'
 import type {
@@ -41,6 +41,18 @@ import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
 function SiteInput(props: InputHTMLAttributes<HTMLInputElement>) {
   const name = props['aria-label'] ?? (typeof props.placeholder === 'string' ? props.placeholder : undefined)
   return <input {...props} aria-label={name} />
+}
+
+/** 单列（窄屏）时补充可见字段名：桌面靠列位置区分，堆叠后仅靠 placeholder 会难以辨认 */
+function SiteField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="site-link__field">
+      <span className="site-link__caption" aria-hidden="true">
+        {label}
+      </span>
+      {children}
+    </div>
+  )
 }
 
 /** 不可变移动数组项（dir: -1 上移 / 1 下移）；越界则原样返回 */
@@ -131,45 +143,53 @@ function LinkListEditor({
       {links.length === 0 && <span className="field__hint">暂无链接，点击下方「{addLabel}」添加。</span>}
       {links.map((link, index) => (
         <div className={`site-link${showBadge ? ' site-link--badge' : ''}`} key={index}>
-          <SiteInput
-            className="input"
-            type="text"
-            placeholder="名称（如 产品）"
-            value={link.label}
-            onChange={(event) => update(index, { label: event.target.value })}
-          />
-          <SiteInput
-            className="input"
-            type="text"
-            placeholder="链接（如 /products）"
-            value={link.href}
-            onChange={(event) => update(index, { href: event.target.value })}
-          />
+          <SiteField label="名称">
+            <SiteInput
+              className="input"
+              type="text"
+              placeholder="名称（如 产品）"
+              value={link.label}
+              onChange={(event) => update(index, { label: event.target.value })}
+            />
+          </SiteField>
+          <SiteField label="链接">
+            <SiteInput
+              className="input"
+              type="text"
+              placeholder="链接（如 /products）"
+              value={link.href}
+              onChange={(event) => update(index, { href: event.target.value })}
+            />
+          </SiteField>
           {showBadge && (
             <span className="site-link__badge">
-              <Select
-                aria-label="入口角标"
-                value={link.badge ?? ''}
-                onChange={(value) => {
-                  const next = value as '' | 'new' | 'hot'
-                  update(index, { badge: next === '' ? undefined : next, ...(next === '' ? { badgeText: undefined } : {}) })
-                }}
-                options={[
-                  { value: '', label: '无角标' },
-                  { value: 'new', label: 'NEW' },
-                  { value: 'hot', label: 'HOT' },
-                ]}
-              />
-              <SiteInput
-                className="input"
-                type="text"
-                aria-label="角标自定义文案"
-                placeholder="角标文案（可留空）"
-                style={{ width: 120 }}
-                disabled={!link.badge}
-                value={link.badgeText ?? ''}
-                onChange={(event) => update(index, { badgeText: event.target.value || undefined })}
-              />
+              <SiteField label="角标">
+                <Select
+                  aria-label="入口角标"
+                  value={link.badge ?? ''}
+                  onChange={(value) => {
+                    const next = value as '' | 'new' | 'hot'
+                    update(index, { badge: next === '' ? undefined : next, ...(next === '' ? { badgeText: undefined } : {}) })
+                  }}
+                  options={[
+                    { value: '', label: '无角标' },
+                    { value: 'new', label: 'NEW' },
+                    { value: 'hot', label: 'HOT' },
+                  ]}
+                />
+              </SiteField>
+              <SiteField label="角标文案">
+                <SiteInput
+                  className="input"
+                  type="text"
+                  aria-label="角标自定义文案"
+                  placeholder="角标文案（可留空）"
+                  style={{ width: 120 }}
+                  disabled={!link.badge}
+                  value={link.badgeText ?? ''}
+                  onChange={(event) => update(index, { badgeText: event.target.value || undefined })}
+                />
+              </SiteField>
             </span>
           )}
           <div className="site-link__actions">
@@ -219,20 +239,24 @@ function ShopChannelEditor({ channels, onChange }: { channels: ShopChannel[]; on
       {channels.length === 0 && <span className="field__hint">暂无店铺渠道，点击下方「新增店铺渠道」添加。</span>}
       {channels.map((channel, index) => (
         <div className="site-link" key={index}>
-          <SiteInput
-            className="input"
-            type="text"
-            placeholder="渠道名称（如 天猫）"
-            value={channel.name}
-            onChange={(event) => update(index, { name: event.target.value })}
-          />
-          <SiteInput
-            className="input"
-            type="text"
-            placeholder="店铺链接（如 https://tmall.example/）"
-            value={channel.href}
-            onChange={(event) => update(index, { href: event.target.value })}
-          />
+          <SiteField label="渠道名称">
+            <SiteInput
+              className="input"
+              type="text"
+              placeholder="渠道名称（如 天猫）"
+              value={channel.name}
+              onChange={(event) => update(index, { name: event.target.value })}
+            />
+          </SiteField>
+          <SiteField label="店铺链接">
+            <SiteInput
+              className="input"
+              type="text"
+              placeholder="店铺链接（如 https://mall.jd.com/index-123456.html）"
+              value={channel.href}
+              onChange={(event) => update(index, { href: event.target.value })}
+            />
+          </SiteField>
           <div className="site-link__actions">
             <button
               type="button"
@@ -747,6 +771,14 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
                 onChange={(event) => setInquiryRouting(event.target.checked)}
               />
               留言轻量分流（售前 / 售后 / 商务 → 主题联动，默认开）
+            </label>
+            <label className="site-link__shake">
+              <SiteInput
+                type="checkbox"
+                checked={Boolean(site.caseListVisible)}
+                onChange={(event) => setSite((prev) => ({ ...prev, caseListVisible: event.target.checked }))}
+              />
+              展示合作案例列表（关闭时前台显示「案例整理中」引导卡）
             </label>
             <label className="site-link__shake">
               <SiteInput

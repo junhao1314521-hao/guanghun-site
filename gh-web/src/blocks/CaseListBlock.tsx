@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchBizCases } from '../api/business-extra'
 import { useApi } from '../hooks/useApi'
+import { useSiteConfig } from '../hooks/useSiteConfig'
 import { useSitePages } from '../hooks/useSitePages'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
@@ -27,6 +28,7 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
   const rail = asString(props.layout, 'grid') === 'rail'
   const showMeta = props.showMeta === undefined ? true : asBool(props.showMeta)
   const { isHrefLive } = useSitePages()
+  const site = useSiteConfig()
   const [reloadKey, setReloadKey] = useState(0)
 
   const { data, loading, error } = useApi((signal) => fetchBizCases(signal), [reloadKey])
@@ -48,7 +50,7 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
             重新加载
           </button>
         </div>
-      ) : loading ? (
+      ) : loading || site === null ? (
         <div className="grid-3" aria-busy="true" aria-label="合作案例加载中">
           {Array.from({ length: Math.min(limit || 3, 6) }).map((_, index) => (
             <div className="card" key={index}>
@@ -56,6 +58,21 @@ export function CaseListBlock({ props }: { props: Record<string, unknown> }) {
               <div className="skeleton" style={{ height: 18, width: '70%', marginTop: 'var(--gh-space-4)' }} />
             </div>
           ))}
+        </div>
+      ) : site.caseListVisible !== true ? (
+        <div className="empty">
+          <div className="empty__title">真实案例整理中</div>
+          <p className="empty__desc">
+            暂未整理好可公开的合作案例。你可以先预约到线下体验点实机体验，或联系我们沟通合作场景与方案。
+          </p>
+          <div className="empty__action" style={{ display: 'flex', gap: 'var(--gh-space-3)', flexWrap: 'wrap' }}>
+            <Link className="btn btn--secondary btn--sm" to="/business/venues">
+              预约体验点
+            </Link>
+            <Link className="btn btn--primary btn--sm" to="/contact">
+              联系我们
+            </Link>
+          </div>
         </div>
       ) : shown.length === 0 ? (
         <p className="section__desc" style={{ padding: 'var(--gh-space-6) 0' }}>
