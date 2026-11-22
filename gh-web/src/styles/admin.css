@@ -2401,3 +2401,130 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   .admin-products__table td { width: auto !important; }
   .admin-products__table tbody td { position: static; }
 }
+
+/* ============================================================
+   阶段 M2：后台外壳与设计系统落地
+   —— 视觉基线来自 design/admin-ui-prototypes；
+      仅作用于 .admin-root / html[data-admin]，不改前台令牌。
+   ============================================================ */
+
+/* ① 外壳令牌：内容轨道、控件规格、面圆角、表格行高 */
+.admin-root {
+  --gh-admin-content-max: 1240px;
+  --gh-admin-content-max-wide: 1440px;
+  --adm-control-h-sm: 30px;
+  --adm-control-h-md: 36px;
+  --adm-control-h-lg: 40px;
+  --adm-radius-control: 6px;
+  --adm-radius-surface: 12px;
+  --adm-row-height: 52px;
+  background: var(--gh-neutral-100);
+}
+[data-theme='dark'] .admin-root { background: var(--color-bg-page); }
+
+/* ② 侧栏：搜索、分组、当前项与页脚 */
+.admin-side__brand { padding: 0 var(--gh-space-4); }
+.admin-nav { padding: var(--gh-space-2) 10px var(--gh-space-4); }
+.admin-nav__search { margin-bottom: var(--gh-space-3); }
+.admin-nav__search .input {
+  height: 36px;
+  background: var(--color-bg-subtle);
+  border-color: transparent;
+}
+.admin-nav__search .input:focus {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-strong);
+}
+.admin-nav__group + .admin-nav__group { margin-top: var(--gh-space-3); }
+.admin-nav__group-title {
+  padding: 6px var(--gh-space-2);
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+.admin-nav__link { height: 36px; padding: 0 10px; }
+.admin-nav__link.is-active {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  font-weight: var(--gh-weight-medium);
+}
+.admin-nav__link.is-active::before { display: none; }
+.admin-side__foot {
+  flex: none;
+  padding: 10px var(--gh-space-4);
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.admin-shell.is-collapsed .admin-side__foot { display: none; }
+
+/* ③ 顶栏面包屑 */
+.admin-crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+.admin-crumb__link { color: var(--color-text-secondary); }
+.admin-crumb__link:hover { color: var(--color-accent-text); }
+.admin-crumb__sep { color: var(--color-border-strong); }
+.admin-crumb__current { color: var(--color-text-primary); font-weight: var(--gh-weight-medium); }
+@media (max-width: 767px) { .admin-crumb { display: none; } }
+
+/* ④ 页头与内容节奏 */
+.admin-page__head { margin-bottom: var(--gh-space-5); }
+.admin-page__title { font-size: 24px; line-height: 1.35; }
+.admin-page:not(.builder-page) .admin-page__head {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* ⑤ 表格：表头小写、行高与悬浮色统一 */
+.admin-table thead th {
+  height: 44px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--gh-font-size-caption);
+  font-weight: var(--gh-weight-medium);
+  color: var(--color-text-secondary);
+}
+@media (min-width: 768px) {
+  .admin-table td { height: var(--adm-row-height); }
+  .admin-products__table tbody tr { height: var(--adm-row-height); }
+  .admin-table-wrap--compact .admin-products__table tbody tr { height: 48px; }
+}
+.admin-table-wrap,
+.admin-panel,
+.admin-kpi { border-radius: var(--adm-radius-surface); }
+
+/* ⑥ 控件：统一高度 / 圆角 / 内距 */
+.admin-root .btn {
+  height: var(--adm-control-h-md);
+  padding: 0 14px;
+  border-radius: var(--adm-radius-control);
+}
+.admin-root .btn--sm { height: var(--adm-control-h-sm); padding: 0 10px; }
+.admin-root .input,
+.admin-root .select,
+.admin-root .textarea {
+  height: var(--adm-control-h-md);
+  border-radius: var(--adm-radius-control);
+}
+.admin-root .textarea { height: auto; min-height: 88px; }
+.admin-root .icon-btn {
+  width: var(--adm-control-h-md);
+  height: var(--adm-control-h-md);
+  border-radius: var(--adm-radius-control);
+}
+
+/* 窄屏账号入口：保留描边胶囊，避免只剩一个孤立头像圆点 */
+@media (max-width: 767px) {
+  .admin-topbar__account {
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--gh-radius-full);
+    padding: 2px 5px;
+  }
+}

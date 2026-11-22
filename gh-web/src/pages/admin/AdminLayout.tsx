@@ -5,7 +5,7 @@
  * - 顶栏内层与内容同宽居中；装修器页面（.../builder）放宽到宽轨道。
  * - 内容区外套 ErrorBoundary，避免渲染异常导致整页白屏。
  */
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_NAV, ANALYTICS_SCOPES, adminResource, type AdminNavItem } from '../../data/adminResources'
 // 「栏目 key → 所需 scope」的单一映射源（与后端 rbac.ts / roles.ts 对照，见该文件头注释）
@@ -91,6 +91,26 @@ function navItemPath(item: AdminNavItem): string {
 function navItemMatches(item: AdminNavItem, pathname: string): boolean {
   const to = navItemPath(item)
   return to === '/admin' ? pathname === '/admin' : pathname === to || pathname.startsWith(`${to}/`)
+}
+
+type Crumb = { label: string; to?: string }
+
+/** 顶栏面包屑：分组 / 栏目 / 动作；未知路径退回页面标题，避免显示空白 */
+function adminCrumbs(pathname: string): Crumb[] {
+  if (pathname === '/admin' || pathname === '/admin/') return [{ label: '总览' }, { label: '工作台' }]
+  const group = ADMIN_NAV.find((entry) => entry.items.some((item) => navItemMatches(item, pathname)))
+  const item = group?.items.find((entry) => navItemMatches(entry, pathname))
+  if (!group || !item) return [{ label: adminTitle(pathname) }]
+  const crumbs: Crumb[] = [{ label: group.label }, { label: navItemLabel(item), to: navItemPath(item) }]
+  if (item.kind === 'resource') {
+    // /admin/<key>/<recordId|new> 或 /admin/pages/<key>/builder
+    const rest = pathname.split('/').filter(Boolean).slice(2)
+    // 装修器栏目本身已叫「页面装修」，不再追加同名动作
+    if (rest.length > 0 && !rest.includes('builder')) {
+      crumbs.push({ label: rest[0] === 'new' ? '新建' : '编辑' })
+    }
+  }
+  return crumbs
 }
 
 /** 单个导航项：link 为固定链接，resource 由配置解析为列表地址 */
@@ -219,6 +239,7 @@ export function AdminLayout() {
   }
 
   const title = adminTitle(pathname)
+  const crumbs = useMemo(() => adminCrumbs(pathname), [pathname])
   // 装修器页面放宽内容轨道
   const isWide = pathname.endsWith('/builder')
 
@@ -466,6 +487,10 @@ export function AdminLayout() {
             {groups.length === 0 && <p className="admin-nav__empty">未找到匹配栏目</p>}
           </nav>
 
+          <div className="admin-side__foot">
+            <span>光魂官网 · 管理端</span>
+          </div>
+
           {/* 桌面侧栏宽度拖拽把手（键盘可调：←/→ 或 Home/End） */}
           <div
             className="admin-side__resizer"
@@ -502,7 +527,25 @@ export function AdminLayout() {
                 <IconMenu size={18} />
               </button>
 
-              {/* 顶栏左侧保持留白：层级由侧栏高亮承担，不再渲染面包屑 */}
+              <nav className="admin-crumb" aria-label="面包屑">
+                {crumbs.map((crumb, index) => (
+                  <Fragment key={`${crumb.label}-${index}`}>
+                    {index > 0 && (
+                      <span className="admin-crumb__sep" aria-hidden="true">
+                        /
+                      </span>
+                    )}
+                    {crumb.to ? (
+                      <Link className="admin-crumb__link" to={crumb.to}>
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      <span className={index === crumbs.length - 1 ? 'admin-crumb__current' : undefined}>{crumb.label}</span>
+                    )}
+                  </Fragment>
+                ))}
+              </nav>
+
               <span className="admin-topbar__spacer" />
 
               <Link className="btn btn--ghost btn--sm admin-topbar__visit" to="/" target="_blank" rel="noreferrer" aria-label="查看官网（新窗口打开）">

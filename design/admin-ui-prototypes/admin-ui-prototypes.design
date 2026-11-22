@@ -6,6 +6,18 @@
       "type": "page",
       "version": 1,
       "createdAt": 1795325000000,
+      "canvasData": {
+        "x": 0,
+        "y": 348,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-2148fac1",
+          "measuredAt": 1795326008662
+        }
+      },
       "devMetadata": {
         "htmlSrc": "pages/workbench.html",
         "interactions": [
@@ -35,11 +47,6 @@
             "hideEdge": true
           }
         ]
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0,
-        "group": 0
       }
     },
     {
@@ -48,6 +55,18 @@
       "type": "page",
       "version": 1,
       "createdAt": 1795325000000,
+      "canvasData": {
+        "x": 12,
+        "y": 12,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 905,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-5a41c827",
+          "measuredAt": 1795326008662
+        }
+      },
       "devMetadata": {
         "htmlSrc": "pages/products.html",
         "interactions": [
@@ -76,11 +95,6 @@
             "hideEdge": true
           }
         ]
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0,
-        "group": 0
       }
     },
     {
@@ -89,14 +103,21 @@
       "type": "page",
       "version": 1,
       "createdAt": 1795325000000,
+      "canvasData": {
+        "x": 480,
+        "y": 373,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1009,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-b2db4b8f",
+          "measuredAt": 1795326008662
+        }
+      },
       "devMetadata": {
         "htmlSrc": "pages/mobile-workbench.html",
         "interactions": []
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0,
-        "group": 0
       }
     },
     {
@@ -105,6 +126,18 @@
       "type": "page",
       "version": 1,
       "createdAt": 1795325000000,
+      "canvasData": {
+        "x": 480,
+        "y": 0,
+        "group": 1,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1976,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-0d9980c3",
+          "measuredAt": 1795326008662
+        }
+      },
       "devMetadata": {
         "htmlSrc": "pages/product-edit.html",
         "interactions": [
@@ -134,11 +167,6 @@
             "hideEdge": true
           }
         ]
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0,
-        "group": 1
       }
     },
     {
@@ -147,6 +175,18 @@
       "type": "page",
       "version": 1,
       "createdAt": 1795325000000,
+      "canvasData": {
+        "x": 960,
+        "y": 373,
+        "group": 1,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1591,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-5e46a154",
+          "measuredAt": 1795326008662
+        }
+      },
       "devMetadata": {
         "htmlSrc": "pages/site-config.html",
         "interactions": [
@@ -166,11 +206,6 @@
             "hideEdge": true
           }
         ]
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0,
-        "group": 1
       }
     },
     {
@@ -179,6 +214,11 @@
       "type": "page",
       "version": 1,
       "createdAt": 1795325000000,
+      "canvasData": {
+        "x": 1440,
+        "y": 373,
+        "group": 1
+      },
       "devMetadata": {
         "htmlSrc": "pages/builder.html",
         "interactions": [
@@ -203,11 +243,6 @@
             "hideEdge": true
           }
         ]
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0,
-        "group": 1
       }
     },
     {
@@ -216,12 +251,16 @@
       "type": "image",
       "version": 1,
       "createdAt": 1795324274922,
-      "devMetadata": {
-        "imageSrc": "assets/product-54027.jpg"
-      },
       "canvasData": {
         "x": 0,
-        "y": 0
+        "y": 746,
+        "naturalSize": {
+          "width": 800,
+          "height": 800
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/product-54027.jpg"
       }
     },
     {
@@ -230,12 +269,16 @@
       "type": "image",
       "version": 1,
       "createdAt": 1795324274923,
+      "canvasData": {
+        "x": 480,
+        "y": 746,
+        "naturalSize": {
+          "width": 1200,
+          "height": 900
+        }
+      },
       "devMetadata": {
         "imageSrc": "assets/product-28027.jpg"
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0
       }
     },
     {
@@ -244,12 +287,16 @@
       "type": "image",
       "version": 1,
       "createdAt": 1795324274924,
+      "canvasData": {
+        "x": 960,
+        "y": 746,
+        "naturalSize": {
+          "width": 750,
+          "height": 1000
+        }
+      },
       "devMetadata": {
         "imageSrc": "assets/product-32x1ue.jpg"
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0
       }
     },
     {
@@ -258,17 +305,21 @@
       "type": "image",
       "version": 1,
       "createdAt": 1795324274925,
+      "canvasData": {
+        "x": 1440,
+        "y": 746,
+        "naturalSize": {
+          "width": 800,
+          "height": 800
+        }
+      },
       "devMetadata": {
         "imageSrc": "assets/product-27x1qe.jpg"
-      },
-      "canvasData": {
-        "x": 0,
-        "y": 0
       }
     }
   ],
   "config": {
-    "autoLayout": true,
+    "autoLayout": false,
     "deviceType": "desktop",
     "projectName": "光魂后台 UI 高保真原型",
     "designLibrary": null
