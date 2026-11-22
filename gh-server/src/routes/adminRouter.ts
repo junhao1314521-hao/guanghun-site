@@ -43,6 +43,7 @@ import { resolveDbPath } from '../data/db'
 import { listPages } from '../data/contentStore'
 import { resolveUploadDir } from '../data/uploadStore'
 import { withModelNames } from '../data/support-extra'
+import { presentProducts } from '../data/products'
 
 /**
  * 后台管理系统端点（挂载于 /api/admin）。
@@ -477,7 +478,11 @@ adminRouter.get('/resources/:key', requireSession, requireResourceScope, (req, r
         ? listProductCategories()
         : key === 'downloads'
           ? withModelNames(listCollection('downloads'), listCollection('models'))
-          : listCollection(key)
+          : key === 'products'
+            // 后台列表与前台同口径：核心参数 / 价格 / 接口 / 净重按结构化参数派生；
+            // 单条详情仍返回原始记录，编辑时能看到「哪些字段没填」。
+            ? presentProducts(listCollection('products'))
+            : listCollection(key)
     res.json({ items, total: items.length })
     return
   }
