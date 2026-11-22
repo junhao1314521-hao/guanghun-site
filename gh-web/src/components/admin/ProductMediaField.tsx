@@ -15,7 +15,7 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react'
 import { uploadImage } from '../../lib/uploadImage'
 import { MediaImg } from '../ui/MediaImg'
-import { IconCheck, IconClose, IconGrip, IconPlus } from '../ui/Icon'
+import { IconClose, IconGrip, IconPlus } from '../ui/Icon'
 import { ProductModel3D, supports3D } from '../product/ProductModel3D'
 import { MediaPickerDialog } from './FileField'
 import { ImageCropPreview, type CropPreviewSpec } from './ImageCropPreview'
@@ -200,19 +200,18 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
 
   /* ---------- 相册操作 ---------- */
   const removeAt = (index: number) => onChange('gallery', gallery.filter((_, i) => i !== index))
-  const setMain = (index: number) => {
-    if (index <= 0 || index >= gallery.length) return
-    const next = gallery.slice()
-    const [picked] = next.splice(index, 1)
-    next.unshift(picked)
-    onChange('gallery', next)
-  }
   const reorder = (from: number, to: number) => {
     if (from === to) return
     const next = gallery.slice()
     const [moved] = next.splice(from, 1)
     next.splice(to, 0, moved)
     onChange('gallery', next)
+  }
+  /** 调换位置：主图就是数组第一张，因此「设主图」等价于前移到首位 */
+  const moveBy = (index: number, delta: number) => {
+    const target = index + delta
+    if (target < 0 || target >= gallery.length) return
+    reorder(index, target)
   }
 
   const onTileDragStart = (event: DragEvent, index: number) => {
@@ -328,7 +327,7 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
               相册图片 <span className="media-block__count">{gallery.length}/20</span>
             </h3>
             <p className="media-block__note">
-              第一张为主图{galleryNote ? ` · ${galleryNote}` : ''}
+              第一张自动作为主图，拖拽或 ←/→ 调整顺序{galleryNote ? ` · ${galleryNote}` : ''}
             </p>
           </div>
           <div className="media-block__actions">
@@ -376,11 +375,32 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
                 <IconGrip size={14} />
               </span>
               <span className="media-tile__actions">
-                {index > 0 && (
-                  <button type="button" className="media-tile__action" onClick={(event) => { event.stopPropagation(); setMain(index) }}>
-                    设为主图
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="media-tile__action"
+                  title="前移"
+                  aria-label="前移"
+                  disabled={index === 0}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    moveBy(index, -1)
+                  }}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  className="media-tile__action"
+                  title="后移"
+                  aria-label="后移"
+                  disabled={index === gallery.length - 1}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    moveBy(index, 1)
+                  }}
+                >
+                  →
+                </button>
                 <button type="button" className="media-tile__action" onClick={(event) => { event.stopPropagation(); setEditing(index) }}>
                   编辑
                 </button>
@@ -586,15 +606,20 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
         <GalleryEditDialog
           url={editingUrl}
           index={editing}
+          total={gallery.length}
           crops={editing === 0 ? galleryCrops : undefined}
           busy={busy}
           onClose={() => setEditing(null)}
           onUrlChange={(url) => onChange('gallery', gallery.map((item, i) => (i === editing ? url : item)))}
           onReplace={() => pickFile({ kind: 'replace', index: editing })}
           onPick={() => pickFromLibrary('replace')}
-          onSetMain={() => {
-            setMain(editing)
-            setEditing(null)
+          onMoveBack={() => {
+            moveBy(editing, -1)
+            setEditing(editing - 1)
+          }}
+          onMoveForward={() => {
+            moveBy(editing, 1)
+            setEditing(editing + 1)
           }}
           onDelete={() => {
             removeAt(editing)
@@ -606,28 +631,33 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
   )
 }
 
-/** 相册单图编辑弹层：预览 + 替换 / 设主图 / 删除，地址手填收在折叠里 */
+/** 相册单图编辑弹层：预览 + 调序 / 替换 / 删除，地址手填收在折叠里 */
 function GalleryEditDialog({
   url,
   index,
+  total,
   crops,
   busy,
   onClose,
   onUrlChange,
   onReplace,
   onPick,
-  onSetMain,
+  onMoveBack,
+  onMoveForward,
   onDelete,
 }: {
   url: string
   index: number
+  /** 相册总数：控制前移 / 后移按钮是否可用 */
+  total: number
   crops?: CropPreviewSpec[]
   busy: boolean
   onClose: () => void
   onUrlChange: (url: string) => void
   onReplace: () => void
   onPick: () => void
-  onSetMain: () => void
+  onMoveBack: () => void
+  onMoveForward: () => void
   onDelete: () => void
 }) {
   const titleId = useId()
@@ -665,11 +695,17 @@ function GalleryEditDialog({
           </div>
 
           <div className="media-edit__actions">
-            {index > 0 && (
-              <button type="button" className="btn btn--secondary btn--sm" onClick={onSetMain}>
-                <IconCheck size={14} aria-hidden="true" /> 设为主图
-              </button>
-            )}
+            <button type="button" className="btn btn--secondary btn--sm" onClick={onMoveBack} disabled={index === 0}>
+              ← 前移
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--sm"
+              onClick={onMoveForward}
+              disabled={index >= total - 1}
+            >
+              后移 →
+            </button>
             <button type="button" className="btn btn--secondary btn--sm" onClick={onReplace} disabled={busy}>
               上传替换
             </button>

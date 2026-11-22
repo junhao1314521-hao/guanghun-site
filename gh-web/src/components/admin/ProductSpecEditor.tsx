@@ -71,13 +71,6 @@ export function ProductSpecEditor({
     })
     emit(rows.filter((_, i) => i !== index))
   }
-  const moveRow = (index: number, offset: number) => {
-    const target = index + offset
-    if (target < 0 || target >= rows.length) return
-    const next = rows.slice()
-    ;[next[index], next[target]] = [next[target], next[index]]
-    emit(next)
-  }
   const markCustom = (key: string, on: boolean) =>
     setCustomRows((prev) => {
       const next = new Set(prev)
@@ -192,6 +185,19 @@ export function ProductSpecEditor({
     )
   }
 
+  /** 按分组归拢（沿用目录分组顺序；未知分组追加在末尾） */
+  const grouped = new Map<string, Array<{ row: AttributeRow; index: number }>>()
+  rows.forEach((row, index) => {
+    const group = row.group || '其他'
+    const list = grouped.get(group) ?? []
+    list.push({ row, index })
+    grouped.set(group, list)
+  })
+  const groupKeys = [
+    ...PARAM_GROUPS.filter((group) => grouped.has(group)),
+    ...[...grouped.keys()].filter((group) => !PARAM_GROUPS.includes(group)),
+  ]
+
   return (
     <div className="spec-editor">
       <div className="spec-editor__add">
@@ -214,71 +220,76 @@ export function ProductSpecEditor({
       {rows.length === 0 ? (
         <p className="admin-records__empty">还没有参数。可先点上方「添加常用参数」，或使用上方「常用参数模板」一键带入。</p>
       ) : (
-        <div className="admin-records">
-          {rows.map((row, index) => {
-            const def = defs.get(row.label)
+        <div className="spec-editor__groups">
+          {groupKeys.map((group) => {
+            const items = grouped.get(group) ?? []
             return (
-              <div className="admin-records__item" key={`${keyOf(row, index)}-${index}`}>
-                <div className="spec-row__head">
-                  <div className="spec-row__title">
-                    <span className="admin-records__index">#{index + 1}</span>
-                    <span className="tag">{row.group}</span>
-                    <strong className="spec-row__name">{row.label || '自定义参数'}</strong>
-                  </div>
-                  <div className="admin-records__actions">
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => moveRow(index, -1)} disabled={index === 0}>
-                      上移
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => moveRow(index, 1)}
-                      disabled={index === rows.length - 1}
-                    >
-                      下移
-                    </button>
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => removeRow(index)}>
-                      删除
-                    </button>
-                  </div>
+              <section className="spec-group" key={group} aria-label={`${group}参数`}>
+                <div className="spec-group__head">
+                  <span className="spec-group__title">{group}</span>
+                  <span className="spec-group__count">{items.length} 项</span>
                 </div>
-
-                {def ? (
-                  renderValue(row, index, def)
-                ) : (
-                  <div className="admin-records__grid">
-                    <div className="field">
-                      <span className="field__label">分组</span>
-                      <Select
-                        aria-label="参数分组"
-                        value={row.group}
-                        onChange={(next) => setRow(index, { group: next })}
-                        options={PARAM_GROUPS.map((group) => ({ value: group, label: group }))}
-                      />
-                    </div>
-                    <div className="field">
-                      <span className="field__label">参数名</span>
-                      <input
-                        className="input"
-                        aria-label="参数名"
-                        value={row.label}
-                        placeholder="如：响应时间"
-                        onChange={(event) => setRow(index, { label: event.target.value })}
-                      />
-                    </div>
-                    <div className="field admin-form__field--full">
-                      <span className="field__label">取值</span>
-                      <input
-                        className="input"
-                        aria-label="参数取值"
-                        value={row.value}
-                        placeholder="填写取值"
-                        onChange={(event) => setRow(index, { value: event.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+                <div className="spec-group__grid">
+                  {items.map(({ row, index }) => {
+                    const def = defs.get(row.label)
+                    const key = keyOf(row, index)
+                    // 组合参数（两个下拉）与自定义参数占满一行，其余参数两列并排
+                    const wide = !def || Boolean(def.parts)
+                    return (
+                      <div
+                        className={`spec-cell${wide ? ' is-wide' : ''}${def ? '' : ' spec-cell--custom'}`}
+                        key={`${key}-${index}`}
+                      >
+                        {def ? (
+                          <span className="spec-cell__name" title={row.label}>
+                            {row.label}
+                          </span>
+                        ) : (
+                          <div className="spec-cell__name">
+                            <Select
+                              aria-label="参数分组"
+                              value={row.group}
+                              onChange={(next) => setRow(index, { group: next })}
+                              options={PARAM_GROUPS.map((item) => ({ value: item, label: item }))}
+                            />
+                            <input
+                              className="input"
+                              aria-label="参数名"
+                              value={row.label}
+                              placeholder="如：响应时间"
+                              onChange={(event) => setRow(index, { label: event.target.value })}
+                            />
+                          </div>
+                        )}
+                        <div className="spec-cell__value">
+                          {def ? (
+                            renderValue(row, index, def)
+                          ) : (
+                            <div className="spec-value">
+                              <input
+                                className="input"
+                                aria-label="参数取值"
+                                value={row.value}
+                                placeholder="填写取值"
+                                onChange={(event) => setRow(index, { value: event.target.value })}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="spec-cell__del"
+                          title={`删除${row.label || '参数'}`}
+                          aria-label={`删除${row.label || '参数'}`}
+                          onClick={() => removeRow(index)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
             )
           })}
         </div>
