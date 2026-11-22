@@ -379,12 +379,8 @@ export const ADMIN_RESOURCE_DATA: Record<string, AdminRow[]> = {
     { id: 'fq-004', question: '如何申请售后？', category: '售后', views: 1980, status: '已发布', updatedAt: '2026-08-12', answer: '在服务支持页提交咨询工单，或拨打 400 客服热线。' },
     { id: 'fq-005', question: '支持哪些操作系统？', category: '安装', views: 1420, status: '草稿', updatedAt: '2026-09-28', answer: '' },
   ],
-  'service-info': [
-    { id: 'si-001', name: '光魂深圳旗舰体验店', city: '深圳', type: '体验点', phone: '400-000-0000', hours: '10:00–21:00', status: '营业中', address: '南山区科技园光魂大厦 1F' },
-    { id: 'si-002', name: '光魂北京授权服务网点', city: '北京', type: '服务网点', phone: '400-000-0001', hours: '09:30–18:30', status: '营业中', address: '海淀区中关村大街 88 号' },
-    { id: 'si-003', name: '光魂上海授权服务网点', city: '上海', type: '服务网点', phone: '400-000-0002', hours: '09:30–18:30', status: '营业中', address: '徐汇区漕溪北路 100 号' },
-    { id: 'si-004', name: '光魂成都体验点', city: '成都', type: '体验点', phone: '400-000-0003', hours: '11:00–20:00', status: '暂停', address: '高新区天府大道 66 号' },
-  ],
+  // 服务网点不预置编造门店：真实门店请在「体验点 / 服务信息」后台按实际录入
+  'service-info': [],
   notifications: [
     { id: 'nt-001', title: '27X1QE-W54 固件 1.6.3 发布', channel: '站内信', audience: '已购客户', sentAt: '2026-09-15', status: '已发送', openRate: '62%', content: '' },
     { id: 'nt-002', title: '秋季新品预告', channel: '邮件', audience: '全部客户', sentAt: '2026-10-08', status: '定时', openRate: '—', content: '' },

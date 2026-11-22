@@ -38,12 +38,11 @@ export const SPOT_REGIONS = ['全部', '华北', '华东', '华南', '西南']
 
 export type SupportSpot = { name: string; area: string; region: string; status: string; ok: boolean }
 
-export const SUPPORT_SPOTS: SupportSpot[] = [
-  { name: '光魂上海旗舰体验店', area: '上海 · 静安', region: '华东', status: '营业中', ok: true },
-  { name: '光魂深圳体验点', area: '广东 · 深圳', region: '华南', status: '营业中', ok: true },
-  { name: '光魂北京授权服务点', area: '北京 · 朝阳', region: '华北', status: '营业中', ok: true },
-  { name: '光魂成都体验点', area: '四川 · 成都', region: '西南', status: '筹备中', ok: false },
-]
+/**
+ * 服务网点离线回退：真实门店统一由「体验点」集合承载，
+ * 这里不预置编造的门店；接口不可用时展示空态。
+ */
+export const SUPPORT_SPOTS: SupportSpot[] = []
 
 export type Faq = { q: string; a: string }
 

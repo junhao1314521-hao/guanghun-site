@@ -673,10 +673,10 @@ export const CONTACT_PAYLOAD: ContactPayload = {
     { kind: 'chat', label: '微信 / 在线咨询', value: 'xxrsm001 / xxrsm004', note: '也可提交咨询工单，在个人中心跟踪进度' },
   ],
   offices: [
-    { city: '上海', address: '静安区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '10:00–21:00' },
-    { city: '深圳', address: '南山区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '10:00–21:00' },
-    { city: '北京', address: '朝阳区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '10:00–20:00' },
-    { city: '成都', address: '高新区（详细地址以官方公布为准）', phone: '400-000-0000', hours: '筹备中，暂不接待' },
+    { city: '上海', address: '', phone: '', hours: '' },
+    { city: '深圳', address: '', phone: '', hours: '' },
+    { city: '北京', address: '', phone: '', hours: '' },
+    { city: '成都', address: '', phone: '', hours: '' },
   ],
   hours: [
     { days: '周一至周五', time: '09:00–21:00' },

@@ -16,8 +16,5 @@ export type Subscriber = {
   createdAt: string
 }
 
-/** 预置订阅者（演示数据） */
-export const SUBSCRIBERS: Subscriber[] = [
-  { id: 'sub-001', email: 'chenyu@example.com', source: 'home', createdAt: '2026-09-28' },
-  { id: 'sub-002', email: 'linmo@example.com', source: 'home', createdAt: '2026-10-02' },
-]
+/** 订阅者初始为空：只保留真实表单提交，不预置演示邮箱 */
+export const SUBSCRIBERS: Subscriber[] = []

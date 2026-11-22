@@ -56,11 +56,11 @@ export const SITE_EN: NonNullable<SiteConfig['en']> = {
   },
   // 顶栏 CTA 默认不放（与中文站一致）；能力保留，后台可随时配置启用
   topCta: {},
-  // 店铺渠道英文覆盖（品牌名为专有名词；href 占位，上线前替换为真实店铺链接）
+  // 店铺渠道英文覆盖：与中文站使用同一批真实店铺入口
   shopChannels: [
-    { name: 'Tmall', href: 'https://tmall.example/' },
-    { name: 'JD', href: 'https://jd.example/' },
-    { name: 'Taobao', href: 'https://taobao.example/' },
+    { name: 'JD', href: 'https://mall.jd.com/index-12338213.html' },
+    { name: 'Douyin', href: 'https://www.douyin.com/search/%E5%85%89%E9%AD%82%E5%AE%98%E6%96%B9%E6%97%97%E8%88%B0%E5%BA%97' },
+    { name: 'Taobao / Tmall', href: 'https://xiaoxuerenshuma.taobao.com/' },
   ],
   footer: [
     {
@@ -319,9 +319,10 @@ function buildHomeEn(): Page {
         subtitle: 'What we have done, in verifiable numbers.',
         footnote: 'Figures as of 2026, counted under one published methodology — verifiable on the About page.',
         items: [
-          { label: 'Founded', value: '2019', note: 'Started in displays, with our own lab and in-house firmware.' },
-          { label: 'R&D and test team', value: '40', unit: '+', note: 'Covering structure, electronics, firmware and UX validation.' },
-          { label: 'Test records logged', value: '1,200', unit: '+', note: 'Each traceable to its original test conditions and sample ID.' },
+          { label: 'Product lines on sale', value: '2', note: '7 OLED flagships / 2 dual-mode' },
+          { label: 'Models on sale', value: '9', note: 'Counted from the live product library' },
+          { label: 'Ranking methodology', value: 'v2', note: 'Older results keep their original method version' },
+          { label: 'Warranty', value: '3', unit: 'years', note: 'OLED burn-in cover included' },
         ],
       },
     },
@@ -497,40 +498,6 @@ function buildAboutEn(): Page {
         showForm: false,
       },
     },
-    {
-      type: 'richText',
-      props: {
-        html:
-          '<h3>Rich text module example</h3>' +
-          '<p>Supports <strong>bold</strong>, <em>italic</em>, <a href="/products">in-site links</a>, plus images and GIFs.</p>' +
-          '<ul><li>List item one</li><li>List item two</li></ul>' +
-          '<figure><img src="/media/about/brand.svg" alt="Sample image"><figcaption>Image and caption (sanitized on render)</figcaption></figure>',
-      },
-    },
-    {
-      type: 'html',
-      props: {
-        html:
-          '<h3>HTML module example</h3>' +
-          '<table><thead><tr><th>Model</th><th>Refresh rate</th></tr></thead>' +
-          '<tbody><tr><td>27Q1F</td><td>200 Hz</td></tr><tr><td>24H1</td><td>200 Hz</td></tr></tbody></table>' +
-          '<p style="color:#8a8a94">Harmless placeholder content; static HTML (tables / inline styles) allowed.</p>',
-        note: 'Product specs comparison sample',
-      },
-    },
-    {
-      type: 'embed',
-      props: {
-        code:
-          '<style>body{margin:0;font-family:system-ui;display:grid;place-items:center;height:100%;background:#0b0c12;color:#e6e7ee}</style>' +
-          '<div id="demo">Embed module example</div>' +
-          '<script>document.getElementById("demo").textContent="Hello from sandbox (script inside sandbox)"</script>',
-        height: 240,
-        allowScripts: true,
-        videoUrl: '',
-        poster: '',
-      },
-    },
   ])
 }
 
@@ -678,7 +645,7 @@ function buildBusinessEn(): Page {
         channel: 'business',
         showForm: true,
         // R5.2: only email and address, merged into the form's left column
-        points: ['Business email: business@guanghun.example', 'Office: Shenzhen, Guangdong · Guanghun (visit by appointment)'],
+        points: ['Business email: 1009742523@qq.com', 'Office: Guangzhou, Guangdong (visit by appointment)'],
       },
       // R5.5: tighten the form section's vertical padding (md → sm)
       style: { paddingY: 'sm' },
@@ -793,11 +760,7 @@ function buildSupportEn(): Page {
       },
       style: { anchor: 'warranty' },
     },
-    // Data-source block: spots come from the service-info collection (edited in admin, live on the site)
-    {
-      type: 'venueList',
-      props: { title: 'Service & experience spots', source: 'service', scope: 'all', columns: 2, limit: 0, showStatus: true },
-    },
+    // Experience spots moved to /business/venues (same as the Chinese site)
     {
       enabled: false,
       type: 'cards',
@@ -805,9 +768,9 @@ function buildSupportEn(): Page {
         title: 'Contact us',
         columns: 3,
         items: [
-          { tag: 'phone', title: 'Hotline', desc: '400-000-0000 · 9–21 daily' },
-          { tag: 'email', title: 'Email', desc: 'support@guanghun.example · 24h' },
-          { tag: 'chat', title: 'Live chat', desc: 'In-app · 9–21 daily' },
+          { tag: 'phone', title: 'Purchasing & partnerships', desc: '15913908438 (Mr. Li) · bulk orders, channels and projects' },
+          { tag: 'email', title: 'Business email', desc: '1009742523@qq.com · business cooperation & procurement' },
+          { tag: 'chat', title: 'WeChat / online', desc: 'xxrsm001 / xxrsm004 · or submit a ticket and track it in your account' },
         ],
       },
     },
@@ -836,9 +799,9 @@ function buildContactEn(): Page {
         title: 'Channels',
         columns: 3,
         items: [
-          { tag: 'phone', title: 'Hotline', desc: '400-000-0000 · 9–21 daily' },
-          { tag: 'email', title: 'Email', desc: 'support@guanghun.example · 24h' },
-          { tag: 'chat', title: 'Live chat', desc: 'In-app · 9–21 daily' },
+          { tag: 'phone', title: 'Purchasing & partnerships', desc: '15913908438 (Mr. Li) · bulk orders, channels and projects' },
+          { tag: 'email', title: 'Business email', desc: '1009742523@qq.com · business cooperation & procurement' },
+          { tag: 'chat', title: 'WeChat / online', desc: 'xxrsm001 / xxrsm004 · or submit a ticket and track it in your account' },
         ],
       },
     },
@@ -849,8 +812,8 @@ function buildContactEn(): Page {
         columns: 3,
         items: [
           { title: 'Mon–Fri', desc: '09:00–21:00' },
-          { title: 'Sat–Sun', desc: '10:00–18:00' },
-          { title: 'Holidays', desc: 'Live chat only' },
+          { title: 'Sat–Sun', desc: '10:00–20:00' },
+          { title: 'Holidays', desc: 'Subject to announcements' },
         ],
       },
     },
@@ -862,8 +825,8 @@ function buildContactEn(): Page {
         title: 'Offices & spots',
         columns: 2,
         items: [
-          { title: 'Guanghun · Shenzhen', desc: 'Nanshan · 400-000-0000 · 9–21' },
-          { title: 'Guanghun · Shanghai', desc: 'Pudong · 400-000-0000 · 9–21' },
+          { title: 'Guanghun · Shenzhen', desc: 'Nanshan · visit by appointment' },
+          { title: 'Guanghun · Shanghai', desc: 'Jing’an · visit by appointment' },
         ],
       },
     },

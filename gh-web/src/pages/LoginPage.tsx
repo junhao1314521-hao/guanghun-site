@@ -114,7 +114,7 @@ export function LoginPage() {
           variant="page"
           badge="个人中心"
           headline={config.headline || '光魂 OLED 电竞显示器'}
-          subtitle={config.description || '2K 540Hz、4K 双模与 21:9 超宽；测试方法与数据来源见产品页。'}
+          subtitle={config.description || '2K 540Hz 与 4K 双模；测试方法与数据来源见产品页。'}
           points={points}
           poster={config.poster || ''}
         >

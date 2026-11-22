@@ -47,7 +47,7 @@ const MOTION_FALLBACK: PosterData = toPoster({
   // 首屏默认与产品口径一致：不显示眉题 / 数据点，文案居中偏上，只留一个产品入口
   eyebrowEnabled: false,
   title: ['光魂 OLED 电竞显示器'],
-  subtitle: '2K 540Hz、4K 双模与 21:9 超宽；测试方法与数据来源见产品页。',
+  subtitle: '2K 540Hz 与 4K 双模；测试方法与数据来源见产品页。',
   mediaTag: '代码动画',
   primary: { label: '查看产品', href: '/products' },
   statsEnabled: false,

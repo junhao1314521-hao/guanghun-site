@@ -105,7 +105,7 @@ const SITE: SiteConfig = {
       title: '登录光魂账号',
       subtitle: '登录后查看咨询进度、已登记设备与通知。',
       headline: '光魂 OLED 电竞显示器',
-      description: '2K 540Hz、4K 双模与 21:9 超宽；测试方法与数据来源见产品页。',
+      description: '2K 540Hz 与 4K 双模；测试方法与数据来源见产品页。',
       poster: '/media/home/showcase/poster-1.jpg',
       points: ['跟踪咨询与预约进度', '登记与管理我的设备', '收藏型号与下载资料'],
       agreement: '登录即表示同意《服务条款》与《隐私政策》',
