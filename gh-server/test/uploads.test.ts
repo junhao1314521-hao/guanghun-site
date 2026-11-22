@@ -294,7 +294,7 @@ describe('素材引用保护（R-22）', () => {
     assert.equal(blocked.status, 409, '仍被引用时删除应被拒绝')
 
     const forced = await fetch(`${base}/api/admin/uploads/${item.id}?force=1`, { method: 'DELETE', headers: auth() })
-    assert.equal(forced.status, 200, '显式 force 后应允许删除')
+    assert.equal(forced.status, 409, '引用未解除时即使 force=1 也不允许删除')
 
     await fetch(`${base}/api/admin/resources/products/gh-ref-probe`, { method: 'DELETE', headers: auth() })
   })

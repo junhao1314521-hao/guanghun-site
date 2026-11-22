@@ -21,6 +21,9 @@ import {
   listFolders,
   replaceUpload,
   MEDIA_CATEGORIES,
+  MEDIA_KINDS,
+  KIND_LABELS,
+  USAGE_LABELS,
   moveUploads,
   queryMedia,
   updateFolder,
@@ -141,6 +144,8 @@ export function AdminUploadsList() {
   // 筛选状态
   const [folderId, setFolderId] = useState<string>(ALL)
   const [category, setCategory] = useState<string>('')
+  const [kindFilter, setKindFilter] = useState<string>('')
+  const [usageFilter, setUsageFilter] = useState<string>('')
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [qInput, setQInput] = useState('')
   const [q, setQ] = useState('')
@@ -187,12 +192,14 @@ export function AdminUploadsList() {
         {
           folderId: folderId === ALL ? undefined : folderId,
           category: category || undefined,
+          kind: kindFilter || undefined,
+          usage: usageFilter || undefined,
           type: typeFilter || undefined,
           q: q || undefined,
         },
         signal,
       ),
-    [folderId, category, typeFilter, q, reloadKey],
+    [folderId, category, kindFilter, usageFilter, typeFilter, q, reloadKey],
   )
 
   const folders = foldersState.data?.items ?? []
@@ -206,7 +213,7 @@ export function AdminUploadsList() {
   // 筛选变化时清空多选（避免对不可见项做批量操作）
   useEffect(() => {
     setSelected(new Set())
-  }, [folderId, category, typeFilter, q])
+  }, [folderId, category, kindFilter, usageFilter, typeFilter, q])
 
   // 拿到素材数据即预登记变体（url → srcset），避免缩略图再各发一次变体查询
   useEffect(() => {
@@ -370,7 +377,7 @@ export function AdminUploadsList() {
   }
 
   const onDelete = async (item: UploadItem) => {
-    // 删除前查询引用明细（页面 / 草稿 / 站点配置 / 集合记录）；查询失败则回退到通用文案，不阻断删除
+    // 删除前查询引用明细；仍被引用时直接阻止（后端也会 409，双保险）
     let refCount: number | null = null
     let refs: UploadReference[] = []
     try {
@@ -380,35 +387,35 @@ export function AdminUploadsList() {
     } catch {
       refCount = null
     }
-    const refNote =
-      refCount === null
-        ? '删除后引用该素材的位置将无法显示。'
-        : refCount > 0
-          ? `该素材当前被 ${refCount} 处引用，删除后这些位置将无法显示。`
-          : '该素材当前未被引用。'
+    if (refCount !== null && refCount > 0) {
+      await confirm({
+        title: '无法删除',
+        message: (
+          <div>
+            <p style={{ margin: 0 }}>{`「${item.name}」仍被 ${refCount} 处引用，请先解除引用后再删除。`}</p>
+            {refs.length > 0 && (
+              <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
+                {refs.slice(0, 6).map((ref) => (
+                  <li key={ref.location}>{ref.location}</li>
+                ))}
+                {refCount > 6 && <li>…等共 {refCount} 处</li>}
+              </ul>
+            )}
+          </div>
+        ),
+        confirmText: '知道了',
+      })
+      return
+    }
     const ok = await confirm({
       title: '删除素材',
-      message: (
-        <div>
-          <p style={{ margin: 0 }}>{`确认删除「${item.name}」？${refNote}`}</p>
-          {refs.length > 0 && (
-            <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
-              {refs.slice(0, 6).map((ref) => (
-                <li key={ref.location}>{ref.location}</li>
-              ))}
-              {refCount !== null && refCount > 6 && <li>…等共 {refCount} 处</li>}
-            </ul>
-          )}
-          <p style={{ margin: '10px 0 0', opacity: 0.75 }}>删除后可在「回收站」恢复。</p>
-        </div>
-      ),
+      message: `确认删除「${item.name}」？该素材当前未被引用，删除后可在「回收站」恢复。`,
       confirmText: '删除',
       danger: true,
     })
     if (!ok) return
     try {
-      // 仍被引用时带 force，避免后端 409 二次拦截
-      await deleteUpload(item.id, refs.length > 0)
+      await deleteUpload(item.id)
       refresh()
       toast.success(`已删除「${item.name}」`)
     } catch (ex) {
@@ -430,39 +437,40 @@ export function AdminUploadsList() {
       }),
     )
     const referenced = reports.filter((report): report is NonNullable<typeof report> => Boolean(report && report.count > 0))
-    const refTotal = referenced.reduce((sum, report) => sum + report.count, 0)
-    const samples = referenced.slice(0, 4).flatMap((report) => report.refs.slice(0, 2).map((ref) => ref.location))
+    if (referenced.length > 0) {
+      const samples = referenced.slice(0, 4).flatMap((report) => report.refs.slice(0, 2).map((ref) => ref.location))
+      await confirm({
+        title: '有素材仍被引用',
+        message: (
+          <div>
+            <p style={{ margin: 0 }}>
+              {`选中的素材中有 ${referenced.length} 个仍被引用，不能删除。请先解除引用，或取消选中这些素材。`}
+            </p>
+            {samples.length > 0 && (
+              <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
+                {samples.map((location) => (
+                  <li key={location}>{location}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ),
+        confirmText: '知道了',
+      })
+      return
+    }
     const ok = await confirm({
       title: '批量删除素材',
-      message: (
-        <div>
-          <p style={{ margin: 0 }}>
-            {`确认删除选中的 ${ids.length} 个素材？`}
-            {referenced.length > 0
-              ? `其中 ${referenced.length} 个仍被引用（共 ${refTotal} 处），删除后对应位置将无法显示。`
-              : '这些素材当前未被引用。'}
-          </p>
-          {samples.length > 0 && (
-            <ul style={{ margin: '10px 0 0', paddingLeft: 18 }}>
-              {samples.map((location) => (
-                <li key={location}>{location}</li>
-              ))}
-              {refTotal > samples.length && <li>…等共 {refTotal} 处</li>}
-            </ul>
-          )}
-          <p style={{ margin: '10px 0 0', opacity: 0.75 }}>删除后可在「回收站」恢复。</p>
-        </div>
-      ),
+      message: `确认删除选中的 ${ids.length} 个素材？这些素材当前均未被引用，删除后可在「回收站」恢复。`,
       confirmText: '删除',
       danger: true,
     })
     if (!ok) return
     let failed = 0
     let done = 0
-    for (const [index, id] of ids.entries()) {
+    for (const id of ids) {
       try {
-        const refCount = reports[index]?.count ?? 0
-        await deleteUpload(id, refCount > 0)
+        await deleteUpload(id)
         done += 1
       } catch {
         failed += 1
@@ -784,6 +792,26 @@ export function AdminUploadsList() {
               onChange={setTypeFilter}
               options={TYPE_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
             />
+            <Select
+              className="admin-media__type"
+              value={kindFilter}
+              aria-label="按业务类型筛选"
+              onChange={setKindFilter}
+              options={[
+                { value: '', label: '全部业务类型' },
+                ...MEDIA_KINDS.map((kind) => ({ value: kind, label: KIND_LABELS[kind] })),
+              ]}
+            />
+            <Select
+              className="admin-media__type"
+              value={usageFilter}
+              aria-label="按用途筛选"
+              onChange={setUsageFilter}
+              options={[
+                { value: '', label: '全部用途' },
+                ...(Object.entries(USAGE_LABELS) as Array<[string, string]>).map(([value, label]) => ({ value, label })),
+              ]}
+            />
             <div className="admin-toolbar__search search">
               <span className="search__icon" aria-hidden="true">
                 <IconSearch size={16} />
@@ -853,7 +881,7 @@ export function AdminUploadsList() {
                   icon="cloud"
                   title="暂无素材"
                   desc={
-                    folderId === ALL && !category && !typeFilter && !q
+                    folderId === ALL && !category && !kindFilter && !usageFilter && !typeFilter && !q
                       ? '点击右上角「上传素材」，或直接把文件拖到这里。'
                       : '当前筛选条件下没有素材，试试切换文件夹或清空筛选。'
                   }
@@ -891,6 +919,7 @@ export function AdminUploadsList() {
                       <span className="admin-tile__body">
                         <span className="admin-tile__name">{item.name}</span>
                         <span className="admin-tile__meta">
+                          {item.kind && item.kind !== 'other' ? `${KIND_LABELS[item.kind]} · ` : ''}
                           {formatSize(item.size)} · {formatTime(item.uploadedAt)}
                         </span>
                       </span>

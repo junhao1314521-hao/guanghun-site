@@ -14,14 +14,32 @@
  */
 import { randomBytes } from 'node:crypto'
 import { getDb, runInTransaction } from './db'
-import { listUploads, type UploadItem } from './uploadStore'
+import { kindOfFile, listUploads, type UploadItem } from './uploadStore'
 import { hiddenUploadIds } from './trashStore'
 
 /** 素材分类（稳定键；中文标签见 `CATEGORY_LABELS`） */
 export type MediaCategory = 'image' | 'icon' | 'doc' | 'video' | 'other'
 
+/** 业务类型（素材库筛选 / 下载中心用途） */
+export type MediaKind = 'image' | 'video' | 'model3d' | 'document' | 'firmware' | 'installer' | 'archive' | 'other'
+
+/** 使用场景（由引用来源回填） */
+export type MediaUsage = 'download' | 'product' | 'brand' | 'page' | 'other'
+
 /** 全部分类（固定顺序，供筛选 UI 使用） */
 export const MEDIA_CATEGORIES: readonly MediaCategory[] = ['image', 'icon', 'doc', 'video', 'other']
+
+/** 全部业务类型（固定顺序，供筛选 UI 使用） */
+export const MEDIA_KINDS: readonly MediaKind[] = [
+  'image',
+  'video',
+  'model3d',
+  'document',
+  'firmware',
+  'installer',
+  'archive',
+  'other',
+]
 
 /** 分类键 → 中文标签 */
 export const CATEGORY_LABELS: Record<MediaCategory, string> = {
@@ -30,6 +48,32 @@ export const CATEGORY_LABELS: Record<MediaCategory, string> = {
   doc: '文档',
   video: '视频',
   other: '其它',
+}
+
+/** 业务类型 → 中文标签 */
+export const KIND_LABELS: Record<MediaKind, string> = {
+  image: '图片',
+  video: '视频',
+  model3d: '3D 模型',
+  document: '文档',
+  firmware: '固件',
+  installer: '安装包',
+  archive: '压缩包',
+  other: '其它',
+}
+
+/** 使用场景 → 中文标签 */
+export const USAGE_LABELS: Record<MediaUsage, string> = {
+  download: '下载中心',
+  product: '产品',
+  brand: '品牌资料',
+  page: '页面',
+  other: '其它',
+}
+
+/** 判断字符串是否为合法业务类型 */
+export function isMediaKind(value: string): value is MediaKind {
+  return (MEDIA_KINDS as readonly string[]).includes(value)
 }
 
 /** 判断字符串是否为合法分类键 */
@@ -109,6 +153,18 @@ export type MediaItem = UploadItem & {
   folderId: string | null
   /** 分类（MIME 自动推导或手工覆盖） */
   category: MediaCategory
+  /** 业务类型（固件 / 安装包 / 3D 模型等） */
+  kind: MediaKind
+  /** 使用场景（下载中心 / 产品 / 品牌资料等） */
+  usage: MediaUsage
+  /** 服务端统计的字节数（与磁盘一致） */
+  sizeBytes: number
+  /** 服务端计算的 SHA-256（未回填时为空串） */
+  sha256: string
+  /** 可见性：public / private */
+  visibility: string
+  /** 状态：active / archived / deleted */
+  status: string
   /** 该主图的尺寸变体列表（无变体时为空数组，字段只增不改） */
   variants: MediaVariant[]
 }
@@ -132,6 +188,10 @@ export type MediaQuery = {
   folderId?: string
   /** 分类键 */
   category?: string
+  /** 业务类型（firmware / driver 等） */
+  kind?: string
+  /** 使用场景（download / product / brand / page / other） */
+  usage?: string
   /** 关键词（匹配文件名，忽略大小写） */
   q?: string
   /** 类型：含 '/' 按 MIME 精确匹配，否则按主类型（前缀）匹配 */
@@ -144,13 +204,25 @@ export type MediaQuery = {
 
 /** 表行类型 */
 type FolderRow = { id: string; name: string; parent_id: string | null; sort: number | null; created_at: string | null }
-type MetaRow = { id: string; folder_id: string | null; category: string | null }
+type MetaRow = {
+  id: string
+  folder_id: string | null
+  category: string | null
+  kind: string | null
+  usage_scope: string | null
+  size_bytes: number | null
+  sha256: string | null
+  visibility: string | null
+  status: string | null
+}
 type VariantRow = { main_id: string; url: string; width: number | null; size: number | null; type: string | null }
 
 /** 读取全部文件元数据（按素材 id 建索引） */
 function metaMap(): Map<string, MetaRow> {
   const db = getDb()
-  const rows = db.prepare('SELECT id, folder_id, category FROM upload_meta').all() as MetaRow[]
+  const rows = db
+    .prepare('SELECT id, folder_id, category, kind, usage_scope, size_bytes, sha256, visibility, status FROM upload_meta')
+    .all() as MetaRow[]
   return new Map(rows.map((row) => [row.id, row]))
 }
 
@@ -265,7 +337,20 @@ export function deleteVariants(mainId: string): void {
 /** 磁盘素材 + 元数据 → 对外 MediaItem（分类：覆盖值优先，否则 MIME 推导） */
 function toMediaItem(item: UploadItem, row: MetaRow | undefined, variants: MediaVariant[] = []): MediaItem {
   const category = row?.category && isMediaCategory(row.category) ? row.category : categoryOf(item.type, item.name)
-  return { ...item, folderId: row?.folder_id ?? null, category, variants }
+  const kind = row?.kind && isMediaKind(row.kind) ? row.kind : kindOfFile(item.id)
+  const usage = (row?.usage_scope ?? 'other') as MediaUsage
+  return {
+    ...item,
+    folderId: row?.folder_id ?? null,
+    category,
+    kind,
+    usage,
+    sizeBytes: row?.size_bytes ?? item.size,
+    sha256: row?.sha256 ?? '',
+    visibility: row?.visibility ?? 'public',
+    status: row?.status ?? 'active',
+    variants,
+  }
 }
 
 /** 单条磁盘素材 → MediaItem（供上传 / 更新端点回包使用） */
@@ -296,6 +381,8 @@ export function listMedia(query: MediaQuery = {}): { items: MediaItem[]; total: 
       : items.filter((item) => item.folderId === folderId)
   }
   if (query.category) items = items.filter((item) => item.category === query.category)
+  if (query.kind) items = items.filter((item) => item.kind === query.kind)
+  if (query.usage) items = items.filter((item) => item.usage === query.usage)
   const q = query.q?.trim().toLowerCase()
   if (q) items = items.filter((item) => item.name.toLowerCase().includes(q))
   if (query.type) {

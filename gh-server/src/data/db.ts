@@ -31,8 +31,10 @@ import { logger } from '../lib/logger'
  * v9：新增 content_drafts（页面草稿：后台保存写草稿，发布时才覆盖线上）。
  * v10：新增 device_registrations（会员设备登记：SN 全局唯一，购买凭证待后台审核，
  *     保修期 = 购买日期 + 36 个月，由服务端计算到期日与剩余天数）。
+ * v11：upload_meta 增加 kind / usage_scope / size_bytes / sha256 / mime / visibility / status，
+ *     素材库从「只看磁盘」升级为可分类、可校验、可做删除保护。
  */
-export const SCHEMA_VERSION = '10'
+export const SCHEMA_VERSION = '11'
 
 /** meta 键：是否已完成「旧 JSON → SQLite」一次性迁移 */
 const META_MIGRATED = 'migrated_json'
@@ -119,6 +121,13 @@ CREATE TABLE IF NOT EXISTS upload_meta (
   id         TEXT PRIMARY KEY,
   folder_id  TEXT,
   category   TEXT,
+  kind       TEXT,
+  usage_scope TEXT,
+  size_bytes INTEGER,
+  sha256     TEXT,
+  mime       TEXT,
+  visibility TEXT DEFAULT 'public',
+  status     TEXT DEFAULT 'active',
   updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS upload_variants (
@@ -236,6 +245,23 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_device_reg_sn ON device_registrations(sn) 
 /** 单例连接与其对应的路径（路径变化时重开，兼容测试 / 多实例场景） */
 let conn: DatabaseSync | null = null
 let connPath = ''
+
+/** 幂等补列：老库升级时使用（SQLite 不支持 ADD COLUMN IF NOT EXISTS） */
+function ensureColumn(db: DatabaseSync, table: string, column: string, ddl: string): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: string }>
+  if (!columns.some((item) => item.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`)
+}
+
+/** upload_meta 的 v11 补列（老库升级；新库由 DDL 直接建好） */
+function migrateUploadMeta(db: DatabaseSync): void {
+  ensureColumn(db, 'upload_meta', 'kind', 'kind TEXT')
+  ensureColumn(db, 'upload_meta', 'usage_scope', 'usage_scope TEXT')
+  ensureColumn(db, 'upload_meta', 'size_bytes', 'size_bytes INTEGER')
+  ensureColumn(db, 'upload_meta', 'sha256', 'sha256 TEXT')
+  ensureColumn(db, 'upload_meta', 'mime', 'mime TEXT')
+  ensureColumn(db, 'upload_meta', 'visibility', "visibility TEXT DEFAULT 'public'")
+  ensureColumn(db, 'upload_meta', 'status', "status TEXT DEFAULT 'active'")
+}
 
 /** 读取 meta 值；不存在返回 undefined */
 function getMeta(db: DatabaseSync, key: string): string | undefined {
@@ -415,6 +441,7 @@ export function getDb(): DatabaseSync {
     db.exec('PRAGMA journal_mode = WAL')
     db.exec('PRAGMA foreign_keys = ON')
     db.exec(DDL)
+    migrateUploadMeta(db)
     migrateFromLegacyJson(db)
     // 每次打开都把 meta 的 schema 版本同步为当前版本（建表为幂等 DDL；版本号用于排障与未来迁移判断）
     if (getMeta(db, META_SCHEMA) !== SCHEMA_VERSION) setMeta(db, META_SCHEMA, SCHEMA_VERSION)

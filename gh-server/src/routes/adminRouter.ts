@@ -521,6 +521,42 @@ function downloadModelsError(body: Record<string, unknown>): string | null {
   return invalid.length > 0 ? `适用型号不存在：${invalid.join('、')}。请从产品型号列表中选择` : null
 }
 
+/**
+ * 下载文件只允许站内素材库（/uploads/...），不接受任意外链。
+ * 主文件、历史版本、升级工具都走同一规则；空值表示「待更新」，允许保存。
+ */
+function downloadFileUrlError(body: Record<string, unknown>): string | null {
+  const urls: unknown[] = [body.fileUrl]
+  for (const key of ['history', 'tools']) {
+    const rows = Array.isArray(body[key]) ? (body[key] as Array<Record<string, unknown>>) : []
+    for (const row of rows) urls.push(row?.fileUrl)
+  }
+  for (const raw of urls) {
+    const url = typeof raw === 'string' ? raw.trim() : ''
+    if (!url) continue
+    if (!url.startsWith('/uploads/')) {
+      return '下载文件必须从素材库选择（仅支持 /uploads/ 站内文件），不支持外部链接'
+    }
+  }
+  return null
+}
+
+/** 由 /uploads/<文件> 自动写入 assetId（文件名即素材 id）；清空文件时一并清空 */
+function attachDownloadAsset(body: Record<string, unknown>): void {
+  const url = typeof body.fileUrl === 'string' ? body.fileUrl.trim() : ''
+  if (!url) {
+    delete body.assetId
+    return
+  }
+  const raw = url.slice('/uploads/'.length).split(/[?#]/)[0]
+  if (!raw) return
+  try {
+    body.assetId = decodeURIComponent(raw)
+  } catch {
+    body.assetId = raw
+  }
+}
+
 adminRouter.post(
   '/resources/:key',
   requireSession,
@@ -535,11 +571,17 @@ adminRouter.post(
     const key = readParam(req, 'key')
     const body = (req.body ?? {}) as Record<string, unknown>
     if (key === 'downloads') {
-      const error = downloadModelsError(body)
-      if (error) {
-        res.status(422).json({ error })
+      const modelsError = downloadModelsError(body)
+      if (modelsError) {
+        res.status(422).json({ error: modelsError })
         return
       }
+      const fileError = downloadFileUrlError(body)
+      if (fileError) {
+        res.status(422).json({ error: fileError })
+        return
+      }
+      attachDownloadAsset(body)
     }
     if (isCollectionKey(key)) {
       res.status(201).json({ ok: true, item: createCollectionItem(key, body) })
@@ -563,11 +605,17 @@ adminRouter.put(
     const id = readParam(req, 'id')
     const body = (req.body ?? {}) as Record<string, unknown>
     if (key === 'downloads') {
-      const error = downloadModelsError(body)
-      if (error) {
-        res.status(422).json({ error })
+      const modelsError = downloadModelsError(body)
+      if (modelsError) {
+        res.status(422).json({ error: modelsError })
         return
       }
+      const fileError = downloadFileUrlError(body)
+      if (fileError) {
+        res.status(422).json({ error: fileError })
+        return
+      }
+      attachDownloadAsset(body)
     }
     const item = isCollectionKey(key)
       ? updateCollectionItem(key, id, body)

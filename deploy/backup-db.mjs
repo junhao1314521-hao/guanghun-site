@@ -9,7 +9,8 @@
  * 环境变量：DB_PATH（默认 /opt/website/data/gh.sqlite）、BACKUP_DIR（默认同级 backups）。
  */
 import { DatabaseSync } from 'node:sqlite'
-import { copyFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import path from 'node:path'
 
 const src = process.env.DB_PATH || '/opt/website/data/gh.sqlite'
@@ -26,15 +27,51 @@ db.exec(`VACUUM INTO '${dst.replace(/'/g, "''")}'`)
 db.close()
 console.log(`[backup] ${dst}`)
 
+/**
+ * 上传文件（素材库）同步备份：数据库只存元数据，文件本身必须一起备份。
+ * 优先 rsync 增量（--delete 保持镜像）；未安装 rsync 时回退整目录复制。
+ * 目录镜像到 BACKUP_DIR/uploads；配置 BACKUP_MIRROR_DIR 时再复制一份到异地目录。
+ */
+const uploadsSrc = process.env.UPLOAD_DIR || path.join(path.dirname(src), 'uploads')
+const uploadsDst = process.env.BACKUP_UPLOADS_DIR || path.join(dir, 'uploads')
+
+function syncDir(from, to) {
+  if (!existsSync(from)) return
+  mkdirSync(to, { recursive: true })
+  const result = spawnSync('rsync', ['-a', '--delete', `${from.replace(/\/$/, '')}/`, `${to.replace(/\/$/, '')}/`], {
+    stdio: 'inherit',
+  })
+  if (result.error?.code === 'ENOENT') {
+    // 服务器未安装 rsync：回退整目录复制（文件多时较慢，但保证可恢复）
+    cpSync(from, to, { recursive: true, force: true })
+    return
+  }
+  if (result.status !== 0) throw new Error(`rsync 失败（退出码 ${result.status}）`)
+}
+
+try {
+  if (existsSync(uploadsSrc)) {
+    syncDir(uploadsSrc, uploadsDst)
+    console.log(`[backup] 上传文件已同步：${uploadsDst}`)
+  } else {
+    console.log(`[backup] 未找到上传目录，跳过：${uploadsSrc}`)
+  }
+} catch (error) {
+  console.error(`[backup] 上传文件备份失败：${error instanceof Error ? error.message : String(error)}`)
+  process.exitCode = 1
+}
+
 // 异地副本：配置 BACKUP_MIRROR_DIR（如挂载的另一块盘 / NAS）后，每次快照同步复制一份
 const mirror = (process.env.BACKUP_MIRROR_DIR || '').trim()
 if (mirror) {
   try {
     mkdirSync(mirror, { recursive: true })
     copyFileSync(dst, path.join(mirror, path.basename(dst)))
+    if (existsSync(uploadsSrc)) syncDir(uploadsSrc, path.join(mirror, 'uploads'))
     console.log(`[backup] 已复制到镜像目录 ${mirror}`)
   } catch (error) {
     console.error(`[backup] 镜像复制失败：${error instanceof Error ? error.message : String(error)}`)
+    process.exitCode = 1
   }
 }
 

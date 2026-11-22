@@ -8,10 +8,11 @@
  *   允许常见图片 / 文档扩展名（含 .svg，但要求 Content-Type 为 image/svg+xml）。
  * - 元数据（大小 / 类型 / 上传时间）直接从磁盘派生，无需额外索引文件；空目录天然返回空列表。
  */
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getDb } from './db'
 
 /** 素材条目（对外形状，对齐上传契约） */
 export type UploadItem = {
@@ -28,6 +29,9 @@ export type UploadItem = {
   /** 上传时间（ISO 字符串） */
   uploadedAt: string
 }
+
+/** 素材业务类型（决定素材库筛选与下载中心用途） */
+export type UploadKind = 'image' | 'video' | 'model3d' | 'document' | 'firmware' | 'installer' | 'archive' | 'other'
 
 /** 上传落盘结果：成功带 item，失败带 HTTP 状态与错误文案 */
 export type SaveUploadResult =
@@ -276,6 +280,72 @@ function typeFromFile(filename: string): string {
   return EXT_DEFAULT_MIME[extOf(filename)] ?? 'application/octet-stream'
 }
 
+/** 扩展名 → 业务类型（素材库筛选 / 下载中心用途用） */
+const EXT_KIND: Record<string, UploadKind> = {
+  png: 'image',
+  jpg: 'image',
+  jpeg: 'image',
+  webp: 'image',
+  gif: 'image',
+  svg: 'image',
+  mp4: 'video',
+  webm: 'video',
+  mov: 'video',
+  glb: 'model3d',
+  bin: 'firmware',
+  exe: 'installer',
+  msi: 'installer',
+  dmg: 'installer',
+  pkg: 'installer',
+  zip: 'archive',
+  rar: 'archive',
+  '7z': 'archive',
+  pdf: 'document',
+  txt: 'document',
+  md: 'document',
+  csv: 'document',
+  doc: 'document',
+  docx: 'document',
+  xls: 'document',
+  xlsx: 'document',
+  ppt: 'document',
+  pptx: 'document',
+}
+
+/** 由文件名推断业务类型 */
+export function kindOfFile(filename: string): UploadKind {
+  return EXT_KIND[extOf(filename)] ?? 'other'
+}
+
+/** 由文件名推断 MIME（与上传白名单同口径） */
+export function mimeOfFile(filename: string): string {
+  return typeFromFile(filename)
+}
+
+/** 计算 SHA-256（十六进制小写） */
+export function sha256Of(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex')
+}
+
+/** 写入 / 更新素材元数据；不覆盖已有 folder_id / category / 手工 kind */
+function upsertUploadMeta(
+  id: string,
+  meta: { sizeBytes: number; sha256: string; mime: string; kind: UploadKind },
+): void {
+  getDb()
+    .prepare(
+      `INSERT INTO upload_meta(id, kind, size_bytes, sha256, mime, visibility, status, updated_at)
+       VALUES(?, ?, ?, ?, ?, 'public', 'active', ?)
+       ON CONFLICT(id) DO UPDATE SET
+         kind = COALESCE(upload_meta.kind, excluded.kind),
+         size_bytes = excluded.size_bytes,
+         sha256 = excluded.sha256,
+         mime = excluded.mime,
+         updated_at = excluded.updated_at`,
+    )
+    .run(id, meta.kind, meta.sizeBytes, meta.sha256, meta.mime, new Date().toISOString())
+}
+
 /** 公开访问 URL：文件名做百分号编码，确保含非 ASCII 文件名时也可直接请求 */
 function publicUrl(filename: string): string {
   return `/uploads/${encodeURIComponent(filename)}`
@@ -320,6 +390,13 @@ export function saveUpload(
   const file = path.join(dir, filename)
   writeFileSync(file, bytes)
   const stat = statSync(file)
+  const mimeType = mime || EXT_DEFAULT_MIME[ext]
+  upsertUploadMeta(filename, {
+    sizeBytes: stat.size,
+    sha256: sha256Of(bytes),
+    mime: mimeType,
+    kind: kindOfFile(filename),
+  })
   return {
     ok: true,
     item: {
@@ -327,7 +404,7 @@ export function saveUpload(
       name: safeName,
       url: publicUrl(filename),
       size: stat.size,
-      type: mime || EXT_DEFAULT_MIME[ext],
+      type: mimeType,
       uploadedAt: new Date(stat.mtimeMs).toISOString(),
     },
   }
@@ -380,6 +457,13 @@ export function replaceUpload(id: string, bytes: Buffer, contentType: string | u
     return { ok: false, status: 500, error: '文件写入失败，请重试' }
   }
   const stat = statSync(file)
+  const mimeType = mime || EXT_DEFAULT_MIME[ext]
+  upsertUploadMeta(id, {
+    sizeBytes: stat.size,
+    sha256: sha256Of(bytes),
+    mime: mimeType,
+    kind: kindOfFile(id),
+  })
   return {
     ok: true,
     item: {
@@ -387,7 +471,7 @@ export function replaceUpload(id: string, bytes: Buffer, contentType: string | u
       name: nameFromFile(id),
       url: publicUrl(id),
       size: stat.size,
-      type: mime || EXT_DEFAULT_MIME[ext],
+      type: mimeType,
       uploadedAt: new Date(stat.mtimeMs).toISOString(),
     },
   }

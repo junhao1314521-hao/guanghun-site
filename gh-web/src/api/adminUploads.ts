@@ -37,6 +37,42 @@ export const CATEGORY_LABELS: Record<MediaCategory, string> = {
 /** 分类顺序（供筛选 UI 使用） */
 export const MEDIA_CATEGORIES: readonly MediaCategory[] = ['image', 'icon', 'doc', 'video', 'other']
 
+/** 业务类型（与后端 mediaStore.MEDIA_KINDS 一致） */
+export type MediaKind = 'image' | 'video' | 'model3d' | 'document' | 'firmware' | 'installer' | 'archive' | 'other'
+
+/** 使用场景（与后端 mediaStore.MediaUsage 一致） */
+export type MediaUsage = 'download' | 'product' | 'brand' | 'page' | 'other'
+
+export const MEDIA_KINDS: readonly MediaKind[] = [
+  'image',
+  'video',
+  'model3d',
+  'document',
+  'firmware',
+  'installer',
+  'archive',
+  'other',
+]
+
+export const KIND_LABELS: Record<MediaKind, string> = {
+  image: '图片',
+  video: '视频',
+  model3d: '3D 模型',
+  document: '文档',
+  firmware: '固件',
+  installer: '安装包',
+  archive: '压缩包',
+  other: '其它',
+}
+
+export const USAGE_LABELS: Record<MediaUsage, string> = {
+  download: '下载中心',
+  product: '产品',
+  brand: '品牌资料',
+  page: '页面',
+  other: '其它',
+}
+
 /** 图片尺寸变体（与后端 MediaVariant 逐字一致） */
 export type MediaVariant = {
   /** 变体宽度（像素） */
@@ -67,6 +103,17 @@ export type UploadItem = {
   folderId: string | null
   /** 分类（MIME 自动推导或手工覆盖） */
   category: MediaCategory
+  /** 业务类型（固件 / 安装包 / 3D 模型等） */
+  kind?: MediaKind
+  /** 使用场景（下载中心 / 产品 / 品牌资料等） */
+  usage?: MediaUsage
+  /** 服务端统计的字节数 */
+  sizeBytes?: number
+  /** 服务端计算的 SHA-256 */
+  sha256?: string
+  /** 可见性 / 状态 */
+  visibility?: string
+  status?: string
   /** 该主图的尺寸变体列表（无变体时为空数组，字段只增不改） */
   variants: MediaVariant[]
   /** 被多少处页面 / 草稿 / 站点配置 / 集合记录引用（列表接口下发；旧接口可能缺省） */
@@ -91,6 +138,8 @@ export type FolderItem = {
 export type MediaQuery = {
   folderId?: string
   category?: string
+  kind?: string
+  usage?: string
   q?: string
   type?: string
   page?: number
@@ -199,6 +248,8 @@ export function queryMedia(
       query: {
         folderId: query.folderId,
         category: query.category,
+        kind: query.kind,
+        usage: query.usage,
         q: query.q,
         type: query.type,
         page: query.page,
@@ -243,12 +294,12 @@ export function fetchUploadReferences(
 
 /**
  * 删除素材：DELETE /api/admin/uploads/:id（未命中 → 404）。
- * 仍被引用时后端返回 409；确认无误后传 force=true 强制删除。
+ * 仍被引用时后端返回 409，必须先解除引用（不提供强制删除）。
  */
-export function deleteUpload(id: string, force = false): Promise<{ ok: boolean }> {
+export function deleteUpload(id: string): Promise<{ ok: boolean }> {
   return transport<{ ok: boolean }>(
     {
-      path: `/api/admin/uploads/${encodeURIComponent(id)}${force ? '?force=1' : ''}`,
+      path: `/api/admin/uploads/${encodeURIComponent(id)}`,
       method: 'DELETE',
       token: getAdminToken() ?? undefined,
     },

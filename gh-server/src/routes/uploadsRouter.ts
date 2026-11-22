@@ -237,6 +237,8 @@ uploadsRouter.get('/uploads', requireSession, requireScope('content'), (req, res
   const result = listMedia({
     folderId: queryString(req, 'folderId') || undefined,
     category: queryString(req, 'category') || undefined,
+    kind: queryString(req, 'kind') || undefined,
+    usage: queryString(req, 'usage') || undefined,
     q: queryString(req, 'q') || undefined,
     type: queryString(req, 'type') || undefined,
     page: Number.isFinite(page) ? page : undefined,
@@ -283,13 +285,12 @@ uploadsRouter.delete('/uploads/:id', requireSession, requireScope('content'), au
     res.status(404).json({ error: '未找到该素材' })
     return
   }
-  // 引用保护：仍被页面 / 集合记录引用时拒绝直接删除，需显式带 force=1 二次确认，
-  // 避免误删导致前台图片、下载地址静默失效。
+  // 引用保护：仍被页面 / 集合记录引用时一律拒绝删除，必须先解除引用。
+  // 不再提供 force 绕过，避免误删导致前台图片、下载地址静默失效。
   const refs = referencesToUrl(item.url)
-  const force = queryString(req, 'force') === '1'
-  if (refs.count > 0 && !force) {
+  if (refs.count > 0) {
     res.status(409).json({
-      error: `该素材仍被 ${refs.count} 处引用，确认删除请带 force=1 重试`,
+      error: `该素材仍被 ${refs.count} 处引用，请先解除引用后再删除`,
       count: refs.count,
       refs: refs.refs.slice(0, 20),
     })
