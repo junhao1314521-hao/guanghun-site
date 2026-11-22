@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getProductDetail } from '../data/products'
+import { getProductDetail, presentProducts } from '../data/products'
 import { listCollection } from '../data/collectionStore'
 import { approvedReviewsFor } from '../data/productReviews'
 import { readLocale } from '../data/locale'
@@ -11,13 +11,13 @@ export const catalogRouter = Router()
 catalogRouter.get('/', (req, res) => {
   // V1：一次返回全量，筛选/排序/分页在前端完成（见契约 §1）
   // total 为当前集合的真实总数（后台增删产品后即同步）
-  const items = listCollection('products', readLocale(req))
+  const items = presentProducts(listCollection('products', readLocale(req)))
   res.json({ items, total: items.length })
 })
 
 catalogRouter.get('/:id', (req, res) => {
   const locale = readLocale(req)
-  const detail = getProductDetail(listCollection('products', locale), req.params.id, locale)
+  const detail = getProductDetail(presentProducts(listCollection('products', locale)), req.params.id, locale)
   if (!detail) {
     res.status(404).json({ error: '未找到该产品' })
     return

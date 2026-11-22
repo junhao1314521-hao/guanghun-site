@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { getBrandProfile } from '../data/brand'
 import { buildBrandProducts } from '../data/aggregate'
 import { listCollection } from '../data/collectionStore'
+import { presentProducts } from '../data/products'
 
 /**
  * 品牌档案：GET /api/brand/:slug（挂载于 /api）
@@ -15,5 +16,5 @@ brandRouter.get('/brand/:slug', (req, res) => {
     res.status(404).json({ error: '未找到该品牌' })
     return
   }
-  res.json({ ...profile, products: buildBrandProducts(profile, listCollection('products')) })
+  res.json({ ...profile, products: buildBrandProducts(profile, presentProducts(listCollection('products'))) })
 })

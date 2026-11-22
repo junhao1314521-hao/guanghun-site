@@ -447,6 +447,89 @@ const CATEGORY_SERIES: Record<ProductCategory, string> = {
   周边: 'accessory',
 }
 
+/** 分辨率 → 列表卡用的简称（无法识别时保留原值） */
+function shortResolution(value: string): string {
+  const compact = value.replace(/\s/g, '')
+  if (compact.includes('3840×2160')) return '4K'
+  if (compact.includes('2560×1440')) return '2K'
+  if (compact.includes('1920×1080')) return 'FHD'
+  if (compact.includes('3440×1440')) return 'WQHD'
+  if (compact.includes('5120×1440')) return 'DQHD'
+  return value.trim()
+}
+
+/**
+ * 从结构化参数派生列表摘要（后台不再单独维护「核心参数」）。
+ * 显示器优先拼「尺寸 / 分辨率 + 刷新率 / 响应时间 / 面板」；其它品类取前 4 个参数值。
+ */
+function deriveSpecs(attributes: ProductAttribute[]): string[] {
+  const valueOf = (label: string) => attributes.find((item) => item.label?.trim() === label)?.value?.trim() ?? ''
+  const sizeRes = valueOf('尺寸 / 分辨率')
+  const refresh = valueOf('刷新率')
+  const response = valueOf('响应时间')
+  const panel = valueOf('面板')
+  const specs: string[] = []
+  if (sizeRes) {
+    const [size, resolution] = sizeRes.split(/\s*·\s*/)
+    if (size?.trim()) specs.push(size.trim())
+    const hz = refresh.replace(/\s+/g, '')
+    if (hz.includes('@')) specs.push(hz)
+    else if (resolution && hz) specs.push(`${shortResolution(resolution)} ${hz}`)
+    else if (resolution) specs.push(shortResolution(resolution))
+    else if (hz) specs.push(hz)
+  } else if (refresh) {
+    specs.push(refresh)
+  }
+  if (response) specs.push(response.replace(/\s*\([^)]*\)\s*$/, '').trim())
+  if (panel) specs.push(panel)
+  if (specs.length > 0) return specs.slice(0, 4)
+  return attributes.map((item) => item.value?.trim()).filter(Boolean).slice(0, 4)
+}
+
+/** 从「接口」参数派生列表筛选用主接口 */
+function deriveConnection(value: string): ProductConnection | undefined {
+  if (/\bDP\s*2\.1/i.test(value)) return 'DP 2.1'
+  if (/\bHDMI\s*2\.1/i.test(value)) return 'HDMI 2.1'
+  if (/\bUSB-C\b/i.test(value)) return 'USB-C'
+  return undefined
+}
+
+/** 「净重」参数 → 克（如 6.5 kg（含支架） → 6500）；无法解析时不返回 */
+function parseWeight(value: string): number | undefined {
+  const matched = value.match(/([\d.]+)\s*(kg|g)\b/i)
+  if (!matched) return undefined
+  const amount = Number(matched[1])
+  if (!Number.isFinite(amount) || amount <= 0) return undefined
+  return Math.round(matched[2].toLowerCase() === 'kg' ? amount * 1000 : amount)
+}
+
+/**
+ * 对外输出前补齐派生字段（单一数据源）：
+ * - 「核心参数 / 主接口 / 价格文本 / 净重 / 同系列」不再要求后台重复录入；
+ * - 已有显式值优先保留，不覆盖运营已填内容；
+ * - 只影响读取，不改数据库记录（后台表单仍能编辑原始字段）。
+ */
+export function presentProduct(base: Product): Product {
+  const attributes = base.attributes ?? []
+  const attr = (label: string) => attributes.find((item) => item.label?.trim() === label)?.value?.trim() ?? ''
+  const explicitSpecs = (base.specs ?? []).map((item) => String(item).trim()).filter(Boolean)
+  const priceValue = Number(base.priceValue) || 0
+  const derivedWeight = parseWeight(attr('净重'))
+  return {
+    ...base,
+    specs: explicitSpecs.length > 0 ? explicitSpecs : deriveSpecs(attributes),
+    connection: base.connection ?? deriveConnection(attr('接口')),
+    price: base.price?.trim() || (priceValue > 0 ? `¥${priceValue.toLocaleString('zh-CN')}` : ''),
+    weight: base.weight ?? derivedWeight,
+    seriesId: base.seriesId || CATEGORY_SERIES[base.category],
+  }
+}
+
+/** 批量补齐派生字段（列表类接口统一走这里） */
+export function presentProducts(items: Product[]): Product[] {
+  return items.map(presentProduct)
+}
+
 /** 从产品记录中取出运营可维护的扩展字段（仅取已定义项，供详情合并） */
 function extendedFields(base: Product, locale: string = 'zh'): Partial<ProductDetail> {
   const out: Partial<ProductDetail> = {}

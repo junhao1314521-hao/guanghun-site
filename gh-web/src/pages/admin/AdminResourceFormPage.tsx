@@ -64,6 +64,15 @@ const STATUS_LEVEL_LABELS: Record<string, string> = {
   muted: '灰色 · 弱化',
 }
 
+/** 产品上架状态：单下拉同时写文案与级别（替代原「状态文案 + 级别」两处输入） */
+const PRODUCT_STATUS_PRESETS = [
+  { text: '在售', level: 'success' },
+  { text: '预售', level: 'warning' },
+  { text: '缺货', level: 'warning' },
+  { text: '下架', level: 'warning' },
+  { text: '草稿', level: 'warning' },
+]
+
 /** 字符串数组字段：读取时数组 → 多行文本；编辑时以原始文本暂存，提交前再拆分 */
 function listText(value: unknown): string {
   if (Array.isArray(value)) return value.map(String).join('\n')
@@ -131,6 +140,33 @@ function FormField({
           value={value === undefined ? '' : String(value)}
           placeholder={field.placeholder ?? '保存后自动生成'}
           readOnly
+        />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
+  if (field.type === 'statusSelect') {
+    // 一个下拉同时写 { text, level }：在售 / 预售 / 缺货 / 下架 / 草稿
+    const current = value && typeof value === 'object' ? String((value as { text?: unknown }).text ?? '') : String(value ?? '')
+    const preset = PRODUCT_STATUS_PRESETS.find((item) => item.text === current)
+    const options = PRODUCT_STATUS_PRESETS.map((item) => ({ value: item.text, label: item.text }))
+    if (current && !preset) options.push({ value: current, label: `${current}（当前）` })
+    return (
+      <>
+        <label className="field__label" htmlFor={fieldId}>
+          {field.label}
+          {req}
+        </label>
+        <Select
+          id={fieldId}
+          invalid={invalid}
+          value={current}
+          onChange={(next) => {
+            const matched = PRODUCT_STATUS_PRESETS.find((item) => item.text === next)
+            onChange(field.key, { text: next, level: matched?.level ?? 'warning' })
+          }}
+          options={[{ value: '', label: '请选择状态' }, ...options]}
         />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
@@ -796,7 +832,7 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
   const isEmptyValue = (field: AdminField, value: unknown): boolean => {
     if (field.type === 'switch' || field.type === 'records') return false
     if (field.type === 'list' || field.type === 'modellist') return toList(value).length === 0
-    if (field.type === 'status') {
+    if (field.type === 'status' || field.type === 'statusSelect') {
       const text = value && typeof value === 'object' ? (value as { text?: unknown }).text : undefined
       return String(text ?? '').trim() === ''
     }

@@ -74,6 +74,8 @@ export type AdminFieldType =
   | 'list'
   /** 对象 { level, text }：状态文案 + 级别色调（success / warning / info / muted） */
   | 'status'
+  /** 上架状态单选：一个下拉同时写入 { text, level }，避免「文案 + 级别」两处重复 */
+  | 'statusSelect'
   /** 只读展示（如 id），不参与编辑 */
   | 'readonly'
   /** 对象数组（记录列表）：按 recordFields 渲染可增删改的子卡片 */
@@ -282,19 +284,18 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '产品名称', type: 'text', span: 2, required: true, hint: '对外展示的完整名称' },
           { key: 'model', label: '型号', type: 'text', placeholder: '27X1QE-W54' },
-          { key: 'category', label: '分类', type: 'select', options: ['OLED旗舰', '双模高刷', '电竞IPS', '周边'] },
-          { key: 'connection', label: '接口', type: 'select', options: ['DP 2.1', 'HDMI 2.1', 'USB-C'] },
+          { key: 'category', label: '分类', type: 'select', options: ['OLED旗舰', '双模高刷', '电竞IPS', '周边'], hint: '分类同时决定同系列对比与前台筛选，无需再填「系列标识」' },
           {
             key: 'variant',
             label: '设备形态',
             type: 'select',
             options: ['monitor', 'mouse', 'keyboard', 'headset', 'pad'],
-            optionLabels: { monitor: '显示器', mouse: '鼠标', keyboard: '键盘', headset: '耳机', pad: '鼠标垫' },
+            optionLabels: { monitor: '显示器', mouse: '鼠标', keyboard: '键盘', headset: '耳机', pad: '鼠标垫 / 周边' },
+            hint: '决定下方「结构化参数」可选的参数目录',
           },
-          { key: 'flag', label: '标记', type: 'text', placeholder: '旗舰 / 联名' },
-          { key: 'status', label: '状态', type: 'status', hint: '状态文案 + 级别色调' },
-          { key: 'price', label: '价格', type: 'text', placeholder: '¥899' },
-          { key: 'priceValue', label: '价格数值（元）', type: 'number', hint: '用于排序与价格区间筛选' },
+          { key: 'flag', label: '商品标签', type: 'text', placeholder: '旗舰 / 热销 / 新品 / 联名', hint: '显示在产品卡右上角；留空不显示' },
+          { key: 'status', label: '上架状态', type: 'statusSelect', hint: '在售 / 预售 / 缺货 / 下架 / 草稿' },
+          { key: 'priceValue', label: '价格（元）', type: 'number', hint: '前台展示、价格排序与区间筛选都取这个值；不填则显示「询价」' },
           { key: 'releasedAt', label: '上新时间', type: 'date' },
           {
             key: 'buyUrl',
@@ -303,6 +304,18 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             span: 2,
             placeholder: 'https://… 或 /inquiry',
             hint: '详情页 / 对比页主按钮「立即购买」取此链接；留空则回退到区块配置的链接',
+          },
+        ],
+      },
+      {
+        title: '商品图片与视频',
+        fields: [
+          {
+            key: 'gallery',
+            label: '相册图片',
+            type: 'images',
+            span: 2,
+            hint: '第一张即列表卡 / 详情页主图；可排序，建议 ≤ 20 张；留空回退内置 4 视角图',
           },
           {
             key: 'videoUrl',
@@ -320,16 +333,30 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             hint: '可选；留空则用相册第一张图作为封面',
           },
           {
-            key: 'seriesId',
-            label: '同系列标识',
-            type: 'text',
-            placeholder: 'oled / dual / ips / accessory',
-            hint: '用于详情页对比取同系列产品；留空按分类自动归类（OLED 旗舰→oled、双模高刷→dual、电竞 IPS→ips、周边→accessory）',
+            key: 'model3dEnabled',
+            label: '启用 3D 预览',
+            type: 'switch',
+            hint: '关闭时前台完全看不到 3D 入口；模型未就绪请保持关闭。打开后需先上传下方模型才会生效',
+          },
+          {
+            key: 'model3d',
+            label: '3D 模型文件（.glb）',
+            type: 'model3d',
+            span: 2,
+            placeholder: '/uploads/xxxx.glb',
+            hint: '只收单文件 .glb（贴图需内嵌），≤ 30 MB；不要 .gltf + 外部贴图。建议几何 ≤ 15 万面、贴图 ≤ 2048、Y 轴向上、正面朝 +Z、原点在底座中心。上传后自动生成 3D 预览，打开上方开关并保存即可生效',
+          },
+          {
+            key: 'model3dPoster',
+            label: '3D 首帧封面',
+            type: 'image',
+            span: 2,
+            hint: '可选，模型加载时先显示这张图；留空则用相册第一张图',
           },
         ],
       },
       {
-        title: 'SKU 与规格',
+        title: 'SKU 与库存',
         fields: [
           {
             key: 'skuOptions',
@@ -361,27 +388,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         ],
       },
       {
-        title: '参数',
+        title: '商品参数（唯一来源）',
         fields: [
-          { key: 'specs', label: '核心参数', type: 'list', span: 2, hint: '仅用于列表页卡片摘要（每行一项，如：26.5 英寸 2K 540Hz）；完整规格请在下方「结构化参数」维护，两处不要重复填' },
-        ],
-      },
-      {
-        title: '详情信息（前台展示）',
-        fields: [
-          {
-            key: 'summaryRows',
-            label: '性能摘要（标称 / 实测）',
-            type: 'records',
-            span: 2,
-            hint: '详情页首屏与规格区使用。实测值留空时只展示标称值；留空整块则回退内置示例',
-            recordFields: [
-              { key: 'label', label: '指标', type: 'text' },
-              { key: 'nominal', label: '标称值', type: 'text' },
-              { key: 'measured', label: '实测值', type: 'text' },
-            ],
-          },
-          { key: 'features', label: '产品亮点（详情页卡片）', type: 'list', span: 2, hint: '每行一条；详情页取前 3 条做亮点卡片，系统按第一个「，」拆成标题与说明（如：第四代 W-OLED 面板，2K 540Hz 满速刷新）。无需上传配图' },
           {
             key: 'specTemplate',
             label: '常用参数模板',
@@ -397,16 +405,14 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             hint: '参数名与取值优先用下拉选择（如「显示 · 刷新率」→ 240 Hz / 280 Hz / 540 Hz），没有的选项选「其他」手动填写。这里仍是唯一「完整规格」来源，详情页按分组平铺展示；性能模块自动取刷新率 / 响应时间 / 尺寸 / 峰值亮度 / 对比度 / 色域。',
           },
           { key: 'os', label: '兼容系统', type: 'list', span: 2, hint: '每行一项，如：Windows 10 / 11' },
-          { key: 'weight', label: '整机重量（克）', type: 'number', hint: '单位：克（g），仅填数字；留空则前台不显示重量' },
           { key: 'warranty', label: '保修政策', type: 'text', span: 2, hint: '如「3 年质保，含 OLED 烧屏保护」；前台显示在「兼容与保修」' },
           { key: 'inBox', label: '包装清单', type: 'list', span: 2, hint: '每行一项，如：显示器 × 1、电源线 × 1；详情页显示在「规格参数」末尾的包装清单分组' },
-          {
-            key: 'gallery',
-            label: '相册图片',
-            type: 'images',
-            span: 2,
-            hint: '按产品单独上传 / 从素材库选择，可排序（不设上限，建议 ≤ 20 张）；留空则前台回退内置 4 视角图',
-          },
+        ],
+      },
+      {
+        title: '商品详情',
+        fields: [
+          { key: 'features', label: '产品亮点（详情页卡片）', type: 'list', span: 2, hint: '每行一条；详情页取前 3 条做亮点卡片，系统按第一个「，」拆成标题与说明。无需上传配图' },
           {
             key: 'detailHtml',
             label: '详情富文本',
@@ -427,32 +433,6 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             type: 'images',
             span: 2,
             hint: '可选；按同顺序上传，移动端优先使用；缺省回退桌面切片',
-          },
-        ],
-      },
-      {
-        title: '3D 预览（主图区）',
-        fields: [
-          {
-            key: 'model3dEnabled',
-            label: '启用 3D 预览',
-            type: 'switch',
-            hint: '关闭时前台完全看不到 3D 入口；模型未就绪请保持关闭。打开后需先上传下方模型才会生效',
-          },
-          {
-            key: 'model3d',
-            label: '3D 模型文件（.glb）',
-            type: 'model3d',
-            span: 2,
-            placeholder: '/uploads/xxxx.glb',
-            hint: '只收单文件 .glb（贴图需内嵌），≤ 30 MB；不要 .gltf + 外部贴图。建议几何 ≤ 15 万面、贴图 ≤ 2048、Y 轴向上、正面朝 +Z、原点在底座中心。上传后自动生成 3D 预览，打开上方开关并保存即可生效',
-          },
-          {
-            key: 'model3dPoster',
-            label: '3D 首帧封面',
-            type: 'image',
-            span: 2,
-            hint: '可选，模型加载时先显示这张图；留空则用相册第一张图',
           },
         ],
       },

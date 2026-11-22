@@ -306,7 +306,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 item.flag ? ` ${flagClass(item.flag)}` : ' pcard__badge--oos'
               }`}
             >
-              {item.flag || '缺货'}
+              {item.flag || item.status.text || '缺货'}
             </span>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { buildSearchData } from '../data/aggregate'
 import { listCollection } from '../data/collectionStore'
+import { presentProducts } from '../data/products'
 import { readLocale } from '../data/locale'
 
 /**
@@ -14,7 +15,7 @@ searchRouter.get('/', (req, res) => {
   const q = String(req.query.q ?? '').trim().toLowerCase()
   const locale = readLocale(req)
   const { items, counts } = buildSearchData({
-    products: listCollection('products', locale),
+    products: presentProducts(listCollection('products', locale)),
     articles: listCollection('articles', locale),
     rankings: listCollection('rankings', locale),
     downloads: listCollection('downloads', locale),

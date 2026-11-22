@@ -37,9 +37,12 @@ function text(value: unknown): string {
   return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : ''
 }
 
-// 提取产品规格列表：非数组时返回空数组，过滤空项
+// 提取产品规格列表：优先显式 specs；新商品未填时从结构化参数取前 4 个值（与前台派生口径一致）
 function specsOf(row: ProductRow): string[] {
-  return Array.isArray(row.specs) ? row.specs.map(String).filter(Boolean) : []
+  const specs = Array.isArray(row.specs) ? row.specs.map(String).filter(Boolean) : []
+  if (specs.length > 0) return specs
+  const attrs = Array.isArray(row.attributes) ? (row.attributes as Array<Record<string, unknown>>) : []
+  return attrs.map((item) => String(item.value ?? '').trim()).filter(Boolean).slice(0, 4)
 }
 
 // 归一化产品状态：兼容对象与字符串两种数据，输出状态级别与展示文案
@@ -343,7 +346,7 @@ export function AdminProductsList() {
                   <p className="admin-product-card__specs">{specsOf(row).slice(0, 3).join(' · ')}</p>
                   <div className="admin-product-card__meta">
                     <span className={`status status--${statusInfo.level}`}>{statusInfo.text}</span>
-                    <span className="admin-product-card__price">{text(row.price)}</span>
+                    <span className="admin-product-card__price">{priceText(row)}</span>
                   </div>
                   <div className="admin-product-card__actions">
                     <Link className="btn btn--secondary btn--sm" to={`/admin/products/${id}`}>
