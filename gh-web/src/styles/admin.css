@@ -1210,7 +1210,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
   border-radius: 4px; background: var(--color-bg-muted);
 }
 .builder-deck__thumb img { width: 100%; height: 100%; object-fit: cover; }
-.builder-deck__thumb-empty { font-size: 11px; color: var(--color-text-tertiary); }
+.builder-deck__thumb-empty { font-size: 11px; color: var(--color-text-secondary); }
 .builder-deck__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .builder-deck__meta strong { font-size: 12px; font-weight: 600; color: var(--color-text-primary); white-space: nowrap; }
 .builder-deck__meta em {

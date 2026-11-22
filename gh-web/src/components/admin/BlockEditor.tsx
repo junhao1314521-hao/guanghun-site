@@ -672,7 +672,7 @@ function PosterDeckEditor({
           : ' 第 1 张会最先出现。'}
       </p>
 
-      <div className="builder-deck__tabs" role="tablist" aria-label="海报列表">
+      <div className="builder-deck__tabs" role="group" aria-label="海报列表">
         {items.map((item, itemIndex) => {
           const thumb = deckThumb(item)
           const motionItem = codeFirst && itemIndex === 0
@@ -680,8 +680,7 @@ function PosterDeckEditor({
             <button
               key={itemIndex}
               type="button"
-              role="tab"
-              aria-selected={itemIndex === index}
+              aria-pressed={itemIndex === index}
               className={`builder-deck__tab${itemIndex === index ? ' is-active' : ''}`}
               onClick={() => setActive(itemIndex)}
             >
