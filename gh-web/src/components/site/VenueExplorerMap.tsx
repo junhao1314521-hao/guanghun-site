@@ -31,7 +31,7 @@ function infoHtml(venue: VenuePoint): string {
   const models = (venue.products ?? []).map((model) => `<span class="venue-map__model">${escapeHtml(model)}</span>`).join('')
   return `<div class="venue-map__info">
     <b>${escapeHtml(venue.name)}</b>
-    <span>${escapeHtml(venue.address || '地址待补充')}</span>
+    ${venue.address ? `<span>${escapeHtml(venue.address)}</span>` : ''}
     ${models ? `<div class="venue-map__models">${models}</div>` : ''}
     <div class="venue-map__actions">
       <a class="venue-map__nav" href="${venueNavigationUrl(venue)}" target="_blank" rel="noopener noreferrer">到这里去 →</a>

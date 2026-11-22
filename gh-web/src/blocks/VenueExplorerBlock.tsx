@@ -466,9 +466,9 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
                   </button>
                   <div className="vx-detail__tag">{provinceShort(selected.province)} · {venueTypeLabel(selected.type)}</div>
                   <h3 className="vx-detail__name">{selected.name}</h3>
-                  <p className={`vx-detail__addr${selected.address ? '' : ' is-todo'}`}>
-                    {selected.address || '地址待补充'}
-                  </p>
+                  {selected.address ? (
+                    <p className="vx-detail__addr">{selected.address}</p>
+                  ) : null}
                   {(selected.products ?? []).length > 0 && (
                     <div className="vx-detail__models">
                       {(selected.products ?? []).map((item) => <span className="vx-model" key={item}>{item}</span>)}
@@ -673,7 +673,7 @@ function VenueRow({
           <span className="vx-row__name">{venue.name}</span>
           <span className="vx-row__badge">{venueTypeLabel(venue.type)}</span>
         </span>
-        <span className={`vx-row__addr${venue.address ? '' : ' is-todo'}`}>{venue.address || '地址待补充'}</span>
+        {venue.address ? <span className="vx-row__addr">{venue.address}</span> : null}
         <span className="vx-row__foot">
           {(venue.products ?? []).map((item) => <span className="vx-model" key={item}>{item}</span>)}
           {nearby && (

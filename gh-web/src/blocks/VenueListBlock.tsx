@@ -337,20 +337,22 @@ function BizVenueCard({
         {showStatus && <span className={`status status--${item.ok ? 'success' : 'warning'}`}>{item.status}</span>}
       </div>
 
-      <div className="venue-card__addr">
-        <IconPin size={15} className="venue-card__addr-icon" />
-        <span className="venue-card__addr-text" title={item.address || '地址待补充'}>
-          {item.address || '地址待补充'}
-        </span>
-        <span className="venue-card__addr-actions">
-          <button type="button" className="venue-card__act" aria-label={`复制地址：${item.address || item.name}`} onClick={copyAddress}>
-            <IconCopy size={15} />
-          </button>
-          <a className="venue-card__act" href={navHref} target="_blank" rel="noreferrer" aria-label={`导航到 ${item.name}`}>
-            <IconNavigate size={15} />
-          </a>
-        </span>
-      </div>
+      {item.address && (
+        <div className="venue-card__addr">
+          <IconPin size={15} className="venue-card__addr-icon" />
+          <span className="venue-card__addr-text" title={item.address}>
+            {item.address}
+          </span>
+          <span className="venue-card__addr-actions">
+            <button type="button" className="venue-card__act" aria-label={`复制地址：${item.address}`} onClick={copyAddress}>
+              <IconCopy size={15} />
+            </button>
+            <a className="venue-card__act" href={navHref} target="_blank" rel="noreferrer" aria-label={`导航到 ${item.name}`}>
+              <IconNavigate size={15} />
+            </a>
+          </span>
+        </div>
+      )}
       {copied && (
         <span className="venue-card__copied" role="status">
           {copied === 'ok' ? '已复制地址' : '复制失败，请手动复制'}

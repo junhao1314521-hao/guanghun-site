@@ -99,22 +99,28 @@ export function VenueDetailContent({ detail, variant }: Props) {
         <div className="card reveal">
           <h2 className="card__title">门市信息</h2>
           <div className="dl-meta" style={{ marginTop: 'var(--gh-space-4)' }}>
-            <div>
-              <div className="dl-meta__k">地址</div>
-              <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
-                {detail.address || '地址待补充'}
+            {detail.address && (
+              <div>
+                <div className="dl-meta__k">地址</div>
+                <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
+                  {detail.address}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="dl-meta__k">电话</div>
-              <div className="dl-meta__v">{detail.phone || '电话待补充'}</div>
-            </div>
-            <div>
-              <div className="dl-meta__k">营业时间</div>
-              <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
-                {detail.hours || '以门店公告为准'}
+            )}
+            {detail.phone && (
+              <div>
+                <div className="dl-meta__k">电话</div>
+                <div className="dl-meta__v">{detail.phone}</div>
               </div>
-            </div>
+            )}
+            {detail.hours && (
+              <div>
+                <div className="dl-meta__k">营业时间</div>
+                <div className="dl-meta__v" style={{ fontFamily: 'var(--gh-font-sans)', fontSize: 'var(--gh-font-size-body-sm)' }}>
+                  {detail.hours}
+                </div>
+              </div>
+            )}
             {detail.transport && (
               <div>
                 <div className="dl-meta__k">交通</div>
@@ -226,14 +232,10 @@ export function VenueDetailContent({ detail, variant }: Props) {
               <button className="btn btn--primary" type="button" onClick={() => setReserveOpen(true)}>
                 预约到店
               </button>
-              {detail.phone ? (
+              {detail.phone && (
                 <a className="btn btn--secondary" href={`tel:${detail.phone.replace(/[^0-9]/g, '')}`}>
                   拨打 {detail.phone}
                 </a>
-              ) : (
-                <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                  门店电话待补充，可先提交预约
-                </span>
               )}
             </div>
           )}
