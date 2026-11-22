@@ -399,6 +399,13 @@ export function listMedia(query: MediaQuery = {}): { items: MediaItem[]; total: 
   return { items: items.slice(start, start + pageSize), total }
 }
 
+/** 按素材 id（磁盘文件名）取单条元数据；未命中返回 undefined（供下载版本发布等场景） */
+export function getMediaById(id: string): MediaItem | undefined {
+  const item = listUploads().find((entry) => entry.id === id)
+  if (!item) return undefined
+  return toMediaItem(item, metaMap().get(id), variantsFor(id))
+}
+
 /* ============================================================
    文件夹 CRUD
    ============================================================ */

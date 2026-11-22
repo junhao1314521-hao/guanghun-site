@@ -42,6 +42,7 @@ import { listBackups } from '../data/backupStore'
 import { resolveDbPath } from '../data/db'
 import { listPages } from '../data/contentStore'
 import { resolveUploadDir } from '../data/uploadStore'
+import { fileIdFromUrl, getMediaById, type MediaItem } from '../data/mediaStore'
 import { withModelNames } from '../data/support-extra'
 import { presentProducts } from '../data/products'
 
@@ -557,6 +558,60 @@ function attachDownloadAsset(body: Record<string, unknown>): void {
   }
 }
 
+/** 字节数 → 列表展示文案（与下载中心既有 size 文本口径一致） */
+function formatDownloadSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`
+}
+
+/** 从 /uploads/<文件> 取素材元数据（真实大小与 SHA-256）；素材缺失返回 undefined */
+function mediaForDownloadUrl(url: string): MediaItem | undefined {
+  const id = fileIdFromUrl(url)
+  return id ? getMediaById(id) : undefined
+}
+
+/** 发布新版本时的日期：空值取服务器当天，非 YYYY-MM-DD 视为非法 */
+function normalizeReleaseDate(raw: unknown): string | null {
+  const value = typeof raw === 'string' ? raw.trim() : ''
+  if (!value) return new Date().toLocaleDateString('sv-SE')
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
+}
+
+/** 变更说明：允许字符串（按行拆分）或字符串数组，trim + 去空 */
+function toNotes(raw: unknown): string[] {
+  const list = Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split('\n') : []
+  return list.map((item) => String(item).trim()).filter(Boolean)
+}
+
+/**
+ * 固件文件不允许原地覆盖（R-下载 P1）：
+ * - 主文件从「有」改成另一个文件 → 必须走「发布新版本」，旧文件自动归档；
+ * - 历史版本里已有文件的条目也不允许换文件（按版本号匹配）；
+ * - 清空（待更新）或首次从空上传不受限制。
+ */
+function firmwareOverwriteError(existing: Record<string, unknown>, body: Record<string, unknown>): string | null {
+  if (String(existing.type ?? '') !== 'firmware') return null
+  const prevUrl = typeof existing.fileUrl === 'string' ? existing.fileUrl.trim() : ''
+  const nextUrl = typeof body.fileUrl === 'string' ? body.fileUrl.trim() : prevUrl
+  if (prevUrl && nextUrl && nextUrl !== prevUrl) {
+    return '固件文件不允许原地覆盖，请使用「发布新版本」'
+  }
+  const prevHistory = Array.isArray(existing.history) ? (existing.history as Array<Record<string, unknown>>) : []
+  const nextHistory = Array.isArray(body.history) ? (body.history as Array<Record<string, unknown>>) : []
+  for (const row of nextHistory) {
+    const version = String(row?.version ?? '').trim()
+    const oldUrl = String(prevHistory.find((item) => String(item?.version ?? '').trim() === version)?.fileUrl ?? '').trim()
+    const newUrl = String(row?.fileUrl ?? '').trim()
+    if (oldUrl && newUrl && oldUrl !== newUrl) {
+      return `历史版本 ${version || '（未命名）'} 的文件不允许覆盖`
+    }
+  }
+  return null
+}
+
 adminRouter.post(
   '/resources/:key',
   requireSession,
@@ -615,6 +670,14 @@ adminRouter.put(
         res.status(422).json({ error: fileError })
         return
       }
+      const existing = getCollectionItem('downloads', id)
+      if (existing) {
+        const overwriteError = firmwareOverwriteError(existing as unknown as Record<string, unknown>, body)
+        if (overwriteError) {
+          res.status(409).json({ error: overwriteError })
+          return
+        }
+      }
       attachDownloadAsset(body)
     }
     const item = isCollectionKey(key)
@@ -625,6 +688,105 @@ adminRouter.put(
       return
     }
     res.json({ ok: true, item })
+  },
+)
+
+/**
+ * 发布下载资料新版本（固件版本化，R-下载 P1）。
+ *
+ * 语义：新版本成为当前版本；当前文件与版本号自动归档到 `history` 首位，
+ * 同时写入 `changelog`。固件不允许通过 PUT 原地换文件，只能走这里。
+ * 文件与大小 / SHA-256 都从素材库元数据取，避免手填造成与实际文件不一致。
+ */
+adminRouter.post(
+  '/resources/:key/:id/versions',
+  requireSession,
+  requireResourceScope,
+  auditWrite('update', (req) => `${readParam(req, 'key')}/${readParam(req, 'id')}/version`),
+  (req, res) => {
+    const key = readParam(req, 'key')
+    if (key !== 'downloads') {
+      res.status(404).json({ error: '该栏目不支持发布新版本' })
+      return
+    }
+    const id = readParam(req, 'id')
+    const existing = getCollectionItem('downloads', id)
+    if (!existing) {
+      res.status(404).json({ error: '未找到该记录' })
+      return
+    }
+    if (String(existing.type) !== 'firmware') {
+      res.status(422).json({ error: '仅固件资源支持发布新版本' })
+      return
+    }
+
+    const body = (req.body ?? {}) as Record<string, unknown>
+    const version = typeof body.version === 'string' ? body.version.trim() : ''
+    if (!version) {
+      res.status(422).json({ error: '请填写新版本号' })
+      return
+    }
+    const history = Array.isArray(existing.history) ? existing.history : []
+    const sameVersion = (value: string) => value.trim().toLowerCase() === version.toLowerCase()
+    if (sameVersion(String(existing.version ?? '')) || history.some((entry) => sameVersion(String(entry.version ?? '')))) {
+      res.status(422).json({ error: `版本 ${version} 已存在，请使用新的版本号` })
+      return
+    }
+
+    const date = normalizeReleaseDate(body.date)
+    if (!date) {
+      res.status(422).json({ error: '发布日期格式应为 YYYY-MM-DD' })
+      return
+    }
+
+    const fileUrl = typeof body.fileUrl === 'string' ? body.fileUrl.trim() : ''
+    if (!fileUrl.startsWith('/uploads/')) {
+      res.status(422).json({ error: '请从素材库选择固件文件（仅支持 /uploads/ 站内文件）' })
+      return
+    }
+    const asset = mediaForDownloadUrl(fileUrl)
+    if (!asset) {
+      res.status(422).json({ error: '素材库中找不到该文件，请重新上传后再发布' })
+      return
+    }
+
+    const notes = toNotes(body.notes)
+    const oldUrl = String(existing.fileUrl ?? '').trim()
+    const oldAsset = oldUrl ? mediaForDownloadUrl(oldUrl) : undefined
+    /** 旧版本归档条目：文件、版本、日期、大小、校验值都保留，前台可直接下载 */
+    const archived = oldUrl
+      ? {
+          version: String(existing.version ?? ''),
+          date: String(existing.date ?? existing.releasedAt ?? ''),
+          size: String(existing.size ?? formatDownloadSize(Number(existing.sizeBytes ?? oldAsset?.size ?? 0))),
+          sizeBytes: Number(existing.sizeBytes ?? oldAsset?.sizeBytes ?? oldAsset?.size ?? 0) || undefined,
+          fileUrl: oldUrl,
+          sha256: String(existing.sha256 ?? oldAsset?.sha256 ?? ''),
+          notes: [],
+        }
+      : null
+
+    const sizeBytes = Number(asset.sizeBytes ?? asset.size ?? 0)
+    const patch: Record<string, unknown> = {
+      version,
+      date,
+      releasedAt: date,
+      fileUrl,
+      assetId: asset.id,
+      size: formatDownloadSize(sizeBytes) || String(existing.size ?? ''),
+      sizeBytes: sizeBytes || undefined,
+      sha256: asset.sha256 ?? '',
+      checksumType: 'SHA-256',
+      isLatest: true,
+      history: archived ? [archived, ...history] : history,
+      changelog: [{ version, date, notes }, ...(Array.isArray(existing.changelog) ? existing.changelog : [])],
+    }
+    const item = updateCollectionItem('downloads', id, patch)
+    if (!item) {
+      res.status(404).json({ error: '未找到该记录' })
+      return
+    }
+    res.status(201).json({ ok: true, item, previousVersion: existing.version })
   },
 )
 

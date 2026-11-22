@@ -90,6 +90,27 @@ export function deleteAdminResource(key: string, id: string): Promise<{ ok: bool
   )
 }
 
+/** 下载中心 · 发布固件新版本（旧文件自动归档到 history） */
+export function publishDownloadVersion(
+  id: string,
+  body: {
+    version: string
+    date?: string
+    fileUrl: string
+    notes?: string[]
+  },
+): Promise<{ ok: boolean; item: AdminRow; previousVersion?: string }> {
+  return transport(
+    {
+      path: `/api/admin/resources/downloads/${id}/versions`,
+      method: 'POST',
+      body,
+      token: getAdminToken() ?? undefined,
+    },
+    () => ({ ok: true, item: body as unknown as AdminRow }),
+  )
+}
+
 /* ---------------- 法律条款 · Word 导入 ---------------- */
 
 /** 解析结果（与后端 ParsedLegalDoc 一致） */

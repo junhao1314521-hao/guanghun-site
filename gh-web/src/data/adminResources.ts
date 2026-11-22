@@ -59,6 +59,8 @@ export type AdminColumn = {
   refLabelKey?: string
   /** records 条目中 ref 类型：选中后同步写入其它字段（目标字段 key → 被引用记录字段 key） */
   refFills?: Record<string, string>
+  /** 文件字段：以「从素材库选择」为主操作，地址输入收进折叠（下载中心用） */
+  pickerFirst?: boolean
 }
 
 export type AdminFilter = { key: string; label: string; options: string[]; /** 选项展示文案（值 → 文案） */ optionLabels?: Record<string, string>; /** 从当前记录动态生成选项（用于省市等会增长的字段） */ dynamic?: boolean }
@@ -98,6 +100,8 @@ export type AdminFieldType =
   | 'specEditor'
   /** 商品媒体总控：相册 / 主图视频 / 3D 预览合并在一个区块内编辑（仅产品表单使用） */
   | 'productMedia'
+  /** 固件版本管理：当前版本摘要 + 发布新版本 + 历史版本列表（仅下载中心固件使用） */
+  | 'downloadVersion'
   /** 资源引用：从另一个栏目的记录中选择（如评价 → 产品），值存被引用记录的 id */
   | 'ref'
 
@@ -120,6 +124,10 @@ export type AdminField = {
   refResource?: string
   /** ref 类型：选项展示用字段（缺省依次尝试 name / title / label / id） */
   refLabelKey?: string
+  /** 文件字段：以「从素材库选择」为主操作，地址输入收进折叠（下载中心用） */
+  pickerFirst?: boolean
+  /** 仅当某一字段等于指定值时显示（如固件才显示版本管理） */
+  visibleWhen?: { key: string; equals: string }
 }
 
 export type AdminFormSection = { title: string; fields: AdminField[] }
@@ -728,14 +736,27 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'version', label: '版本', type: 'text', hint: '如 v2.4.1；与固件包内版本号保持一致' },
           { key: 'size', label: '文件大小', type: 'text', hint: '如 1.2 GB；仅用于列表展示，不参与下载校验' },
           { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows / macOS', hint: '约定字段：填「Windows」或「macOS」。前台软件下载按钮据此显示系统图标与「下载 Windows 版 / 下载 macOS 版」文案；留空时回退按资源名称识别，识别不到则退化为通用文件按钮' },
-          { key: 'fileUrl', label: '文件', type: 'file', span: 2, hint: '必须从素材库上传或选择（仅接受站内 /uploads/ 文件，不支持手填外链）。说明书 PDF、固件包、驱动、安装包均可；PDF 支持在线预览，其余点击下载' },
+          {
+            key: 'fileUrl',
+            label: '文件',
+            type: 'file',
+            span: 2,
+            pickerFirst: true,
+            hint: '从素材库选择（仅站内 /uploads/ 文件，不支持外链）。固件发布新版本后旧文件自动归档，不允许原地覆盖',
+          },
+          {
+            key: 'versionManager',
+            label: '固件版本',
+            type: 'downloadVersion',
+            span: 2,
+            visibleWhen: { key: 'type', equals: 'firmware' },
+          },
           { key: 'date', label: '更新时间', type: 'date' },
           { key: 'releasedAt', label: '发布时间', type: 'date', hint: '用于按发布时间排序；留空沿用「更新时间」' },
           { key: 'os', label: '适用系统', type: 'text', placeholder: 'Windows 11 / macOS 14', hint: '比「适用平台」更细，前台卡片优先展示该值' },
           { key: 'sizeBytes', label: '文件字节数', type: 'number', hint: '用于排序与体积筛选；留空按「文件大小」文本展示' },
           { key: 'isLatest', label: '最新版', type: 'switch', hint: '同型号同类型建议只标记一条，前台卡片显示「最新」徽标' },
           { key: 'checksumType', label: '校验算法', type: 'text', placeholder: 'SHA-256', hint: '具体校验值在下载详情页展示' },
-          { key: 'supersedes', label: '替代旧版本 ID', type: 'text', span: 2, hint: '被本版本替代的资料 id（版本链路，预留）' },
           { key: 'models', label: '适用型号', type: 'modellist', span: 2, required: true, hint: '勾选该资料实际适用的型号；通用资料勾选「全部支持型号」。前台按这里的对应关系展示，不再手填 id' },
           { key: 'note', label: '说明', type: 'textarea', span: 2 },
           {
@@ -755,13 +776,13 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '历史版本',
             type: 'records',
             span: 2,
-            hint: '原厂发布过的旧版本；文件可上传或从素材库选择，SHA-256 留空时由服务端在展示时补算',
+            hint: '原厂发布过的旧版本；旧版本文件不允许覆盖。新版本请用上方「固件版本 → 发布新版本」，会自动归档到这里',
             recordFields: [
               { key: 'version', label: '版本', type: 'text' },
               { key: 'date', label: '日期', type: 'date' },
               { key: 'size', label: '大小', type: 'text' },
               { key: 'sizeBytes', label: '字节数', type: 'number' },
-              { key: 'fileUrl', label: '文件', type: 'file', hint: '只从素材库选择，不支持外链' },
+              { key: 'fileUrl', label: '文件', type: 'file', pickerFirst: true, hint: '只从素材库选择，不支持外链' },
               { key: 'sha256', label: 'SHA-256', type: 'text' },
               { key: 'notes', label: '说明（每行一条）', type: 'list' },
             ],
@@ -774,7 +795,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             hint: '随该固件提供的升级工具，前台详情页单独展示下载入口',
             recordFields: [
               { key: 'name', label: '工具名称', type: 'text' },
-              { key: 'fileUrl', label: '文件', type: 'file', hint: '只从素材库选择，不支持外链' },
+              { key: 'fileUrl', label: '文件', type: 'file', pickerFirst: true, hint: '只从素材库选择，不支持外链' },
               { key: 'size', label: '大小', type: 'text' },
               { key: 'sizeBytes', label: '字节数', type: 'number' },
             ],

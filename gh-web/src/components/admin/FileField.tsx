@@ -101,6 +101,10 @@ export type FileFieldProps = {
   crops?: CropPreviewSpec[]
   /** 隐藏空值时的通用格式说明（父级已渲染更具体的提示时使用，避免同一条信息出现两次） */
   hideDefaultHint?: boolean
+  /** 以「从素材库选择」为主操作：选中文件卡片 + 折叠的手填地址（下载中心用） */
+  pickerFirst?: boolean
+  /** 锁定：不允许更换 / 上传 / 改地址（固件当前文件，只能发布新版本） */
+  locked?: boolean
 }
 
 /** 图片实测结果：真实像素、宽高比、是否带透明通道 */
@@ -165,6 +169,8 @@ export function FileField({
   hint,
   crops,
   hideDefaultHint = false,
+  pickerFirst = false,
+  locked = false,
 }: FileFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   // 未显式传 inputId 时生成稳定 id，保证每个地址输入都有可关联的标识（无障碍）
@@ -266,6 +272,108 @@ export function FileField({
   }
 
   const auditResult = audit ? auditText(audit, hint) : null
+
+  // 下载中心等「文件」字段：素材库为主操作，地址手填收进折叠；固件当前文件锁定
+  if (pickerFirst && !isImageMode && !isMediaMode) {
+    const fileName = url.split('/').pop() || url
+    return (
+      <div className={`asset-field${locked ? ' is-locked' : ''}`}>
+        <input ref={fileRef} type="file" accept={accept} className="image-field__file" aria-label={`上传${label ?? '文件'}`} onChange={onPickFile} />
+
+        {url ? (
+          <div className="asset-field__card">
+            <span className="asset-field__icon" aria-hidden="true">
+              <AdminIcon name="doc" size={20} />
+            </span>
+            <span className="asset-field__meta">
+              <span className="asset-field__name" title={url}>
+                {fileName}
+              </span>
+              <a className="asset-field__link" href={url} target="_blank" rel="noreferrer">
+                {locked ? '查看 / 下载' : '打开 / 下载'}
+              </a>
+            </span>
+            {!locked && (
+              <span className="asset-field__actions">
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  onClick={() => {
+                    setError(null)
+                    setPickerOpen(true)
+                  }}
+                  disabled={uploading}
+                >
+                  从素材库选择
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? `上传中 ${uploadPercent}%` : '上传文件'}
+                </button>
+              </span>
+            )}
+          </div>
+        ) : locked ? null : (
+          <div className="asset-field__empty">
+            <button
+              type="button"
+              className="btn btn--secondary btn--sm"
+              onClick={() => {
+                setError(null)
+                setPickerOpen(true)
+              }}
+              disabled={uploading}
+            >
+              从素材库选择文件
+            </button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              {uploading ? `上传中 ${uploadPercent}%` : '上传文件'}
+            </button>
+            <span className="field__hint">仅支持素材库站内文件</span>
+          </div>
+        )}
+
+        {error && (
+          <p className="image-field__error" role="alert">
+            {error}
+          </p>
+        )}
+
+        {locked && <span className="field__hint">固件文件不允许原地覆盖；请使用下方「发布新版本」，旧文件会自动归档</span>}
+
+        {!locked && (
+          <details className="media-advanced">
+            <summary>高级：手动填写文件地址</summary>
+            <input
+              id={fieldId}
+              className="input"
+              type="text"
+              aria-label={fieldLabel}
+              placeholder={placeholder ?? '/uploads/...'}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+            />
+          </details>
+        )}
+
+        {pickerOpen && (
+          <MediaPickerDialog
+            filter="all"
+            onClose={() => setPickerOpen(false)}
+            onSelect={(item) => {
+              onChange(item.url)
+              setError(null)
+              setPickerOpen(false)
+            }}
+          />
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="image-field">

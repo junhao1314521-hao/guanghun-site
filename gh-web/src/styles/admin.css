@@ -1701,6 +1701,62 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .image-picker__count { font-size: var(--gh-font-size-body-sm); color: var(--color-text-secondary); }
 .image-picker__foot-actions { display: flex; gap: var(--gh-space-2); }
 
+/* ---------- 下载中心 · 素材库优先的文件字段 ----------
+   主操作是「从素材库选择」，地址手填收进高级折叠；固件当前文件锁定。 */
+.asset-field { display: flex; flex-direction: column; gap: var(--gh-space-2); }
+.asset-field__card {
+  display: flex; align-items: center; gap: var(--gh-space-3);
+  padding: var(--gh-space-3);
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-subtle);
+}
+.asset-field.is-locked .asset-field__card { background: var(--color-bg-muted); }
+.asset-field__icon {
+  flex: 0 0 auto; display: grid; place-items: center; width: 36px; height: 36px;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-sm);
+  background: var(--color-bg-surface); color: var(--color-text-secondary);
+}
+.asset-field__meta { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.asset-field__name {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--gh-font-size-body-sm); color: var(--color-text-primary);
+}
+.asset-field__link { font-size: var(--gh-font-size-caption); color: var(--color-accent-text); }
+.asset-field__actions { flex: 0 0 auto; display: flex; gap: var(--gh-space-2); flex-wrap: wrap; }
+.asset-field__empty {
+  display: flex; align-items: center; gap: var(--gh-space-2); flex-wrap: wrap;
+  padding: var(--gh-space-3);
+  border: 1px dashed var(--color-border-strong); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-subtle);
+}
+
+/* ---------- 下载中心 · 固件版本管理 ---------- */
+.version-field {
+  display: flex; flex-direction: column; gap: var(--gh-space-2);
+  padding: var(--gh-space-3);
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
+  background: var(--color-bg-subtle);
+}
+.version-field__row { display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-3); flex-wrap: wrap; }
+.version-field__summary { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.version-field__label { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.version-field__version { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-semibold); }
+.version-field__meta { font-size: var(--gh-font-size-caption); color: var(--color-text-secondary); }
+.version-field__history {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: var(--gh-space-2); border-top: 1px dashed var(--color-border-default);
+}
+.version-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.version-list__item { display: flex; align-items: center; gap: var(--gh-space-3); font-size: var(--gh-font-size-caption); }
+.version-list__version { min-width: 72px; font-weight: var(--gh-weight-medium); }
+.version-list__meta { flex: 1 1 auto; min-width: 0; color: var(--color-text-secondary); }
+.version-list__link { color: var(--color-accent-text); }
+.version-list__link.is-muted { color: var(--color-text-tertiary); }
+.version-dialog__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-3); }
+.version-dialog__full { grid-column: 1 / -1; }
+@media (max-width: 767px) { .version-dialog__grid { grid-template-columns: 1fr; } }
+.version-dialog__actions { display: flex; justify-content: flex-end; gap: var(--gh-space-2); margin-top: var(--gh-space-4); }
+
 /* ---------- 海报 / 矩阵图片字段的「安全区」虚线预览 ----------
    外框 = 当前比例的半透明虚线框（无投影，随容器自适应、窄屏不溢出）；
    内框 = 安全区虚线框（向内缩约 7%）。沿用后台既有令牌。 */

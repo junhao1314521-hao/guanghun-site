@@ -27,6 +27,7 @@ import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
 import { ProductSpecEditor } from '../../components/admin/ProductSpecEditor'
 import { ProductMediaField } from '../../components/admin/ProductMediaField'
+import { DownloadVersionField } from '../../components/admin/DownloadVersionField'
 import { RichTextField } from '../../components/admin/RichTextField'
 import { Select } from '../../components/admin/Select'
 import { hasMediaHint, mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
@@ -343,7 +344,13 @@ function FormField({
   }
 
   if (field.type === 'file') {
-    // 文件地址：上传任意允许类型文件 + 从素材库选择（复用 FileField，非图片模式）
+    // 文件地址：上传任意允许类型文件 + 从素材库选择（复用 FileField）
+    // 下载中心固件：已有文件时锁定，禁止原地覆盖，只能走「发布新版本」
+    const firmwareLocked =
+      resourceKey === 'downloads' &&
+      field.key === 'fileUrl' &&
+      String(allValues?.type ?? '') === 'firmware' &&
+      Boolean(String(value ?? '').trim())
     return (
       <>
         <label className="field__label" htmlFor={fieldId}>
@@ -355,6 +362,8 @@ function FormField({
           inputId={fieldId}
           label={field.label}
           placeholder={field.placeholder}
+          pickerFirst={field.pickerFirst}
+          locked={firmwareLocked}
           hideDefaultHint={Boolean(field.hint)}
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
@@ -362,6 +371,11 @@ function FormField({
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
     )
+  }
+
+  if (field.type === 'downloadVersion') {
+    // 固件版本管理：当前版本摘要 + 发布新版本 + 历史版本列表
+    return <DownloadVersionField values={allValues ?? {}} onChange={onChange} />
   }
 
   if (field.type === 'productMedia') {
@@ -464,7 +478,8 @@ function ModelListField({ value, onChange }: { value: unknown; onChange: (next: 
   const rows = state.data?.items ?? []
   const known = rows.map((row) => ({ id: String(row.id), label: String(row.model ?? row.name ?? row.id) }))
   const unknown = selected
-    .filter((id) => !known.some((option) => option.id === id))
+    // 'all'（全部支持型号）是固定选项，不能再被当成「未知型号」重复渲染
+    .filter((id) => id !== 'all' && !known.some((option) => option.id === id))
     .map((id) => ({ id, label: `${id}（未知型号）` }))
   const options = [{ id: 'all', label: '全部支持型号' }, ...known, ...unknown]
   const toggle = (id: string) =>
@@ -560,6 +575,7 @@ function recordColumnToField(column: AdminColumn): AdminField {
     hint: column.hint,
     refResource: column.refResource,
     refLabelKey: column.refLabelKey,
+    pickerFirst: column.pickerFirst,
   }
 }
 
@@ -933,7 +949,12 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
     <div className="admin-form__section" key={section.title}>
       <h2 className="admin-form__section-title">{section.title}</h2>
       <div className="admin-form__grid">
-        {section.fields.map((field) => (
+        {section.fields
+          .filter(
+            (field) =>
+              !field.visibleWhen || String(values[field.visibleWhen.key] ?? '') === field.visibleWhen.equals,
+          )
+          .map((field) => (
           <div
             className={`field${field.span === 2 ? ' admin-form__field--full' : ''}${errors[field.key] ? ' has-error' : ''}`}
             key={field.key}
