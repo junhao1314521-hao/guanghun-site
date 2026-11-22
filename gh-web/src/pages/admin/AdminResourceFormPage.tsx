@@ -25,6 +25,7 @@ import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ImageField } from '../../components/admin/ImageField'
 import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
+import { ProductSpecEditor } from '../../components/admin/ProductSpecEditor'
 import { RichTextField } from '../../components/admin/RichTextField'
 import { ProductModel3D, supports3D } from '../../components/product/ProductModel3D'
 import { Select } from '../../components/admin/Select'
@@ -344,6 +345,24 @@ function FormField({
           value={value === undefined || value === null ? '' : String(value)}
           fallbackSrc={poster || (gallery.length > 0 ? String(gallery[0]) : '')}
           onChange={(url) => onChange(field.key, url)}
+        />
+        {field.hint && <span className="field__hint">{field.hint}</span>}
+      </>
+    )
+  }
+
+  if (field.type === 'specEditor') {
+    // 结构化参数：参数名 / 取值均从常用目录下拉选择，既有自由文本原样保留
+    return (
+      <>
+        <span className="field__label">
+          {field.label}
+          {req}
+        </span>
+        <ProductSpecEditor
+          value={value}
+          variant={allValues?.variant}
+          onChange={(next) => onChange(field.key, next)}
         />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
@@ -890,6 +909,17 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
               }
               return out
             })
+        } else if (field.type === 'specEditor') {
+          // 结构化参数：trim + 丢弃未命名的空行，保持 { group, label, value } 形状
+          const raw = Array.isArray(payload[field.key]) ? (payload[field.key] as Array<unknown>) : []
+          payload[field.key] = raw
+            .map((item) => (item && typeof item === 'object' ? (item as Record<string, unknown>) : {}))
+            .map((row) => ({
+              group: String(row.group ?? '').trim() || '其他',
+              label: String(row.label ?? '').trim(),
+              value: String(row.value ?? '').trim(),
+            }))
+            .filter((row) => row.label !== '')
         }
       }
     }

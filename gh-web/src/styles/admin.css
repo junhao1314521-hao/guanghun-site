@@ -708,6 +708,29 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 }
 @media (max-width: 767px) { .admin-records__grid { grid-template-columns: 1fr; } }
 
+/* ---------- 结构化参数编辑器（产品表单） ---------- */
+.spec-editor { display: flex; flex-direction: column; gap: var(--gh-space-3); }
+.spec-editor__add { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-2); }
+.spec-editor__add .admin-select { min-width: 260px; }
+.spec-editor__count { margin-left: auto; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
+.spec-row__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--gh-space-3); margin-bottom: var(--gh-space-3);
+}
+.spec-row__title { display: flex; align-items: center; gap: var(--gh-space-2); min-width: 0; }
+.spec-row__name { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-medium); }
+.spec-value { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-2); }
+.spec-value > .admin-select { flex: 1 1 220px; }
+.spec-value > .input { flex: 1 1 220px; min-width: 180px; }
+@media (max-width: 767px) {
+  .spec-editor__add .admin-select { min-width: 0; width: 100%; }
+  .spec-editor__add .btn { width: 100%; }
+  .spec-editor__count { margin-left: 0; }
+  .spec-row__head { flex-wrap: wrap; }
+  .spec-value > .admin-select,
+  .spec-value > .input { flex-basis: 100%; }
+}
+
 /* ---------- 素材宫格 ---------- */
 .admin-gallery {
   display: grid;

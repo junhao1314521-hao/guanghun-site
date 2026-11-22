@@ -92,6 +92,8 @@ export type AdminFieldType =
   | 'modellist'
   /** 常用参数模板：按设备形态一键带入结构化参数骨架（仅产品表单使用） */
   | 'specTemplate'
+  /** 结构化参数编辑器：参数名与取值均从常用目录下拉选择（仅产品表单使用） */
+  | 'specEditor'
   /** 资源引用：从另一个栏目的记录中选择（如评价 → 产品），值存被引用记录的 id */
   | 'ref'
 
@@ -385,19 +387,14 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '常用参数模板',
             type: 'specTemplate',
             span: 2,
-            hint: '按设备形态一键带入常用参数骨架（分组 + 参数名），只补缺失项、不覆盖已填内容；带入后请填写各参数取值',
+            hint: '按设备形态一键带入常用参数骨架（分组 + 参数名），只补缺失项、不覆盖已填内容；带入后在「结构化参数」里用下拉选择取值',
           },
           {
             key: 'attributes',
             label: '结构化参数',
-            type: 'records',
+            type: 'specEditor',
             span: 2,
-            hint: '唯一「完整规格」来源，详情页按分组平铺展示（不做分类切换）；性能模块自动取刷新率 / 响应时间 / 尺寸 / 亮度 / 对比度 / 色域。常用参数名——显示：面板 / 尺寸 / 分辨率 / 刷新率 / 响应时间 / 对比度 / 色域 / HDR 认证；接口：接口 / 同步技术；电源：功耗；机械：支架；物理尺寸：净重 / 尺寸；包装：包装清单；认证：CE / FCC / CCC',
-            recordFields: [
-              { key: 'group', label: '分组', type: 'select', options: ['显示', '接口', '电源', '机械', '物理尺寸', '包装', '认证', '其他'] },
-              { key: 'label', label: '参数名', type: 'text' },
-              { key: 'value', label: '取值', type: 'text' },
-            ],
+            hint: '参数名与取值优先用下拉选择（如「显示 · 刷新率」→ 240 Hz / 280 Hz / 540 Hz），没有的选项选「其他」手动填写。这里仍是唯一「完整规格」来源，详情页按分组平铺展示；性能模块自动取刷新率 / 响应时间 / 尺寸 / 峰值亮度 / 对比度 / 色域。',
           },
           { key: 'os', label: '兼容系统', type: 'list', span: 2, hint: '每行一项，如：Windows 10 / 11' },
           { key: 'weight', label: '整机重量（克）', type: 'number', hint: '单位：克（g），仅填数字；留空则前台不显示重量' },

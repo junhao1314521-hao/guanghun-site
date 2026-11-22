@@ -336,7 +336,7 @@ export function ProductDetailV8({ heroProps, t }: { heroProps: Record<string, un
   // 关键指标：取后台参数里最常用的四项，与完整规格同源，不再单独做「性能」模块
   const keyStats = (() => {
     const list: { label: string; value: string }[] = []
-    for (const key of ['刷新率', '响应时间', '分辨率', '面板', '尺寸', '亮度', '对比度', '色域', '接口']) {
+    for (const key of ['刷新率', '响应时间', '尺寸 / 分辨率', '分辨率', '面板', '峰值亮度', '亮度', '对比度', '色域', '接口']) {
       const item = findAttr(attributes, key)
       if (item) list.push({ label: item.label, value: item.value })
       if (list.length === 4) break
