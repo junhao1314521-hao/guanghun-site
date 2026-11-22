@@ -99,6 +99,8 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
   const galleryHint = hasMediaHint({ resourceKey: 'products', fieldKey: 'gallery' })
     ? resolveMediaHint({ resourceKey: 'products', fieldKey: 'gallery' })
     : undefined
+  /** 说明只保留一行规格；`extra` 里的「第一张即主图」与左侧标题重复，故不再拼接 */
+  const galleryNote = galleryHint ? mediaHintText({ ...galleryHint, extra: undefined }) : ''
   const galleryCrops = galleryHint ? resolveMediaCrops('products', 'gallery', galleryHint) : undefined
 
   const fail = (message: string) => {
@@ -320,7 +322,7 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
               相册图片 <span className="media-block__count">{gallery.length}/20</span>
             </h3>
             <p className="media-block__note">
-              第一张为主图{galleryHint ? ` · ${mediaHintText(galleryHint)}` : ''}
+              第一张为主图{galleryNote ? ` · ${galleryNote}` : ''}
             </p>
           </div>
           <div className="media-block__actions">
@@ -470,7 +472,7 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
           <div className="media-block__head">
             <div>
               <h3 className="media-block__title">3D 预览</h3>
-              <p className="media-block__note">单文件 .glb（贴图内嵌）· ≤30MB · 详情页出现 3D 入口</p>
+              <p className="media-block__note">仅 .glb · ≤30MB · 开启后详情页出现 3D 入口</p>
             </div>
             <label className="switch">
               <input
@@ -547,9 +549,9 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
           <details className="media-advanced">
             <summary>上传要求与模型地址</summary>
             <ul className="media-advanced__list">
-              <li>仅支持单文件 .glb，贴图必须内嵌（不要 .gltf + 外部贴图）</li>
-              <li>建议几何 ≤ 15 万面、贴图 ≤ 2048，Y 轴向上、正面朝 +Z、原点在底座中心</li>
-              <li>首帧封面留空时使用相册第一张；上传模型后需打开「启用」并保存才生效</li>
+              <li>贴图必须内嵌，不要 .gltf + 外部贴图</li>
+              <li>建议几何 ≤ 15 万面、贴图 ≤ 2048；Y 轴向上、正面朝 +Z、原点在底座中心</li>
+              <li>上传后需打开「启用」并保存，前台才出现入口</li>
             </ul>
             <input
               className="input"
