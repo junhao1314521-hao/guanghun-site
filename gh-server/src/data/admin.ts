@@ -11,7 +11,7 @@
 
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { getDb, runInTransaction } from './db'
-import { normalizeRole, roleName, scopesForRole, type RoleKey } from './roles'
+import { isRoleKey, normalizeRole, roleName, scopesForRole, type RoleKey } from './roles'
 
 /* ============================================================
    账号与会话
@@ -242,6 +242,145 @@ export function changeAdminPassword(
 /** 注销会话 */
 export function logoutAdmin(token: string | undefined): void {
   if (token) SESSIONS.delete(token)
+}
+
+/* ============================================================
+   后台成员（真实 admin_users 账号管理）
+   ============================================================ */
+
+/** 后台成员列表项（不含盐 / 哈希） */
+export type AdminTeamMember = {
+  id: string
+  username: string
+  name: string
+  role: string
+  roleName: string
+  scopes: string[]
+  createdAt: string
+  sessionCount: number
+  /** 内置超级管理员账号：不可删除、不可降级 */
+  builtin: boolean
+}
+
+/** 统计某账号当前内存会话数 */
+function sessionCountOf(userId: string): number {
+  let count = 0
+  for (const session of SESSIONS.values()) {
+    if (session.userId === userId && session.expiresAt > Date.now()) count += 1
+  }
+  return count
+}
+
+/** 作废某账号全部会话；返回移除数量 */
+export function revokeAdminUserSessions(userId: string): number {
+  let removed = 0
+  for (const [token, session] of SESSIONS) {
+    if (session.userId === userId) {
+      SESSIONS.delete(token)
+      removed += 1
+    }
+  }
+  return removed
+}
+
+/** 列出全部后台成员（内置 admin 标记 builtin） */
+export function listAdminUsers(): AdminTeamMember[] {
+  initAdminUsers()
+  const rows = getDb()
+    .prepare('SELECT id, username, name, role, created_at FROM admin_users ORDER BY created_at ASC, id ASC')
+    .all() as Array<{ id: string; username: string; name: string | null; role: string | null; created_at: string | null }>
+  return rows.map((row) => {
+    const role = normalizeRole(row.role)
+    return {
+      id: row.id,
+      username: row.username,
+      name: row.name ?? '',
+      role,
+      roleName: roleName(role),
+      scopes: scopesForRole(role),
+      createdAt: row.created_at ?? '',
+      sessionCount: sessionCountOf(row.id),
+      builtin: row.username === 'admin',
+    }
+  })
+}
+
+/** 新建后台成员；失败返回可读原因 */
+export function createAdminUser(input: {
+  username: string
+  name: string
+  role: string
+  password: string
+}): { ok: true; member: AdminTeamMember } | { ok: false; error: string } {
+  initAdminUsers()
+  const username = input.username.trim()
+  const name = input.name.trim()
+  if (!/^[A-Za-z0-9._-]{3,32}$/.test(username)) return { ok: false, error: '账号需为 3–32 位字母 / 数字 / . _ -' }
+  if (!name) return { ok: false, error: '请填写姓名' }
+  if (!isRoleKey(input.role)) return { ok: false, error: '角色不存在' }
+  if (findUserByUsername(username)) return { ok: false, error: '该账号已存在' }
+  const policy = adminPasswordError(username, input.password)
+  if (policy) return { ok: false, error: policy }
+  const id = `u-${randomBytes(8).toString('hex')}`
+  const { salt, hash } = hashPassword(input.password)
+  getDb()
+    .prepare('INSERT INTO admin_users(id, username, salt, hash, name, role, scopes, created_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, username, salt, hash, name, input.role, JSON.stringify(scopesForRole(input.role)), new Date().toISOString())
+  const member = listAdminUsers().find((item) => item.id === id)
+  return member ? { ok: true, member } : { ok: false, error: '创建失败，请稍后重试' }
+}
+
+/** 更新成员姓名 / 角色；内置 admin 不允许降级 */
+export function updateAdminUser(
+  id: string,
+  patch: { name?: string; role?: string },
+): { ok: true; member: AdminTeamMember } | { ok: false; error: string } {
+  const row = findUserById(id)
+  if (!row) return { ok: false, error: '成员不存在' }
+  const nextName = patch.name !== undefined ? patch.name.trim() : (row.name ?? '')
+  if (!nextName) return { ok: false, error: '请填写姓名' }
+  let nextRole = row.role ?? ''
+  if (patch.role !== undefined) {
+    if (!isRoleKey(patch.role)) return { ok: false, error: '角色不存在' }
+    if (row.username === 'admin' && patch.role !== 'admin') return { ok: false, error: '内置超级管理员不可降级' }
+    nextRole = patch.role
+  }
+  getDb()
+    .prepare('UPDATE admin_users SET name = ?, role = ?, scopes = ? WHERE id = ?')
+    .run(nextName, nextRole, JSON.stringify(scopesForRole(nextRole)), id)
+  // 角色变化后立即刷新其会话用户对象（会话内存里只存 userId，权限读取时按角色重算，无需重建）
+  const member = listAdminUsers().find((item) => item.id === id)
+  return member ? { ok: true, member } : { ok: false, error: '更新失败，请稍后重试' }
+}
+
+/** 管理员重置成员密码：生成合规临时密码并强制下线 */
+export function resetAdminUserPassword(id: string): { ok: true; tempPassword: string } | { ok: false; error: string } {
+  const row = findUserById(id)
+  if (!row) return { ok: false, error: '成员不存在' }
+  // 同时含字母与数字，避开弱口令黑名单
+  const tempPassword = `Gh${randomBytes(5).toString('hex')}9`
+  const { salt, hash } = hashPassword(tempPassword)
+  getDb().prepare('UPDATE admin_users SET salt = ?, hash = ? WHERE id = ?').run(salt, hash, id)
+  revokeAdminUserSessions(id)
+  return { ok: true, tempPassword }
+}
+
+/** 删除成员：禁止删除自己 / 内置 admin / 最后一个超级管理员 */
+export function deleteAdminUser(
+  id: string,
+  actorId: string,
+): { ok: true } | { ok: false; error: string } {
+  const row = findUserById(id)
+  if (!row) return { ok: false, error: '成员不存在' }
+  if (id === actorId) return { ok: false, error: '不能删除当前登录账号' }
+  if (row.username === 'admin') return { ok: false, error: '内置超级管理员不可删除' }
+  const admins = (
+    getDb().prepare("SELECT COUNT(*) AS n FROM admin_users WHERE role = 'admin'").get() as { n: number }
+  ).n
+  if (normalizeRole(row.role) === 'admin' && admins <= 1) return { ok: false, error: '至少保留一个超级管理员' }
+  getDb().prepare('DELETE FROM admin_users WHERE id = ?').run(id)
+  revokeAdminUserSessions(id)
+  return { ok: true }
 }
 
 /** 后台资源行（字段名 → 值） */

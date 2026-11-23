@@ -19,9 +19,14 @@ import { AdminUploadsList } from '../../components/admin/AdminUploadsList'
 import { AdminComponentsList } from '../../components/admin/AdminComponentsList'
 import { AdminTemplatesList } from '../../components/admin/AdminTemplatesList'
 import { AdminStylesPage } from '../../components/admin/AdminStylesPage'
+import { AdminSeoView } from '../../components/admin/AdminSeoView'
 import { AdminBackupsList } from '../../components/admin/AdminBackupsList'
 import { AdminPublishList } from '../../components/admin/AdminPublishList'
 import { AdminRolesView } from '../../components/admin/AdminRolesView'
+import { AdminMembersView } from '../../components/admin/AdminMembersView'
+import { AdminAccessView } from '../../components/admin/AdminAccessView'
+import { AdminRankingsHubView } from '../../components/admin/AdminRankingsHubView'
+import { AdminVenuesView } from '../../components/admin/AdminVenuesView'
 import { AdminRequirementsView } from '../../components/admin/AdminRequirementsView'
 import { AdminProductsList } from './AdminProductsList'
 import { AdminTrashList } from '../../components/admin/AdminTrashList'
@@ -288,8 +293,9 @@ function LegalImportButton() {
   )
 }
 
-// 通用资源列表主体：拉取数据并实现搜索、列筛选、排序、分页与删除
-function ResourceListBody({ resource }: { resource: AdminResource }) {
+// 通用资源列表主体：拉取数据并实现搜索、列筛选、排序、分页与删除。
+// `embedded` 用于合并页（如天梯与测评）内嵌：不渲染独立页头与外层 admin-page。
+export function ResourceListBody({ resource, embedded = false }: { resource: AdminResource; embedded?: boolean }) {
   const state = useApi<AdminList>((signal) => fetchAdminResource(resource.key, signal), [resource.key])
   const confirm = useConfirm()
   const toast = useToast()
@@ -522,6 +528,12 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
 
       <DensityToggle density={density} onChange={setDensity} />
 
+      {embedded && resource.creatable && (
+        <Link className="btn btn--primary btn--sm" to={`/admin/${resource.key}/new`}>
+          新建
+        </Link>
+      )}
+
       {selected.size > 0 ? (
         <div className="admin-toolbar__selected" role="status">
           <span className="admin-table__count">已选 {selected.size} 项</span>
@@ -536,21 +548,25 @@ function ResourceListBody({ resource }: { resource: AdminResource }) {
   )
 
   return (
-    <div className="admin-page">
-      <AdminPageHead
-        title={resource.title}
-        desc={resource.desc}
-        actions={
-          <>
-            {resource.key === 'legal' && <LegalImportButton />}
-            {resource.creatable && (
-              <Link className="btn btn--primary btn--sm" to={`/admin/${resource.key}/new`}>
-                新建
-              </Link>
-            )}
-          </>
-        }
-      />
+    <div className={embedded ? 'resource-pane' : 'admin-page'}>
+      {!embedded && (
+        <AdminPageHead
+          title={resource.title}
+          desc={resource.desc}
+          actions={
+            <>
+              {resource.key === 'legal' && <LegalImportButton />}
+              {resource.creatable && (
+                <Link className="btn btn--primary btn--sm" to={`/admin/${resource.key}/new`}>
+                  新建
+                </Link>
+              )}
+            </>
+          }
+        />
+      )}
+
+      {embedded && <p className="admin-page__desc resource-pane__desc">{resource.desc}</p>}
 
       {toolbar}
 
@@ -737,12 +753,22 @@ export function AdminResourceListPage() {
   if (resource.view === 'templates') return <AdminTemplatesList />
   // 「样式」栏目为站点级设计令牌编辑：由 AdminStylesPage 承载（数据源 /api/content/site）
   if (resource.view === 'styles') return <AdminStylesPage />
+  // 「SEO 元信息」为静态路由标题 / 描述 / 收录开关：由 AdminSeoView 承载（数据源 /api/admin/seo）
+  if (resource.view === 'seo') return <AdminSeoView />
   // 「备份」栏目为快照管理：由 AdminBackupsList 承载（数据源 /api/admin/backups）
   if (resource.view === 'backups') return <AdminBackupsList />
   // 「预览与发布」栏目为发布记录与回滚：由 AdminPublishList 承载（数据源 /api/admin/publish，需 publish 权限）
   if (resource.view === 'publish') return <AdminPublishList />
   // 「角色与权限」栏目为角色 CRUD 与权限矩阵：由 AdminRolesView 承载（数据源 /api/admin/roles）
   if (resource.view === 'roles') return <AdminRolesView />
+  // 「会员管理」为真实前台账号：由 AdminMembersView 承载（数据源 /api/admin/members）
+  if (resource.view === 'members') return <AdminMembersView />
+  // 「成员与权限」为真实后台账号 + 角色 + 权限矩阵：由 AdminAccessView 承载
+  if (resource.view === 'access') return <AdminAccessView />
+  // 「天梯与测评」为四 Tab 合并模块：由 AdminRankingsHubView 承载
+  if (resource.view === 'rankings-hub') return <AdminRankingsHubView />
+  // 「体验点」为列表 / 地图双布局：由 AdminVenuesView 承载
+  if (resource.view === 'venues') return <AdminVenuesView />
   // 「迭代需求池」栏目为列表 / 看板 / 四象限三视图：由 AdminRequirementsView 承载（数据源 /api/admin/resources/requirements）
   if (resource.view === 'board') return <AdminRequirementsView />
   // 「回收站」栏目为真实软删除视图：由 AdminTrashList 承载（数据源 /api/admin/resources/trash）

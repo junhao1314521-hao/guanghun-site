@@ -39,7 +39,7 @@ export function BusinessVenueDetailPage() {
       <div className="container section--tight" style={{ paddingTop: 'var(--gh-space-7)' }}>
         <div className="empty" style={{ marginTop: 'var(--gh-space-6)' }}>
           <div className="empty__title">未找到该体验点</div>
-          <p className="empty__desc">{error?.message ?? '门店可能已调整或链接有误'}，返回体验点列表重新选择。</p>
+          <p className="empty__desc">{error?.message ?? '体验点可能已调整或链接有误'}，返回体验点列表重新选择。</p>
           <div style={{ display: 'flex', gap: 'var(--gh-space-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link className="btn btn--secondary btn--sm" to="/business/venues">
               返回体验点列表

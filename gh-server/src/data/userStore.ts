@@ -148,15 +148,21 @@ export function registerUser(input: { username: string; email: string; password:
   return { ok: true, user: profile }
 }
 
-/** 按用户名 / 邮箱 + 密码校验；通过返回资料，否则 undefined */
-export function loginUser(identifier: string, password: string): UserProfile | undefined {
+/** 登录结果：区分密码错误与账号冻结，路由据此给出可读提示 */
+export type LoginOutcome = { ok: true; user: UserProfile } | { ok: false; reason: 'invalid' | 'frozen' }
+
+/** 按用户名 / 邮箱 + 密码校验；通过返回资料，否则给出失败原因 */
+export function loginUser(identifier: string, password: string): LoginOutcome {
   const key = identifier.trim()
   const row = getDb()
-    .prepare('SELECT id, username, email, phone, salt, hash, name FROM users WHERE username = ? OR email = ?')
-    .get(key, key.toLowerCase()) as UserRow | undefined
-  if (!row) return undefined
-  if (!verifyUserPasswordHash(password, row.salt, row.hash)) return undefined
-  return rowToProfile(row)
+    .prepare(
+      'SELECT id, username, email, phone, salt, hash, name, status FROM users WHERE username = ? OR email = ?',
+    )
+    .get(key, key.toLowerCase()) as (UserRow & { status?: string | null }) | undefined
+  if (!row) return { ok: false, reason: 'invalid' }
+  if ((row.status ?? 'active') === 'frozen') return { ok: false, reason: 'frozen' }
+  if (!verifyUserPasswordHash(password, row.salt, row.hash)) return { ok: false, reason: 'invalid' }
+  return { ok: true, user: rowToProfile(row) }
 }
 
 /** 校验某账号当前密码是否正确 */
@@ -183,13 +189,15 @@ export function updateUserProfile(userId: string, patch: { name?: string; phone?
    会话（落库，独立于后台内存会话）
    ============================================================ */
 
-/** 签发会话并落库；返回令牌 */
+/** 签发会话并落库；返回令牌（同时刷新最近登录时间） */
 export function createUserSession(userId: string): string {
   const token = randomBytes(24).toString('hex')
   const expiresAt = Date.now() + userSessionTtlMs()
+  const now = new Date().toISOString()
   getDb()
     .prepare('INSERT INTO user_sessions(token, user_id, expires_at, created_at) VALUES(?, ?, ?, ?)')
-    .run(token, userId, expiresAt, new Date().toISOString())
+    .run(token, userId, expiresAt, now)
+  getDb().prepare('UPDATE users SET last_login_at = ? WHERE id = ?').run(now, userId)
   return token
 }
 
@@ -417,4 +425,226 @@ export function deleteUserAccount(userId: string): boolean {
     tx.prepare('DELETE FROM user_reset_tokens WHERE user_id = ?').run(userId)
   })
   return true
+}
+
+/* ============================================================
+   后台 · 会员管理（真实前台账号，只读统计 + 冻结 / 重置 / 强制下线）
+   ============================================================ */
+
+/** 会员状态：active 正常 / frozen 已冻结 */
+export type MemberStatus = 'active' | 'frozen'
+
+/** 后台会员列表项（含真实设备数与有效会话数） */
+export type AdminMember = {
+  id: string
+  username: string
+  name: string
+  email: string
+  phone: string
+  status: MemberStatus
+  createdAt: string
+  lastLoginAt: string
+  frozenAt: string
+  sessionCount: number
+  deviceCount: number
+  /** 运营标签（后台维护，仅内部可见） */
+  tags: string[]
+  /** 内部备注（后台维护，不对会员展示） */
+  note: string
+}
+
+/** 后台会员详情（列表项 + 最近会话与设备登记） */
+export type AdminMemberDetail = AdminMember & {
+  sessions: Array<{ createdAt: string; expiresAt: string }>
+  devices: Array<{ id: string; model: string; sn: string; status: string; createdAt: string }>
+}
+
+/** 列表查询参数（q 匹配用户名 / 姓名 / 邮箱 / 手机号） */
+export type AdminMemberQuery = { q?: string; status?: string; tag?: string; page?: number; pageSize?: number }
+
+/** 会员基础行 */
+type MemberRow = {
+  id: string
+  username: string
+  email: string
+  phone: string | null
+  name: string | null
+  status: string | null
+  created_at: string | null
+  last_login_at: string | null
+  frozen_at: string | null
+  session_count: number
+  device_count: number
+  tags: string | null
+  note: string | null
+}
+
+/** 解析标签 JSON；损坏或空值回退空数组 */
+function parseTags(raw: string | null): string[] {
+  if (!raw) return []
+  try {
+    const value = JSON.parse(raw) as unknown
+    return Array.isArray(value) ? value.map(String).map((item) => item.trim()).filter(Boolean) : []
+  } catch {
+    return []
+  }
+}
+
+/** 行 → 后台会员 */
+function rowToMember(row: MemberRow): AdminMember {
+  return {
+    id: row.id,
+    username: row.username,
+    name: row.name ?? row.username,
+    email: row.email,
+    phone: row.phone ?? '',
+    status: row.status === 'frozen' ? 'frozen' : 'active',
+    createdAt: row.created_at ?? '',
+    lastLoginAt: row.last_login_at ?? '',
+    frozenAt: row.frozen_at ?? '',
+    sessionCount: Number(row.session_count ?? 0),
+    deviceCount: Number(row.device_count ?? 0),
+    tags: parseTags(row.tags),
+    note: row.note ?? '',
+  }
+}
+
+/** 列表 SQL 的公共 FROM / 统计子查询（绑定顺序：expiresAt, [搜索参数…], status, limit, offset） */
+const MEMBER_SELECT =
+  'SELECT u.id, u.username, u.email, u.phone, u.name, u.status, u.created_at, u.last_login_at, u.frozen_at, u.tags, u.note, ' +
+  '(SELECT COUNT(*) FROM user_sessions s WHERE s.user_id = u.id AND s.expires_at > ?) AS session_count, ' +
+  '(SELECT COUNT(*) FROM device_registrations d WHERE d.user_id = u.id) AS device_count ' +
+  'FROM users u'
+
+/** 分页查询会员；返回总数以便前端渲染分页 */
+export function listMembersForAdmin(query: AdminMemberQuery = {}): {
+  items: AdminMember[]
+  total: number
+  page: number
+  pageSize: number
+} {
+  const pageSize = Math.min(Math.max(Number(query.pageSize) || 20, 1), 100)
+  const page = Math.max(Number(query.page) || 1, 1)
+  const offset = (page - 1) * pageSize
+  const q = (query.q ?? '').trim()
+  const status = query.status === 'active' || query.status === 'frozen' ? query.status : ''
+  const tag = (query.tag ?? '').trim()
+
+  const where: string[] = []
+  const params: unknown[] = [Date.now()]
+  if (q) {
+    where.push('(u.username LIKE ? OR u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)')
+    const like = `%${q}%`
+    params.push(like, like, like, like)
+  }
+  if (status) {
+    where.push('u.status = ?')
+    params.push(status)
+  }
+  if (tag) {
+    // 标签以 JSON 数组存储，用带引号的 LIKE 精确匹配单个标签
+    where.push('u.tags LIKE ?')
+    params.push(`%"${tag}"%`)
+  }
+  const whereSql = where.length ? ` WHERE ${where.join(' AND ')}` : ''
+
+  const total = (
+    getDb()
+      .prepare(`SELECT COUNT(*) AS n FROM users u${whereSql}`)
+      .get(...(params.slice(1) as never[])) as { n: number }
+  ).n
+
+  const rows = getDb()
+    .prepare(`${MEMBER_SELECT}${whereSql} ORDER BY u.created_at DESC, u.id DESC LIMIT ? OFFSET ?`)
+    .all(...(params as never[]), pageSize, offset) as MemberRow[]
+
+  return { items: rows.map(rowToMember), total, page, pageSize }
+}
+
+/** 会员详情（含最近会话与设备登记）；不存在返回 undefined */
+export function getMemberDetail(id: string): AdminMemberDetail | undefined {
+  const row = getDb().prepare(`${MEMBER_SELECT} WHERE u.id = ?`).get(Date.now(), id) as MemberRow | undefined
+  if (!row) return undefined
+  const sessions = (
+    getDb()
+      .prepare('SELECT created_at, expires_at FROM user_sessions WHERE user_id = ? AND expires_at > ? ORDER BY created_at DESC LIMIT 10')
+      .all(id, Date.now()) as Array<{ created_at: string | null; expires_at: number }>
+  ).map((item) => ({
+    createdAt: item.created_at ?? '',
+    expiresAt: new Date(Number(item.expires_at)).toISOString(),
+  }))
+  const devices = getDb()
+    .prepare('SELECT id, model, sn, status, created_at FROM device_registrations WHERE user_id = ? ORDER BY created_at DESC LIMIT 10')
+    .all(id) as Array<{ id: string; model: string; sn: string; status: string; created_at: string }>
+  return {
+    ...rowToMember(row),
+    sessions,
+    devices: devices.map((item) => ({
+      id: item.id,
+      model: item.model,
+      sn: item.sn,
+      status: item.status,
+      createdAt: item.created_at,
+    })),
+  }
+}
+
+/** 设置会员状态；冻结时同时作废其全部会话（立即下线） */
+export function setMemberStatus(id: string, status: MemberStatus): { ok: true; member: AdminMember } | { ok: false; error: string } {
+  if (!findUserById(id)) return { ok: false, error: '会员不存在' }
+  const now = new Date().toISOString()
+  runInTransaction((tx) => {
+    tx.prepare('UPDATE users SET status = ?, frozen_at = ? WHERE id = ?').run(
+      status,
+      status === 'frozen' ? now : null,
+      id,
+    )
+    if (status === 'frozen') tx.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(id)
+  })
+  const detail = getMemberDetail(id)
+  if (!detail) return { ok: false, error: '会员不存在' }
+  return { ok: true, member: detail }
+}
+
+/** 管理员重置会员密码：生成一次性临时密码，返回明文供管理员转交；同时强制下线 */
+export function resetMemberPassword(id: string): { ok: true; tempPassword: string } | { ok: false; error: string } {
+  if (!findUserById(id)) return { ok: false, error: '会员不存在' }
+  const tempPassword = randomBytes(9).toString('base64url')
+  const { salt, hash } = hashUserPassword(tempPassword)
+  runInTransaction((tx) => {
+    tx.prepare('UPDATE users SET salt = ?, hash = ? WHERE id = ?').run(salt, hash, id)
+    tx.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(id)
+  })
+  return { ok: true, tempPassword }
+}
+
+/** 强制会员下线（作废全部有效会话） */
+export function forceLogoutMember(id: string): { ok: true; removed: number } | { ok: false; error: string } {
+  if (!findUserById(id)) return { ok: false, error: '会员不存在' }
+  const result = getDb().prepare('DELETE FROM user_sessions WHERE user_id = ?').run(id)
+  return { ok: true, removed: Number(result.changes) }
+}
+
+/** 更新会员运营信息（标签 / 内部备注）；标签去重、去空、限长 */
+export function updateMemberOps(
+  id: string,
+  patch: { tags?: string[]; note?: string },
+): { ok: true; member: AdminMemberDetail } | { ok: false; error: string } {
+  if (!findUserById(id)) return { ok: false, error: '会员不存在' }
+  const tags = patch.tags
+    ? Array.from(new Set(patch.tags.map((item) => item.trim()).filter(Boolean))).slice(0, 20)
+    : undefined
+  const note = patch.note !== undefined ? patch.note.trim().slice(0, 2000) : undefined
+  if (tags) getDb().prepare('UPDATE users SET tags = ? WHERE id = ?').run(JSON.stringify(tags), id)
+  if (note !== undefined) getDb().prepare('UPDATE users SET note = ? WHERE id = ?').run(note, id)
+  const detail = getMemberDetail(id)
+  return detail ? { ok: true, member: detail } : { ok: false, error: '会员不存在' }
+}
+
+/** 全量会员标签（供后台筛选下拉） */
+export function listMemberTags(): string[] {
+  const rows = getDb().prepare('SELECT tags FROM users WHERE tags IS NOT NULL').all() as Array<{ tags: string | null }>
+  const set = new Set<string>()
+  for (const row of rows) for (const tag of parseTags(row.tags)) set.add(tag)
+  return [...set].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
 }

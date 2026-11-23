@@ -377,7 +377,7 @@ function BizVenueCard({
       )}
       <div className="venue-card__foot">
         <span>到店实机体验</span>
-        <span>查看门店 →</span>
+        <span>查看体验点 →</span>
       </div>
     </article>
   )

@@ -178,13 +178,18 @@ authRouter.post('/auth/login', (req, res) => {
     res.status(400).json({ error: '请输入账号与密码' })
     return
   }
-  const user = loginUser(identifier, password)
-  if (!user) {
+  const outcome = loginUser(identifier, password)
+  if (!outcome.ok) {
+    if (outcome.reason === 'frozen') {
+      res.status(403).json({ error: '该账号已被冻结，请联系客服处理' })
+      return
+    }
     recordFormFailure(req, 'login')
     res.status(401).json({ error: '账号或密码不正确', captchaRequired: shouldRequireCaptcha(req, 'login') })
     return
   }
   clearFormFailures(req, 'login')
+  const user = outcome.user
   const token = createUserSession(user.id)
   res.cookie(USER_SESSION_COOKIE, token, userCookieOptions())
   res.json({ user })

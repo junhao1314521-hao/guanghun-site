@@ -32,6 +32,8 @@ import { RichTextField } from '../../components/admin/RichTextField'
 import { Select } from '../../components/admin/Select'
 import { hasMediaHint, mediaHintText, resolveMediaHint, resolveMediaCrops } from '../../components/admin/mediaHints'
 import { useUnsavedGuard } from '../../hooks/useUnsavedGuard'
+import { formatBytesLabel } from '../../lib/mediaType'
+import { PROVINCES, citiesOfProvince } from '../../data/regions'
 import { slugify } from '../../lib/slug'
 
 /** 无 form 配置时，按列定义兜底生成字段 */
@@ -113,6 +115,14 @@ function FormField({
       ? resolveMediaHint({ resourceKey, fieldKey: field.key })
       : undefined
   const mediaCrops = mediaHint ? resolveMediaCrops(resourceKey ?? '', field.key, mediaHint) : undefined
+  // 行政区划级联：城市候选项由当前省份决定，并保留记录中已有的历史值
+  const provinceValue = String(allValues?.province ?? '')
+  const cityValue = String(value ?? '')
+  const cityChoices = citiesOfProvince(provinceValue)
+  const provinceChoices =
+    provinceValue && !PROVINCES.includes(provinceValue) ? [provinceValue, ...PROVINCES] : PROVINCES
+  const cityOptions =
+    cityValue && !cityChoices.includes(cityValue) ? [cityValue, ...cityChoices] : cityChoices
 
   if (field.type === 'switch') {
     // 开关字段：label 与控件同行，说明文字（用途 / 示例）仍按统一规范渲染在下方
@@ -368,6 +378,16 @@ function FormField({
           hideDefaultHint={Boolean(field.hint)}
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(url) => onChange(field.key, url)}
+          onSelectItem={(item) => {
+            // 下载中心：选完文件立刻用素材元数据回填大小 / SHA-256 / 算法，避免手填
+            if (resourceKey !== 'downloads' || field.key !== 'fileUrl') return
+            const bytes = item.sizeBytes ?? item.size
+            onChange('size', formatBytesLabel(bytes))
+            onChange('sizeBytes', bytes)
+            onChange('sha256', item.sha256 ?? '')
+            onChange('checksumType', 'SHA-256')
+            onChange('assetId', item.id)
+          }}
         />
         {field.hint && <span className="field__hint">{field.hint}</span>}
       </>
@@ -440,6 +460,29 @@ function FormField({
           placeholder={field.placeholder}
           value={String(value ?? '')}
           onChange={(event) => onChange(field.key, event.target.value)}
+        />
+      ) : field.type === 'provinceSelect' ? (
+        <Select
+          id={fieldId}
+          invalid={invalid}
+          value={provinceValue}
+          onChange={(next) => {
+            onChange('province', next)
+            // 省份变更后城市可能失效，一并清空，避免存入跨省的省市组合
+            onChange('city', '')
+          }}
+          options={[{ value: '', label: '请选择省份' }, ...provinceChoices.map((item) => ({ value: item, label: item }))]}
+        />
+      ) : field.type === 'citySelect' ? (
+        <Select
+          id={fieldId}
+          invalid={invalid}
+          value={cityValue}
+          onChange={(next) => onChange(field.key, next)}
+          options={[
+            { value: '', label: provinceValue ? '请选择城市' : '请先选择省份' },
+            ...cityOptions.map((item) => ({ value: item, label: item })),
+          ]}
         />
       ) : field.type === 'select' ? (
         <Select

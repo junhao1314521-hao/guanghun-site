@@ -1,6 +1,7 @@
 import type { Express } from 'express'
 import { adminPagesRouter } from './adminPagesRouter'
 import { adminRouter } from './adminRouter'
+import { adminUsersRouter } from './adminUsersRouter'
 import { articlesRouter } from './articlesRouter'
 import { authRouter } from './authRouter'
 import { catalogMetaRouter } from './catalogMeta'
@@ -16,15 +17,18 @@ import { rankingsImportRouter } from './rankingsImportRouter'
 import { ladderRouter } from './ladder'
 import { legalRouter } from './legal'
 import { mediaRouter } from './mediaRouter'
+import { membersRouter } from './membersRouter'
 import { productExtraRouter } from './productExtraRouter'
 import { publishRouter } from './publishRouter'
 import { registerSeoRoutes } from './seo'
+import { seoAdminRouter, seoMetaRouter } from './seoAdminRouter'
 import { searchRouter } from './search'
 import { supportExtraRouter } from './supportExtraRouter'
 import { templatesRouter } from './templatesRouter'
 import { trackRouter } from './trackRouter'
 import { uploadsRouter } from './uploadsRouter'
 import { wallpapersRouter } from './wallpapers'
+import { wallpaperThemesRouter } from './wallpaperThemesRouter'
 import { csrfGuard } from '../middleware/adminAuth'
 
 /**
@@ -38,6 +42,7 @@ import { csrfGuard } from '../middleware/adminAuth'
 export function registerRoutes(app: Express): void {
   // SEO：站点根级动态 sitemap.xml / robots.txt（须早于 app.ts 的静态托管与 SPA 回退）
   registerSeoRoutes(app)
+  app.use('/api', seoMetaRouter) // /seo/meta（前台 SEO 覆盖，公开只读）
   app.use('/api', productExtraRouter) // /products/series/:slug、/compare、/ladder/:metric
   app.use('/api/products', catalogRouter)
   app.use('/api', articlesRouter) // /articles、/articles/:id、/news
@@ -54,13 +59,17 @@ export function registerRoutes(app: Express): void {
   // 后台写操作 CSRF 守卫（仅约束 POST/PUT/PATCH/DELETE；与 CORS 白名单共用来源校验）
   app.use('/api/admin', csrfGuard)
   app.use('/api/admin', adminPagesRouter) // 后台内容库（页面装修 / 站点配置），先于 adminRouter
+  app.use('/api/admin', seoAdminRouter) // SEO 元信息覆盖（静态路由标题 / 描述 / 收录开关）
   app.use('/api/admin', templatesRouter) // 后台「模板」集合（页面区块快照）
   app.use('/api/admin', backupsRouter) // 后台「备份 / 恢复 / 重置」
   app.use('/api/admin', publishRouter) // 后台「发布记录与回滚」
   app.use('/api/admin', adminRouter) // 后台管理系统（本地鉴权 / 资源 / 分析）
+  app.use('/api/admin', adminUsersRouter) // 成员与权限（真实 admin_users 成员管理）
   app.use('/api/admin', deviceReviewRouter) // 会员设备登记审核
+  app.use('/api/admin', membersRouter) // 会员管理（真实前台账号：列表 / 冻结 / 重置 / 强制下线）
   app.use('/api/admin', rankingsImportRouter) // 天梯榜 CSV 批量导入
   app.use('/api/admin', uploadsRouter) // 后台文件上传 / 素材库
+  app.use('/api/admin', wallpaperThemesRouter) // 壁纸主题实体管理
   app.use('/api/search', searchRouter)
   app.use('/api/media', mediaRouter) // 公开素材变体查询（/media/variants?url=...），先于泛化 /api
   app.use('/api/ladder', ladderRouter)

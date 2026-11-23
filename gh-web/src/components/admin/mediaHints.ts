@@ -135,8 +135,8 @@ const RESOURCE_MEDIA_HINTS: Record<string, MediaHint> = {
   // 合作案例
   'biz-cases.cover': { size: '1600×900', ratio: '16:9', maxSize: '≤2MB', subject: '主体居中，四周留 8% 安全区' },
   // 体验点（门店）
-  'biz-venues.cover': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', subject: '门店主体居中，避免贴边' },
-  'biz-venues.gallery': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', subject: '门店主体居中，避免贴边', extra: '第一张也会作为封面' },
+  'biz-venues.cover': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', subject: '体验点主体居中，避免贴边' },
+  'biz-venues.gallery': { size: '1600×1200', ratio: '4:3', maxSize: '≤2MB', subject: '体验点主体居中，避免贴边', extra: '第一张也会作为封面' },
 }
 
 /** 海报高度档位 → 提示（r219 为 21:9 宽幅，其余按 16:9 参考） */

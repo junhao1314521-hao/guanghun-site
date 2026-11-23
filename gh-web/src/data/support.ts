@@ -15,7 +15,7 @@ export const QUICK_ENTRIES: QuickEntry[] = [
   { id: 'model', title: '型号与兼容', desc: '按型号查看 Center 适配、固件版本、说明书与常见问题。', href: '/support/models', icon: 'monitor' },
   { id: 'warranty', title: '保修政策', desc: '三年质保含 OLED 烧屏保护，范围、期限与寄修流程公开可查。', href: '/support#warranty', icon: 'shield' },
   { id: 'faq', title: '常见问题', desc: '安装、接口、HDR 调校与售后相关的高频问答，按主题分类。', href: '/faq', icon: 'help' },
-  { id: 'venues', title: '产品体验点', desc: '查询身边可到店试机、现场调校与售后咨询的合作门店。', href: '/business/venues', icon: 'grid' },
+  { id: 'venues', title: '产品体验点', desc: '查询身边可到店试机、现场调校与售后咨询的合作体验点。', href: '/business/venues', icon: 'grid' },
   { id: 'contact', title: '提交咨询', desc: '附上型号与现象提交工单，进度与补充材料可在线跟进。', href: '/inquiry', icon: 'chat' },
 ]
 

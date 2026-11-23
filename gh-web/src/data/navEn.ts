@@ -68,8 +68,9 @@ export const MEGA_PANELS_EN: MegaPanel[] = [
         links: [
           { label: 'Business partnerships', to: '/business' },
           { label: 'Case studies', to: '/business/cases' },
-          // Brand assets entry points to the in-page anchor for now; will be a standalone entry later.
-          { label: 'Brand assets', to: '/business#brand-assets' },
+          // Partner / reseller application merged with brand assets (application, not lookup).
+          { label: 'Partner / reseller application', to: '/business/partners' },
+          { label: 'Brand assets', to: '/business/partners#brand-assets' },
         ],
       },
       {

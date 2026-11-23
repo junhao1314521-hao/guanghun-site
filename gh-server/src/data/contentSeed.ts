@@ -844,7 +844,8 @@ function buildBusiness(): Page {
         category: 'all',
         limit: 0,
         ctaLabel: '申请品牌资料',
-        ctaHref: '/inquiry',
+        // 品牌资料申请并入「合作伙伴 / 代理商」页（申请而非查询）
+        ctaHref: '/business/partners#brand-assets',
       },
       style: { anchor: 'brand-assets' },
     },
@@ -948,7 +949,7 @@ function buildBusinessVenues(): Page {
         heightValue: 420,
         alt: '产品体验点顶部横幅（待上传）',
         title: '到店体验光魂显示器',
-        subtitle: '全国合作门店提供光魂与极创全系显示器实机体验，按城市、机型或距离查找。',
+        subtitle: '全国合作体验点提供光魂与极创全系显示器实机体验，按城市、机型或距离查找。',
         primary: { label: '企业批量采购', href: '/inquiry?type=business' },
         secondary: { label: '联系合作团队', href: '/contact' },
         scrim: true,
@@ -1446,7 +1447,7 @@ function buildTemplates(): Page[] {
         type: 'venueList',
         props: {
           title: '更多体验点',
-          subtitle: '就近选择门店体验实机。',
+          subtitle: '就近选择体验点体验实机。',
           ctaLabel: '查看全部体验点',
           ctaHref: '/business/venues',
           scope: 'all',

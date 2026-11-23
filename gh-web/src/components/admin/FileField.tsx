@@ -12,12 +12,11 @@
  * - 纯受控：值经 onChange 回传父级。
  */
 import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react'
-import { listUploads, type UploadItem } from '../../api/adminUploads'
+import type { UploadItem } from '../../api/adminUploads'
 import { uploadImage } from '../../lib/uploadImage'
-import { useApi } from '../../hooks/useApi'
 import { AdminIcon } from './AdminIcon'
 import { MediaImg } from '../ui/MediaImg'
-import { registerSrcSet } from '../ui/mediaSrcSet'
+import { MediaLibraryDialog } from './MediaLibraryDialog'
 import { ImageCropPreview, type CropPreviewSpec } from './ImageCropPreview'
 import { useToast } from './feedback'
 import type { MediaHint } from './mediaHints'
@@ -105,6 +104,8 @@ export type FileFieldProps = {
   pickerFirst?: boolean
   /** 锁定：不允许更换 / 上传 / 改地址（固件当前文件，只能发布新版本） */
   locked?: boolean
+  /** 选中 / 上传文件后回传完整素材条目（用于自动填充大小、SHA-256 等派生字段） */
+  onSelectItem?: (item: UploadItem) => void
 }
 
 /** 图片实测结果：真实像素、宽高比、是否带透明通道 */
@@ -171,6 +172,7 @@ export function FileField({
   hideDefaultHint = false,
   pickerFirst = false,
   locked = false,
+  onSelectItem,
 }: FileFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   // 未显式传 inputId 时生成稳定 id，保证每个地址输入都有可关联的标识（无障碍）
@@ -264,6 +266,7 @@ export function FileField({
       // 图片会附带多尺寸变体（位图），其余文件等同普通上传
       const item = await uploadImage(file, null, setUploadPercent)
       onChange(item.url)
+      onSelectItem?.(item)
       // P2：同内容去重提示（同文件夹复用 / 其他文件夹存在同内容）
       if (item.reused) {
         toast.toast(`检测到相同文件，已复用「${item.duplicateOf ?? '已有素材'}」`, 'info')
@@ -372,6 +375,7 @@ export function FileField({
             onClose={() => setPickerOpen(false)}
             onSelect={(item) => {
               onChange(item.url)
+              onSelectItem?.(item)
               setError(null)
               setPickerOpen(false)
             }}
@@ -486,6 +490,7 @@ export function FileField({
           onClose={() => setPickerOpen(false)}
           onSelect={(item) => {
             onChange(item.url)
+            onSelectItem?.(item)
             setError(null)
             setPickerOpen(false)
           }}
@@ -496,9 +501,8 @@ export function FileField({
 }
 
 /**
- * 素材库选择弹窗：列出 GET /api/admin/uploads 中的素材。
- * `filter`：`image` 只列图片；`media` 列图片 + 视频（含 GIF）；`all` 列全部素材。
- * 键盘可达：打开即聚焦关闭按钮，Esc 关闭，点遮罩关闭。
+ * 素材库选择弹窗：兼容旧调用方，内部使用统一的 MediaLibraryDialog
+ * （文件夹 / 搜索 / 筛选 / 分页 / 多选 / 上传 / 拖拽）。
  */
 export function MediaPickerDialog({
   filter = 'all',
@@ -514,150 +518,13 @@ export function MediaPickerDialog({
   onSelect: (item: UploadItem) => void
   onSelectMany?: (items: UploadItem[]) => void
 }) {
-  const titleId = useId()
-  const closeRef = useRef<HTMLButtonElement>(null)
-  const [reloadKey, setReloadKey] = useState(0)
-  const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set())
-  // 取数复用 useApi（统一 loading / error / 中止语义）
-  const state = useApi<UploadItem[]>(
-    (signal) =>
-      listUploads(signal).then((list) => {
-        if (filter === 'image') return list.filter((item) => isImage(item))
-        if (filter === 'media') return list.filter((item) => isImage(item) || isVideo(item))
-        return list
-      }),
-    [reloadKey, filter],
-  )
-  const items = state.data
-  const emptyText = filter === 'image' ? '素材库暂无图片' : filter === 'media' ? '素材库暂无图片或视频' : '素材库暂无素材'
-
-  // 拿到素材数据即预登记变体（url → srcset），避免缩略图再各发一次变体查询
-  useEffect(() => {
-    for (const item of items ?? []) registerSrcSet(item.url, item.variants)
-  }, [items])
-
-  useEffect(() => {
-    closeRef.current?.focus()
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
-
   return (
-    <div className="image-picker" role="presentation" onClick={onClose}>
-      <div
-        className="image-picker__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="image-picker__head">
-          <h2 className="image-picker__title" id={titleId}>
-            {multiple ? '从素材库选择（可多选）' : '从素材库选择'}
-          </h2>
-          <button ref={closeRef} type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
-            关闭
-          </button>
-        </div>
-        <div className="image-picker__body">
-          {state.loading && !items && (
-            <p className="admin-page__desc" role="status">
-              正在加载素材…
-            </p>
-          )}
-
-          {state.error && (
-            <div className="alert alert--danger" role="alert">
-              {state.error.message}
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                style={{ marginLeft: 'var(--gh-space-3)' }}
-                onClick={() => setReloadKey((key) => key + 1)}
-              >
-                重试
-              </button>
-            </div>
-          )}
-
-          {items && items.length === 0 && !state.error && (
-            <div className="empty">
-              <div className="empty__title">{emptyText}</div>
-              <p className="empty__desc">可先在「素材库」栏目上传，或直接使用「上传」按钮。</p>
-            </div>
-          )}
-
-          {items && items.length > 0 && (
-            <div className="image-picker__grid">
-              {items.map((item) => {
-                const checked = picked.has(item.id)
-                return (
-                  <button
-                    type="button"
-                    className={`image-picker__tile${multiple && checked ? ' is-picked' : ''}`}
-                    key={item.id}
-                    title={item.name}
-                    aria-pressed={multiple ? checked : undefined}
-                    onClick={() => {
-                      if (multiple) {
-                        setPicked((prev) => {
-                          const next = new Set(prev)
-                          if (next.has(item.id)) next.delete(item.id)
-                          else next.add(item.id)
-                          return next
-                        })
-                        return
-                      }
-                      onSelect(item)
-                    }}
-                  >
-                    <span className="image-picker__thumb">
-                      {isImage(item) ? (
-                        <MediaImg src={item.url} alt={item.name} />
-                      ) : isVideo(item) ? (
-                        <video src={item.url} muted playsInline preload="metadata" />
-                      ) : (
-                        <AdminIcon name="doc" size={28} />
-                      )}
-                      {multiple && checked && (
-                        <span className="image-picker__check" aria-hidden="true">
-                          ✓
-                        </span>
-                      )}
-                    </span>
-                    <span className="image-picker__name">{item.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {multiple && (
-          <div className="image-picker__foot">
-            <span className="image-picker__count">已选 {picked.size} 张</span>
-            <div className="image-picker__foot-actions">
-              <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
-                取消
-              </button>
-              <button
-                type="button"
-                className="btn btn--primary btn--sm"
-                disabled={picked.size === 0}
-                onClick={() => {
-                  const selectedItems = (items ?? []).filter((item) => picked.has(item.id))
-                  if (selectedItems.length > 0) onSelectMany?.(selectedItems)
-                }}
-              >
-                添加所选
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <MediaLibraryDialog
+      filter={filter}
+      multiple={multiple}
+      onClose={onClose}
+      onSelect={onSelect}
+      onSelectMany={onSelectMany}
+    />
   )
 }

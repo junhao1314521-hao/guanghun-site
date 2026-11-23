@@ -874,7 +874,7 @@ export const BLOCK_TYPES: BlockTypeMeta[] = [
     group: '数据',
     fields: [
       { name: 'title', label: '大标题', kind: 'text', placeholder: '产品体验点' },
-      { name: 'subtitle', label: '副标题', kind: 'textarea', placeholder: '全国合作门店提供实机体验，按城市与机型查找。' },
+      { name: 'subtitle', label: '副标题', kind: 'textarea', placeholder: '全国合作体验点提供实机体验，按城市与机型查找。' },
       { name: 'limit', label: '数量（0=全部）', kind: 'number' },
       { name: 'showMap', label: '显示地图', kind: 'switch' },
     ],

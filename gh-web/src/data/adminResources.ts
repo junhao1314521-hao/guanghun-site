@@ -69,6 +69,10 @@ export type AdminFieldType =
   | 'text'
   | 'textarea'
   | 'select'
+  /** 省份下拉：选项来自 data/regions.ts；切换时清空 city */
+  | 'provinceSelect'
+  /** 城市下拉：选项随表单当前 province 级联 */
+  | 'citySelect'
   | 'number'
   | 'switch'
   | 'date'
@@ -142,10 +146,20 @@ export type AdminResourceView =
   | 'components'
   | 'templates'
   | 'styles'
+  /** SEO 元信息专用：静态路由标题 / 描述 / 收录开关（见 AdminSeoView） */
+  | 'seo'
   | 'backups'
   | 'publish'
   | 'roles'
   | 'trash'
+  /** 会员管理专用：真实前台账号（见 components/admin/AdminMembersView.tsx） */
+  | 'members'
+  /** 成员与权限专用：成员 / 角色 / 权限矩阵三视图（见 components/admin/AdminAccessView.tsx） */
+  | 'access'
+  /** 天梯与测评专用：天梯榜 / 测试记录 / 测评方法 / 导入四 Tab（见 AdminRankingsHubView） */
+  | 'rankings-hub'
+  /** 体验点专用：列表 / 地图双布局 + 省市筛选（见 AdminVenuesView） */
+  | 'venues'
   /** 迭代需求池专用：列表 / 看板 / 四象限三视图（见 components/admin/AdminRequirementsView.tsx） */
   | 'board'
 
@@ -535,10 +549,12 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'rankings',
-    label: '天梯榜',
+    label: '天梯与测评',
     icon: 'grid',
-    title: '天梯榜',
-    desc: '配置天梯榜的范围、指标与条目上限，控制前台榜单呈现。',
+    title: '天梯与测评',
+    desc: '天梯榜 / 测试记录 / 测评方法 / 数据导入合并为一个模块：测试记录是榜单的数据来源。',
+    // 自定义视图：由 AdminRankingsHubView 承载（四 Tab 合并）
+    view: 'rankings-hub',
     creatable: true,
     editable: true,
     deletable: true,
@@ -729,20 +745,26 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '资源名称', type: 'text', span: 2, required: true },
-          { key: 'brand', label: '品牌', type: 'select', options: ['光魂', '极创'], hint: '下载中心按品牌分区展示；旧数据留空时按光魂处理' },
-          { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
           { key: 'type', label: '类型', type: 'select', options: ['manual', 'firmware', 'driver', 'software', 'calibration'], optionLabels: { manual: '说明书', firmware: '固件', driver: '驱动', software: '软件', calibration: '校色文件' } },
-          { key: 'csOnly', label: '仅客服 / OTA 提供', type: 'switch', hint: '开启且没有公开文件时，前台显示「待更新」并提示可联系客服，不渲染下载按钮' },
-          { key: 'version', label: '版本', type: 'text', hint: '如 v2.4.1；与固件包内版本号保持一致' },
-          { key: 'size', label: '文件大小', type: 'text', hint: '如 1.2 GB；仅用于列表展示，不参与下载校验' },
-          { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows / macOS', hint: '约定字段：填「Windows」或「macOS」。前台软件下载按钮据此显示系统图标与「下载 Windows 版 / 下载 macOS 版」文案；留空时回退按资源名称识别，识别不到则退化为通用文件按钮' },
+          { key: 'brand', label: '品牌', type: 'select', options: ['光魂', '极创'], hint: '留空按光魂处理' },
+          { key: 'category', label: '分类', type: 'select', options: ['软件', 'OLED 旗舰', '双模高刷', '电竞 IPS', '周边'] },
+          { key: 'version', label: '版本', type: 'text', hint: '如 v2.4.1；发布新版本会自动更新' },
+          { key: 'platform', label: '适用平台', type: 'text', placeholder: 'Windows / macOS' },
+          { key: 'os', label: '适用系统', type: 'text', placeholder: 'Windows 11 / macOS 14' },
+          { key: 'models', label: '适用型号', type: 'modellist', span: 2, required: true, hint: '通用资料勾选「全部支持型号」' },
+          { key: 'csOnly', label: '仅客服 / OTA 提供', type: 'switch', hint: '开启且没有公开文件时，前台显示「待更新」' },
+        ],
+      },
+      {
+        title: '文件与校验',
+        fields: [
           {
             key: 'fileUrl',
             label: '文件',
             type: 'file',
             span: 2,
             pickerFirst: true,
-            hint: '从素材库选择（仅站内 /uploads/ 文件，不支持外链）。固件 / 驱动不允许原地覆盖，新版本请用「版本管理 → 发布新版本」',
+            hint: '从素材库选择（仅站内 /uploads/）。固件 / 驱动不允许原地覆盖，新版本请用「版本管理 → 发布新版本」',
           },
           {
             key: 'versionManager',
@@ -750,20 +772,24 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             type: 'downloadVersion',
             span: 2,
           },
+          { key: 'size', label: '文件大小', type: 'readonly', hint: '选择文件后自动读取，无需手填' },
+          { key: 'checksumType', label: '校验算法', type: 'readonly', hint: '固定 SHA-256，由服务端计算' },
+          { key: 'sha256', label: 'SHA-256', type: 'readonly', span: 2, hint: '选择文件后由素材元数据自动填充；发布新版本时更新' },
+        ],
+      },
+      {
+        title: '发布与说明',
+        fields: [
           { key: 'date', label: '更新时间', type: 'date' },
-          { key: 'releasedAt', label: '发布时间', type: 'date', hint: '用于按发布时间排序；留空沿用「更新时间」' },
-          { key: 'os', label: '适用系统', type: 'text', placeholder: 'Windows 11 / macOS 14', hint: '比「适用平台」更细，前台卡片优先展示该值' },
-          { key: 'sizeBytes', label: '文件字节数', type: 'number', hint: '用于排序与体积筛选；留空按「文件大小」文本展示' },
-          { key: 'isLatest', label: '最新版', type: 'switch', hint: '同型号同类型建议只标记一条，前台卡片显示「最新」徽标' },
-          { key: 'checksumType', label: '校验算法', type: 'text', placeholder: 'SHA-256', hint: '具体校验值在下载详情页展示' },
-          { key: 'models', label: '适用型号', type: 'modellist', span: 2, required: true, hint: '勾选该资料实际适用的型号；通用资料勾选「全部支持型号」。前台按这里的对应关系展示，不再手填 id' },
+          { key: 'releasedAt', label: '发布时间', type: 'date', hint: '留空沿用「更新时间」' },
+          { key: 'isLatest', label: '最新版', type: 'switch', hint: '同型号同类型建议只标记一条' },
           { key: 'note', label: '说明', type: 'textarea', span: 2 },
           {
             key: 'changelog',
             label: '变更记录',
             type: 'records',
             span: 2,
-            hint: '只录入原厂公开的真实变更；没有就留空，前台不会生成占位版本历史',
+            hint: '只录入原厂公开的真实变更；发布新版本会自动置顶一条',
             recordFields: [
               { key: 'version', label: '版本', type: 'text' },
               { key: 'date', label: '日期', type: 'date' },
@@ -775,7 +801,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '历史版本',
             type: 'records',
             span: 2,
-            hint: '原厂发布过的旧版本；旧版本文件不允许覆盖。新版本请用上方「版本管理 → 发布新版本」，会自动归档到这里',
+            hint: '发布新版本会自动归档到这里；旧版本文件不允许覆盖，可撤回',
             recordFields: [
               { key: 'version', label: '版本', type: 'text' },
               { key: 'date', label: '日期', type: 'date' },
@@ -1086,6 +1112,20 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     ],
   },
   {
+    key: 'seo',
+    label: 'SEO 元信息',
+    icon: 'globe',
+    title: 'SEO 元信息',
+    desc: '编辑静态页面的标题、描述与收录开关；服务端注入与前台路由元信息同时生效。',
+    // 自定义视图：由 AdminSeoView 承载（数据源 /api/admin/seo，落库 seo_overrides）
+    view: 'seo',
+    columns: [
+      { key: 'path', label: '路径', type: 'mono' },
+      { key: 'title', label: '标题', type: 'strong' },
+      { key: 'override', label: '状态', type: 'tag' },
+    ],
+  },
+  {
     key: 'publish',
     label: '发布管理',
     icon: 'cloud',
@@ -1109,36 +1149,22 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   /* ---------- 客户与服务 ---------- */
   {
     key: 'customers',
-    label: '客户',
+    label: '会员管理',
     icon: 'account',
-    title: '客户',
-    desc: '查看注册客户、名下设备与工单概况。',
-    editable: true,
-    searchKeys: ['name', 'account'],
+    title: '会员管理',
+    desc: '查看前台注册会员的真实账号、设备与会话；联系方式默认脱敏，可冻结、重置密码或强制下线。',
+    // 自定义视图：由 AdminMembersView 承载（数据源 /api/admin/members，真实 users 表）
+    view: 'members',
+    searchKeys: ['name', 'username', 'email', 'phone'],
     columns: [
-      { key: 'name', label: '客户', type: 'strong' },
-      { key: 'account', label: '账号', type: 'mono' },
-      { key: 'level', label: '等级', type: 'tag' },
-      { key: 'devices', label: '设备数', type: 'number', align: 'right' },
-      { key: 'tickets', label: '工单数', type: 'number', align: 'right' },
-      { key: 'joinedAt', label: '注册时间', type: 'date' },
+      { key: 'name', label: '会员', type: 'strong' },
+      { key: 'username', label: '账号', type: 'mono' },
+      { key: 'email', label: '邮箱', type: 'mono' },
+      { key: 'phone', label: '手机号', type: 'mono' },
       { key: 'status', label: '状态', type: 'status' },
-    ],
-    filters: [
-      { key: 'level', label: '等级', options: ['普通', '白银', '黄金', '黑金'] },
-      { key: 'status', label: '状态', options: ['正常', '冻结'] },
-    ],
-    form: [
-      {
-        title: '客户信息',
-        fields: [
-          { key: 'name', label: '客户姓名', type: 'text', required: true },
-          { key: 'account', label: '账号', type: 'text' },
-          { key: 'level', label: '等级', type: 'select', options: ['普通', '白银', '黄金', '黑金'] },
-          { key: 'status', label: '状态', type: 'select', options: ['正常', '冻结'] },
-          { key: 'note', label: '内部备注', type: 'textarea', span: 2 },
-        ],
-      },
+      { key: 'devices', label: '设备数', type: 'number', align: 'right' },
+      { key: 'sessions', label: '会话数', type: 'number', align: 'right' },
+      { key: 'joinedAt', label: '注册时间', type: 'date' },
     ],
   },
   {
@@ -1545,7 +1571,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     label: '体验点管理',
     icon: 'support',
     title: '体验点管理',
-    desc: '管理商业合作体验点的位置与状态。',
+    desc: '管理商业合作体验点的位置与状态；省市为级联下拉，支持列表 / 地图双布局。',
+    // 自定义视图：由 AdminVenuesView 承载（列表 / 地图 + 省市筛选）
+    view: 'venues',
     creatable: true,
     editable: true,
     deletable: true,
@@ -1583,8 +1611,8 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '体验点名称', type: 'text', span: 2, required: true },
-          { key: 'province', label: '省份', type: 'text', hint: '如：广东 / 上海' },
-          { key: 'city', label: '城市', type: 'text' },
+          { key: 'province', label: '省份', type: 'provinceSelect', hint: '省级行政区；选择后城市下拉自动级联' },
+          { key: 'city', label: '城市', type: 'citySelect', hint: '随省份联动，避免填写不一致' },
           { key: 'area', label: '区域', type: 'text' },
           { key: 'type', label: '类型', type: 'select', options: ['flagship', 'experience', 'service'] },
           { key: 'status', label: '状态', type: 'select', options: ['营业中', '调整中', '筹备中'] },
@@ -1593,11 +1621,11 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'lat', label: '纬度', type: 'number', placeholder: '22.5405', hint: '用于高德地图打点，如 22.5405' },
           { key: 'lng', label: '经度', type: 'number', placeholder: '113.9345', hint: '用于高德地图打点，如 113.9345' },
           { key: 'cover', label: '封面图', type: 'image', span: 2, hint: '列表卡片与分享封面；留空则显示默认插画' },
-          { key: 'gallery', label: '门店图片', type: 'images', span: 2, hint: '支持上传 / 素材库多选；第一张也会作为封面' },
+          { key: 'gallery', label: '体验点图片', type: 'images', span: 2, hint: '支持上传 / 素材库多选；第一张也会作为封面' },
           { key: 'hours', label: '营业时间', type: 'text', placeholder: '每日 10:00–21:00', hint: '缺失时前台不显示营业时间行' },
-          { key: 'phone', label: '门店电话', type: 'text', placeholder: '0755-0000-0000', hint: '缺失时前台不显示电话行与拨打按钮' },
+          { key: 'phone', label: '体验点电话', type: 'text', placeholder: '0755-0000-0000', hint: '缺失时前台不显示电话行与拨打按钮' },
           { key: 'transport', label: '交通指引', type: 'text', span: 2 },
-          { key: 'products', label: '在售型号', type: 'list', span: 2, hint: '每行一项，门店可体验的型号' },
+          { key: 'products', label: '可体验型号', type: 'list', span: 2, hint: '每行一项，体验点可体验的型号' },
           { key: 'services', label: '服务项目', type: 'list', span: 2, hint: '每行一项，如：现场调参' },
           { key: 'note', label: '预约说明', type: 'textarea', span: 2, hint: '详情页「到店预约」上方说明' },
         ],
@@ -1718,37 +1746,18 @@ export const ADMIN_RESOURCES: AdminResource[] = [
   },
   {
     key: 'staff',
-    label: '工作人员',
+    label: '成员与权限',
     icon: 'account',
-    title: '工作人员管理',
-    desc: '管理后台账号、角色与启用状态。',
-    creatable: true,
-    editable: true,
-    deletable: true,
-    searchKeys: ['name', 'account'],
+    title: '成员与权限',
+    desc: '管理可登录后台的真实账号、角色与接口权限（成员 / 角色 / 权限矩阵三视图）。',
+    // 自定义视图：由 AdminAccessView 承载（数据源 /api/admin/admin-users + /api/admin/roles）
+    view: 'access',
+    searchKeys: ['name', 'username'],
     columns: [
-      { key: 'name', label: '姓名', type: 'strong' },
-      { key: 'account', label: '账号', type: 'mono' },
-      { key: 'role', label: '角色', type: 'tag' },
-      { key: 'dept', label: '部门' },
-      { key: 'lastLogin', label: '最近登录', type: 'date' },
-      { key: 'status', label: '状态', type: 'status' },
-    ],
-    filters: [
-      { key: 'role', label: '角色', options: ['超级管理员', '内容运营', '客服', '数据分析'] },
-      { key: 'status', label: '状态', options: ['启用', '停用'] },
-    ],
-    form: [
-      {
-        title: '账号信息',
-        fields: [
-          { key: 'name', label: '姓名', type: 'text', required: true },
-          { key: 'account', label: '账号', type: 'text' },
-          { key: 'role', label: '角色', type: 'select', options: ['超级管理员', '内容运营', '客服', '数据分析'] },
-          { key: 'dept', label: '部门', type: 'text' },
-          { key: 'status', label: '状态', type: 'select', options: ['启用', '停用'] },
-        ],
-      },
+      { key: 'name', label: '成员', type: 'strong' },
+      { key: 'username', label: '账号', type: 'mono' },
+      { key: 'roleName', label: '角色', type: 'tag' },
+      { key: 'createdAt', label: '创建时间', type: 'date' },
     ],
   },
   {
@@ -1900,10 +1909,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { kind: 'resource', key: 'products' },
       { kind: 'resource', key: 'product-reviews' },
       { kind: 'resource', key: 'product-categories' },
-      { kind: 'resource', key: 'test-records' },
       { kind: 'resource', key: 'rankings' },
-      { kind: 'link', to: '/admin/rankings-import', label: '天梯榜导入', icon: 'grid' },
-      { kind: 'resource', key: 'methods' },
     ],
   },
   {
@@ -1927,6 +1933,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { kind: 'resource', key: 'components' },
       { kind: 'resource', key: 'templates' },
       { kind: 'resource', key: 'styles' },
+      { kind: 'resource', key: 'seo' },
       { kind: 'resource', key: 'publish' },
     ],
   },
@@ -1979,7 +1986,6 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     items: [
       { kind: 'resource', key: 'requirements' },
       { kind: 'resource', key: 'staff' },
-      { kind: 'resource', key: 'roles' },
       { kind: 'resource', key: 'languages' },
       { kind: 'resource', key: 'integrations' },
       { kind: 'resource', key: 'logs' },

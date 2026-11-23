@@ -254,7 +254,7 @@ export function VenueExplorerMap({ venues, mode, activeId, userPoint, onSelect, 
     return (
       <div className="venue-explorer-map venue-explorer-map--fallback" role="status">
         <span className="venue-explorer-map__fallback-title">地图暂不可用</span>
-        <span className="venue-explorer-map__fallback-desc">{reason || '请使用下方列表查看门店'}，下方列表仍可正常使用。</span>
+        <span className="venue-explorer-map__fallback-desc">{reason || '请使用下方列表查看体验点'}，下方列表仍可正常使用。</span>
       </div>
     )
   }

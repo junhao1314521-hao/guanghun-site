@@ -2,6 +2,7 @@ import type { Express, Request, Response } from 'express'
 import { listPages } from '../data/contentStore'
 import { listCollection } from '../data/collectionStore'
 import { LEGAL_DOCS } from '../data/legal'
+import { getSeoOverride } from '../data/seoStore'
 import { fileStatusOf } from '../lib/fileStatus'
 
 /**
@@ -47,6 +48,8 @@ function collectSitemapPaths(): string[] {
   const add = (p: string): void => {
     if (!p || !p.startsWith('/')) return
     if (p.includes(':')) return // 模板页（含 :id / :slug）不收录
+    // 后台把静态路由设为「不允许收录」后，sitemap 同步移除，避免与 noindex 冲突
+    if (getSeoOverride(p)?.indexable === false) return
     if (seen.has(p)) return
     seen.add(p)
     paths.push(p)

@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { INDEXABLE_PATHS, PAGE_META, SITE_URL, buildJsonLd, canonicalUrl, pageMetaFor } from '../src/data/meta'
+import { INDEXABLE_PATHS, PAGE_META, SITE_URL, buildJsonLd, canonicalUrl, pageMetaFor, withSeoOverride } from '../src/data/meta'
 
 const read = (p: string) => readFileSync(path.resolve(process.cwd(), p), 'utf8')
 const sitemap = read('public/sitemap.xml')
@@ -69,6 +69,29 @@ describe('pageMetaFor 口径', () => {
   it('canonical 去尾斜杠（根路径除外）', () => {
     expect(canonicalUrl('/')).toBe(`${SITE_URL}/`)
     expect(canonicalUrl('/products/')).toBe(`${SITE_URL}/products`)
+  })
+})
+
+describe('后台 SEO 覆盖', () => {
+  const base = pageMetaFor('/products')
+
+  it('覆盖标题 / 描述 / 收录，保留路径与权重口径', () => {
+    const merged = withSeoOverride(base, {
+      title: '产品总览 · 光魂',
+      description: '后台自定义的产品页描述。',
+      indexable: false,
+    })
+    expect(merged.title).toBe('产品总览 · 光魂')
+    expect(merged.description).toBe('后台自定义的产品页描述。')
+    expect(merged.indexable).toBe(false)
+    expect(merged.path).toBe('/products')
+    expect(merged.changefreq).toBe(base.changefreq)
+    expect(merged.priority).toBe(base.priority)
+  })
+
+  it('无覆盖时原样返回，不影响默认口径', () => {
+    expect(withSeoOverride(base, undefined)).toBe(base)
+    expect(withSeoOverride(base, null)).toBe(base)
   })
 })
 

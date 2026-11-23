@@ -176,8 +176,8 @@
       "version": 1,
       "createdAt": 1795325000000,
       "canvasData": {
-        "x": 960,
-        "y": 373,
+        "x": 924,
+        "y": 0,
         "group": 1,
         "layoutSnapshot": {
           "version": 1,
@@ -217,7 +217,14 @@
       "canvasData": {
         "x": 1440,
         "y": 373,
-        "group": 1
+        "group": 1,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-a3f3f7a6",
+          "measuredAt": 1795339680588
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/builder.html",
@@ -288,12 +295,13 @@
       "version": 1,
       "createdAt": 1795324274924,
       "canvasData": {
-        "x": 960,
-        "y": 746,
+        "x": 972,
+        "y": 864,
         "naturalSize": {
           "width": 750,
           "height": 1000
-        }
+        },
+        "overrideWidth": 360
       },
       "devMetadata": {
         "imageSrc": "assets/product-32x1ue.jpg"

@@ -25,9 +25,21 @@ type DefaultTheme = 'auto' | 'light' | 'dark'
 const COLOR_FALLBACK = '#2040ED'
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
+/** 令牌分组：按用途归组，避免长表单横跨整页；字体栈需要整行宽度 */
+const STYLE_GROUPS: Array<{ title: string; keys: string[] }> = [
+  { title: '品牌色', keys: ['--color-accent-solid'] },
+  { title: '圆角与留白', keys: ['--gh-radius-md', '--gh-section-pad'] },
+  { title: '排版与宽度', keys: ['--gh-font-sans', '--gh-container-max'] },
+]
+
+/** 令牌元信息索引：分组只声明 key，渲染时按 key 取 label / 类型 / 提示 */
+const TOKEN_BY_KEY = new Map(THEME_TOKEN_META.map((token) => [token.key, token]))
+
 /** 组件：渲染站点级设计令牌表单，保存主题令牌与默认明暗主题。 */
 function StylesEditor({ initial }: { initial: SiteConfig }) {
   const [theme, setTheme] = useState<Record<string, string>>(initial.theme ?? {})
+  // 已保存快照：保存 / 重置成功后更新，作为「未保存修改」的比较基准
+  const [baseline, setBaseline] = useState<Record<string, string>>(initial.theme ?? {})
   const [saving, setSaving] = useState(false)
   const [defaultTheme, setDefaultTheme] = useState<DefaultTheme>(initial.defaultTheme ?? 'auto')
   const [savingDefaultTheme, setSavingDefaultTheme] = useState(false)
@@ -37,7 +49,7 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
   const toast = useToast()
   const confirm = useConfirm()
 
-  const dirty = useMemo(() => JSON.stringify(theme) !== JSON.stringify(initial.theme ?? {}), [theme, initial.theme])
+  const dirty = useMemo(() => JSON.stringify(theme) !== JSON.stringify(baseline), [theme, baseline])
 
   /** 切换默认主题即保存（复用同一套后台控件与反馈） */
   const onDefaultThemeChange = async (value: string) => {
@@ -84,6 +96,7 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
     try {
       const saved = await saveTheme(theme)
       setTheme(saved)
+      setBaseline(saved)
       toast.success('已保存样式令牌，前台刷新即可生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '保存失败，请稍后重试')
@@ -104,6 +117,7 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
     try {
       await saveTheme({})
       setTheme({})
+      setBaseline({})
       toast.success('已重置为默认样式，前台刷新即可生效。')
     } catch (ex) {
       toast.error(ex instanceof Error ? ex.message : '重置失败')
@@ -141,13 +155,10 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
         }
       />
 
-      <div className="admin-form" style={{ maxWidth: 'none' }}>
+      <div className="styles-page">
         <div className="admin-form__section">
-          <h2 className="admin-form__section-title">默认主题</h2>
-          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
-            新访客（无本地记录）进入站点时按此主题渲染；顶栏手动切换始终优先，并记忆在访客本地。
-          </p>
-          <div className="admin-form__grid">
+          <h2 className="admin-form__section-title">站点表现</h2>
+          <div className="styles-site-row">
             <div className="field">
               <label className="field__label" htmlFor="th-default-theme">
                 默认主题
@@ -164,73 +175,86 @@ function StylesEditor({ initial }: { initial: SiteConfig }) {
                   { value: 'dark', label: '暗色' },
                 ]}
               />
-              <span className="field__hint">切换后立即保存；用户手动选择优先于站点默认主题。</span>
+              <span className="field__hint">新访客进入站点时使用；顶栏手动切换始终优先。</span>
+            </div>
+            <div className="field">
+              <span className="field__label">Center 页背景</span>
+              <label className="switch" style={{ gap: 'var(--gh-space-2)' }}>
+                <input
+                  type="checkbox"
+                  checked={centerBackdrop}
+                  disabled={savingBackdrop}
+                  aria-label={centerBackdrop ? '关闭 Center 页背景装饰' : '开启 Center 页背景装饰'}
+                  onChange={(event) => void onBackdropChange(event.target.checked)}
+                />
+                <span className="switch__track" />
+                <span>{centerBackdrop ? '已开启' : '已关闭'}</span>
+              </label>
+              <span className="field__hint">关闭后只保留纯色底与首屏星球。</span>
             </div>
           </div>
         </div>
 
         <div className="admin-form__section">
-          <h2 className="admin-form__section-title">Center 页背景</h2>
-          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
-            Center 独立页（/center）的整页装饰背景：星空、星云、颗粒与暗角。关闭后只保留纯色底与首屏星球。
-          </p>
-          <label className="switch" style={{ gap: 'var(--gh-space-2)' }}>
-            <input
-              type="checkbox"
-              checked={centerBackdrop}
-              disabled={savingBackdrop}
-              aria-label={centerBackdrop ? '关闭 Center 页背景装饰' : '开启 Center 页背景装饰'}
-              onChange={(event) => void onBackdropChange(event.target.checked)}
-            />
-            <span className="switch__track" />
-            <span>{centerBackdrop ? '已开启' : '已关闭'}</span>
-          </label>
-        </div>
-
-        <div className="admin-form__section">
           <h2 className="admin-form__section-title">设计令牌</h2>
-          <p className="admin-page__desc" style={{ marginBottom: 'var(--gh-space-4)' }}>
-            覆盖值将注入站点的 CSS 变量；留空表示使用默认值（同一取值对明 / 暗两套主题同时生效）。
+          <p className="admin-page__desc">
+            覆盖值将注入站点 CSS 变量；留空表示使用默认值，同一取值对明 / 暗两套主题同时生效。
           </p>
-          <div className="admin-form__grid">
-            {THEME_TOKEN_META.map((token) => {
-              const value = theme[token.key] ?? ''
-              return (
-                <div className="field" key={token.key} style={{ gridColumn: 'span 2' }}>
-                  <label className="field__label" htmlFor={`th-${token.key}`}>
-                    {token.label}
-                    <span className="mono" style={{ marginLeft: 'var(--gh-space-2)', color: 'var(--color-text-tertiary)' }}>
-                      {token.key}
-                    </span>
-                  </label>
-                  <div className="row" style={{ gap: 'var(--gh-space-2)' }}>
-                    {token.kind === 'color' && (
-                      <input
-                        type="color"
-                        aria-label={`${token.label}取色器`}
-                        value={HEX_RE.test(value) ? value : COLOR_FALLBACK}
-                        onChange={(event) => setValue(token.key, event.target.value)}
-                        style={{ width: 40, height: 36, padding: 0, border: '1px solid var(--color-border-default)', borderRadius: 'var(--gh-radius-sm)', background: 'transparent' }}
-                      />
-                    )}
-                    <input
-                      id={`th-${token.key}`}
-                      className="input"
-                      type="text"
-                      placeholder={token.placeholder}
-                      value={value}
-                      onChange={(event) => setValue(token.key, event.target.value)}
-                    />
-                    {value && (
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setValue(token.key, '')}>
-                        清除
-                      </button>
-                    )}
-                  </div>
-                  <span className="field__hint">{token.hint}</span>
+          <div className="styles-groups">
+            {STYLE_GROUPS.map((group) => (
+              <section className="styles-group" key={group.title} aria-label={group.title}>
+                <h3 className="styles-group__title">{group.title}</h3>
+                <div className="styles-group__grid">
+                  {group.keys.map((key) => {
+                    const token = TOKEN_BY_KEY.get(key)
+                    if (!token) return null
+                    const value = theme[token.key] ?? ''
+                    const full = token.key === '--gh-font-sans'
+                    return (
+                      <div className={`styles-token${full ? ' styles-token--full' : ''}`} key={token.key}>
+                        <div className="styles-token__head">
+                          <span className="styles-token__label">{token.label}</span>
+                          <code className="styles-token__key">{token.key}</code>
+                        </div>
+                        <div className="styles-token__control">
+                          {token.kind === 'color' && (
+                            <input
+                              type="color"
+                              aria-label={`${token.label}取色器`}
+                              value={HEX_RE.test(value) ? value : COLOR_FALLBACK}
+                              onChange={(event) => setValue(token.key, event.target.value)}
+                              className="styles-token__color"
+                            />
+                          )}
+                          <input
+                            id={`th-${token.key}`}
+                            className="input"
+                            type="text"
+                            placeholder={token.placeholder}
+                            value={value}
+                            onChange={(event) => setValue(token.key, event.target.value)}
+                          />
+                          {value && (
+                            <button
+                              type="button"
+                              className="styles-token__clear"
+                              aria-label={`清除${token.label}`}
+                              title="清除（恢复默认）"
+                              onClick={() => setValue(token.key, '')}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                        <span className="styles-token__hint" title={token.hint}>
+                          {token.hint}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              </section>
+            ))}
           </div>
         </div>
       </div>

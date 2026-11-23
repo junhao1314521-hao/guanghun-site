@@ -33,8 +33,12 @@ import { logger } from '../lib/logger'
  *     保修期 = 购买日期 + 36 个月，由服务端计算到期日与剩余天数）。
  * v11：upload_meta 增加 kind / usage_scope / size_bytes / sha256 / mime / visibility / status，
  *     素材库从「只看磁盘」升级为可分类、可校验、可做删除保护。
+ * v12：users 增加 status / last_login_at / frozen_at，支撑后台会员冻结与最近登录展示。
+ * v13：新增 wallpaper_themes（壁纸主题实体：名称 / 说明 / 排序 / 启用），供前后台统一管理。
+ * v14：users 增加 tags / note（会员运营标签与内部备注）。
+ * v15：新增 seo_overrides（静态路由 SEO 标题 / 描述 / 收录开关的后台覆盖）。
  */
-export const SCHEMA_VERSION = '11'
+export const SCHEMA_VERSION = '15'
 
 /** meta 键：是否已完成「旧 JSON → SQLite」一次性迁移 */
 const META_MIGRATED = 'migrated_json'
@@ -165,7 +169,12 @@ CREATE TABLE IF NOT EXISTS users (
   salt       TEXT NOT NULL,
   hash       TEXT NOT NULL,
   name       TEXT,
-  created_at TEXT
+  created_at TEXT,
+  status       TEXT NOT NULL DEFAULT 'active',
+  last_login_at TEXT,
+  frozen_at    TEXT,
+  tags         TEXT,
+  note         TEXT
 );
 -- 前台会话（独立于后台内存会话；令牌经 gh_user httpOnly Cookie 下发，落库以支持重启后仍有效）
 CREATE TABLE IF NOT EXISTS user_sessions (
@@ -189,6 +198,24 @@ CREATE TABLE IF NOT EXISTS user_account_data (
   data       TEXT NOT NULL,
   updated_at TEXT,
   PRIMARY KEY (user_id, section)
+);
+-- 壁纸主题实体（后台可增删改、排序、停用；壁纸记录通过 theme 字段引用 key）
+CREATE TABLE IF NOT EXISTS wallpaper_themes (
+  key         TEXT PRIMARY KEY,
+  label       TEXT NOT NULL,
+  description TEXT,
+  sort        INTEGER NOT NULL DEFAULT 0,
+  active      INTEGER NOT NULL DEFAULT 1,
+  created_at  TEXT
+);
+-- SEO 元信息覆盖（静态路由的标题 / 描述 / 收录开关；未覆盖时回落到 seoDefaults）
+CREATE TABLE IF NOT EXISTS seo_overrides (
+  path        TEXT PRIMARY KEY,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL,
+  indexable   INTEGER NOT NULL DEFAULT 1,
+  image       TEXT,
+  updated_at  TEXT NOT NULL
 );
 -- 定时发布：创建时即捕获内容快照，到点自动应用；支持取消 / 失败留痕
 CREATE TABLE IF NOT EXISTS publish_schedules (
@@ -261,6 +288,20 @@ function migrateUploadMeta(db: DatabaseSync): void {
   ensureColumn(db, 'upload_meta', 'mime', 'mime TEXT')
   ensureColumn(db, 'upload_meta', 'visibility', "visibility TEXT DEFAULT 'public'")
   ensureColumn(db, 'upload_meta', 'status', "status TEXT DEFAULT 'active'")
+}
+
+/** users 的 v12 补列（老库升级；新库由 DDL 直接建好） */
+function migrateUsers(db: DatabaseSync): void {
+  ensureColumn(db, 'users', 'status', "status TEXT NOT NULL DEFAULT 'active'")
+  ensureColumn(db, 'users', 'last_login_at', 'last_login_at TEXT')
+  ensureColumn(db, 'users', 'frozen_at', 'frozen_at TEXT')
+  ensureColumn(db, 'users', 'tags', 'tags TEXT')
+  ensureColumn(db, 'users', 'note', 'note TEXT')
+}
+
+/** seo_overrides 的补列：分享图（v15 首版建表已含；兼容先建表的实例） */
+function migrateSeoOverrides(db: DatabaseSync): void {
+  ensureColumn(db, 'seo_overrides', 'image', 'image TEXT')
 }
 
 /** 读取 meta 值；不存在返回 undefined */
@@ -442,6 +483,8 @@ export function getDb(): DatabaseSync {
     db.exec('PRAGMA foreign_keys = ON')
     db.exec(DDL)
     migrateUploadMeta(db)
+    migrateUsers(db)
+    migrateSeoOverrides(db)
     migrateFromLegacyJson(db)
     // 每次打开都把 meta 的 schema 版本同步为当前版本（建表为幂等 DDL；版本号用于排障与未来迁移判断）
     if (getMeta(db, META_SCHEMA) !== SCHEMA_VERSION) setMeta(db, META_SCHEMA, SCHEMA_VERSION)

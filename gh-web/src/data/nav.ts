@@ -100,8 +100,9 @@ export const MEGA_PANELS: MegaPanel[] = [
         links: [
           { label: '商业合作', to: '/business' },
           { label: '合作案例', to: '/business/cases' },
-          // 品牌资料入口暂指向合作页内的品牌资料区块锚点；后续将替换为独立入口
-          { label: '品牌资料下载', to: '/business#brand-assets' },
+          // 合作伙伴 / 代理商：与品牌资料融合的申请页（申请而非查询，政策未定稿标注筹备中）
+          { label: '合作伙伴 / 代理商申请', to: '/business/partners' },
+          { label: '品牌资料下载', to: '/business/partners#brand-assets' },
         ],
       },
       {

@@ -24,6 +24,9 @@ import { pageIdFromPath } from './data/nav'
 const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })))
 const SupportPage = lazy(() => import('./pages/SupportPage').then((m) => ({ default: m.SupportPage })))
 const BusinessPage = lazy(() => import('./pages/BusinessPage').then((m) => ({ default: m.BusinessPage })))
+const BusinessPartnersPage = lazy(() =>
+  import('./pages/BusinessPartnersPage').then((m) => ({ default: m.BusinessPartnersPage })),
+)
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })))
 const ProductsPage = lazy(() => import('./pages/ProductsPage').then((m) => ({ default: m.ProductsPage })))
 const ProductDetailPage = lazy(() =>
@@ -315,6 +318,7 @@ function AppShell() {
               <Route path="/inquiry" element={<InquiryPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/business" element={<BusinessPage />} />
+              <Route path="/business/partners" element={<BusinessPartnersPage />} />
               <Route path="/business/scenes" element={<BusinessScenesPage />} />
               <Route path="/business/cases" element={<BusinessCasesPage />} />
               <Route path="/business/cases/:id" element={<BusinessCaseDetailPage />} />

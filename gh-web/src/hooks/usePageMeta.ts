@@ -1,5 +1,6 @@
-import { useLayoutEffect } from 'react'
-import { BRAND, LANG_QUERY_KEY, canonicalPathFor, defaultOgImage, hreflangLinks, pageMetaFor } from '../data/meta'
+import { useEffect, useLayoutEffect, useState } from 'react'
+import { BRAND, LANG_QUERY_KEY, canonicalPathFor, defaultOgImage, hreflangLinks, ogImageUrl, pageMetaFor, withSeoOverride } from '../data/meta'
+import { loadSeoOverrides, seoOverrideFor } from '../api/seo'
 
 /** 写入 / 更新 <head> 中的 meta（name / property 二选一） */
 export function upsertMeta(attr: 'name' | 'property', key: string, content: string): void {
@@ -59,10 +60,31 @@ export function syncUrlLang(lang: string): void {
  * 详情页里的 `useDetailSeo`（被动 effect）落地，后者才能覆盖出真实标题 / 分享图。
  */
 export function usePageMeta(pathname: string, lang: string = 'zh-CN'): void {
+  // 后台可覆盖静态路由的标题 / 描述 / 收录开关：首次加载后触发一次重渲染以应用覆盖
+  const [seoVersion, setSeoVersion] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    loadSeoOverrides()
+      .then(() => {
+        if (alive) setSeoVersion((version) => version + 1)
+      })
+      .catch(() => {
+        // 覆盖接口不可用时保持默认元信息，不影响页面与 SEO 基础能力
+      })
+    return () => {
+      alive = false
+    }
+  }, [])
+
   useLayoutEffect(() => {
     // 旧站路由别名（如 /h-col-160.html）按新站规范路径生成标题与 canonical
     const canonicalPath = canonicalPathFor(pathname)
-    const meta = pageMetaFor(canonicalPath)
+    const base = pageMetaFor(canonicalPath)
+    const override = seoOverrideFor(canonicalPath)
+    const meta = withSeoOverride(base, override)
+    // 分享图：后台覆盖优先（相对路径补当前域名），未设置用默认分享图
+    const ogImage = override?.image ? ogImageUrl(override.image) : defaultOgImage()
     const { canonical, alternates } = hreflangLinks(canonicalPath, lang)
 
     // URL 上的语言标签与当前语言保持一致（英文可被抓取 / 分享）
@@ -79,11 +101,11 @@ export function usePageMeta(pathname: string, lang: string = 'zh-CN'): void {
     upsertMeta('property', 'og:title', meta.title)
     upsertMeta('property', 'og:description', meta.description)
     upsertMeta('property', 'og:url', canonical)
-    upsertMeta('property', 'og:image', defaultOgImage())
+    upsertMeta('property', 'og:image', ogImage)
     upsertMeta('property', 'og:locale', lang === 'en' ? 'en_US' : 'zh_CN')
     upsertMeta('name', 'twitter:card', 'summary_large_image')
     upsertMeta('name', 'twitter:title', meta.title)
     upsertMeta('name', 'twitter:description', meta.description)
-    upsertMeta('name', 'twitter:image', defaultOgImage())
-  }, [pathname, lang])
+    upsertMeta('name', 'twitter:image', ogImage)
+  }, [pathname, lang, seoVersion])
 }

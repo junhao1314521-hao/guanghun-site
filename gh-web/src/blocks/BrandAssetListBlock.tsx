@@ -20,6 +20,8 @@ import { isDownloadable } from '../data/support-extra'
 export function BrandAssetListBlock({ props }: { props: Record<string, unknown> }) {
   const category = asString(props.category, 'all')
   const limit = Math.max(0, asNumber(props.limit, 0))
+  // 需留资资料的申请入口：默认 /inquiry；合作伙伴页可指向页内申请表单锚点
+  const leadHref = asString(props.leadHref, '/inquiry')
   const [reloadKey, setReloadKey] = useState(0)
   const { data, loading, error } = useApi((signal) => fetchBrandAssets(signal), [reloadKey])
 
@@ -69,7 +71,7 @@ export function BrandAssetListBlock({ props }: { props: Record<string, unknown> 
               <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {item.requireLead ? (
                   // 需留资 / 申请授权：给出明确提示 + 跳既有「提交咨询」页（不新造表单）
-                  <SafeLink className="btn btn--sm btn--secondary" to="/inquiry" title="该资料需留资 / 授权后提供">
+                  <SafeLink className="btn btn--sm btn--secondary" to={leadHref} title="该资料需留资 / 授权后提供">
                     申请下载
                   </SafeLink>
                 ) : isDownloadable(item) ? (

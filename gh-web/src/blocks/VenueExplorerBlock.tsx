@@ -6,7 +6,7 @@
  * 视觉：页面定调由首屏 fullscreenVisual 承载；本区块只保留统计条 + 筛选 + 地图 + 列表，
  *       颜色 / 圆角 / 间距全部使用全站令牌，不再维护独立皮肤。
  */
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchBizVenues } from '../api/business-extra'
@@ -40,7 +40,7 @@ function normalize(items: VenueSummary[]): VenueSummary[] {
 /** 产品体验点探索区块：渲染筛选器、门店列表与地图，支持定位就近排序与详情切换 */
 export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }) {
   const title = asString(props.title, '产品体验点')
-  const subtitle = asString(props.subtitle, '先摸到那台机器，再决定。全国合作门店提供光魂与极创全系显示器实机体验。')
+  const subtitle = asString(props.subtitle, '先摸到那台机器，再决定。全国合作网吧体验点提供光魂与极创全系显示器实机体验。')
   const showMap = props.showMap === undefined ? true : asBool(props.showMap)
   const limit = Math.max(0, asNumber(props.limit, 0))
 
@@ -68,17 +68,29 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   const [isMobile, setIsMobile] = useState(() =>
     typeof window === 'undefined' ? false : window.matchMedia('(max-width: 767px)').matches,
   )
+  /** 筛选区锚点：带 ?model= 进入时滚动到这里 */
+  const toolbarRef = useRef<HTMLDivElement>(null)
 
   // 产品详情「预约体验」带 ?model=闪电 进入时，直接按该机型筛选
   useEffect(() => {
     const requested = searchParams.get('model')
     if (!requested) return
+    // 只接受已登记的机型族，非法参数不改变筛选（避免出现 0 家且无法解释）
+    if (!(VENUE_MODEL_FAMILIES as readonly string[]).includes(requested)) return
     setModel(requested)
     setProvince('全部')
     setCity('全部')
     setNearby(false)
     setQuery('')
   }, [searchParams])
+
+  // 带机型筛选进入时，数据就绪后滚动到筛选区，避免停在首屏 Hero 看不到结果
+  useEffect(() => {
+    if (loading) return
+    const requested = searchParams.get('model') ?? ''
+    if (!requested || !(VENUE_MODEL_FAMILIES as readonly string[]).includes(requested)) return
+    toolbarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [loading, searchParams])
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 767px)')
@@ -264,7 +276,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
   const selectVenue = (id: string) => {
     const venue = venues.find((item) => item.id === id)
     if (venue && !hasCoords(venue)) {
-      setGeoError('该门店地址待补充，暂无法在地图上定位；可先复制地址或联系门店确认。')
+      setGeoError('该体验点地址待补充，暂无法在地图上定位；可先复制地址或联系体验点确认。')
       setActiveId(id)
       return
     }
@@ -280,7 +292,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
     }
     setGeoError('')
     if (!navigator.geolocation) {
-      setGeoError('当前浏览器不支持定位，已保留全部门店。')
+      setGeoError('当前浏览器不支持定位，已保留全部体验点。')
       return
     }
     setLocating(true)
@@ -292,7 +304,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
       },
       () => {
         setLocating(false)
-        setGeoError('未获取到位置权限，已保留全部门店；可继续用城市或机型筛选。')
+        setGeoError('未获取到位置权限，已保留全部体验点；可继续用城市或机型筛选。')
       },
       { timeout: 8000, maximumAge: 600000 },
     )
@@ -354,7 +366,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
         </div>
       </section>
 
-      <div className="vx-toolbar">
+      <div className="vx-toolbar" ref={toolbarRef}>
         <div className="container vx-toolbar__inner">
           <label className="vx-search">
             <IconSearch size={15} />
@@ -362,8 +374,8 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索城市、门店或机型"
-              aria-label="搜索城市、门店或机型"
+              placeholder="搜索城市、体验点或机型"
+              aria-label="搜索城市、体验点或机型"
             />
             {query && (
               <button className="vx-search__clear" type="button" aria-label="清除搜索" onClick={() => setQuery('')}>
@@ -500,7 +512,7 @@ export function VenueExplorerBlock({ props }: { props: Record<string, unknown> }
                 <div className="vx-empty">
                   <div className="vx-empty__icon"><IconSearch size={18} /></div>
                   <div className="vx-empty__title">没有找到匹配的体验点</div>
-                  <p className="vx-empty__desc">试试更换机型，或查看全国门店。</p>
+                  <p className="vx-empty__desc">试试更换机型，或查看全国体验点。</p>
                   <button className="vx-btn vx-btn--dark" type="button" onClick={resetFilters}>查看全国体验点</button>
                 </div>
               ) : grouped ? (

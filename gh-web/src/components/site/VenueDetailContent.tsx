@@ -13,6 +13,7 @@ import { copyText, venueNavigationUrl } from '../../lib/venue'
 import type { VenueDetail } from '../../data/business-extra'
 import { MediaImg } from '../ui/MediaImg'
 import { IconCopy, IconNavigate } from '../ui/Icon'
+import { VenueMap } from './VenueMap'
 
 type Props = {
   detail: VenueDetail
@@ -33,6 +34,12 @@ export function VenueDetailContent({ detail, variant }: Props) {
   const [sending, setSending] = useState(false)
   const [copied, setCopied] = useState(false)
   const [hero, setHero] = useState(() => detail.cover || detail.gallery?.[0] || '')
+
+  // 门店坐标（后台可能存字符串）：经纬度都有效时才渲染详情页地图，缺坐标不占位
+  const lat = Number(detail.lat)
+  const lng = Number(detail.lng)
+  const coordRaw = `${detail.lat ?? ''}${detail.lng ?? ''}`.trim()
+  const hasPoint = coordRaw !== '' && Number.isFinite(lat) && Number.isFinite(lng)
 
   const handleCopy = async () => {
     const ok = await copyText(detail.address || `${detail.province}${detail.city}${detail.name}`)
@@ -145,7 +152,7 @@ export function VenueDetailContent({ detail, variant }: Props) {
           <p className="card__desc">{detail.note}</p>
           {reserveId ? (
             <div className="alert alert--success" role="status" style={{ marginTop: 'var(--gh-space-4)' }}>
-              预约已提交，预约号 {reserveId}；门店将尽快与你联系确认。
+              预约已提交，预约号 {reserveId}；体验点将尽快与你联系确认。
             </div>
           ) : null}
           {reserveOpen ? (
@@ -242,12 +249,27 @@ export function VenueDetailContent({ detail, variant }: Props) {
         </div>
       </div>
 
+      {/* 门店位置：详情页专属地图，无坐标时整段不渲染 */}
+      {!isDialog && hasPoint && (
+        <section className="venue-detail__section venue-detail__map">
+          <div className="section__head">
+            <div>
+              <h2 className="section__title">体验点位置</h2>
+              <p className="section__desc">地图可拖动缩放，点击标记查看体验点信息；「到这里去」可直接唤起高德导航。</p>
+            </div>
+          </div>
+          <VenueMap
+            venues={[{ id: detail.id, name: detail.name, address: detail.address, phone: detail.phone, lat, lng }]}
+          />
+        </section>
+      )}
+
       {/* 在售产品 */}
       <section className="venue-detail__section">
         <div className="section__head">
           <div>
             <h2 className="section__title">在售产品</h2>
-            <p className="section__desc">门店现货型号以现场库存为准，可先电话确认。</p>
+            <p className="section__desc">体验点现货型号以现场库存为准，可先电话确认。</p>
           </div>
           <Link className="btn btn--ghost" to="/products">
             浏览全部产品 →
@@ -262,7 +284,7 @@ export function VenueDetailContent({ detail, variant }: Props) {
             ))
           ) : (
             <span className="muted" style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-              暂无型号信息，可先电话咨询门店。
+              暂无型号信息，可先电话咨询体验点。
             </span>
           )}
         </div>
@@ -273,7 +295,7 @@ export function VenueDetailContent({ detail, variant }: Props) {
         <div className="section__head">
           <div>
             <h2 className="section__title">服务项目</h2>
-            <p className="section__desc">门店可提供的体验与售后支持。</p>
+            <p className="section__desc">体验点可提供的体验与售后支持。</p>
           </div>
         </div>
         <div className="card reveal">

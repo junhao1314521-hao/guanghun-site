@@ -159,6 +159,14 @@ export const PAGE_META: PageMeta[] = [
     priority: 0.7,
   },
   {
+    path: '/business/partners',
+    title: '合作伙伴 / 代理商申请 · 光魂',
+    description: '合作伙伴与代理商申请：合作政策筹备中，提交申请后由商务团队对接；品牌资料在线申请下载。',
+    indexable: true,
+    changefreq: 'monthly',
+    priority: 0.7,
+  },
+  {
     path: '/business/scenes',
     title: '场景与方案 · 光魂',
     description: '面向电竞、创作、办公与差旅的场景化装备方案。',
@@ -209,6 +217,27 @@ export const PAGE_META: PageMeta[] = [
 
 /** 允许收录的静态路径（sitemap 由此生成 / 校验） */
 export const INDEXABLE_PATHS = PAGE_META.filter((m) => m.indexable).map((m) => m.path)
+
+/** 后台 SEO 覆盖值（仅标题 / 描述 / 收录开关） */
+export type SeoOverrideValues = {
+  title: string
+  description: string
+  indexable: boolean
+}
+
+/**
+ * 合并后台覆盖：只替换标题 / 描述 / 收录开关，
+ * 路径、changefreq、priority 等口径字段保持 `PAGE_META` 真源不变。
+ */
+export function withSeoOverride(meta: PageMeta, override?: SeoOverrideValues | null): PageMeta {
+  if (!override) return meta
+  return {
+    ...meta,
+    title: override.title,
+    description: override.description,
+    indexable: override.indexable,
+  }
+}
 
 /** 规范链接：去掉尾部斜杠（根路径除外），避免同一页面多 URL */
 export function canonicalUrl(pathname: string): string {
@@ -282,7 +311,7 @@ export function pageMetaFor(pathname: string): PageMeta {
     return { path: pathname, title: '合作案例 · 光魂', description: '光魂商业合作案例的背景与方案。', indexable: true }
   }
   if (/^\/business\/venues\/[^/]+$/.test(pathname)) {
-    return { path: pathname, title: '产品体验点详情 · 光魂', description: '门店地址、可体验机型与到店导航。', indexable: true }
+    return { path: pathname, title: '产品体验点详情 · 光魂', description: '体验点地址、可体验机型与到店导航。', indexable: true }
   }
   if (/^\/ladder\/[^/]+$/.test(pathname)) {
     return { path: pathname, title: '天梯榜 · 光魂', description: '按单项指标排序的电竞装备实测榜。', indexable: true }

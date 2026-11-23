@@ -2,17 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteAdminResource, fetchAdminResource, saveAdminResource } from '../../api/admin'
 import { uploadFile } from '../../api/adminUploads'
+import { createWallpaperTheme, fetchWallpaperThemes, type WallpaperThemeItem } from '../../api/wallpaperThemes'
 import type { AdminRow } from '../../data/admin'
-import { WALLPAPER_THEME_OPTIONS } from '../../data/wallpapers'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
+import { WallpaperThemesPanel } from '../../components/admin/WallpaperThemesPanel'
 import { Select } from '../../components/admin/Select'
 import { useConfirm, useToast } from '../../components/admin/feedback'
 import { EmptyState, ErrorState, SkeletonTable } from '../../components/admin/states'
 import '../../styles/admin-wallpapers.css'
 
 const MAX_FILE = 10 * 1024 * 1024
-const THEME_VALUES: string[] = WALLPAPER_THEME_OPTIONS.map((theme) => theme.value)
 
 /** 字节数 → 展示文本 */
 function formatSize(bytes: number): string {
@@ -111,9 +111,17 @@ function ReplaceButton({ row, onDone }: { row: AdminRow; onDone: () => void }) {
 }
 
 /** 批量上传弹层：多选 / 拖拽图片 → 选主题 → 逐张上传并生成壁纸记录 */
-function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+function BatchUploadDialog({
+  onClose,
+  onDone,
+  themes,
+}: {
+  onClose: () => void
+  onDone: () => void
+  themes: WallpaperThemeItem[]
+}) {
   const toast = useToast()
-  const [theme, setTheme] = useState<string>(THEME_VALUES[0])
+  const [theme, setTheme] = useState<string>(themes[0]?.key ?? '')
   // 自定义主题：输入即选用，上传时按该值写入（前台 chips 自动出现）
   const [customTheme, setCustomTheme] = useState('')
   const [entries, setEntries] = useState<BatchEntry[]>([])
@@ -177,6 +185,15 @@ function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: (
       return
     }
     setBusy(true)
+    // 自定义主题先登记为实体（已存在时接口返回错误可忽略），保证主题管理里可见
+    const chosen = theme.trim()
+    if (chosen && !themes.some((item) => item.key === chosen)) {
+      try {
+        await createWallpaperTheme({ key: chosen, label: chosen })
+      } catch {
+        // 已存在或并发创建：继续上传即可，主题值仍会写入壁纸记录
+      }
+    }
     let ok = 0
     let fail = 0
     for (const entry of queue) {
@@ -255,21 +272,21 @@ function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: (
           </div>
 
           <div className="wp-admin-themes" role="radiogroup" aria-label="壁纸主题">
-            {WALLPAPER_THEME_OPTIONS.map((item) => (
-              <label key={item.value} className={`wp-admin-theme${theme === item.value ? ' is-active' : ''}`}>
+            {themes.map((item) => (
+              <label key={item.key} className={`wp-admin-theme${theme === item.key ? ' is-active' : ''}`}>
                 <input
                   type="radio"
                   name="wp-batch-theme"
-                  value={item.value}
-                  checked={theme === item.value}
+                  value={item.key}
+                  checked={theme === item.key}
                   disabled={busy}
-                  onChange={() => setTheme(item.value)}
+                  onChange={() => setTheme(item.key)}
                 />
-                <strong>{item.value}</strong>
-                <span>{item.desc}</span>
+                <strong>{item.label}</strong>
+                <span>{item.description || `已有 ${item.count} 张壁纸`}</span>
               </label>
             ))}
-            {customTheme.trim() && !THEME_VALUES.includes(customTheme.trim()) && (
+            {customTheme.trim() && !themes.some((item) => item.key === customTheme.trim()) && (
               <label className={`wp-admin-theme${theme === customTheme.trim() ? ' is-active' : ''}`}>
                 <input
                   type="radio"
@@ -352,6 +369,8 @@ function BatchUploadDialog({ onClose, onDone }: { onClose: () => void; onDone: (
 export function AdminWallpapersPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const { data, loading, error } = useApi((signal) => fetchAdminResource('wallpapers', signal), [reloadKey])
+  const themeState = useApi((signal) => fetchWallpaperThemes(signal), [reloadKey])
+  const [tab, setTab] = useState<'wallpapers' | 'themes'>('wallpapers')
   const [rows, setRows] = useState<AdminRow[]>([])
   const [keyword, setKeyword] = useState('')
   const [themeFilter, setThemeFilter] = useState('all')
@@ -365,9 +384,11 @@ export function AdminWallpapersPage() {
 
   const reload = () => setReloadKey((key) => key + 1)
 
-  // 主题选项 = 内置主题 + 现有壁纸里出现过的自定义主题
+  const themes: WallpaperThemeItem[] = themeState.data?.items ?? []
+
+  // 主题选项 = 实体主题 + 现有壁纸里出现过的历史主题（兼容未登记值）
   const themeOptions = Array.from(
-    new Set<string>([...WALLPAPER_THEME_OPTIONS.map((item) => item.value), ...rows.map((row) => String(row.theme ?? '')).filter(Boolean)]),
+    new Set<string>([...themes.map((theme) => theme.key), ...rows.map((row) => String(row.theme ?? '')).filter(Boolean)]),
   )
 
   const filtered = rows.filter((row) => {
@@ -410,19 +431,51 @@ export function AdminWallpapersPage() {
     <div className="admin-page">
       <AdminPageHead
         title="品牌壁纸"
-        desc="批量上传、替换图片与主题快捷编辑；点击标题进入通用表单修改文案与精选。"
+        desc="批量上传、替换图片与主题快捷编辑；「主题管理」维护前台分类实体（名称 / 排序 / 启停）。"
         actions={
-          <>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={() => setBatchOpen(true)}>
-              批量上传
-            </button>
-            <Link className="btn btn--primary btn--sm" to="/admin/wallpapers/new">
-              新建
-            </Link>
-          </>
+          tab === 'wallpapers' ? (
+            <>
+              <button type="button" className="btn btn--secondary btn--sm" onClick={() => setBatchOpen(true)}>
+                批量上传
+              </button>
+              <Link className="btn btn--primary btn--sm" to="/admin/wallpapers/new">
+                新建
+              </Link>
+            </>
+          ) : undefined
         }
       />
 
+      <div className="access-tabs" role="tablist" aria-label="品牌壁纸分类">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'wallpapers'}
+          className={`access-tab${tab === 'wallpapers' ? ' is-active' : ''}`}
+          onClick={() => setTab('wallpapers')}
+        >
+          壁纸
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'themes'}
+          className={`access-tab${tab === 'themes' ? ' is-active' : ''}`}
+          onClick={() => setTab('themes')}
+        >
+          主题管理
+        </button>
+      </div>
+
+      {tab === 'themes' ? (
+        <WallpaperThemesPanel
+          themes={themes}
+          loading={themeState.loading}
+          error={themeState.error}
+          onChanged={reload}
+        />
+      ) : (
+        <>
       <div className="admin-toolbar">
         <div className="admin-toolbar__search search">
           <input
@@ -535,6 +588,7 @@ export function AdminWallpapersPage() {
 
       {batchOpen && (
         <BatchUploadDialog
+          themes={themes.filter((theme) => theme.active)}
           onClose={() => setBatchOpen(false)}
           onDone={() => {
             reload()
@@ -542,6 +596,8 @@ export function AdminWallpapersPage() {
             setThemeFilter('all')
           }}
         />
+      )}
+        </>
       )}
     </div>
   )

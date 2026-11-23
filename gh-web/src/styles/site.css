@@ -3388,3 +3388,50 @@ body.drawer-open { overflow: hidden; }
   .me-activity__title { flex-basis: calc(100% - 24px); }
   .me-empty { flex-direction: column; align-items: flex-start; }
 }
+
+/* ---------- 商业合作 · 合作伙伴 / 代理商申请页 ---------- */
+.partners-hero { align-items: flex-start; }
+.partners-hero > .row { flex-wrap: wrap; }
+.partners-section { margin-top: var(--gh-space-7); }
+.partners-section__head { margin-bottom: var(--gh-space-4); }
+.partners-policy { display: flex; flex-direction: column; align-items: flex-start; }
+.partners-policy .card__desc { margin-bottom: 0; }
+.partners-apply {
+  display: grid;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  gap: var(--gh-space-6);
+  align-items: start;
+}
+.partners-apply__intro .section__desc { margin-bottom: var(--gh-space-4); }
+.partners-apply__points {
+  margin: 0 0 var(--gh-space-4);
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: var(--gh-font-size-body-sm);
+  line-height: var(--gh-line-height-body);
+}
+.partners-apply__form {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--gh-radius-lg);
+  background: var(--color-bg-surface);
+  padding: var(--gh-space-5);
+}
+.partners-form__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gh-space-4); }
+.partners-form__full { grid-column: 1 / -1; }
+.partners-form__privacy {
+  margin: var(--gh-space-3) 0 0;
+  font-size: var(--gh-font-size-caption);
+  color: var(--color-text-tertiary);
+  line-height: var(--gh-line-height-body);
+}
+.partners-success { max-width: 560px; }
+.partners-success .btn { margin-top: var(--gh-space-4); }
+@media (max-width: 960px) {
+  .partners-apply { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .partners-form__grid { grid-template-columns: minmax(0, 1fr); }
+}

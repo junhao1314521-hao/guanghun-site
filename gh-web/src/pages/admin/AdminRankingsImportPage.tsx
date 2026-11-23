@@ -128,7 +128,7 @@ function resolveMetric(metrics: RankingMetricSummary[], key: string): RankingMet
  * 后台 · 天梯榜批量导入：上传 CSV 覆盖 / 追加某个指标的榜单条目。
  * 名次由服务端按指标方向自动重排，CSV 只需提供型号、品牌与数值（对比度 ∞ 用「无限」列标记）。
  */
-export function AdminRankingsImportPage() {
+export function AdminRankingsImportPage({ embedded = false }: { embedded?: boolean }) {
   const toast = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
@@ -211,11 +211,13 @@ export function AdminRankingsImportPage() {
   }
 
   return (
-    <div className="admin-page">
-      <AdminPageHead
-        title="天梯榜导入"
-        desc="用 CSV 批量导入榜单条目：名次按数值自动重排，对比度 ∞ 用「无限」列标记；覆盖模式会替换该指标的全部条目。"
-      />
+    <div className={embedded ? 'ranking-import-pane' : 'admin-page'}>
+      {!embedded && (
+        <AdminPageHead
+          title="天梯榜导入"
+          desc="用 CSV 批量导入榜单条目：名次按数值自动重排，对比度 ∞ 用「无限」列标记；覆盖模式会替换该指标的全部条目。"
+        />
+      )}
 
       <div className="admin-form">
         <section className="admin-form__section">

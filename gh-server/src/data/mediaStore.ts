@@ -386,10 +386,20 @@ export function listMedia(query: MediaQuery = {}): { items: MediaItem[]; total: 
   const q = query.q?.trim().toLowerCase()
   if (q) items = items.filter((item) => item.name.toLowerCase().includes(q))
   if (query.type) {
-    const type = query.type.toLowerCase()
-    items = items.filter((item) =>
-      type.includes('/') ? item.type.toLowerCase() === type : item.type.toLowerCase().startsWith(`${type}/`),
-    )
+    // 支持逗号分隔的组合筛选（如 image,video）：值含 `/` 按完整 MIME 精确匹配，否则按主类型前缀
+    const types = query.type
+      .toLowerCase()
+      .split(',')
+      .map((type) => type.trim())
+      .filter(Boolean)
+    if (types.length > 0) {
+      items = items.filter((item) => {
+        const mime = item.type.toLowerCase()
+        return types.some((type) =>
+          type.includes('/') ? mime === type : mime.startsWith(`${type}/`),
+        )
+      })
+    }
   }
 
   const total = items.length

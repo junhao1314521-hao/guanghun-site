@@ -40,6 +40,8 @@
 /* —— 工具条 —— */
 .vx-toolbar {
   position: sticky; top: var(--gh-header-h); z-index: 40;
+  /* 带 ?model= 进入时滚动到此，预留吸顶顶栏高度 */
+  scroll-margin-top: var(--gh-header-h);
   background: var(--veil-surface);
   border-bottom: 1px solid var(--color-border-subtle);
   backdrop-filter: saturate(180%) blur(22px);

@@ -28,11 +28,14 @@ type EditorState = { open: false } | { open: true; mode: 'create' | 'edit'; key:
 
 const CLOSED: EditorState = { open: false }
 
-/** 组件：渲染角色管理页，支持新建、编辑、删除角色并配置权限范围。 */
-export function AdminRolesView() {
+/** 组件：渲染角色管理页，支持新建、编辑、删除角色并配置权限范围。
+ *  `section` 用于「成员与权限」合并页：roles 只显示角色 CRUD，matrix 只显示权限对照。 */
+export function AdminRolesView({ section = 'all' }: { section?: 'all' | 'roles' | 'matrix' }) {
   const { profile } = useAdminAuth()
   const toast = useToast()
   const confirm = useConfirm()
+  const showRoles = section !== 'matrix'
+  const showMatrix = section !== 'roles'
 
   const [reloadKey, setReloadKey] = useState(0)
   const { data, loading, error } = useApi((signal) => fetchAdminRoles(signal), [reloadKey])
@@ -131,12 +134,16 @@ export function AdminRolesView() {
   }
 
   return (
-    <div className="admin-page">
-      <AdminPageHead
-        title="角色与权限"
-        desc="管理系统角色与其权限集（scopes）。角色数据存于服务端，内置角色不可删除。"
-      />
+    <div className={section === 'all' ? 'admin-page' : 'access-pane'}>
+      {section === 'all' && (
+        <AdminPageHead
+          title="角色与权限"
+          desc="管理系统角色与其权限集（scopes）。角色数据存于服务端，内置角色不可删除。"
+        />
+      )}
 
+      {showRoles && (
+        <>
       {/* 当前登录账号 */}
       <section className="admin-panel">
         <div className="admin-panel__head">
@@ -346,6 +353,11 @@ export function AdminRolesView() {
         )}
       </section>
 
+        </>
+      )}
+
+      {showMatrix && (
+        <>
       {/* 栏目 → 所需权限 对照表 */}
       <section className="admin-panel">
         <div className="admin-panel__head">
@@ -435,6 +447,8 @@ export function AdminRolesView() {
         权限类别说明：内容与装修 = {SCOPE_DESC.content}；备份与恢复 = {SCOPE_DESC.backups}；发布与回滚 ={' '}
         {SCOPE_DESC.publish}；系统设置 = {SCOPE_DESC.system}。
       </p>
+        </>
+      )}
     </div>
   )
 }

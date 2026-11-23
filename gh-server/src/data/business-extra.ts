@@ -109,7 +109,7 @@ export const BIZ_CASES: CaseSummary[] = [
     partner: '深圳競界电竞馆',
     category: '渠道合作',
     year: '2025',
-    summary: '与电竞馆共建试机体验区，配套统一陈列物料与试机台显示配置，支持门店导流与试用登记。',
+    summary: '与电竞馆共建试机体验区，配套统一陈列物料与试机台显示配置，支持到店导流与试用登记。',
     cover: '/media/business/cases/venue-experience.svg',
   },
   {
@@ -150,12 +150,12 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
     background:
       '电竞馆原有试机台位分散、陈列不统一，顾客试用后缺少登记入口，难以追踪体验转化。',
     solution: [
-      '按门店动线规划试机台位，统一陈列物料与灯箱',
+      '按场馆动线规划试机台位，统一陈列物料与灯箱',
       '各台位预装常用显示档与调校配置，支持一键切换',
       '试机后引导扫码登记，接入线上咨询与到店预约',
     ],
     results: [
-      { label: '台位规划', value: '按门店动线统一布置' },
+      { label: '台位规划', value: '按场馆动线统一布置' },
       { label: '试用入口', value: '扫码登记' },
       { label: '线上承接', value: '咨询与到店预约' },
     ],
@@ -259,7 +259,7 @@ export function getBizVenueDetail(venues: VenueSummary[], id: string): VenueDeta
     products: summary.products ?? [],
     services: summary.services ?? ['到店实机体验'],
     transport: summary.transport ?? '',
-    note: summary.note ?? '到店体验请以门店现场安排为准。',
+    note: summary.note ?? '到店体验请以体验点现场安排为准。',
     gallery: summary.gallery ?? (summary.cover ? [summary.cover] : []),
   }
 }

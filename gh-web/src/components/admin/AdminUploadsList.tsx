@@ -39,11 +39,13 @@ import { AdminIcon } from './AdminIcon'
 import { AdminPageHead } from './AdminPageHead'
 import { Select } from './Select'
 import { EmptyState, ErrorState, SkeletonGallery } from './states'
-import { MediaImg } from '../ui/MediaImg'
 import { registerSrcSet } from '../ui/mediaSrcSet'
 import { OverflowMenu } from './OverflowMenu'
-import { IconClose, IconPlus, IconSearch } from '../ui/Icon'
+import { IconClose, IconExpand, IconPlus, IconSearch } from '../ui/Icon'
 import { useConfirm, useToast } from './feedback'
+import { isImageMedia, isPdfMedia, isVideoMedia } from '../../lib/mediaType'
+import { MediaThumb } from './MediaThumb'
+import { MediaHoverPreview } from './MediaHoverPreview'
 
 /** 允许上传的类型（与后端白名单一致：图片 / 视频 / PDF / 文本 / Office / 压缩包） */
 const UPLOAD_ACCEPT = [
@@ -171,6 +173,8 @@ export function AdminUploadsList() {
   const [replacing, setReplacing] = useState<{ id: string; percent: number } | null>(null)
   /** 大图 / PDF 预览 */
   const [preview, setPreview] = useState<UploadItem | null>(null)
+  /** 缩略图放大图标的悬浮放大预览 */
+  const [hoverPreview, setHoverPreview] = useState<{ item: UploadItem; rect: DOMRect } | null>(null)
   /** 引用位置弹窗 */
   const [refsDialog, setRefsDialog] = useState<{
     name: string
@@ -599,6 +603,8 @@ export function AdminUploadsList() {
 
   const loading = mediaState.loading && items.length === 0
   const isEmpty = !loading && !mediaState.error && items.length === 0
+  /** 当前预览在列表中的位置（用于上一张 / 下一张） */
+  const previewIndex = preview ? items.findIndex((entry) => entry.id === preview.id) : -1
 
   return (
     <div
@@ -897,7 +903,7 @@ export function AdminUploadsList() {
           ) : (
             <div className="admin-gallery">
               {items.map((item) => {
-                const image = item.type.startsWith('image/')
+                const image = isImageMedia(item)
                 const isSelected = selected.has(item.id)
                 return (
                   <div
@@ -912,16 +918,47 @@ export function AdminUploadsList() {
                         onChange={() => toggleSelect(item.id)}
                       />
                     </label>
+                    <div className="admin-tile__media-wrap">
+                      <button
+                        type="button"
+                        className="admin-upload-tile__pick"
+                        onClick={() => setPreview(item)}
+                        title="点击预览"
+                        aria-label={`预览「${item.name}」`}
+                      >
+                        <span className="admin-tile__media">
+                          {image ? <MediaThumb src={item.url} alt={item.name} /> : <AdminIcon name="doc" size={28} />}
+                        </span>
+                      </button>
+                      {image && (
+                        <button
+                          type="button"
+                          className="admin-tile__zoom"
+                          title="放大预览"
+                          aria-label={`放大预览「${item.name}」`}
+                          onMouseEnter={(event) =>
+                            setHoverPreview({ item, rect: event.currentTarget.getBoundingClientRect() })
+                          }
+                          onMouseLeave={() => setHoverPreview(null)}
+                          onFocus={(event) =>
+                            setHoverPreview({ item, rect: event.currentTarget.getBoundingClientRect() })
+                          }
+                          onBlur={() => setHoverPreview(null)}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setPreview(item)
+                          }}
+                        >
+                          <IconExpand size={14} />
+                        </button>
+                      )}
+                    </div>
                     <button
                       type="button"
                       className="admin-upload-tile__pick"
-                      onClick={() => onCopy(item)}
-                      title="点击复制公开地址"
-                      aria-label={`复制「${item.name}」的公开地址`}
+                      onClick={() => setPreview(item)}
+                      aria-label={`预览「${item.name}」`}
                     >
-                      <span className="admin-tile__media">
-                        {image ? <MediaImg src={item.url} alt={item.name} /> : <AdminIcon name="doc" size={28} />}
-                      </span>
                       <span className="admin-tile__body">
                         <span className="admin-tile__name">{item.name}</span>
                         <span className="admin-tile__meta">
@@ -948,6 +985,7 @@ export function AdminUploadsList() {
                         label={`「${item.name}」更多操作`}
                         align="end"
                         items={[
+                          { key: 'copy', label: '复制公开地址', onClick: () => void onCopy(item) },
                           ...(item.refCount
                             ? [
                                 {
@@ -989,11 +1027,11 @@ export function AdminUploadsList() {
           >
             <h2 className="admin-dialog__title">{preview.name}</h2>
             <div className="admin-dialog__body admin-preview__body">
-              {preview.type.startsWith('image/') ? (
-                <img className="admin-preview__img" src={preview.url} alt={preview.name} />
-              ) : preview.type === 'application/pdf' || /\.pdf$/i.test(preview.name) ? (
+              {isImageMedia(preview) ? (
+                <MediaThumb className="admin-preview__img" src={preview.url} alt={preview.name} loading="eager" />
+              ) : isPdfMedia(preview) ? (
                 <iframe className="admin-preview__frame" src={preview.url} title={preview.name} />
-              ) : preview.type.startsWith('video/') ? (
+              ) : isVideoMedia(preview) ? (
                 <video className="admin-preview__video" src={preview.url} controls />
               ) : (
                 <p style={{ margin: 0 }}>
@@ -1004,8 +1042,34 @@ export function AdminUploadsList() {
                   （{formatSize(preview.size)}）。
                 </p>
               )}
+              {previewIndex >= 0 && items.length > 1 && (
+                <div className="admin-preview__nav">
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    disabled={previewIndex <= 0}
+                    onClick={() => setPreview(items[previewIndex - 1])}
+                  >
+                    ← 上一张
+                  </button>
+                  <span className="admin-preview__count">
+                    {previewIndex + 1} / {items.length}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    disabled={previewIndex >= items.length - 1}
+                    onClick={() => setPreview(items[previewIndex + 1])}
+                  >
+                    下一张 →
+                  </button>
+                </div>
+              )}
             </div>
             <div className="admin-dialog__foot">
+              <a className="btn btn--ghost btn--sm" href={preview.url} download rel="noreferrer">
+                下载原文件
+              </a>
               <a className="btn btn--ghost btn--sm" href={preview.url} target="_blank" rel="noreferrer">
                 新窗口打开
               </a>
@@ -1062,6 +1126,15 @@ export function AdminUploadsList() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 缩略图放大图标的悬浮放大预览 */}
+      {hoverPreview && isImageMedia(hoverPreview.item) && (
+        <MediaHoverPreview
+          src={hoverPreview.item.url}
+          name={hoverPreview.item.name}
+          rect={hoverPreview.rect}
+        />
       )}
     </div>
   )

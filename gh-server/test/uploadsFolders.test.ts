@@ -159,6 +159,12 @@ describe('素材库 · 文件夹与分类', () => {
 
     const byType = (await (await api('/uploads?type=image')).json()) as { items: Item[]; total: number }
     assert.equal(byType.total, 2)
+
+    // 组合类型（素材选择弹窗的「图片 + 视频」）应取并集，而不是整串匹配
+    const combined = (await (await api('/uploads?type=image,video')).json()) as { items: Item[]; total: number }
+    assert.equal(combined.total, 2, 'image,video 组合筛选应包含两张图片')
+    const noMatch = (await (await api('/uploads?type=video,application/pdf')).json()) as { total: number }
+    assert.equal(noMatch.total, 0, '无视频 / PDF 时应为空')
   })
 
   it('未分类筛选', async () => {
