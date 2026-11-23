@@ -121,6 +121,7 @@ function buildHomeEn(): Page {
             desc: 'Every number is reproducible. Every method is public. Every source is traceable.',
             mediaTag: 'Lab',
             image: '/media/home/hero-1.jpg',
+            theme: 'dark',
             primary: { label: 'Buy now', href: '/products' },
             stats: [{ value: '540 Hz', label: 'Refresh rate' }, { value: '0.03 ms', label: 'Response' }],
           },
@@ -130,6 +131,7 @@ function buildHomeEn(): Page {
             desc: 'The flagship OLED gaming monitor — 2K@540Hz engineered for the fastest plays.',
             mediaTag: 'Monitor',
             image: '/media/home/hero-2.jpg',
+            theme: 'dark',
             primary: { label: 'Buy now', href: '/products/gh-54027x1qe' },
           },
           {
@@ -138,6 +140,7 @@ function buildHomeEn(): Page {
             desc: 'Tune params, macros, lighting and firmware — all in one place.',
             mediaTag: 'Software',
             image: '/media/home/hero-3.jpg',
+            theme: 'dark',
             primary: { label: 'Buy now', href: '/center' },
           },
         ],
