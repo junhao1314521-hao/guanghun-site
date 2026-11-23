@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DeviceArt, type DeviceVariant } from './DeviceArt'
 import { CodeMedia, isPlaceholderMedia } from './CodeMedia'
 import { useSrcSetFor } from './mediaSrcSet'
+
+/** 瞬时失败（如并发加载被限流 429）的有限重试次数：首次 + 2 次重试 */
+const MAX_RETRIES = 2
 
 type Props = {
   /** 占位/正式素材地址 */
@@ -45,26 +48,38 @@ export function MediaImg({
   height,
   sizes,
 }: Props) {
-  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const { srcSet, sizes: resolvedSizes } = useSrcSetFor(src, sizes)
+  // 地址变化时重置重试计数（避免沿用上一张图的状态）
+  useEffect(() => setAttempt(0), [src])
   // 未提供真实素材 → 代码渐变兜底（不再出现空白 / 破图）；带 variant 时仍优先用矢量产品图
   if (isPlaceholderMedia(src)) {
     return variant ? <DeviceArt variant={variant} className={className} label={label} /> : <CodeMedia className={className} />
   }
-  if (failed) return variant ? <DeviceArt variant={variant} className={className} label={label} /> : <CodeMedia className={className} />
+  // 重试用尽仍失败 → 回退矢量占位图
+  if (attempt > MAX_RETRIES) {
+    return variant ? <DeviceArt variant={variant} className={className} label={label} /> : <CodeMedia className={className} />
+  }
+  // 瞬时失败（如并发加载被限流 429）有限重试：追加参数绕开失败缓存，重试期间不输出 srcset
+  const retrySrc = attempt === 0 ? src : `${src}${src.includes('?') ? '&' : '?'}_retry=${attempt}`
   return (
     <img
+      key={attempt}
       className={className}
-      src={src}
+      src={retrySrc}
       alt={alt}
       loading={loading}
       decoding="async"
       fetchPriority={fetchPriority}
       width={width}
       height={height}
-      srcSet={srcSet}
-      sizes={resolvedSizes}
-      onError={() => setFailed(true)}
+      srcSet={attempt === 0 ? srcSet : undefined}
+      sizes={attempt === 0 ? resolvedSizes : undefined}
+      onError={() => {
+        if (attempt <= MAX_RETRIES) {
+          window.setTimeout(() => setAttempt((n) => n + 1), 400 * (attempt + 1))
+        }
+      }}
     />
   )
 }
