@@ -3,6 +3,7 @@ import cors from 'cors'
 import express, { type Express, type NextFunction, type Request, type Response } from 'express'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { Readable } from 'node:stream'
 import { logger } from './lib/logger'
 import { requestLog } from './lib/observability'
 import { rateLimit } from './lib/rateLimit'
@@ -288,6 +289,47 @@ export function createApp(): Express {
     }),
   )
   logger.info('素材库目录已就绪', { uploadDir })
+
+  // 走查环境（TRAE）专用：部署包不携带超大素材时，缺失的 /uploads 文件回源生产服务器，
+  // 保证下载中心链接仍可用；生产环境不设置该变量，行为不变。
+  const uploadsFallbackOrigin = process.env.UPLOADS_FALLBACK_ORIGIN?.replace(/\/+$/, '')
+  if (uploadsFallbackOrigin) {
+    app.use('/uploads', async (req: Request, res: Response, next: NextFunction) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        next()
+        return
+      }
+      const raw = req.path.replace(/^\/+/, '')
+      if (!raw || raw.split('/').includes('..')) {
+        next()
+        return
+      }
+      try {
+        const headers: Record<string, string> = {}
+        const range = req.headers.range
+        if (range) headers.Range = range
+        const upstream = await fetch(`${uploadsFallbackOrigin}/uploads/${raw}`, { headers })
+        if (upstream.status !== 200 && upstream.status !== 206) {
+          next()
+          return
+        }
+        res.status(upstream.status)
+        for (const key of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'etag', 'last-modified']) {
+          const value = upstream.headers.get(key)
+          if (value) res.setHeader(key, value)
+        }
+        res.setHeader('Cache-Control', 'public, max-age=3600')
+        if (req.method === 'HEAD' || !upstream.body) {
+          res.end()
+          return
+        }
+        Readable.fromWeb(upstream.body as unknown as import('node:stream/web').ReadableStream).pipe(res)
+      } catch (err) {
+        logger.warn('走查环境素材回源失败', { path: raw, error: (err as Error).message })
+        next()
+      }
+    })
+  }
 
   // 素材库元数据同步：为磁盘上已有但缺元数据的文件补「未分类 + 自动推导分类」（幂等）
   syncMediaMeta()

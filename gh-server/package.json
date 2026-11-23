@@ -18,14 +18,15 @@
     "cors": "^2.8.5",
     "express": "^5.0.0",
     "mammoth": "^1.13.0",
-    "sharp": "^0.35.5"
+    "node-sqlite3-wasm": "^0.8.61",
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
-    "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   }
 }

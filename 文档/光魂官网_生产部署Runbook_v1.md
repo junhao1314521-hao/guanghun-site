@@ -259,3 +259,52 @@ curl -s -D - -o /dev/null -H 'X-Request-Id: smoke-1' "$BASE/healthz" | grep -i '
 - [ ] 第七节冒烟全部通过（12/12 → 200、无命中 → 404、深链 → 200）
 - [ ] 结构化日志已接入日志后端，5xx / 429 已设阈值告警
 - [ ] 完成《[V1.0 发布检查单](./光魂官网_发布检查单_v1.0.md)》全部条目
+
+---
+
+## 十、TRAE 全栈走查环境（临时部署，非生产）
+
+> 目的：把 **前端 + 后端 + 数据快照** 部署到 TRAE 私有站点，供随时走查；正式官网仍部署在自有服务器（`8.163.108.144:3002`，systemd `website`）。走查环境与生产**互不影响**。
+
+### 10.1 站点信息
+
+| 项 | 值 |
+|---|---|
+| 站点 ID | `37lgiox2lt2attwaar2` |
+| 访问地址 | `https://37lgiox2lt2attwaar2.traesite.cn` |
+| 可见性 | **私有**（需使用 TRAE 账号登录后访问） |
+| 形态 | FunctionWeb · `nodejs20` · 单 Node 进程（Express 同时托管 `dist` 与 `/api`） |
+
+### 10.2 与生产的差异（走查边界）
+
+| 项 | 走查环境 | 说明 |
+|---|---|---|
+| SQLite 驱动 | `node-sqlite3-wasm`（纯 WASM，`SQLITE_DRIVER=wasm`） | 镜像 GLIBC 较旧，`better-sqlite3` 原生模块不可用；WASM 无系统库依赖 |
+| 数据库 | 打包生产库快照（已转为 `journal_mode=DELETE`） | WASM 驱动无法打开 WAL 模式的库文件，打包前必须转换 |
+| 数据写入 | 写入 `$TMPDIR` 副本，实例重启后回到快照状态 | 走查期间的编辑不会回写生产，也不会持久保存 |
+| 素材（`/uploads/*`） | **不打包**，服务端代理回源生产（`UPLOADS_FALLBACK_ORIGIN`） | 下载链接可用；后台「素材库」列表为空属预期 |
+| 静态图 WebP | 构建期生成，服务端按 `Accept` 内容协商 | 实测 `hero-3.jpg`：174,656 B → **85,712 B** |
+| 管理员账号 | `admin`，口令由部署脚本运行时注入（不写入仓库） | 首次打开空 `admin_users` 时按 `ADMIN_PASSWORD` 播种 |
+
+### 10.3 构建/部署要点
+
+1. **部署包结构**：根 `package.json` + `build.sh` + `run.sh` + `gh-web/` + `gh-server/`，输出 `dist/`（前端产物 + 后端 `src` + 生产 `node_modules` + `data/gh.sqlite` + `public/`）。
+2. **构建脚本**：`npm ci`（官方 registry）→ 前端 `npm run build:prod`（`VITE_API_BASE=` 同源）→ 构建期执行 `gh-server/scripts/generate-static-webp.ts` 生成 WebP → 后端 `npm ci` + `npm prune --omit=dev`。
+3. **启动脚本**：`SQLITE_DRIVER=wasm`、`DB_PATH`/`UPLOAD_DIR` 指向 `$TMPDIR`（应用目录只读）、`STATIC_DIR=$PWD/public`、`COOKIE_SECURE=1`、`TRUST_PROXY=1`、`ADMIN_PASSWORD`；冷启动清理残留的 `*.sqlite.lock` 目录。
+4. **执行配置**：FunctionWeb 仅支持单个 Node 20 进程；**不要**在部署源内放 `.env` 文件（平台校验会拒绝），构建期变量写入 `build.sh`，运行期变量写入 `run.sh`。
+5. **重新部署**：执行 `trae-deploy deployments create`（新部署，不覆盖线上版本）→ `deployments wait` 至 `status=9` → 验证后站点自动切换到新版本。
+
+### 10.4 实测核对（2026-11-23）
+
+| 项 | 结果 |
+|---|---|
+| `/healthz` | 200 |
+| 首页 / SPA 深链 | 200，浏览器实测首屏、导航、产品区、页脚完整渲染 |
+| `/api/content/pages`、`/api/business/venues` | 200 |
+| 管理员登录 + 后台概览 | 200 / 200 |
+| 后台编辑体验点 → 公开接口读回 | 写入 200，读回一致（测试值已清空） |
+| `/uploads/Center-1.3.4-win64-setup.exe` 回源 | 200，4,777,999 B |
+| WebP 内容协商 | `Accept: image/webp` → `image/webp` 85,712 B；无 Accept → `image/jpeg` 174,656 B |
+| 自动化测试 | `gh-server` 默认驱动 267/267、`SQLITE_DRIVER=wasm` 267/267 |
+
+> 已知限制：单实例、无持久写入、素材库不完整；仅用于走查与联调，不作为生产或压测环境。

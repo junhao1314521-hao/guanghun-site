@@ -9,9 +9,8 @@
  * - 写入：任一新建 / 更新 / 删除后立即**事务落库**；`createCollectionItem` 置顶（sort 取当前最小值 -1）。
  * - 规范形状 = 前台现有形状（products.ts / articles.ts / ladder.ts / support*.ts / business*.ts / auth.ts 导出）。
  */
-import type { DatabaseSync } from 'node:sqlite'
+import { getDb, resolveDbPath, runInTransaction, type SqliteDatabase } from './db'
 import { logger } from '../lib/logger'
-import { getDb, resolveDbPath, runInTransaction } from './db'
 import { buildCollectionEnOverlays } from './collectionSeedEn'
 import { DEFAULT_LOCALE, localizeRecord, type Locale } from './locale'
 import { PRODUCTS, type Product } from './products'
@@ -207,7 +206,7 @@ export function initCollections(): void {
 }
 
 /** 追加式字段回填：按 id 用 seed 记录补齐既有记录**缺失**的字段（仅 `undefined`，不覆盖已有值）；返回修补条数 */
-function backfillMissingFields(tx: DatabaseSync, key: CollectionKey, seedRecords: ReadonlyArray<{ id: string }>): number {
+function backfillMissingFields(tx: SqliteDatabase, key: CollectionKey, seedRecords: ReadonlyArray<{ id: string }>): number {
   const seedById = new Map(seedRecords.map((record) => [record.id, record as unknown as Record<string, unknown>]))
   const rows = tx.prepare('SELECT id, data FROM collections WHERE key = ?').all(key) as Array<{ id: string; data: string }>
   let patched = 0

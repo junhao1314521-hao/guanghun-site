@@ -11,8 +11,7 @@
  */
 
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
-import type { DatabaseSync } from 'node:sqlite'
-import { getDb, runInTransaction } from './db'
+import { getDb, runInTransaction, type SqliteDatabase } from './db'
 
 /* ============================================================
    密码哈希（与后台 admin.ts 同规格）
@@ -337,7 +336,7 @@ function defaultNotifications(): NotificationSetting[] {
 }
 
 /** 注册时初始化该用户的个人中心数据（收藏 / 通知演示数据；设备不预置，需用户实名登记） */
-function seedAccountData(tx: DatabaseSync, profile: UserProfile): void {
+function seedAccountData(tx: SqliteDatabase, profile: UserProfile): void {
   const insert = tx.prepare('INSERT INTO user_account_data(user_id, section, data, updated_at) VALUES(?, ?, ?, ?)')
   const now = new Date().toISOString()
   insert.run(profile.id, 'favorites', JSON.stringify(defaultFavorites()), now)

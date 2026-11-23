@@ -15,9 +15,84 @@
  */
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import { DatabaseSync } from 'node:sqlite'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { logger } from '../lib/logger'
+
+/**
+ * SQLite 连接的最小同步接口：`node:sqlite` 与 `node-sqlite3-wasm` 的共同子集。
+ * 生产 Node 22+ 优先使用内置 `node:sqlite`；Node 20 运行时自动回退纯 WASM 驱动
+ * （若显式设置 `SQLITE_DRIVER=wasm` 则强制使用 WASM）。
+ */
+export type SqliteStatement = {
+  get(...params: unknown[]): unknown
+  all(...params: unknown[]): unknown[]
+  run(...params: unknown[]): { changes: number | bigint; lastInsertRowid: number | bigint }
+}
+
+export type SqliteDatabase = {
+  exec(sql: string): void
+  prepare(sql: string): SqliteStatement
+  close(): void
+}
+
+type DatabaseCtor = new (file: string) => SqliteDatabase
+
+const nodeRequire = createRequire(import.meta.url)
+
+/**
+ * 解析实际可用的驱动：
+ * - 显式 `SQLITE_DRIVER=wasm` → WASM；
+ * - 运行时没有内置 `node:sqlite`（Node 20）→ WASM；
+ * - 其它情况使用 `node:sqlite`（零依赖、与现有行为一致）。
+ *   走查环境所在镜像 GLIBC 较旧，原生模块不可用，WASM 无需编译、无系统库依赖。
+ */
+function resolveDriver(): 'node' | 'wasm' {
+  if (process.env.SQLITE_DRIVER === 'wasm') return 'wasm'
+  try {
+    nodeRequire('node:sqlite')
+    return 'node'
+  } catch (err) {
+    // 仅当运行时没有该内置模块时才回退；其它错误照常抛出
+    if ((err as NodeJS.ErrnoException).code !== 'ERR_UNKNOWN_BUILTIN_MODULE') throw err
+    return 'wasm'
+  }
+}
+
+/** 打开数据库连接（驱动由调用方解析后传入）。 */
+function openSqlite(file: string, driver: 'node' | 'wasm'): SqliteDatabase {
+  if (driver === 'node') {
+    const mod = nodeRequire('node:sqlite') as { DatabaseSync: DatabaseCtor }
+    return new mod.DatabaseSync(file)
+  }
+  const { Database } = nodeRequire('node-sqlite3-wasm') as {
+    Database: new (file: string) => {
+      exec(sql: string): void
+      prepare(sql: string): {
+        get(values?: unknown): unknown
+        all(values?: unknown): unknown[]
+        run(values?: unknown): { changes: number; lastInsertRowid: number | bigint }
+      }
+      close(): void
+    }
+  }
+  const raw = new Database(file)
+  return {
+    exec: (sql) => raw.exec(sql),
+    close: () => raw.close(),
+    prepare: (sql) => {
+      const stmt = raw.prepare(sql)
+      // 本项目统一使用位置参数；WASM 驱动的 Statement 接收数组或单值
+      const bind = (params: unknown[]) =>
+        params.length === 0 ? undefined : params.length === 1 ? params[0] : params
+      return {
+        get: (...params) => stmt.get(bind(params)) ?? undefined,
+        all: (...params) => stmt.all(bind(params)) as unknown[],
+        run: (...params) => stmt.run(bind(params)),
+      }
+    },
+  }
+}
 
 /**
  * 当前 schema 版本（写入 meta，供未来迁移判断）：
@@ -270,17 +345,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_device_reg_sn ON device_registrations(sn) 
 `
 
 /** 单例连接与其对应的路径（路径变化时重开，兼容测试 / 多实例场景） */
-let conn: DatabaseSync | null = null
+let conn: SqliteDatabase | null = null
 let connPath = ''
 
+/**
+ * WASM 驱动已打开的连接（按库路径缓存）。
+ * 该驱动关闭连接后立即重开同一文件会报 `database is locked`（文件锁释放滞后），
+ * 因此切换库路径时不关闭旧连接，直接复用缓存；单进程内每个库仅一个连接。
+ */
+const wasmConns = new Map<string, SqliteDatabase>()
+
 /** 幂等补列：老库升级时使用（SQLite 不支持 ADD COLUMN IF NOT EXISTS） */
-function ensureColumn(db: DatabaseSync, table: string, column: string, ddl: string): void {
+function ensureColumn(db: SqliteDatabase, table: string, column: string, ddl: string): void {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: string }>
   if (!columns.some((item) => item.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`)
 }
 
 /** upload_meta 的 v11 补列（老库升级；新库由 DDL 直接建好） */
-function migrateUploadMeta(db: DatabaseSync): void {
+function migrateUploadMeta(db: SqliteDatabase): void {
   ensureColumn(db, 'upload_meta', 'kind', 'kind TEXT')
   ensureColumn(db, 'upload_meta', 'usage_scope', 'usage_scope TEXT')
   ensureColumn(db, 'upload_meta', 'size_bytes', 'size_bytes INTEGER')
@@ -291,7 +373,7 @@ function migrateUploadMeta(db: DatabaseSync): void {
 }
 
 /** users 的 v12 补列（老库升级；新库由 DDL 直接建好） */
-function migrateUsers(db: DatabaseSync): void {
+function migrateUsers(db: SqliteDatabase): void {
   ensureColumn(db, 'users', 'status', "status TEXT NOT NULL DEFAULT 'active'")
   ensureColumn(db, 'users', 'last_login_at', 'last_login_at TEXT')
   ensureColumn(db, 'users', 'frozen_at', 'frozen_at TEXT')
@@ -300,18 +382,18 @@ function migrateUsers(db: DatabaseSync): void {
 }
 
 /** seo_overrides 的补列：分享图（v15 首版建表已含；兼容先建表的实例） */
-function migrateSeoOverrides(db: DatabaseSync): void {
+function migrateSeoOverrides(db: SqliteDatabase): void {
   ensureColumn(db, 'seo_overrides', 'image', 'image TEXT')
 }
 
 /** 读取 meta 值；不存在返回 undefined */
-function getMeta(db: DatabaseSync, key: string): string | undefined {
+function getMeta(db: SqliteDatabase, key: string): string | undefined {
   const row = db.prepare('SELECT value FROM meta WHERE key = ?').get(key) as { value?: string } | undefined
   return row?.value
 }
 
 /** 写入（或覆盖）meta 值 */
-function setMeta(db: DatabaseSync, key: string, value: string): void {
+function setMeta(db: SqliteDatabase, key: string, value: string): void {
   db.prepare('INSERT INTO meta(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value)
 }
 
@@ -322,7 +404,7 @@ function legacyPath(envKey: string, defaultFile: string): string {
 }
 
 /** 判断 DB 是否为空（五张业务表均无记录） */
-function isEmptyDb(db: DatabaseSync): boolean {
+function isEmptyDb(db: SqliteDatabase): boolean {
   for (const table of ['content_pages', 'site_config', 'collections', 'admin_resources', 'audit_log']) {
     const row = db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }
     if (row.n > 0) return false
@@ -331,7 +413,7 @@ function isEmptyDb(db: DatabaseSync): boolean {
 }
 
 /** 旧内容库 JSON → content_pages + site_config；文件不存在或结构不合法则跳过（返回 false） */
-function importContent(db: DatabaseSync, file: string): boolean {
+function importContent(db: SqliteDatabase, file: string): boolean {
   if (!existsSync(file)) return false
   let raw: unknown
   try {
@@ -361,7 +443,7 @@ function importContent(db: DatabaseSync, file: string): boolean {
 }
 
 /** 通用「栏目 key → 记录数组」JSON → 表；文件不存在或结构不合法则跳过 */
-function importRecordMap(db: DatabaseSync, file: string, table: 'collections' | 'admin_resources'): boolean {
+function importRecordMap(db: SqliteDatabase, file: string, table: 'collections' | 'admin_resources'): boolean {
   if (!existsSync(file)) return false
   let raw: unknown
   try {
@@ -388,7 +470,7 @@ function importRecordMap(db: DatabaseSync, file: string, table: 'collections' | 
 }
 
 /** 旧审计 JSON（数组，最新在前）→ audit_log；seq 按下标递增（值越小越新） */
-function importAudit(db: DatabaseSync, file: string): boolean {
+function importAudit(db: SqliteDatabase, file: string): boolean {
   if (!existsSync(file)) return false
   let raw: unknown
   try {
@@ -424,7 +506,7 @@ function importAudit(db: DatabaseSync, file: string): boolean {
  * 一次性迁移：仅在 meta 未标记且 DB 为空时执行；完成后写入 meta 标记。
  * 旧 JSON 文件保持不动（只读来源），供人工核对 / 回滚。
  */
-function migrateFromLegacyJson(db: DatabaseSync): void {
+function migrateFromLegacyJson(db: SqliteDatabase): void {
   if (getMeta(db, META_MIGRATED) === '1') return
 
   const empty = isEmptyDb(db)
@@ -465,21 +547,36 @@ function migrateFromLegacyJson(db: DatabaseSync): void {
  * 获取（必要时打开）单例数据库连接。
  * 打开 / 建表 / 迁移 失败时记结构化日志并抛出明确错误。
  */
-export function getDb(): DatabaseSync {
+export function getDb(): SqliteDatabase {
   const target = resolveDbPath()
   if (conn && connPath === target) return conn
-  if (conn) {
+  const driver = resolveDriver()
+  if (driver === 'wasm') {
+    const cached = wasmConns.get(target)
+    if (cached) {
+      conn = cached
+      connPath = target
+      return cached
+    }
+  } else if (conn) {
+    // node:sqlite 可安全关闭后重开；WASM 关闭后锁释放滞后，因此不关闭，交给缓存复用
     try {
       conn.close()
     } catch {
       // 关闭旧连接失败可忽略（即将重开新连接）
     }
-    conn = null
   }
+  conn = null
   try {
     mkdirSync(path.dirname(target), { recursive: true })
-    const db = new DatabaseSync(target)
-    db.exec('PRAGMA journal_mode = WAL')
+    const db = openSqlite(target, driver)
+    // WASM 驱动不支持 WAL（生产快照可能仍是 WAL，这里转回默认 journal），并设置锁等待
+    if (driver === 'wasm') {
+      db.exec('PRAGMA journal_mode = DELETE')
+      db.exec('PRAGMA busy_timeout = 5000')
+    } else {
+      db.exec('PRAGMA journal_mode = WAL')
+    }
     db.exec('PRAGMA foreign_keys = ON')
     db.exec(DDL)
     migrateUploadMeta(db)
@@ -488,6 +585,7 @@ export function getDb(): DatabaseSync {
     migrateFromLegacyJson(db)
     // 每次打开都把 meta 的 schema 版本同步为当前版本（建表为幂等 DDL；版本号用于排障与未来迁移判断）
     if (getMeta(db, META_SCHEMA) !== SCHEMA_VERSION) setMeta(db, META_SCHEMA, SCHEMA_VERSION)
+    if (driver === 'wasm') wasmConns.set(target, db)
     conn = db
     connPath = target
     return db
@@ -498,7 +596,7 @@ export function getDb(): DatabaseSync {
 }
 
 /** 在事务中执行写序列；异常时回滚并原样抛出。 */
-export function runInTransaction<T>(fn: (db: DatabaseSync) => T): T {
+export function runInTransaction<T>(fn: (db: SqliteDatabase) => T): T {
   const db = getDb()
   db.exec('BEGIN')
   try {
