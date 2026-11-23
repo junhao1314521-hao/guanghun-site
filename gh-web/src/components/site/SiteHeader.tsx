@@ -52,8 +52,9 @@ const MEGA_FEATURE_IMAGE: Record<string, string> = {
 
 /** 公告条（顶栏上方细条，独立于 70px 导航高度）：文案可点跳转，可按配置关闭（关闭状态记忆在 localStorage） */
 function AnnouncementBar({ announcement, onDismiss }: { announcement: SiteAnnouncement; onDismiss: () => void }) {
+  const { t } = useI18n()
   return (
-    <div className="announce" role="region" aria-label="站点公告">
+    <div className="announce" role="region" aria-label={t('a11y.announce')}>
       <div className="container announce__inner">
         {announcement.href ? (
           <Link className="announce__link" to={announcement.href}>
@@ -63,7 +64,7 @@ function AnnouncementBar({ announcement, onDismiss }: { announcement: SiteAnnoun
           <span className="announce__text">{announcement.text}</span>
         )}
         {announcement.dismissible && (
-          <button className="announce__close" type="button" aria-label="关闭公告" onClick={onDismiss}>
+          <button className="announce__close" type="button" aria-label={t('a11y.announceClose')} onClick={onDismiss}>
             ×
           </button>
         )}
@@ -196,7 +197,7 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
         }}
       >
         <IconShop />
-        <span className="shop-trigger__label">商城</span>
+        <span className="shop-trigger__label">{t('header.shop')}</span>
       </button>
       {/* 展开态才下发 left（并解除 CSS 的 right 锚定）；关闭态回到 right:0，避免隐藏浮层向右溢出视口 */}
       <div
@@ -218,7 +219,7 @@ function ShopButton({ channels }: { channels: ShopChannel[] }) {
             onClick={() => setOpen(false)}
           >
             {/* 站点配置存的是渠道品牌名（天猫 / 京东 / 淘宝），这里按客户要求补「店铺」后缀成完整行文案 */}
-            {channel.name}店铺
+            {t('header.shopChannel', { name: channel.name })}
           </a>
         ))}
       </div>
@@ -626,7 +627,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
               <button
                 className={`icon-btn${userMenuOpen ? ' is-open' : ''}`}
                 type="button"
-                aria-label="账号菜单"
+                aria-label={t('a11y.accountMenu')}
                 aria-haspopup="menu"
                 aria-expanded={userMenuOpen}
                 onClick={() => setUserMenuOpen((open) => !open)}
@@ -636,30 +637,30 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
               {userMenuOpen && (
                 <div className="user-menu__panel" role="menu">
                   <div className="user-menu__head">
-                    <strong>{user.name || user.email || '我的账号'}</strong>
+                    <strong>{user.name || user.email || t('account.myAccount')}</strong>
                     <span>{user.email || ''}</span>
                   </div>
                   <Link className="user-menu__item" role="menuitem" to="/me" onClick={() => setUserMenuOpen(false)}>
-                    个人中心
+                    {t('account.center')}
                   </Link>
                   <Link className="user-menu__item" role="menuitem" to="/me/inquiries" onClick={() => setUserMenuOpen(false)}>
-                    我的咨询
+                    {t('account.inquiries')}
                   </Link>
                   <Link className="user-menu__item" role="menuitem" to="/me/devices" onClick={() => setUserMenuOpen(false)}>
-                    我的设备
+                    {t('account.devices')}
                   </Link>
                   <Link className="user-menu__item" role="menuitem" to="/me/settings" onClick={() => setUserMenuOpen(false)}>
-                    账号设置
+                    {t('account.settings')}
                   </Link>
                   <button className="user-menu__item user-menu__item--danger" type="button" role="menuitem" onClick={signOut}>
-                    退出登录
+                    {t('account.signOut')}
                   </button>
                 </div>
               )}
             </div>
           ) : (
             // 未登录：顶栏只放账号图标（按反馈去掉文字，避免挤压导航）；可访问名保留「登录 / 注册」
-            <Link className="icon-btn" to="/login" aria-label="登录 / 注册" title="登录 / 注册">
+            <Link className="icon-btn" to="/login" aria-label={t('a11y.signIn')} title={t('a11y.signIn')}>
               <IconAccount />
             </Link>
           )}

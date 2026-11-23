@@ -6,6 +6,7 @@
  * - 移动端：左栏折叠为顶部背景条，表单优先。
  */
 import type { ReactNode } from 'react'
+import { useI18n } from '../../i18n'
 import { BrandMark } from './BrandMark'
 import { CodeBackdrop } from './CodeBackdrop'
 
@@ -27,11 +28,12 @@ export function AuthShell({
   children,
   variant = 'card',
   badge = '',
-  headline = '光魂 OLED 电竞显示器',
-  subtitle = 'OLED 电竞显示器。参数、测试方法与固件版本都可以查。',
+  headline,
+  subtitle,
   points = [],
   poster = '',
 }: Props) {
+  const { t } = useI18n()
   return (
     <div className={`auth-shell auth-shell--${variant}`}>
       <aside className="auth-shell__aside">
@@ -43,12 +45,12 @@ export function AuthShell({
         <div className="auth-shell__aside-inner">
           <div className="auth-shell__brand">
             <BrandMark className="logo__mark" />
-            <span className="logo__word" role="img" aria-label="光魂 · SVDC" />
+            <span className="logo__word" role="img" aria-label={`${t('brand.name')} · SVDC`} />
             {badge && <span className="auth-shell__badge">{badge}</span>}
           </div>
           <div className="auth-shell__pitch">
-            <h2 className="auth-shell__headline">{headline}</h2>
-            <p className="auth-shell__subtitle">{subtitle}</p>
+            <h2 className="auth-shell__headline">{headline ?? t('auth.headline')}</h2>
+            <p className="auth-shell__subtitle">{subtitle ?? t('auth.subtitle')}</p>
             {points.length > 0 && (
               <ul className="auth-shell__points">
                 {points.map((point) => (

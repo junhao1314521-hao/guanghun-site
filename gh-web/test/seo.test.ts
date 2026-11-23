@@ -72,6 +72,29 @@ describe('pageMetaFor 口径', () => {
   })
 })
 
+describe('英文站元信息（lang=en）', () => {
+  it('静态路由输出英文标题与描述', () => {
+    const meta = pageMetaFor('/products', 'en')
+    expect(meta.title).toBe('All products · Guanghun')
+    expect(meta.description).toContain('Guanghun')
+  })
+
+  it('动态路由输出英文标题', () => {
+    expect(pageMetaFor('/products/gh-54027x1qe', 'en').title).toBe('Product details · Guanghun')
+    expect(pageMetaFor('/me/inquiries', 'en').title).toBe('Account · Guanghun')
+  })
+
+  it('未收录路径在英文站回落英文 404 口径', () => {
+    const meta = pageMetaFor('/no-such-page', 'en')
+    expect(meta.title).toBe('Page not found · Guanghun')
+    expect(meta.indexable).toBe(false)
+  })
+
+  it('中文站保持原口径', () => {
+    expect(pageMetaFor('/products').title).toBe('全部产品 · 光魂')
+  })
+})
+
 describe('后台 SEO 覆盖', () => {
   const base = pageMetaFor('/products')
 

@@ -80,7 +80,7 @@ export function usePageMeta(pathname: string, lang: string = 'zh-CN'): void {
   useLayoutEffect(() => {
     // 旧站路由别名（如 /h-col-160.html）按新站规范路径生成标题与 canonical
     const canonicalPath = canonicalPathFor(pathname)
-    const base = pageMetaFor(canonicalPath)
+    const base = pageMetaFor(canonicalPath, lang)
     const override = seoOverrideFor(canonicalPath)
     const meta = withSeoOverride(base, override)
     // 分享图：后台覆盖优先（相对路径补当前域名），未设置用默认分享图

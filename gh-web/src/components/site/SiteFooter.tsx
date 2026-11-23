@@ -33,9 +33,13 @@ function socialIcon(label: string, size = 22) {
   return <span>{socialShort(label)}</span>
 }
 
-/** 「官方B站 / 官方小红书」：平台名去掉空格，避免出现「官方B 站」 */
-function officialName(label: string): string {
-  return label.replace(/\s+/g, '')
+/** 平台名按当前语言展示（后台配置的是中文平台名；未知平台原样保留） */
+function platformLabel(t: (key: string, vars?: Record<string, string | number>) => string, label: string): string {
+  if (label.includes('微信')) return t('footer.platform.wechat')
+  if (label.includes('小红书')) return t('footer.platform.rednote')
+  if (label.includes('B站') || label.toLowerCase().includes('bilibili')) return t('footer.platform.bilibili')
+  if (label.includes('抖音')) return t('footer.platform.douyin')
+  return label
 }
 
 type SocialEntryProps = {
@@ -54,6 +58,9 @@ type SocialEntryProps = {
  * 显隐完全由父级下发的 `open` 决定（不再依赖容器 `:hover`），故同一时刻只有一个浮层展开。
  */
 function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBlurClose }: SocialEntryProps) {
+  const { t } = useI18n()
+  /** 平台名按当前语言展示（英文站不再出现「微信」「抖音」等中文名） */
+  const name = platformLabel(t, item.label)
   const wrapRef = useRef<HTMLSpanElement>(null)
   const popRef = useRef<HTMLSpanElement>(null)
   // 记录最近一次指针类型：用于区分鼠标点击（悬停已开，无需切换）与触屏点击（需切换）
@@ -98,7 +105,7 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
   if (!item.qr && !item.account) {
     if (!item.href) {
       return (
-        <span className={`site-footer__social-item is-placeholder${wide ? ' is-wide' : ''}`} title={`${item.label}（待配置）`}>
+        <span className={`site-footer__social-item is-placeholder${wide ? ' is-wide' : ''}`} title={t('footer.socialPending', { label: name })}>
           {icon}
         </span>
       )
@@ -107,17 +114,21 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
       <a
         className={`site-footer__social-item site-footer__social-link${wide ? ' is-wide' : ''}`}
         href={item.href}
-        aria-label={`官方${officialName(item.label)}`}
+        aria-label={t('footer.official', { label: name })}
         target="_blank"
         rel="noreferrer"
       >
         {icon}
-        <span className="site-footer__social-tip" role="tooltip">官方{officialName(item.label)}</span>
+        <span className="site-footer__social-tip" role="tooltip">{t('footer.official', { label: name })}</span>
       </a>
     )
   }
   // 账号兜底文案：微信 / 抖音用平台惯用叫法，其余平台用「账号」
-  const accountLabel = item.label.includes('微信') ? '微信号' : item.label.includes('抖音') ? '抖音号' : '账号'
+  const accountLabel = item.label.includes('微信')
+    ? t('footer.accountWechat')
+    : item.label.includes('抖音')
+      ? t('footer.accountDouyin')
+      : t('footer.accountGeneric')
   return (
     <span
       className={`site-footer__social-wrap${open ? ' is-open' : ''}`}
@@ -131,7 +142,7 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
       <button
         type="button"
         className={`site-footer__social-item${wide ? ' is-wide' : ''}`}
-        aria-label={item.label}
+        aria-label={name}
         aria-haspopup="true"
         aria-expanded={open}
         onClick={(event) => {
@@ -155,13 +166,13 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
       <span className="site-footer__popover" role="tooltip" ref={popRef} style={popoverStyle}>
         {item.qr ? (
           <>
-            <img className="site-footer__popover-qr" src={item.qr} alt={`${item.label}二维码`} loading="lazy" />
-            <span className="site-footer__popover-name">{item.label}</span>
+            <img className="site-footer__popover-qr" src={item.qr} alt={t('footer.qrAria', { label: name })} loading="lazy" />
+            <span className="site-footer__popover-name">{name}</span>
           </>
         ) : (
           <span className="site-footer__popover-hint">
-            <b>{accountLabel}：{item.account}</b>
-            <span>在{item.label}内搜索关注</span>
+            <b>{t('footer.accountLine', { label: accountLabel, account: item.account ?? '' })}</b>
+            <span>{t('footer.followHint', { label: name })}</span>
           </span>
         )}
       </span>
@@ -259,7 +270,7 @@ export function SiteFooter() {
           </div>
 
           {/* 右：多列链接组（组名在上 + 竖排链接；组与组横向并排、左对齐） */}
-          <nav className="site-footer__cols" aria-label="页脚导航">
+          <nav className="site-footer__cols" aria-label={t('a11y.footerNav')}>
             {footerGroups.map((group) => (
               <div className="site-footer__col" key={group.title}>
                 <h3 className="site-footer__col-title">{group.title}</h3>
@@ -279,13 +290,13 @@ export function SiteFooter() {
             <span className="site-footer__qr-frame">
               <img
                 src={site?.miniprogramQr?.trim() || '/media/site/miniprogram-qr.png'}
-                alt="光魂微信小程序商城二维码"
+                alt={t('footer.qrAria', { label: t('footer.miniappTitle') })}
                 loading="lazy"
               />
               <i className="site-footer__qr-badge" aria-hidden="true"><IconWeChat size={13} /></i>
             </span>
-            <b>微信小程序</b>
-            <span>扫码进入商城</span>
+            <b>{t('footer.miniappTitle')}</b>
+            <span>{t('footer.miniappHint')}</span>
           </div>
         </div>
 

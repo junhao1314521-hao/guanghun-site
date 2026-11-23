@@ -22,7 +22,7 @@ type Props = {
 /** 组件：按当前路径查询内容库页面并渲染，未命中时显示 fallback。 */
 export function DynamicPage({ fallback }: Props) {
   const { pathname } = useLocation()
-  const { lang } = useI18n()
+  const { lang, t } = useI18n()
   const { data: page, loading, error } = useApi((signal) => fetchPageByPath(pathname, signal), [pathname, lang])
 
   // 404（路径不存在）→ 站内 404；其他错误（网络 / 服务异常）给出可重试提示，不误报「页面不存在」
@@ -32,8 +32,8 @@ export function DynamicPage({ fallback }: Props) {
     return (
       <div className="container section">
         <div className="empty">
-          <div className="empty__title">页面加载失败</div>
-          <p className="empty__desc">{error.message}。请检查网络后重试。</p>
+          <div className="empty__title">{t('error.title')}</div>
+          <p className="empty__desc">{error.message}{t('blocks.checkNetwork')}</p>
         </div>
       </div>
     )

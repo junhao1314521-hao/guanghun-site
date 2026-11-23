@@ -75,7 +75,7 @@ function applyDefaults(blocks: Block[], defaults?: BlockDefaults): Block[] {
 export function PageView({ pageKey, blockDefaults, hideSeoTitle }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  const { lang } = useI18n()
+  const { lang, t } = useI18n()
 
   // R10.3：语言切换时重新取页（英文 locale 走 `__en` / en 覆盖层）
   const { data: page, loading, error } = useApi((signal) => fetchPage(pageKey, signal), [pageKey, reloadKey, lang])
@@ -86,7 +86,8 @@ export function PageView({ pageKey, blockDefaults, hideSeoTitle }: Props) {
     if (!page) return
     // 后台已下线的页面不参与索引；路由切走后由页面壳层重新写回 index,follow
     if (page.enabled === false) upsertMeta('name', 'robots', 'noindex,follow')
-    const title = page.seoTitle?.trim()
+    // 英文站没有单独配置 SEO 标题时，用内容库里的英文页面标题兜底（避免 <title> 停留在中文壳层标题）
+    const title = page.seoTitle?.trim() || (lang === 'en' && page.title ? `${page.title} · ${t('brand.name')}` : '')
     const description = page.seoDescription?.trim()
     if (!title && !description) return
     if (title) {

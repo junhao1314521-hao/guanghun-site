@@ -1,3 +1,5 @@
+import { useI18n } from '../../i18n'
+
 /**
  * 品牌图形 mark（SVDC · 光魂）。
  *
@@ -5,5 +7,6 @@
  * 用 CSS `filter: drop-shadow()` 做辉光 / 呼吸（见 site.css 的 `.logo__mark`）。
  */
 export function BrandMark({ className }: { className?: string }) {
-  return <img className={className} src="/brand/mark.png" alt="光魂" width={30} height={30} />
+  const { t } = useI18n()
+  return <img className={className} src="/brand/mark.png" alt={t('brand.name')} width={30} height={30} />
 }

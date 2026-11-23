@@ -288,7 +288,7 @@ export function canonicalPathFor(pathname: string): string {
 }
 
 /** 按当前路径取 SEO 元信息；动态路由与未知路径给出相应口径 */
-export function pageMetaFor(pathname: string): PageMeta {
+function pageMetaForZh(pathname: string): PageMeta {
   const exact = PAGE_META.find((m) => m.path === pathname)
   if (exact) return exact
 
@@ -330,6 +330,92 @@ export function pageMetaFor(pathname: string): PageMeta {
     path: pathname,
     title: '页面未找到 · 光魂',
     description: '你访问的页面不存在或已被移动，请从导航重新进入。',
+    indexable: false,
+  }
+}
+
+/** 英文站静态路由元信息（内容库页面加载后由 PageView 用英文页面标题覆盖） */
+const EN_META: Record<string, { title: string; description: string }> = {
+  '/products': { title: 'All products · Guanghun', description: 'Guanghun OLED gaming monitors — specs, panels and buying links.' },
+  '/articles': { title: 'Articles & reviews · Guanghun', description: 'Guanghun reviews, guides and industry notes.' },
+  '/news': { title: 'News · Guanghun', description: 'Guanghun announcements and product news.' },
+  '/ladder': { title: 'Leaderboard · Guanghun', description: 'Measured leaderboards for gaming gear, sorted by single metrics.' },
+  '/center': { title: 'Guanghun Center · display software', description: 'Guanghun Center — desktop software for monitor settings and firmware.' },
+  '/support': { title: 'Service & support · Guanghun', description: 'Drivers, firmware, manuals, warranty and support tickets.' },
+  '/support/models': { title: 'Models & compatibility · Guanghun', description: 'Find drivers, firmware, manuals and FAQs by model.' },
+  '/wallpapers': { title: 'Brand wallpapers · Guanghun', description: 'Guanghun brand wallpapers for desktop and mobile.' },
+  '/downloads': { title: 'Downloads · Guanghun', description: 'Download manuals, firmware and software for Guanghun products.' },
+  '/faq': { title: 'FAQ · Guanghun', description: 'Answers to common questions about products, orders and support.' },
+  '/contact': { title: 'Contact us · Guanghun', description: 'Contact Guanghun for product, partnership and support inquiries.' },
+  '/business': { title: 'Business cooperation · Guanghun', description: 'Commercial cooperation, esports venues and channel partnerships.' },
+  '/business/partners': { title: 'Partners & resellers · Guanghun', description: 'Apply to become a Guanghun partner or reseller.' },
+  '/business/scenes': { title: 'Scenes & solutions · Guanghun', description: 'Recommended Guanghun setups for gaming, esports and business scenarios.' },
+  '/business/cases': { title: 'Case studies · Guanghun', description: 'Guanghun commercial cooperation case studies.' },
+  '/business/venues': { title: 'Experience venues · Guanghun', description: 'Find a nearby Guanghun experience venue and try the monitors.' },
+  '/about': { title: 'About Guanghun · brand and test methods', description: 'Guanghun brand story, engineering principles and test methods.' },
+  '/legal/privacy': { title: 'Privacy policy · Guanghun', description: 'How Guanghun collects, uses and protects personal data.' },
+  '/legal/terms': { title: 'Terms of service · Guanghun', description: 'Terms of service for the Guanghun website and user accounts.' },
+  '/legal/cookies': { title: 'Cookie notice · Guanghun', description: 'How Guanghun uses cookies and similar technologies.' },
+  '/legal/records': { title: 'Corporate information · Guanghun', description: 'Guanghun corporate registration and filing information.' },
+  '/search': { title: 'Search · Guanghun', description: 'Search Guanghun products, articles, downloads and FAQs.' },
+  '/compare': { title: 'Compare products · Guanghun', description: 'Compare Guanghun monitors side by side by specs and features.' },
+  '/inquiry': { title: 'Submit an inquiry · Guanghun', description: 'Submit a product, purchase or partnership inquiry.' },
+  '/login': { title: 'Sign in · Guanghun', description: 'Sign in to your Guanghun account.' },
+  '/register': { title: 'Create account · Guanghun', description: 'Create a Guanghun account.' },
+  '/forgot': { title: 'Reset password · Guanghun', description: 'Reset your Guanghun account password.' },
+  '/me': { title: 'Account · Guanghun', description: 'Your inquiries, registered devices, favorites and notifications.' },
+  '/403': { title: 'No access · Guanghun', description: 'You do not have permission to access this page.' },
+  '/500': { title: 'Service error · Guanghun', description: 'The service is temporarily unavailable. Please try again later.' },
+}
+
+/** 英文站动态路由标题 */
+function enPatternMeta(pathname: string): { title: string; description: string } | null {
+  if (/^\/products\/series\/[^/]+$/.test(pathname)) {
+    return { title: 'Product series · Guanghun', description: 'Browse Guanghun products and specifications by series.' }
+  }
+  if (/^\/products\/[^/]+$/.test(pathname)) {
+    return { title: 'Product details · Guanghun', description: 'Nominal and measured specs, downloads and related information.' }
+  }
+  if (/^\/articles\/[^/]+$/.test(pathname)) {
+    return { title: 'Article · Guanghun', description: 'Guanghun reviews, guides and industry notes.' }
+  }
+  if (/^\/downloads\/[^/]+$/.test(pathname)) {
+    return { title: 'Download · Guanghun', description: 'Manuals, firmware and software for Guanghun products.' }
+  }
+  if (/^\/faq\/[^/]+$/.test(pathname)) {
+    return { title: 'FAQ · Guanghun', description: 'Answers to common questions about Guanghun products and support.' }
+  }
+  if (/^\/business\/cases\/[^/]+$/.test(pathname)) {
+    return { title: 'Case study · Guanghun', description: 'Background and solutions of Guanghun commercial case studies.' }
+  }
+  if (/^\/business\/venues\/[^/]+$/.test(pathname)) {
+    return { title: 'Experience venue · Guanghun', description: 'Address, tryable models and navigation for the venue.' }
+  }
+  if (/^\/ladder\/[^/]+$/.test(pathname)) {
+    return { title: 'Leaderboard · Guanghun', description: 'Measured leaderboards for gaming gear.' }
+  }
+  if (/^\/brand\/[^/]+$/.test(pathname)) {
+    return { title: 'Brand · Guanghun', description: 'Guanghun brand principles, milestones and products.' }
+  }
+  if (/^\/support\/model\/[^/]+$/.test(pathname)) {
+    return { title: 'Model & compatibility · Guanghun', description: 'Drivers, firmware, manuals and FAQs by model.' }
+  }
+  if (/^\/me(\/.*)?$/.test(pathname)) {
+    return { title: 'Account · Guanghun', description: 'Tickets, devices, favorites and notifications.' }
+  }
+  return null
+}
+
+/** 按路径 + 语言取 SEO 元信息；英文站优先用英文表，未收录时回落到英文 404 口径 */
+export function pageMetaFor(pathname: string, lang: string = 'zh-CN'): PageMeta {
+  const base = pageMetaForZh(pathname)
+  if (lang !== 'en') return base
+  const en = EN_META[pathname] ?? enPatternMeta(pathname)
+  if (en) return { ...base, ...en }
+  return {
+    ...base,
+    title: 'Page not found · Guanghun',
+    description: 'The page you are looking for does not exist or has moved.',
     indexable: false,
   }
 }
