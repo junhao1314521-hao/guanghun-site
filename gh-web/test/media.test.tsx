@@ -5,7 +5,7 @@
  * 其余视觉位由 `data/media.ts` 的 `MEDIA` 映射提供**本地内联 SVG 占位**。
  * 一旦有人误把某个素材改成外链、漏掉新增产品、或回退分支被改坏，本测试会失败。
  */
-import { fireEvent, render } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { MEDIA } from '../src/data/media'
 import { PRODUCTS } from '../src/data/products'
@@ -93,6 +93,23 @@ describe('MEDIA：视觉位均为本地资源（内联 SVG 或 /media 静态图�
   })
 })
 
+/** 连续触发加载失败（含有限重试），直到重试用尽回退 */
+async function failUntilFallback(container: HTMLElement): Promise<void> {
+  for (let i = 0; i < 3; i += 1) {
+    const img = container.querySelector('img')
+    if (!img) break
+    fireEvent.error(img)
+    // 等待重试后的新节点（或回退）出现，避免在旧节点上重复触发
+    await waitFor(
+      () => {
+        const current = container.querySelector('img')
+        expect(current === null || current !== img).toBe(true)
+      },
+      { timeout: 2000 },
+    )
+  }
+}
+
 describe('MediaImg：正常渲染与失败回退', () => {
   it('正常态渲染 <img> 并透传 src / alt / className / loading', () => {
     const { container } = render(
@@ -105,9 +122,9 @@ describe('MediaImg：正常渲染与失败回退', () => {
     expect(img.getAttribute('loading')).toBe('eager')
   })
 
-  it('加载失败 + 有 variant → 回退矢量图（svg，非破图 img）', () => {
+  it('加载失败 + 有 variant → 回退矢量图（svg，非破图 img）', async () => {
     const { container } = render(<MediaImg src="/missing.png" alt="" variant="mouse" label="鼠标占位" />)
-    fireEvent.error(container.querySelector('img')!)
+    await failUntilFallback(container)
 
     expect(container.querySelector('img')).toBeNull()
     const svg = container.querySelector('svg')
@@ -115,9 +132,9 @@ describe('MediaImg：正常渲染与失败回退', () => {
     expect(svg!.getAttribute('aria-label')).toBe('鼠标占位')
   })
 
-  it('加载失败 + 无 variant → 不渲染 img，改用代码渐变兜底（不出现破图）', () => {
+  it('加载失败 + 无 variant → 不渲染 img，改用代码渐变兜底（不出现破图）', async () => {
     const { container } = render(<MediaImg src="/missing.png" alt="" />)
-    fireEvent.error(container.querySelector('img')!)
+    await failUntilFallback(container)
 
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('svg')).toBeNull()
