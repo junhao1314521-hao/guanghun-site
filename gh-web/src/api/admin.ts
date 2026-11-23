@@ -321,6 +321,13 @@ export type AdminDeviceRegistration = {
   username: string
   reviewedBy: string
   reviewedAt: string
+  anonymized: boolean
+  /** 是否由「注销账号遗留 SN」被新账号认领而来 */
+  claimed: boolean
+  /** 认领时间（未认领为空串） */
+  claimedAt: string
+  /** 认领凭证与原记录指纹是否一致：true / false / null（非认领或原记录无指纹） */
+  claimHashMatch: boolean | null
 }
 
 /** 设备登记列表：GET /api/admin/device-registrations?status= */
@@ -339,17 +346,18 @@ export function fetchDeviceRegistrations(
   )
 }
 
-/** 审核：POST /api/admin/device-registrations/:id/review */
+/** 审核：POST /api/admin/device-registrations/:id/review（confirmMismatch 用于确认凭证不一致的认领记录） */
 export function reviewDeviceRegistration(
   id: string,
   action: 'approve' | 'reject',
   reason?: string,
+  confirmMismatch?: boolean,
 ): Promise<{ ok: boolean; item: AdminDeviceRegistration }> {
   return transport(
     {
       path: `/api/admin/device-registrations/${encodeURIComponent(id)}/review`,
       method: 'POST',
-      body: { action, reason },
+      body: { action, reason, confirmMismatch },
       token: getAdminToken() ?? undefined,
     },
     () => ({ ok: true, item: {} as AdminDeviceRegistration }),

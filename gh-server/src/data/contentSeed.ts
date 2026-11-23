@@ -727,7 +727,7 @@ function buildCenter(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/feature1.svg',
+        image: '/media/center/app/gaming.webp',
         title: center.FEATURES[0].title,
         body: `${center.FEATURES[0].desc}\n${center.FEATURES[0].points.join('\n')}`,
         side: 'right',
@@ -736,7 +736,7 @@ function buildCenter(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/feature2.svg',
+        image: '/media/center/app/pro.webp',
         title: center.FEATURES[1].title,
         body: `${center.FEATURES[1].desc}\n${center.FEATURES[1].points.join('\n')}`,
         side: 'left',

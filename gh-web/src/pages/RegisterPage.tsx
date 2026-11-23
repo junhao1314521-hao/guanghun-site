@@ -56,7 +56,7 @@ export function RegisterPage() {
   const auth = useSiteAuth()
   const strength = passwordStrength(password)
   // 验证码档位与登录页一致：after3 默认不打扰，失败 3 次后出现
-  const captchaMode = auth.captchaMode ?? (auth.captcha ? 'always' : 'off')
+  const captchaMode = auth.captchaMode ?? (auth.captcha ? 'after3' : 'off')
   const [failed, setFailed] = useState(0)
   const [captchaForced, setCaptchaForced] = useState(false)
   const captchaVisible =

@@ -44,7 +44,7 @@ export function LoginPage() {
   const auth = useSiteAuth()
 
   // 验证码档位：after3 默认隐藏，失败 3 次或服务端要求时才出现
-  const captchaMode = auth.captchaMode ?? (auth.captcha ? 'always' : 'off')
+  const captchaMode = auth.captchaMode ?? (auth.captcha ? 'after3' : 'off')
   const captchaVisible =
     captchaMode === 'always' || captchaForced || (captchaMode === 'after3' && failed >= 3)
 

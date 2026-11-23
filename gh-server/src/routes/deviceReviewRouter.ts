@@ -5,8 +5,9 @@
  *   GET  /admin/device-registrations?status=pending|active|rejected
  *        → { items: AdminDeviceView[] }（待审核优先）
  *   POST /admin/device-registrations/:id/review
- *        body { action: 'approve' | 'reject', reason?: string }
+ *        body { action: 'approve' | 'reject', reason?: string, confirmMismatch?: boolean }
  *        → { ok: true, item }；非待审核记录 / 缺驳回原因 → 400
+ *        confirmMismatch：认领凭证指纹与原记录不一致时，通过需显式确认（防冒领）
  */
 import { Router } from 'express'
 import { listAllDevices, reviewDevice } from '../data/deviceStore'
@@ -33,7 +34,7 @@ deviceReviewRouter.post(
   requireScope('system'),
   auditWrite('review-device', (req) => readParam(req, 'id')),
   (req, res) => {
-    const body = (req.body ?? {}) as { action?: unknown; reason?: unknown }
+    const body = (req.body ?? {}) as { action?: unknown; reason?: unknown; confirmMismatch?: unknown }
     const action = body.action === 'approve' ? 'approve' : body.action === 'reject' ? 'reject' : ''
     if (!action) {
       res.status(400).json({ error: '审核动作不合法（approve / reject）' })
@@ -44,6 +45,7 @@ deviceReviewRouter.post(
       reviewerOf(res),
       action,
       typeof body.reason === 'string' ? body.reason : '',
+      body.confirmMismatch === true,
     )
     if (!outcome.ok) {
       res.status(400).json({ error: outcome.error })

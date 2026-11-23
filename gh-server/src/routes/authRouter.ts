@@ -32,8 +32,11 @@ import {
   listDevices,
   registerDevice,
   saveReceipt,
+  snClaimable,
   snTaken,
 } from '../data/deviceStore'
+import { appendAudit } from '../data/auditStore'
+import { clientIp } from '../middleware/audit'
 import { readCookie, readParam } from '../middleware/adminAuth'
 import { checkCaptcha, clearFormFailures, recordFormFailure, shouldRequireCaptcha } from '../lib/formGuard'
 import { logger } from '../lib/logger'
@@ -393,8 +396,8 @@ authRouter.post('/account/devices', requireUser, (req, res) => {
     res.status(400).json({ error: '请上传购买凭证' })
     return
   }
-  // 先查序列号再落盘，避免为无效登记写孤儿文件
-  if (sn && snTaken(sn)) {
+  // 先查序列号再落盘，避免为无效登记写孤儿文件；已注销账号的登记可由新账号认领
+  if (sn && snTaken(sn) && !snClaimable(sn)) {
     res.status(409).json({ error: '该序列号已被登记，请核对后重试' })
     return
   }
@@ -409,6 +412,7 @@ authRouter.post('/account/devices', requireUser, (req, res) => {
     purchasedAt: readString(body.purchasedAt),
     channel: readString(body.channel),
     receiptUrl: saved.url,
+    receiptSha256: saved.sha256,
   })
   if (!outcome.ok) {
     discardReceipt(saved.url)
@@ -476,11 +480,22 @@ authRouter.post('/account/email', requireUser, (req, res) => {
 
 /* ---------------- 注销账号（不可恢复） ---------------- */
 
-authRouter.post('/account/delete', requireUser, (_req, res) => {
-  if (!deleteUserAccount(currentUser(res).id)) {
+authRouter.post('/account/delete', requireUser, (req, res) => {
+  const user = currentUser(res)
+  const outcome = deleteUserAccount(user.id)
+  if (!outcome.ok) {
     res.status(404).json({ error: '账号不存在' })
     return
   }
+  // 事务已提交：凭证图片不再需要，best-effort 清理（失败由素材库的孤儿清理兜底）
+  for (const url of outcome.receiptUrls) discardReceipt(url)
+  // 注销留痕：只记内部账号 id 与 IP，不记邮箱 / 手机号
+  appendAudit({
+    actor: '前台会员',
+    action: 'account-deleted',
+    target: `账号 ${user.id}`,
+    ip: clientIp(req),
+  })
   res.clearCookie(USER_SESSION_COOKIE, { path: '/' })
   res.json({ ok: true })
 })

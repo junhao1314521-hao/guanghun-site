@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { compareProducts, getLadderMetric, getSeries, seriesProducts } from '../data/product-extra'
+import { publicLadderMetrics } from '../data/ladder'
 import { presentProducts } from '../data/products'
 import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
@@ -34,7 +35,11 @@ productExtraRouter.get('/compare', (req, res) => {
 
 productExtraRouter.get('/ladder/:metric', (req, res) => {
   const locale = readLocale(req)
-  const detail = getLadderMetric(req.params.metric, listCollection('rankings', locale), presentProducts(listCollection('products', locale)))
+  const detail = getLadderMetric(
+    req.params.metric,
+    publicLadderMetrics(listCollection('rankings', locale)),
+    presentProducts(listCollection('products', locale)),
+  )
   if (!detail) {
     res.status(404).json({ error: '未找到该天梯指标' })
     return

@@ -110,7 +110,7 @@ const SHOWCASE_COPY_EN: Record<string, string> = {
 
 /** 构建首页英文变体：首屏、海报、产品矩阵、固件、留言与信任栏区块 */
 function buildHomeEn(): Page {
-  return toPage('home', '/', 'Home', 'Homepage: hero, five posters, product matrix, firmware, message and trust bar.', [
+  return toPage('home', '/', 'Home', 'Homepage: hero, posters, product matrix, firmware, message and trust bar.', [
     {
       type: 'carousel',
       props: {
@@ -120,7 +120,7 @@ function buildHomeEn(): Page {
             title: 'Define performance with data',
             desc: 'Every number is reproducible. Every method is public. Every source is traceable.',
             mediaTag: 'Lab',
-            image: '/media/home/hero-01.svg',
+            image: '/media/home/hero-1.jpg',
             primary: { label: 'Buy now', href: '/products' },
             stats: [{ value: '540 Hz', label: 'Refresh rate' }, { value: '0.03 ms', label: 'Response' }],
           },
@@ -129,7 +129,7 @@ function buildHomeEn(): Page {
             title: 'Lightning 540Hz',
             desc: 'The flagship OLED gaming monitor — 2K@540Hz engineered for the fastest plays.',
             mediaTag: 'Monitor',
-            image: '/media/home/hero-02.svg',
+            image: '/media/home/hero-2.jpg',
             primary: { label: 'Buy now', href: '/products/gh-54027x1qe' },
           },
           {
@@ -137,7 +137,7 @@ function buildHomeEn(): Page {
             title: 'One app for every device',
             desc: 'Tune params, macros, lighting and firmware — all in one place.',
             mediaTag: 'Software',
-            image: '/media/home/hero-03.svg',
+            image: '/media/home/hero-3.jpg',
             primary: { label: 'Buy now', href: '/center' },
           },
         ],
@@ -275,9 +275,9 @@ function buildHomeEn(): Page {
         ratio: '4 / 5',
         columns: 3,
         items: [
-          { tag: 'Esports', title: 'Competitive play', desc: 'High refresh and fast response for precise aiming.', href: '/products', media: '/media/home/scenes/fps.svg', mediaType: 'image' },
-          { tag: 'Creative', title: 'Content & color', desc: 'Native 10-bit and 99% DCI-P3 for editing and grading.', href: '/products', media: '/media/home/scenes/moba.svg', mediaType: 'image' },
-          { tag: 'Office', title: 'Work & comfort', desc: 'Low blue light and stable brightness for all-day use.', href: '/products', media: '/media/home/scenes/mmo.svg', mediaType: 'image' },
+          { tag: 'Esports', title: 'Competitive play', desc: 'High refresh and fast response for precise aiming.', href: '/products', media: '/media/home/scenes/scene-01.jpg', mediaType: 'image' },
+          { tag: 'Creative', title: 'Content & color', desc: 'Native 10-bit and 99% DCI-P3 for editing and grading.', href: '/products', media: '/media/home/scenes/scene-02.jpg', mediaType: 'image' },
+          { tag: 'Office', title: 'Work & comfort', desc: 'Low blue light and stable brightness for all-day use.', href: '/products', media: '/media/home/scenes/scene-03.jpg', mediaType: 'image' },
         ],
       },
     },
@@ -291,9 +291,9 @@ function buildHomeEn(): Page {
         ctaHref: '/products',
         alternate: true,
         items: [
-          { productId: 'gh-54027x1qe', media: '/media/products/gh-54027x1qe.svg', mediaType: 'image', eyebrow: '27X1QE-W54 · Flagship', title: 'Lightning 540Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-54027x1qe'], specs: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }], cta: { label: 'View details', href: '/products/gh-54027x1qe' } },
-          { productId: 'gh-32x1ue', media: '/media/products/gh-32x1ue.svg', mediaType: 'image', eyebrow: '32X1UE-W16 · Dual-mode', title: 'Meta Dual-mode 4K Monitor', desc: SHOWCASE_COPY_EN['gh-32x1ue'], specs: [{ k: 'Resolution', v: '4K@165 / FHD@330' }, { k: 'Panel', v: 'META OLED' }], cta: { label: 'View details', href: '/products/gh-32x1ue' } },
-          { productId: 'gh-28027x1qe', media: '/media/products/gh-28027x1qe.svg', mediaType: 'image', eyebrow: '27X1QE-W28 · Best seller', title: 'Lightning 280Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-28027x1qe'], specs: [{ k: 'Refresh rate', v: '280 Hz' }, { k: 'Peak brightness', v: '1500 nit' }], cta: { label: 'View details', href: '/products/gh-28027x1qe' } },
+          { productId: 'gh-54027x1qe', media: '/media/products/gh-54027x1qe.jpg', mediaType: 'image', eyebrow: '27X1QE-W54 · Flagship', title: 'Lightning 540Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-54027x1qe'], specs: [{ k: 'Refresh rate', v: '540 Hz' }, { k: 'Response', v: '0.03 ms' }], cta: { label: 'View details', href: '/products/gh-54027x1qe' } },
+          { productId: 'gh-32x1ue', media: '/media/products/gh-32x1ue.jpg', mediaType: 'image', eyebrow: '32X1UE-W16 · Dual-mode', title: 'Meta Dual-mode 4K Monitor', desc: SHOWCASE_COPY_EN['gh-32x1ue'], specs: [{ k: 'Resolution', v: '4K@165 / FHD@330' }, { k: 'Panel', v: 'META OLED' }], cta: { label: 'View details', href: '/products/gh-32x1ue' } },
+          { productId: 'gh-28027x1qe', media: '/media/products/gh-28027x1qe.jpg', mediaType: 'image', eyebrow: '27X1QE-W28 · Best seller', title: 'Lightning 280Hz OLED Monitor', desc: SHOWCASE_COPY_EN['gh-28027x1qe'], specs: [{ k: 'Refresh rate', v: '280 Hz' }, { k: 'Peak brightness', v: '1500 nit' }], cta: { label: 'View details', href: '/products/gh-28027x1qe' } },
         ],
       },
       style: { container: 'full', background: 'soft' },
@@ -387,7 +387,7 @@ function buildAboutEn(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/about/brand.svg',
+        image: '/media/home/hero-1.jpg',
         title: 'We trust data over adjectives',
         body: 'Performance is a measurement problem, not a marketing one.\nEvery claim we publish is reproducible in our lab.\nMethods are public; sources are traceable.',
         side: 'left',
@@ -408,7 +408,7 @@ function buildAboutEn(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/about/lab.svg',
+        image: '/media/products/views/monitor-1.jpg',
         title: 'Testing lab',
         body: 'A dedicated measurement lab for response time, peak brightness, color accuracy and uniformity.\nFixtures and methods are documented and versioned.\nHistorical numbers stay fixed to the method used at the time.',
         side: 'right',
@@ -516,7 +516,7 @@ function buildCenterEn(): Page {
         title: ['Guanghun Center'],
         subtitle: 'One app to manage every Guanghun display.',
         mediaTag: 'Software UI',
-        image: '/media/center/hero.svg',
+        image: '/media/center/hero-space.jpg',
         contentPosition: { x: 50, y: 16 },
         // Floating download bar at the poster bottom (pick entries from the download center)
         downloadIds: ['center-win'],
@@ -545,7 +545,7 @@ function buildCenterEn(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/feature1.svg',
+        image: '/media/center/app/gaming.webp',
         title: 'Granular control',
         body: 'Every tunable parameter is exposed in the UI.\nPresets ship per title; you can also build your own and share them.',
         side: 'right',
@@ -554,7 +554,7 @@ function buildCenterEn(): Page {
     {
       type: 'imageText',
       props: {
-        image: '/media/center/feature2.svg',
+        image: '/media/center/app/pro.webp',
         title: 'Full-speed connectivity',
         body: 'DP 2.1 at 80 Gbps keeps 540Hz at full speed.\nProfile switching is instant, with no re-plugging.',
         side: 'left',
@@ -660,9 +660,9 @@ function buildBusinessScenesEn(): Page {
         title: 'Scenarios & solutions',
         columns: 3,
         items: [
-          { image: '/media/business/scene-arena.svg', tag: 'Arena', title: 'Esports arena', desc: 'On-site gear and rapid swap.' },
-          { image: '/media/business/scene-studio.svg', tag: 'Studio', title: 'Creator studio', desc: 'Low-latency capture setup.' },
-          { image: '/media/business/scene-retail.svg', tag: 'Retail', title: 'Retail flagship', desc: 'Try-before-buy experience.' },
+          { image: '/media/home/scenes/scene-01.jpg', tag: 'Arena', title: 'Esports arena', desc: 'On-site gear and rapid swap.' },
+          { image: '/media/home/scenes/scene-02.jpg', tag: 'Studio', title: 'Creator studio', desc: 'Low-latency capture setup.' },
+          { image: '/media/home/scenes/scene-03.jpg', tag: 'Retail', title: 'Retail flagship', desc: 'Try-before-buy experience.' },
         ],
       },
     },

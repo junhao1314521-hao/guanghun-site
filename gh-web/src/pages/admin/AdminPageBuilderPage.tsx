@@ -229,37 +229,51 @@ function BlockRow({
             <span className="builder-item__summary">{blockSummary(block)}</span>
           </span>
         </button>
-      </div>
-      <div className="builder-item__actions">
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          disabled={index === 0}
-          title="上移"
-          aria-label="上移"
-          onClick={() => onMove(-1)}
+        {/* 显隐开关：直接看出该区块是否在前台展示，不用展开「⋯」 */}
+        <label
+          className="switch builder-item__switch"
+          title={block.enabled ? '当前显示，点击隐藏' : '当前隐藏，点击显示'}
+          onClick={(event) => event.stopPropagation()}
         >
-          <IconArrowUp size={16} />
-        </button>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          disabled={index === total - 1}
-          title="下移"
-          aria-label="下移"
-          onClick={() => onMove(1)}
-        >
-          <IconArrowDown size={16} />
-        </button>
-        {/* 动作超过 2 个：复制 / 启停 / 删除 收进「⋯」溢出菜单；删除为危险项且需确认 */}
-        <OverflowMenu
-          label="更多区块操作"
-          items={[
-            { key: 'duplicate', label: '复制该区块', onClick: onDuplicate },
-            { key: 'toggle', label: block.enabled ? '停用该区块' : '启用该区块', onClick: onToggle },
-            { key: 'remove', label: '删除该区块', danger: true, onClick: onRemove },
-          ]}
-        />
+          <input
+            type="checkbox"
+            checked={block.enabled}
+            onChange={onToggle}
+            aria-label={block.enabled ? '隐藏该区块' : '显示该区块'}
+          />
+          <span className="switch__track" />
+        </label>
+        <div className="builder-item__actions">
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={index === 0}
+            title="上移"
+            aria-label="上移"
+            onClick={() => onMove(-1)}
+          >
+            <IconArrowUp size={16} />
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={index === total - 1}
+            title="下移"
+            aria-label="下移"
+            onClick={() => onMove(1)}
+          >
+            <IconArrowDown size={16} />
+          </button>
+          {/* 复制 / 启停（已在开关里）之外的操作收进「⋯」；删除为危险项且需确认 */}
+          <OverflowMenu
+            label="更多区块操作"
+            items={[
+              { key: 'duplicate', label: '复制该区块', onClick: onDuplicate },
+              { key: 'toggle', label: block.enabled ? '停用该区块' : '启用该区块', onClick: onToggle },
+              { key: 'remove', label: '删除该区块', danger: true, onClick: onRemove },
+            ]}
+          />
+        </div>
       </div>
       {/* 拖拽落点悬浮「＋」提示（配合 .is-drop-before/after 的插线） */}
       {dropBefore !== null && (

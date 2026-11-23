@@ -897,7 +897,7 @@ function SiteConfigEditor({ initial }: { initial: SiteConfig }) {
             <div className="site-link">
               <span className="admin-filters__label">验证码策略</span>
               <Select
-                value={site.auth?.captchaMode ?? (site.auth?.captcha === false ? 'off' : 'always')}
+                value={site.auth?.captchaMode ?? (site.auth?.captcha === false ? 'off' : 'after3')}
                 aria-label="验证码策略"
                 onChange={(value) => setAuth({ captchaMode: value as 'off' | 'always' | 'after3' })}
                 options={[

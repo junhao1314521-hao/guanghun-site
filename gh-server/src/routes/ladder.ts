@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { LADDER_META } from '../data/ladder'
+import { LADDER_META, publicLadderMetrics } from '../data/ladder'
 import { listCollection } from '../data/collectionStore'
 import { readLocale } from '../data/locale'
 
@@ -7,5 +7,6 @@ import { readLocale } from '../data/locale'
 export const ladderRouter = Router()
 
 ladderRouter.get('/', (req, res) => {
-  res.json({ metrics: listCollection('rankings', readLocale(req)), meta: LADDER_META })
+  // 后台可维护「隐藏 / 排序」：前台只返回可见指标与可见行
+  res.json({ metrics: publicLadderMetrics(listCollection('rankings', readLocale(req))), meta: LADDER_META })
 })

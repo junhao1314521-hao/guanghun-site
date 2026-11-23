@@ -2,19 +2,16 @@
  * 工单（咨询）数据与详情装配。
  *
  * 说明：真实会员账号 / 会话 / 重置令牌已由 `userStore.ts` 落库提供；
- * 本模块仅保留 `inquiries` 集合的种子（由 `account.ts` 的展示数据派生）与
- * `getInquiryDetail` 的装配逻辑（含会员补充回复的合并）。
+ * 工单记录全部来自前台真实提交（`collections.inquiries`，见 collectionStore），
+ * 本模块只保留类型定义与 `getInquiryDetail` 的装配逻辑（含会员补充回复的合并）。
  */
-
-import { ACCOUNT_TICKETS } from './account'
 
 /** 工单状态色调：前端直接映射到 `.status--*` */
 export type InquiryStatus = 'info' | 'warning' | 'success' | 'muted'
 
 /**
- * 工单摘要：沿用 `ACCOUNT_TICKETS` 的展示形态（date / tag / title），
- * 补充稳定 id、状态色调，以及契约 §11.2 要求的 `contact / model / message`
- * （联系方式与型号、问题描述随表单一并落库，前台「我的咨询」与后台「咨询工单」共用）。
+ * 工单摘要：前台「我的咨询」与后台「咨询工单」共用的落库形态，
+ * 含联系方式、型号、问题描述与状态色调。
  */
 export type InquirySummary = {
   id: string
@@ -37,48 +34,11 @@ export type InquirySummary = {
   status: InquiryStatus
   /** 归属会员 id（登录用户提交时写入；访客提交无此字段） */
   userId?: string
-  /** 会员补充回复（客户侧可见，追加在演示时间线之后） */
+  /** 会员补充回复（客户侧可见，按真实记录追加在提交条目之后） */
   replies?: InquiryTimelineEntry[]
+  /** 提交时刻（ISO 字符串；旧记录可能缺失，回落到 date） */
+  createdAt?: string
 }
-
-/** 与 ACCOUNT_TICKETS 顺序一一对应的 id 与状态色调 */
-const INQUIRY_META: Array<{ id: string; status: InquiryStatus }> = [
-  { id: 'inq-2026-0008', status: 'info' },
-  { id: 'inq-2026-0007', status: 'warning' },
-  { id: 'inq-2026-0006', status: 'success' },
-  { id: 'inq-2026-0005', status: 'muted' },
-]
-
-/** 与 ACCOUNT_TICKETS 顺序一一对应的联系方式（占位） */
-const INQUIRY_CONTACTS: string[] = [
-  'hao@example.com',
-  '138****0000',
-  'hao@example.com',
-  'hao@example.com',
-]
-
-/** 与 ACCOUNT_TICKETS 顺序一一对应的型号（占位） */
-const INQUIRY_MODELS_LIST: string[] = ['27X1QE-W54', '27X1QE-W54', '32X1UE-W16', '27Q1F']
-
-/** 与 ACCOUNT_TICKETS 顺序一一对应的问题描述（占位） */
-const INQUIRY_MESSAGES: string[] = [
-  '无线连接偶发断连，重新配对后短时间恢复，希望协助定位。',
-  '保修凭证待补充，请协助确认所需材料。',
-  '驱动更新后侧键宏失效，回退到上一版本可恢复。',
-  '咨询是否支持 Linux 系统与免驱使用。',
-]
-
-export const INQUIRIES: InquirySummary[] = ACCOUNT_TICKETS.map((ticket, index) => ({
-  id: INQUIRY_META[index]?.id ?? `inq-${index}`,
-  date: ticket.date,
-  tag: ticket.tag,
-  accent: ticket.accent,
-  title: ticket.title,
-  contact: INQUIRY_CONTACTS[index] ?? '',
-  model: INQUIRY_MODELS_LIST[index] ?? '',
-  message: INQUIRY_MESSAGES[index] ?? ticket.title,
-  status: INQUIRY_META[index]?.status ?? 'muted',
-}))
 
 /** 时间线条目类型：客户回复 / 公开回复（客服）/ 内部备注 */
 export type InquiryTimelineKind = 'customer' | 'agent' | 'internal'
@@ -112,13 +72,19 @@ const INQUIRY_MODELS: Record<string, string> = {
   'inq-2026-0005': '27Q1F',
 }
 
-/** 按摘要生成占位时间线：三类条目齐备，用于演示客户侧的可见性过滤 */
+/** 时间线只由真实记录装配：会员提交条目 + 会员补充回复，不虚构客服或内部条目 */
 function buildTimeline(summary: InquirySummary): InquiryTimelineEntry[] {
+  const submittedAt = summary.createdAt
+    ? summary.createdAt.slice(0, 16).replace('T', ' ')
+    : summary.date
   return [
-    { kind: 'customer', author: '我', time: `${summary.date} 10:12`, text: `提交咨询：${summary.title}。` },
-    { kind: 'internal', author: '客服组', time: `${summary.date} 11:03`, text: '内部备注：初判为固件版本兼容问题，已转技术支持跟进。（对客户不可见）' },
-    { kind: 'agent', author: '技术支持', time: `${summary.date} 14:26`, text: '已收到反馈，请补充固件版本与连接日志，便于进一步定位。' },
-    { kind: 'customer', author: '我', time: `${summary.date} 16:40`, text: '已按指引导出日志并上传，当前固件版本为 v2.4.0。' },
+    {
+      kind: 'customer',
+      author: summary.name || '我',
+      time: submittedAt,
+      text: `提交咨询：${summary.message || summary.title}`,
+    },
+    ...(summary.replies ?? []),
   ]
 }
 
@@ -126,15 +92,18 @@ function buildTimeline(summary: InquirySummary): InquiryTimelineEntry[] {
 export function getInquiryDetail(inquiries: InquirySummary[], id: string): InquiryDetail | undefined {
   const summary = inquiries.find((item) => item.id === id)
   if (!summary) return undefined
+  const timeline = buildTimeline(summary)
   return {
     id: summary.id,
     title: summary.title,
     // 型号优先取记录自身字段（契约 §11.2），旧记录缺字段时回退到占位映射
     model: summary.model || INQUIRY_MODELS[id] || '未标注型号',
     status: summary.tag,
-    createdAt: `${summary.date} 10:12`,
-    updatedAt: `${summary.date} 16:40`,
-    // 会员补充回复追加在（演示）时间线之后，供客户侧查看
-    timeline: [...buildTimeline(summary), ...(summary.replies ?? [])],
+    // 时间全部取自真实记录；旧记录无 createdAt 时只精确到日期
+    createdAt: summary.createdAt
+      ? summary.createdAt.slice(0, 16).replace('T', ' ')
+      : summary.date,
+    updatedAt: timeline[timeline.length - 1]?.time ?? summary.date,
+    timeline,
   }
 }

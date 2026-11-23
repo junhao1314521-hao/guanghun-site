@@ -67,7 +67,7 @@ export const STEPS: TourStep[] = [
 ]
 
 /** 卡片宽度（定位用） */
-export const TOUR_CARD_WIDTH = 320
+export const TOUR_CARD_WIDTH = 340
 
 /** 读取「已看过」标记（隐私模式等读取失败回退 false） */
 export function readTourDone(): boolean {

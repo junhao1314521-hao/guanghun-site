@@ -12,6 +12,7 @@
  * 「无权限（需管理员）」空态与说明，不白屏、不报错。
  */
 import { useCallback, useId, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   cancelSchedule,
   createRelease,
@@ -27,6 +28,7 @@ import {
   type ScheduleStatus,
 } from '../../api/adminPublish'
 import { fetchDataAudit } from '../../api/adminPages'
+import { fetchAdminOverview } from '../../api/admin'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
 import { EmptyState, ErrorState, SkeletonTable } from './states'
@@ -59,6 +61,8 @@ function statusClass(level: 'success' | 'warning' | 'danger' | 'info'): string {
 export function AdminPublishList() {
   const [reloadKey, setReloadKey] = useState(0)
   const state = useApi<ReleaseList>((signal) => listReleases(signal), [reloadKey])
+  // 未发布草稿数量：回滚只还原已发布内容，草稿需明确提示（避免「回滚后再次发布又变回去」）
+  const overview = useApi((signal) => fetchAdminOverview(signal), [reloadKey])
   const confirm = useConfirm()
   const toast = useToast()
 
@@ -69,6 +73,7 @@ export function AdminPublishList() {
   const items = state.data?.items ?? []
   const loading = state.loading && items.length === 0
   const forbidden = isForbidden(state.error)
+  const draftPages = overview.data?.content?.draftPages ?? 0
 
   const onPublish = useCallback(async () => {
     setBusy(true)
@@ -151,6 +156,17 @@ export function AdminPublishList() {
       <div className="admin-toolbar">
         <span className="admin-table__count">共 {items.length} 条发布记录</span>
       </div>
+
+      {draftPages > 0 && (
+        <div className="admin-notice admin-notice--warning" role="status">
+          <strong>当前有 {draftPages} 个未发布草稿</strong>
+          <p>
+            回滚只还原「已发布内容」，不会清理草稿；回滚后若再次「立即发布」，残留草稿会覆盖回滚结果。可先到
+            <Link to="/admin/pages"> 内容库 </Link>
+            丢弃不需要的草稿。
+          </p>
+        </div>
+      )}
 
       <div className="admin-table-wrap">
         {loading ? (

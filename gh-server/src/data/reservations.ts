@@ -26,17 +26,5 @@ export type ReservationSummary = {
   userId?: string
 }
 
-export const RESERVATIONS: ReservationSummary[] = [
-  {
-    id: 'rs-001',
-    venueId: 'bv-001',
-    venueName: '光魂旗舰体验点 · 深圳',
-    name: '陈屿',
-    contact: '138-0000-0001',
-    visitTime: '2026-10-18 14:00',
-    people: 2,
-    note: '想体验闪电 540Hz 电竞OLED显示器与 Meta 双模 4K 电竞显示器。',
-    status: '待确认',
-    createdAt: '2026-10-14',
-  },
-]
+/** 预约记录全部来自前台真实提交，不预置演示数据（避免以假乱真的占位客户） */
+export const RESERVATIONS: ReservationSummary[] = []

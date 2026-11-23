@@ -27,6 +27,7 @@ import { MultiImageField } from '../../components/admin/MultiImageField'
 import { FileField } from '../../components/admin/FileField'
 import { ProductSpecEditor } from '../../components/admin/ProductSpecEditor'
 import { ProductMediaField } from '../../components/admin/ProductMediaField'
+import { ProductSkuEditor } from '../../components/admin/ProductSkuEditor'
 import { DownloadVersionField } from '../../components/admin/DownloadVersionField'
 import { RichTextField } from '../../components/admin/RichTextField'
 import { Select } from '../../components/admin/Select'
@@ -407,6 +408,11 @@ function FormField({
   if (field.type === 'productMedia') {
     // 商品媒体总控：相册 / 主图视频 / 3D 预览合并为一块淘宝式编辑区
     return <ProductMediaField values={allValues ?? {}} onChange={onChange} />
+  }
+
+  if (field.type === 'skuMatrix') {
+    // SKU 矩阵：规格组 → 自动生成组合，行内改价 / 库存 / 编码
+    return <ProductSkuEditor values={allValues ?? {}} onChange={onChange} />
   }
 
   if (field.type === 'specEditor') {
@@ -984,6 +990,8 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
     }
   }
 
+  // 已注销账号遗留的咨询记录：去标识化保留，后台不可回复 / 改状态（服务端同样拦截）
+  const lockedInquiry = resource.key === 'inquiries' && Boolean(values.anonymizedAt)
   // 产品 / 文章：主表单 + 右侧粘性「发布」栏（状态一眼可见，主操作不必滚到底）
   const isSplit = resource.key === 'products' || resource.key === 'articles'
   const statusValue = values.status
@@ -1067,6 +1075,11 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
         sectionsNode
       )}
 
+      {lockedInquiry && (
+        <div className="alert alert--warning" role="status">
+          该工单所属账号已注销：记录已去标识化保留（称呼与联系方式已移除），用于售后追溯；后台不可再回复或变更状态。
+        </div>
+      )}
       {error && (
         <div className="alert alert--danger" style={{ marginTop: 'var(--gh-space-4)' }} role="alert">
           {error}
@@ -1083,7 +1096,11 @@ function ResourceForm({ resource, id, initial }: { resource: AdminResource; id?:
           <Link className="btn btn--secondary" to={`/admin/${resource.key}`}>
             取消
           </Link>
-          <button className={`btn btn--primary${submitting ? ' btn--loading' : ''}`} type="submit" disabled={submitting || done}>
+          <button
+            className={`btn btn--primary${submitting ? ' btn--loading' : ''}`}
+            type="submit"
+            disabled={submitting || done || lockedInquiry}
+          >
             {submitting ? (
               <>
                 <span className="spinner" aria-hidden="true" />

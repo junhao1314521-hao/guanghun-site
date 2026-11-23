@@ -894,14 +894,35 @@ export function AdminUploadsList() {
                   title="暂无素材"
                   desc={
                     folderId === ALL && !category && !kindFilter && !usageFilter && !typeFilter && !q
-                      ? '点击右上角「上传素材」，或直接把文件拖到这里。'
+                      ? '点击下方「＋ 上传素材」，或直接把文件拖到本页任意位置。'
                       : '当前筛选条件下没有素材，试试切换文件夹或清空筛选。'
+                  }
+                  action={
+                    folderId === ALL && !category && !kindFilter && !usageFilter && !typeFilter && !q ? (
+                      <button type="button" className="btn btn--primary btn--sm" onClick={() => fileRef.current?.click()}>
+                        ＋ 上传素材
+                      </button>
+                    ) : undefined
                   }
                 />
               </div>
             </div>
           ) : (
             <div className="admin-gallery">
+              {/* 常驻上传入口：与淘宝图片空间一致，第一格就是「＋」，拖拽/点选都能上传 */}
+              <button
+                type="button"
+                className="admin-upload-add"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                aria-label="上传素材"
+              >
+                <span className="admin-upload-add__icon" aria-hidden="true">
+                  {uploading ? <span className="spinner" /> : <IconPlus size={26} />}
+                </span>
+                <strong>{uploading ? '上传中…' : '上传素材'}</strong>
+                <small>图片 / 视频 / PDF / 其他 · 支持批量拖入</small>
+              </button>
               {items.map((item) => {
                 const image = isImageMedia(item)
                 const isSelected = selected.has(item.id)

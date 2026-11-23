@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { buildSearchData } from '../data/aggregate'
 import { listCollection } from '../data/collectionStore'
+import { publicLadderMetrics } from '../data/ladder'
 import { presentProducts } from '../data/products'
 import { readLocale } from '../data/locale'
 
@@ -17,7 +18,7 @@ searchRouter.get('/', (req, res) => {
   const { items, counts } = buildSearchData({
     products: presentProducts(listCollection('products', locale)),
     articles: listCollection('articles', locale),
-    rankings: listCollection('rankings', locale),
+    rankings: publicLadderMetrics(listCollection('rankings', locale)),
     downloads: listCollection('downloads', locale),
   })
   const filtered = q

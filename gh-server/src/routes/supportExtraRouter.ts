@@ -144,9 +144,12 @@ supportExtraRouter.post('/inquiry', (req, res) => {
   const id = `inq-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
   // 若已登录（前台 gh_user 会话），把该条咨询归属到当前用户，供个人中心「我的咨询」按用户隔离查看
   const sessionUser = getUserSession(readCookie(req, USER_SESSION_COOKIE))
+  const submittedAt = new Date().toISOString()
   const item = createCollectionItem('inquiries', {
     id,
-    date: new Date().toISOString().slice(0, 10),
+    date: submittedAt.slice(0, 10),
+    // 真实提交时刻（会员工单详情的时间线与「创建时间」直接展示它）
+    createdAt: submittedAt,
     tag: '处理中',
     accent: true,
     // title 承载「称呼 + 主题」的可读摘要；称呼 / 主题同时**独立落库**，便于筛选与统计

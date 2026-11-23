@@ -23,6 +23,7 @@ import {
   type BackupItem,
   type BackupList,
 } from '../../api/adminBackups'
+import { fetchAdminOverview } from '../../api/admin'
 import { useApi } from '../../hooks/useApi'
 import { AdminPageHead } from './AdminPageHead'
 import { EmptyState, ErrorState, SkeletonTable } from './states'
@@ -45,6 +46,8 @@ function formatTime(iso: string): string {
 export function AdminBackupsList() {
   const [reloadKey, setReloadKey] = useState(0)
   const state = useApi<BackupList>((signal) => listBackups(signal), [reloadKey])
+  // 草稿不属于快照：恢复后再次发布会把残留草稿推上线，需明确提示
+  const overview = useApi((signal) => fetchAdminOverview(signal), [reloadKey])
   const confirm = useConfirm()
   const toast = useToast()
   const [busy, setBusy] = useState(false)
@@ -54,6 +57,7 @@ export function AdminBackupsList() {
 
   const items = state.data?.items ?? []
   const loading = state.loading && items.length === 0
+  const draftPages = overview.data?.content?.draftPages ?? 0
 
   const onBackupNow = useCallback(async () => {
     setBusy(true)
@@ -203,7 +207,7 @@ export function AdminBackupsList() {
     <div className="admin-page">
       <AdminPageHead
         title="备份"
-        desc="创建、下载、恢复站点数据备份；也可将全部数据重置为初始状态（会丢弃改动）。"
+        desc="创建、下载、恢复站点内容数据（页面 / 站点配置 / 集合 / 后台资源）；也可将全部数据重置为初始状态（会丢弃改动）。"
         actions={
           <div className="admin-table__actions">
             <button type="button" className="btn btn--danger-ghost btn--sm" onClick={() => void onReset()}>
@@ -227,6 +231,20 @@ export function AdminBackupsList() {
           </div>
         }
       />
+
+      <div className="admin-notice" role="note">
+        <strong>备份范围</strong>
+        <p>
+          仅包含页面、站点配置、集合与后台资源；不含前台会员账号、素材文件、SEO 覆盖、壁纸主题与审计日志。
+        </p>
+      </div>
+
+      {draftPages > 0 && (
+        <div className="admin-notice admin-notice--warning" role="status">
+          <strong>当前有 {draftPages} 个未发布草稿</strong>
+          <p>草稿不在备份内；恢复后若再次「立即发布」，残留草稿会覆盖恢复结果。</p>
+        </div>
+      )}
 
       <div className="admin-toolbar">
         <span className="admin-table__count">共 {items.length} 份备份</span>

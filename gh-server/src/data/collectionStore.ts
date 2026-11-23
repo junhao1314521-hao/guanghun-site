@@ -32,7 +32,7 @@ import {
   type SceneItem,
   type VenueSummary,
 } from './business-extra'
-import { INQUIRIES, type InquirySummary } from './auth'
+import type { InquirySummary } from './auth'
 import { TEMPLATES, type TemplateItem } from './templates'
 import { LEGAL_DOCS, type LegalDoc } from './legal'
 import { TAXONOMY_ITEMS, type TaxonomyItem } from './taxonomy'
@@ -152,7 +152,8 @@ export function buildCollectionSeed(): CollectionMap {
     'biz-content': BIZ_SCENES,
     'biz-cases': BIZ_CASES,
     'biz-venues': BIZ_VENUES,
-    inquiries: INQUIRIES,
+    // 咨询工单全部来自前台真实提交（含注销后去标识化记录），不预置演示工单
+    inquiries: [],
     templates: TEMPLATES,
     legal: LEGAL_DOCS,
     taxonomy: TAXONOMY_ITEMS,

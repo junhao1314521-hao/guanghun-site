@@ -31,7 +31,7 @@ export const BIZ_SCENES: SceneItem[] = [
       { id: 'gh-32x1ue', name: 'Meta 双模 4K 电竞显示器' },
       { id: 'gh-27x1qe-q32', name: 'Q32 26.5 英寸 2K 320Hz QD-OLED' },
     ],
-    cover: '/media/business/scenes/esports-room.svg',
+    cover: '/media/home/scenes/scene-01.jpg',
   },
   {
     id: 'creator-desk',
@@ -49,7 +49,7 @@ export const BIZ_SCENES: SceneItem[] = [
       { id: 'gh-54027x1qe', name: '闪电 540Hz 电竞OLED显示器' },
       { id: 'gh-27x1ue-q16', name: 'Q16 26.5 英寸 4K QD-OLED' },
     ],
-    cover: '/media/business/scenes/creator-desk.svg',
+    cover: '/media/home/scenes/scene-02.jpg',
   },
   {
     id: 'office-desk',
@@ -67,7 +67,7 @@ export const BIZ_SCENES: SceneItem[] = [
       { id: 'gh-27x1qe-500', name: '闪电 500 电竞OLED显示器' },
       { id: 'gh-27x1ue-qd', name: 'QD 26.5 英寸 4K 240Hz QD-OLED' },
     ],
-    cover: '/media/business/scenes/office-desk.svg',
+    cover: '/media/home/scenes/scene-03.jpg',
   },
 ]
 
@@ -101,7 +101,7 @@ export const BIZ_CASES: CaseSummary[] = [
     category: '赛事合作',
     year: '2026',
     summary: '为校级和区域联赛提供比赛用显示器与现场体验区，统一显示规格以降低主客队环境差异。',
-    cover: '/media/business/cases/campus-esports.svg',
+    cover: '/media/home/scenes/scene-01.jpg',
   },
   {
     id: 'venue-experience-2025',
@@ -110,7 +110,7 @@ export const BIZ_CASES: CaseSummary[] = [
     category: '渠道合作',
     year: '2025',
     summary: '与电竞馆共建试机体验区，配套统一陈列物料与试机台显示配置，支持到店导流与试用登记。',
-    cover: '/media/business/cases/venue-experience.svg',
+    cover: '/media/home/scenes/scene-02.jpg',
   },
   {
     id: 'cobrand-series-2026',
@@ -119,7 +119,7 @@ export const BIZ_CASES: CaseSummary[] = [
     category: '品牌联名',
     year: '2026',
     summary: '联合开发联名配色与包装视觉，同步落地线下陈列与线上内容，覆盖首发与长尾两阶段。',
-    cover: '/media/business/cases/cobrand-series.svg',
+    cover: '/media/home/scenes/scene-03.jpg',
   },
 ]
 
@@ -140,9 +140,9 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
       { label: '赛后流程', value: '清洁 / 校验 / 复位' },
     ],
     gallery: [
-      '/media/business/cases/campus-esports-01.svg',
-      '/media/business/cases/campus-esports-02.svg',
-      '/media/business/cases/campus-esports-03.svg',
+      '/media/home/scenes/scene-01.jpg',
+      '/media/home/scenes/scene-02.jpg',
+      '/media/home/scenes/scene-04.jpg',
     ],
   },
   'venue-experience-2025': {
@@ -160,9 +160,9 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
       { label: '线上承接', value: '咨询与到店预约' },
     ],
     gallery: [
-      '/media/business/cases/venue-experience-01.svg',
-      '/media/business/cases/venue-experience-02.svg',
-      '/media/business/cases/venue-experience-03.svg',
+      '/media/home/scenes/scene-02.jpg',
+      '/media/home/scenes/scene-03.jpg',
+      '/media/home/scenes/scene-04.jpg',
     ],
   },
   'cobrand-series-2026': {
@@ -180,9 +180,9 @@ export const BIZ_CASE_DETAILS: Record<string, CaseDetail> = {
       { label: '渠道覆盖', value: '线下陈列 + 线上内容' },
     ],
     gallery: [
-      '/media/business/cases/cobrand-series-01.svg',
-      '/media/business/cases/cobrand-series-02.svg',
-      '/media/business/cases/cobrand-series-03.svg',
+      '/media/home/scenes/scene-03.jpg',
+      '/media/home/showcase/gh-54027x1qe.jpg',
+      '/media/home/showcase/gh-32x1ue.jpg',
     ],
   },
 }

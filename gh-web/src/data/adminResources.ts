@@ -104,6 +104,8 @@ export type AdminFieldType =
   | 'specEditor'
   /** 商品媒体总控：相册 / 主图视频 / 3D 预览合并在一个区块内编辑（仅产品表单使用） */
   | 'productMedia'
+  /** SKU 矩阵：规格组 → 自动生成组合，行内改价格 / 库存 / 编码（仅产品表单使用） */
+  | 'skuMatrix'
   /** 固件版本管理：当前版本摘要 + 发布新版本 + 历史版本列表（仅下载中心固件使用） */
   | 'downloadVersion'
   /** 资源引用：从另一个栏目的记录中选择（如评价 → 产品），值存被引用记录的 id */
@@ -303,11 +305,12 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     ],
     form: [
       {
-        title: '基本信息',
+        // 标识类字段单独成组：先完成「叫什么、是什么」，再进入售卖设置
+        title: '商品标识',
         fields: [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'name', label: '产品名称', type: 'text', span: 2, required: true, hint: '对外展示的完整名称' },
-          { key: 'model', label: '型号', type: 'text', placeholder: '27X1QE-W54' },
+          { key: 'model', label: '型号', type: 'text', placeholder: '27X1QE-W54', required: true },
           { key: 'category', label: '分类', type: 'select', options: ['OLED旗舰', '双模高刷', '电竞IPS', '周边'], hint: '分类同时决定同系列对比与前台筛选，无需再填「系列标识」' },
           {
             key: 'variant',
@@ -318,6 +321,12 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             hint: '决定下方「结构化参数」可选的参数目录',
           },
           { key: 'flag', label: '商品标签', type: 'text', placeholder: '旗舰 / 热销 / 新品 / 联名', hint: '显示在产品卡右上角；留空不显示' },
+        ],
+      },
+      {
+        // 售卖类字段集中管理：状态、价格、上新与购买入口不再与标识字段混排
+        title: '售卖信息',
+        fields: [
           { key: 'status', label: '上架状态', type: 'statusSelect', hint: '在售 / 预售 / 缺货 / 下架 / 草稿' },
           { key: 'priceValue', label: '价格（元）', type: 'number', hint: '前台展示、价格排序与区间筛选都取这个值；不填则显示「询价」' },
           { key: 'releasedAt', label: '上新时间', type: 'date' },
@@ -346,31 +355,10 @@ export const ADMIN_RESOURCES: AdminResource[] = [
         title: 'SKU 与库存',
         fields: [
           {
-            key: 'skuOptions',
-            label: 'SKU 规格组',
-            type: 'records',
+            key: 'skuMatrix',
+            label: '规格与组合',
+            type: 'skuMatrix',
             span: 2,
-            hint: '最多 3 组（如 颜色 / 版本）；规格值用逗号分隔，如：曜石黑,冰川白',
-            recordFields: [
-              { key: 'name', label: '规格名', type: 'text' },
-              { key: 'values', label: '规格值（逗号分隔）', type: 'text' },
-            ],
-          },
-          {
-            key: 'skus',
-            label: 'SKU 明细',
-            type: 'records',
-            span: 2,
-            hint: 'option1～option3 按规格组顺序填写；价格留空沿用产品参考价；库存填数字',
-            recordFields: [
-              { key: 'id', label: 'SKU ID', type: 'text', hint: '新增时自动生成（产品 ID-序号），可修改；保存后作为唯一标识' },
-              { key: 'option1', label: '规格值 1', type: 'text' },
-              { key: 'option2', label: '规格值 2', type: 'text' },
-              { key: 'option3', label: '规格值 3', type: 'text' },
-              { key: 'price', label: '价格', type: 'text' },
-              { key: 'stock', label: '库存', type: 'text' },
-              { key: 'skuCode', label: 'SKU 编码', type: 'text' },
-            ],
           },
         ],
       },
@@ -562,7 +550,9 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     columns: [
       { key: 'label', label: '榜单名称', type: 'strong' },
       { key: 'unit', label: '单位', type: 'tag' },
+      { key: 'order', label: '排序', type: 'number', align: 'right' },
       { key: 'pending', label: '待测数量', type: 'number', align: 'right' },
+      { key: 'hidden', label: '前台隐藏', type: 'bool' },
       { key: 'id', label: 'ID', type: 'mono' },
     ],
     filters: [{ key: 'unit', label: '单位', options: ['分', 'ms', 'h'] }],
@@ -573,6 +563,18 @@ export const ADMIN_RESOURCES: AdminResource[] = [
           { key: 'id', label: 'ID', type: 'readonly', hint: '记录唯一标识，新建时留空由后端生成' },
           { key: 'label', label: '榜单名称', type: 'text', required: true },
           { key: 'unit', label: '单位', type: 'text', placeholder: '分 / ms / h' },
+          {
+            key: 'better',
+            label: '数值方向',
+            type: 'select',
+            required: true,
+            options: ['high', 'low'],
+            optionLabels: { high: '越大越好', low: '越小越好' },
+            hint: '决定进度条长度与名次口径，务必与指标含义一致',
+          },
+          { key: 'digits', label: '小数位', type: 'number', required: true, hint: '前台数值展示的小数位数，如 1 表示 77.2' },
+          { key: 'order', label: '排序', type: 'number', hint: '数字越小越靠前；留空则保持原有顺序并排在已设排序之后' },
+          { key: 'hidden', label: '前台隐藏', type: 'switch', hint: '开启后该榜单不在前台天梯榜出现，可随时恢复' },
           { key: 'pending', label: '待测数量', type: 'number', hint: '尚未完成该项测试的型号数量' },
         ],
       },
@@ -584,14 +586,15 @@ export const ADMIN_RESOURCES: AdminResource[] = [
             label: '榜单行',
             type: 'records',
             span: 2,
-            hint: '按名次排列；可增删改与上下移动',
+            hint: '按名次排列；可增删改与上下移动，开启「隐藏」的行前台不展示',
             recordFields: [
-              { key: 'rank', label: '名次', type: 'number' },
+              { key: 'rank', label: '名次', type: 'text' },
               { key: 'model', label: '型号', type: 'text' },
-              { key: 'name', label: '名称', type: 'text' },
+              { key: 'name', label: '品牌', type: 'text' },
               { key: 'productId', label: '关联产品', type: 'ref', refResource: 'products', refLabelKey: 'name' },
               { key: 'score', label: '得分', type: 'number' },
-              { key: 'tied', label: '并列', type: 'switch' },
+              { key: 'inf', label: '∞（无穷大）', type: 'switch', hint: '仅对比度等可无穷大的指标使用' },
+              { key: 'hidden', label: '隐藏', type: 'switch', hint: '开启后该行前台不展示' },
             ],
           },
         ],
@@ -1884,7 +1887,7 @@ export const ADMIN_RESOURCES: AdminResource[] = [
     label: '备份',
     icon: 'cloud',
     title: '备份',
-    desc: '创建、下载、恢复站点数据备份；也可将全部数据重置为初始状态（会丢弃改动）。',
+    desc: '创建、下载、恢复站点内容数据（页面 / 站点配置 / 集合 / 后台资源）；也可将全部数据重置为初始状态（会丢弃改动）。',
     // 自定义视图：由 AdminBackupsList 承载（数据源 /api/admin/backups + /api/admin/reset）
     view: 'backups',
     editable: false,

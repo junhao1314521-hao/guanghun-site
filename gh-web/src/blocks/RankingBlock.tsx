@@ -240,7 +240,7 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
             重新加载
           </button>
         </div>
-      ) : loading || !metric || !meta ? (
+      ) : loading || !meta ? (
         <div className="ladder" aria-busy="true" aria-label="榜单加载中">
           <div className="ladder__head">
             <span className="ladder__rank">{t('blocks.rk.rank')}</span>
@@ -269,6 +269,11 @@ export function RankingBlock({ props }: { props: Record<string, unknown> }) {
               </span>
             </div>
           ))}
+        </div>
+      ) : !metric ? (
+        <div className="empty">
+          <div className="empty__title">暂无公开榜单</div>
+          <p className="empty__desc">后台已将全部榜单设为隐藏，或尚未维护任何指标。</p>
         </div>
       ) : (
         <>

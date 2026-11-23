@@ -40,6 +40,8 @@ type CleanRow = {
   score: number | null
   inf: boolean
   productId?: string
+  /** 追加导入时沿用既有行的前台隐藏标记，避免导入后原本隐藏的行重新出现 */
+  hidden?: boolean
 }
 
 /** 真值判定：兼容 CSV 中的中文 / 布尔 / 数字写法 */
@@ -83,6 +85,7 @@ function rerank(rows: CleanRow[], better: LadderMetric['better']): LadderRow[] {
     }
     if (row.inf) item.inf = true
     if (row.productId) item.productId = row.productId
+    if (row.hidden) item.hidden = true
     return item
   })
 }
@@ -166,15 +169,16 @@ rankingsImportRouter.post(
       return
     }
 
-    // 追加模式：保留旧行，同型号以新行覆盖
+    // 追加模式：保留旧行，同型号以新行覆盖；隐藏是运营标记，不随测量数据导入被重置
     let merged = clean
     if (body.mode === 'append') {
       const existing = getCollectionItem('rankings', metric.id)?.rows ?? []
       const incoming = new Map(clean.map((row) => [row.model, row]))
       const kept: CleanRow[] = existing
         .filter((row) => !incoming.has(row.model))
-        .map((row) => ({ model: row.model, name: row.name, score: row.score, inf: Boolean(row.inf), productId: row.productId }))
-      merged = [...kept, ...clean]
+        .map((row) => ({ model: row.model, name: row.name, score: row.score, inf: Boolean(row.inf), productId: row.productId, hidden: row.hidden === true }))
+      const hiddenBefore = new Map(existing.filter((row) => row.hidden).map((row) => [row.model, true]))
+      merged = [...kept, ...clean.map((row) => (hiddenBefore.has(row.model) ? { ...row, hidden: true } : row))]
     }
 
     const rows = rerank(merged, metric.better)

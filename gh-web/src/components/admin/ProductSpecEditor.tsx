@@ -223,11 +223,14 @@ export function ProductSpecEditor({
         <div className="spec-editor__groups">
           {groupKeys.map((group) => {
             const items = grouped.get(group) ?? []
+            const emptyCount = items.filter((item) => !item.row.value.trim()).length
             return (
               <section className="spec-group" key={group} aria-label={`${group}参数`}>
                 <div className="spec-group__head">
                   <span className="spec-group__title">{group}</span>
-                  <span className="spec-group__count">{items.length} 项</span>
+                  <span className={`spec-group__count${emptyCount ? ' is-warn' : ''}`}>
+                    {items.length} 项{emptyCount ? ` · ${emptyCount} 项未填` : ''}
+                  </span>
                 </div>
                 <div className="spec-group__grid">
                   {items.map(({ row, index }) => {
@@ -237,7 +240,7 @@ export function ProductSpecEditor({
                     const wide = !def || Boolean(def.parts)
                     return (
                       <div
-                        className={`spec-cell${wide ? ' is-wide' : ''}${def ? '' : ' spec-cell--custom'}`}
+                        className={`spec-cell${wide ? ' is-wide' : ''}${def ? '' : ' spec-cell--custom'}${row.value.trim() ? '' : ' is-empty'}`}
                         key={`${key}-${index}`}
                       >
                         {def ? (

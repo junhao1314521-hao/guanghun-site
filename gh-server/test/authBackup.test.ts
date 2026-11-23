@@ -14,6 +14,7 @@ import path from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { createApp } from '../src/app'
 import { getDb } from '../src/data/db'
+import { resolveBackupDir } from '../src/data/backupStore'
 import { buildCollectionSeed } from '../src/data/collectionStore'
 import { hashPassword, verifyPassword } from '../src/data/admin'
 
@@ -49,6 +50,20 @@ after(async () => {
 
 const get = (p: string, init?: RequestInit) => fetch(base + p, init)
 const auth = () => ({ Authorization: `Bearer ${token}` })
+
+describe('阶段 5b · 备份目录解析', () => {
+  it('未设置 BACKUP_DIR 时跟随 DB_PATH 所在目录（部署环境应用目录只读）', () => {
+    const savedBackup = process.env.BACKUP_DIR
+    const savedDb = process.env.DB_PATH
+    delete process.env.BACKUP_DIR
+    process.env.DB_PATH = path.join(tmpDir, 'runtime', 'gh.sqlite')
+    assert.equal(resolveBackupDir(), path.join(tmpDir, 'runtime', 'backups'))
+    if (savedDb !== undefined) process.env.DB_PATH = savedDb
+    else delete process.env.DB_PATH
+    if (savedBackup !== undefined) process.env.BACKUP_DIR = savedBackup
+    else delete process.env.BACKUP_DIR
+  })
+})
 
 describe('阶段 5b · 密码哈希与 timing-safe 比较', () => {
   it('hashPassword / verifyPassword：正确密码通过、错误密码拒绝、盐不同则哈希不同', () => {

@@ -425,7 +425,22 @@ export function ResourceListBody({ resource, embedded = false }: { resource: Adm
     return items
   }
 
+  /** 已注销账号遗留的咨询记录：去标识化保留，禁止后台回复 / 改状态 */
+  const isAnonymizedInquiry = (row: AdminRow) => resource.key === 'inquiries' && Boolean(row.anonymizedAt)
+
   const renderRowActions = (row: AdminRow) => {
+    if (isAnonymizedInquiry(row)) {
+      return (
+        <div className="admin-table__actions">
+          <span className="field__hint">已注销账号 · 不可回复或变更状态</span>
+          {resource.deletable && (
+            <button type="button" className="btn btn--sm btn--danger-ghost" onClick={() => void onDelete(row)}>
+              删除
+            </button>
+          )}
+        </div>
+      )
+    }
     const items = rowActionItems(row)
     if (items.length === 0) return null
     // 超过 2 个动作时收进「⋯」溢出菜单

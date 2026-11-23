@@ -19,6 +19,8 @@ export type LadderRow = {
   inf?: boolean
   /** 关联产品 id（可点进产品详情；无详情页的型号省略） */
   productId?: string
+  /** 后台维护：开启后该行不在前台展示（缺省视为展示） */
+  hidden?: boolean
 }
 
 export type LadderMetric = {
@@ -32,6 +34,10 @@ export type LadderMetric = {
   digits: number
   /** 未完成测试的型号数（沿用旧字段，空状态文案使用） */
   pending: number
+  /** 后台维护：指标排序（数字越小越靠前；留空保持集合原顺序并排在已排序项之后） */
+  order?: number
+  /** 后台维护：开启后该指标不在前台展示（缺省视为展示） */
+  hidden?: boolean
   rows: LadderRow[]
 }
 

@@ -13,7 +13,7 @@ import { randomBytes } from 'node:crypto'
 import { unlinkSync } from 'node:fs'
 import path from 'node:path'
 import { getDb, runInTransaction } from './db'
-import { resolveUploadDir, saveUpload } from './uploadStore'
+import { resolveUploadDir, saveUpload, sha256Of } from './uploadStore'
 
 /** 整机保修时长（月） */
 export const WARRANTY_MONTHS = 36
@@ -46,6 +46,17 @@ export type AdminDeviceView = DeviceView & {
   username: string
   reviewedBy: string
   reviewedAt: string
+  /** 所属账号已注销（记录去标识化保留，凭证已清理、无需再审核） */
+  anonymized: boolean
+  /** 当前记录是否由「注销账号遗留的 SN」被新账号认领而来 */
+  claimed: boolean
+  /** 认领时间（未认领为空串） */
+  claimedAt: string
+  /**
+   * 认领凭证与原记录凭证指纹是否一致：
+   * true = 一致；false = 不一致（存在冒领风险）；null = 非认领记录或原记录未保留指纹
+   */
+  claimHashMatch: boolean | null
 }
 
 type DeviceRow = {
@@ -61,6 +72,13 @@ type DeviceRow = {
   reviewed_by: string | null
   reviewed_at: string | null
   created_at: string
+  anonymized_at: string | null
+  receipt_sha256: string | null
+  claimed_at: string | null
+  claim_hash_match: number | null
+  /** 认领前的原归属（注销遗留标记）与原始状态：认领被驳回时据此还原 */
+  claim_origin_user_id: string | null
+  claim_origin_status: string | null
 }
 
 type AdminDeviceRow = DeviceRow & { username: string | null }
@@ -185,13 +203,24 @@ function validatePurchasedAt(value: string): string {
   return ''
 }
 
+/** 该 SN 是否属于「账号已注销」的登记（可被新账号认领） */
+export function snClaimable(snInput: string): boolean {
+  const sn = normalizeSn(snInput)
+  if (!sn) return false
+  return Boolean(
+    getDb()
+      .prepare("SELECT 1 AS hit FROM device_registrations WHERE sn = ? AND status <> 'rejected' AND anonymized_at IS NOT NULL")
+      .get(sn),
+  )
+}
+
 /**
  * 登记设备：校验型号 / 序列号 / 购买日期 / 凭证，落库为待审核。
  * 调用前应已把凭证保存为可访问 URL（见 `saveReceipt`）。
  */
 export function registerDevice(
   userId: string,
-  input: { model: string; sn: string; purchasedAt: string; channel: string; receiptUrl: string },
+  input: { model: string; sn: string; purchasedAt: string; channel: string; receiptUrl: string; receiptSha256: string },
 ): DeviceOutcome {
   const model = input.model.trim()
   const sn = normalizeSn(input.sn)
@@ -203,6 +232,40 @@ export function registerDevice(
   const dateError = validatePurchasedAt(input.purchasedAt)
   if (dateError) return { ok: false, error: dateError }
   if (!input.receiptUrl) return { ok: false, error: '请上传购买凭证' }
+
+  // 账号已注销的历史登记：允许新账号认领同一 SN（沿用原保修信息，凭证重新审核）
+  const claimable = getDb()
+    .prepare("SELECT * FROM device_registrations WHERE sn = ? AND status <> 'rejected' AND anonymized_at IS NOT NULL")
+    .get(sn) as unknown as DeviceRow | undefined
+  if (claimable) {
+    // 防冒领：与原始凭证指纹比对（原始指纹在注销时保留；老库无指纹时为 null = 无法比对）
+    const hashMatch = claimable.receipt_sha256
+      ? claimable.receipt_sha256 === input.receiptSha256
+        ? 1
+        : 0
+      : null
+    getDb()
+      .prepare(
+        'UPDATE device_registrations SET user_id = ?, receipt_url = ?, status = ?, reject_reason = NULL, ' +
+          'reviewed_by = NULL, reviewed_at = NULL, anonymized_at = NULL, claimed_at = ?, claim_hash_match = ?, ' +
+          'claim_origin_user_id = ?, claim_origin_status = ? WHERE id = ?',
+      )
+      .run(
+        userId,
+        input.receiptUrl,
+        'pending',
+        new Date().toISOString(),
+        hashMatch,
+        claimable.user_id,
+        claimable.status,
+        claimable.id,
+      )
+    const claimed = getDb()
+      .prepare('SELECT * FROM device_registrations WHERE id = ?')
+      .get(claimable.id) as unknown as DeviceRow
+    return { ok: true, device: toView(claimed) }
+  }
+
   if (snTaken(sn)) return { ok: false, error: '该序列号已被登记，请核对后重试' }
 
   const id = `dev-${randomBytes(8).toString('hex')}`
@@ -212,9 +275,9 @@ export function registerDevice(
       // 同一用户此前的驳回记录不再累积：重新提交时清掉旧记录
       tx.prepare("DELETE FROM device_registrations WHERE user_id = ? AND sn = ? AND status = 'rejected'").run(userId, sn)
       tx.prepare(
-        'INSERT INTO device_registrations(id, user_id, model, sn, purchased_at, channel, receipt_url, status, created_at) ' +
-          "VALUES(?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
-      ).run(id, userId, model, sn, input.purchasedAt, input.channel.trim(), input.receiptUrl, now)
+        'INSERT INTO device_registrations(id, user_id, model, sn, purchased_at, channel, receipt_url, status, created_at, receipt_sha256) ' +
+          "VALUES(?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)",
+      ).run(id, userId, model, sn, input.purchasedAt, input.channel.trim(), input.receiptUrl, now, input.receiptSha256)
     })
   } catch (err) {
     return { ok: false, error: (err as Error).message.includes('UNIQUE') ? '该序列号已被登记，请核对后重试' : '登记失败，请稍后重试' }
@@ -226,13 +289,14 @@ export function registerDevice(
 /** 删除结果 */
 export type DeleteDeviceOutcome = { ok: true } | { ok: false; error: string }
 
-/** 本人删除设备：已审核通过（active）的保修记录不可删除 */
+/** 本人删除设备：已审核通过（active）的保修记录不可删除；认领记录须由后台驳回以保留原始凭证 */
 export function deleteDevice(userId: string, id: string): DeleteDeviceOutcome {
-  const row = getDb().prepare('SELECT status FROM device_registrations WHERE id = ? AND user_id = ?').get(id, userId) as
-    | { status: string }
-    | undefined
+  const row = getDb()
+    .prepare('SELECT status, claimed_at FROM device_registrations WHERE id = ? AND user_id = ?')
+    .get(id, userId) as { status: string; claimed_at: string | null } | undefined
   if (!row) return { ok: false, error: '未找到该设备' }
   if (row.status === 'active') return { ok: false, error: '已审核通过的设备不可删除，如需变更请联系售后' }
+  if (row.claimed_at) return { ok: false, error: '该记录为 SN 认领登记，请等待后台核对；如需撤销请联系售后' }
   getDb().prepare('DELETE FROM device_registrations WHERE id = ?').run(id)
   return { ok: true }
 }
@@ -252,9 +316,9 @@ const RECEIPT_TYPES: Record<string, { ext: string; mime: string }> = {
 /** 凭证大小上限（字节）：5MB */
 const RECEIPT_MAX_BYTES = 5 * 1024 * 1024
 
-export type SaveReceiptResult = { ok: true; url: string } | { ok: false; error: string }
+export type SaveReceiptResult = { ok: true; url: string; sha256: string } | { ok: false; error: string }
 
-/** 保存购买凭证：接受 data URL（base64），仅图片 / PDF，≤5MB */
+/** 保存购买凭证：接受 data URL（base64），仅图片 / PDF，≤5MB；同时返回内容 SHA-256 指纹 */
 export function saveReceipt(dataUrl: string): SaveReceiptResult {
   const match = /^data:([^;,]+);base64,(.+)$/s.exec(dataUrl.trim())
   if (!match) return { ok: false, error: '凭证格式不正确，请重新选择文件' }
@@ -266,7 +330,7 @@ export function saveReceipt(dataUrl: string): SaveReceiptResult {
   if (buffer.length > RECEIPT_MAX_BYTES) return { ok: false, error: '凭证文件不能超过 5MB' }
   const result = saveUpload(buffer, `receipt-${randomBytes(6).toString('hex')}.${type.ext}`, type.mime)
   if (!result.ok) return { ok: false, error: result.error }
-  return { ok: true, url: result.item.url }
+  return { ok: true, url: result.item.url, sha256: sha256Of(buffer) }
 }
 
 /** 登记失败时清理已落盘的凭证，避免产生孤儿文件 */
@@ -285,6 +349,22 @@ export function discardReceipt(url: string): void {
    后台审核
    ============================================================ */
 
+/** 行 → 后台视图（含注销 / 认领标记） */
+function toAdminView(row: AdminDeviceRow): AdminDeviceView {
+  return {
+    ...toView(row),
+    userId: row.user_id,
+    username: row.username ?? '（账号已注销）',
+    reviewedBy: row.reviewed_by ?? '',
+    reviewedAt: row.reviewed_at ?? '',
+    anonymized: Boolean(row.anonymized_at),
+    claimed: Boolean(row.claimed_at),
+    claimedAt: row.claimed_at ?? '',
+    claimHashMatch:
+      row.claim_hash_match === null || row.claim_hash_match === undefined ? null : Boolean(row.claim_hash_match),
+  }
+}
+
 /** 后台设备列表：待审核优先，其余按登记时间倒序 */
 export function listAllDevices(status?: string): AdminDeviceView[] {
   const filter = status === 'pending' || status === 'active' || status === 'rejected' ? status : ''
@@ -296,46 +376,65 @@ export function listAllDevices(status?: string): AdminDeviceView[] {
         "ORDER BY CASE d.status WHEN 'pending' THEN 0 ELSE 1 END, d.created_at DESC",
     )
     .all(...(filter ? [filter] : [])) as unknown as AdminDeviceRow[]
-  return rows.map((row) => ({
-    ...toView(row),
-    userId: row.user_id,
-    username: row.username ?? '（账号已注销）',
-    reviewedBy: row.reviewed_by ?? '',
-    reviewedAt: row.reviewed_at ?? '',
-  }))
+  return rows.map(toAdminView)
 }
 
 /** 审核结果 */
 export type ReviewOutcome = { ok: true; device: AdminDeviceView } | { ok: false; error: string }
 
-/** 审核设备：仅待审核记录可操作；驳回必须填写原因 */
+/**
+ * 审核设备：仅待审核记录可操作；驳回必须填写原因。
+ * 认领记录（注销账号遗留 SN 被新账号认领）若凭证指纹与原记录不一致，
+ * 通过时必须由管理员显式确认（`confirmMismatch`），避免误放行冒领。
+ */
 export function reviewDevice(
   id: string,
   reviewer: string,
   action: 'approve' | 'reject',
   reason = '',
+  confirmMismatch = false,
 ): ReviewOutcome {
   const row = getDb()
     .prepare('SELECT d.*, u.username AS username FROM device_registrations d LEFT JOIN users u ON u.id = d.user_id WHERE d.id = ?')
     .get(id) as unknown as AdminDeviceRow | undefined
   if (!row) return { ok: false, error: '未找到该设备记录' }
+  if (row.anonymized_at) return { ok: false, error: '该记录所属账号已注销，无需审核' }
   if (row.status !== 'pending') return { ok: false, error: '该记录已审核，不能重复操作' }
+  if (action === 'approve' && row.claim_hash_match === 0 && !confirmMismatch) {
+    return { ok: false, error: '该记录为 SN 认领登记，认领凭证与原购买记录不一致；请核对凭证后再次确认通过' }
+  }
   const rejectReason = reason.trim()
   if (action === 'reject' && !rejectReason) return { ok: false, error: '请填写驳回原因' }
+
+  // 认领被驳回：还原为「注销遗留」记录（保留原始凭证指纹与原保修信息），
+  // 避免认领人借驳回记录删除证据；还原后该 SN 仍可被真正的机主重新认领。
+  if (action === 'reject' && row.claimed_at) {
+    const claimantReceipt = row.receipt_url
+    getDb()
+      .prepare(
+        'UPDATE device_registrations SET user_id = ?, status = ?, reject_reason = NULL, reviewed_by = NULL, reviewed_at = NULL, ' +
+          'anonymized_at = ?, receipt_url = ?, claimed_at = NULL, claim_hash_match = NULL, ' +
+          'claim_origin_user_id = NULL, claim_origin_status = NULL WHERE id = ?',
+      )
+      .run(
+        row.claim_origin_user_id ?? 'deleted:claim-released',
+        row.claim_origin_status ?? 'active',
+        new Date().toISOString(),
+        '',
+        id,
+      )
+    discardReceipt(claimantReceipt)
+    const restored = getDb()
+      .prepare('SELECT d.*, u.username AS username FROM device_registrations d LEFT JOIN users u ON u.id = d.user_id WHERE d.id = ?')
+      .get(id) as unknown as AdminDeviceRow
+    return { ok: true, device: toAdminView(restored) }
+  }
+
   getDb()
     .prepare('UPDATE device_registrations SET status = ?, reject_reason = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?')
     .run(action === 'approve' ? 'active' : 'rejected', action === 'reject' ? rejectReason : null, reviewer, new Date().toISOString(), id)
   const fresh = getDb()
     .prepare('SELECT d.*, u.username AS username FROM device_registrations d LEFT JOIN users u ON u.id = d.user_id WHERE d.id = ?')
     .get(id) as unknown as AdminDeviceRow
-  return {
-    ok: true,
-    device: {
-      ...toView(fresh),
-      userId: fresh.user_id,
-      username: fresh.username ?? '（账号已注销）',
-      reviewedBy: fresh.reviewed_by ?? '',
-      reviewedAt: fresh.reviewed_at ?? '',
-    },
-  }
+  return { ok: true, device: toAdminView(fresh) }
 }

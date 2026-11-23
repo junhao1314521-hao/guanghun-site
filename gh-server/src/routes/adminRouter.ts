@@ -661,6 +661,14 @@ adminRouter.put(
     const key = readParam(req, 'key')
     const id = readParam(req, 'id')
     const body = (req.body ?? {}) as Record<string, unknown>
+    // 已注销账号遗留的咨询工单：去标识化保留仅用于售后追溯，禁止后台回复 / 变更状态
+    if (key === 'inquiries') {
+      const existing = getCollectionItem('inquiries', id) as unknown as Record<string, unknown> | undefined
+      if (existing?.anonymizedAt) {
+        res.status(400).json({ error: '该咨询所属账号已注销，记录已去标识化保留，不可回复或变更状态' })
+        return
+      }
+    }
     if (key === 'downloads') {
       const modelsError = downloadModelsError(body)
       if (modelsError) {

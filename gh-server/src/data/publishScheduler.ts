@@ -10,6 +10,7 @@
  * 测试隔离：`NODE_ENV=test` 时不自启动（由测试显式调用 `applyPendingSchedules`）。
  */
 import { applyPendingSchedules } from './publishScheduleStore'
+import { purgeExpiredAnonymizedData } from './accountRetention'
 import { logger } from '../lib/logger'
 
 const DEFAULT_TICK_MS = 60_000
@@ -17,14 +18,22 @@ const MIN_TICK_MS = 5_000
 
 let timer: NodeJS.Timeout | null = null
 let inFlight = false
+/** 注销数据到期清理：每天最多一次（首次 tick 立即执行） */
+let lastPurgeAt = 0
+const PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000
 
-/** 执行一轮调度：补发已到点的定时发布；进行中则跳过，异常吞掉并记日志 */
+/** 执行一轮调度：补发已到点的定时发布 + 每日清理超期的已注销数据 */
 function tick(): void {
   if (inFlight) return
   inFlight = true
   try {
     const applied = applyPendingSchedules()
     if (applied > 0) logger.info('调度器本轮已应用定时发布', { applied })
+    if (Date.now() - lastPurgeAt >= PURGE_INTERVAL_MS) {
+      lastPurgeAt = Date.now()
+      const purged = purgeExpiredAnonymizedData()
+      if (purged.inquiries > 0 || purged.devices > 0) logger.info('已清理超期注销数据', purged)
+    }
   } catch (err) {
     logger.error('调度器 tick 异常（已吞掉，不中断）', { error: (err as Error).message })
   } finally {

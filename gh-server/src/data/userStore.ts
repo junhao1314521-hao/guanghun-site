@@ -10,7 +10,7 @@
  *   基本资料（name / phone）在 `users` 表；我的咨询通过 `inquiries` 集合的 `userId` 字段归属。
  */
 
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { getDb, runInTransaction, type SqliteDatabase } from './db'
 
 /* ============================================================
@@ -120,7 +120,7 @@ export function findUserByEmail(email: string): UserProfile | undefined {
 export type RegisterOutcome = { ok: true; user: UserProfile } | { ok: false; error: string }
 
 /**
- * 注册账号：唯一性校验（用户名 / 邮箱）+ 密码哈希落库，并初始化该用户的个人中心演示数据。
+ * 注册账号：唯一性校验（用户名 / 邮箱）+ 密码哈希落库，并初始化该用户的个人中心默认偏好。
  * 格式校验由路由层负责（返回 400）；此处冲突返回 `{ ok:false }`（路由映射为 409）。
  */
 export function registerUser(input: { username: string; email: string; password: string }): RegisterOutcome {
@@ -316,16 +316,15 @@ function writeSection(userId: string, section: AccountSection, value: unknown): 
     .run(userId, section, JSON.stringify(value), new Date().toISOString())
 }
 
-/** 生成默认收藏项（演示数据） */
+/**
+ * 新账号的收藏为空：收藏必须是用户自己产生的真实数据，
+ * 不能预置用户从未收藏过的型号（否则「我的收藏」等于假数据）。
+ */
 function defaultFavorites(): FavoriteItem[] {
-  return [
-    { name: '27X1QE-W54 电竞OLED显示器', spec: '26.5 英寸 2K 540Hz', subscribed: true },
-    { name: '32X1UE-W16 双模 4K 电竞显示器', spec: '4K@165 / FHD@330', subscribed: false },
-    { name: '27X1QE-W28 电竞OLED显示器', spec: '26.5 英寸 2K 280Hz', subscribed: true },
-  ]
+  return []
 }
 
-/** 生成默认订阅 / 通知开关（演示数据） */
+/** 生成默认订阅 / 通知开关（新账号的默认设置，非演示内容） */
 function defaultNotifications(): NotificationSetting[] {
   return [
     { id: 'product', label: '产品动态', desc: '新品发布、型号更新与产品线调整。', enabled: true },
@@ -335,7 +334,7 @@ function defaultNotifications(): NotificationSetting[] {
   ]
 }
 
-/** 注册时初始化该用户的个人中心数据（收藏 / 通知演示数据；设备不预置，需用户实名登记） */
+/** 注册时初始化该用户的个人中心数据（收藏为空、通知为默认开关；设备不预置，需用户实名登记） */
 function seedAccountData(tx: SqliteDatabase, profile: UserProfile): void {
   const insert = tx.prepare('INSERT INTO user_account_data(user_id, section, data, updated_at) VALUES(?, ?, ?, ?)')
   const now = new Date().toISOString()
@@ -413,17 +412,70 @@ export function revokeUserSession(userId: string, token: string): boolean {
   return Number(result.changes) > 0
 }
 
-/** 注销账号：删除账号及其会话、个人中心数据、重置令牌（不可恢复） */
-export function deleteUserAccount(userId: string): boolean {
-  const exists = findUserById(userId)
-  if (!exists) return false
+/** 注销账号的结果：成功时带回待清理的凭证文件（路由在事务提交后删除） */
+export type DeleteAccountOutcome = { ok: true; receiptUrls: string[] } | { ok: false }
+
+/** 注销后的匿名归属标记（sha256 截断，无法还原原账号 id） */
+function anonymousOwnerId(userId: string): string {
+  return `deleted:${createHash('sha256').update(`gh-account:${userId}`).digest('hex').slice(0, 16)}`
+}
+
+/**
+ * 工单去标识化：移除称呼与联系方式（能直接识别到人的字段），
+ * 保留型号 / 正文 / 处理记录等售后事实，并标记「已注销」。
+ */
+function anonymizeInquiry(item: Record<string, unknown>, anonymizedAt: string): void {
+  delete item.userId
+  delete item.name
+  delete item.contact
+  const topic = typeof item.topic === 'string' ? item.topic.trim() : ''
+  item.title = topic ? `已注销用户 · ${topic}` : '已注销用户的咨询'
+  item.tag = '已注销'
+  item.anonymizedAt = anonymizedAt
+}
+
+/**
+ * 注销账号：**立即删除**账号、会话、个人中心数据与重置令牌；
+ * 咨询工单与设备保修记录**去标识化保留**（售后追溯与纠纷举证需要），
+ * 购买凭证图片由路由在事务提交后删除。
+ */
+export function deleteUserAccount(userId: string): DeleteAccountOutcome {
+  if (!findUserById(userId)) return { ok: false }
+  const receiptRows = getDb()
+    .prepare('SELECT receipt_url FROM device_registrations WHERE user_id = ?')
+    .all(userId) as Array<{ receipt_url: string }>
+  const receiptUrls = receiptRows.map((row) => row.receipt_url).filter((url) => url.startsWith('/uploads/'))
+  const anonymizedAt = new Date().toISOString()
+  const marker = anonymousOwnerId(userId)
   runInTransaction((tx) => {
+    // 1) 咨询工单：清联系方式与归属，保留售后正文与处理记录
+    const rows = tx.prepare("SELECT id, data FROM collections WHERE key = 'inquiries'").all() as Array<{
+      id: string
+      data: string
+    }>
+    const update = tx.prepare("UPDATE collections SET data = ? WHERE key = 'inquiries' AND id = ?")
+    for (const row of rows) {
+      let item: Record<string, unknown>
+      try {
+        item = JSON.parse(row.data) as Record<string, unknown>
+      } catch {
+        continue
+      }
+      if (item.userId !== userId) continue
+      anonymizeInquiry(item, anonymizedAt)
+      update.run(JSON.stringify(item), row.id)
+    }
+    // 2) 设备保修记录：解绑账号并清空凭证地址（凭证文件由路由删除）
+    tx.prepare(
+      'UPDATE device_registrations SET user_id = ?, receipt_url = ?, anonymized_at = ? WHERE user_id = ?',
+    ).run(marker, '', anonymizedAt, userId)
+    // 3) 删除账号、会话、个人中心数据与重置令牌
     tx.prepare('DELETE FROM users WHERE id = ?').run(userId)
     tx.prepare('DELETE FROM user_sessions WHERE user_id = ?').run(userId)
     tx.prepare('DELETE FROM user_account_data WHERE user_id = ?').run(userId)
     tx.prepare('DELETE FROM user_reset_tokens WHERE user_id = ?').run(userId)
   })
-  return true
+  return { ok: true, receiptUrls }
 }
 
 /* ============================================================

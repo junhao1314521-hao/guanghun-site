@@ -534,15 +534,15 @@ export function AdminMembersView() {
       ) : (
         <div className="admin-table-wrap">
           <div className="admin-table-scroll">
-            <table className="admin-table">
+            <table className="admin-table members-table">
               <thead>
                 <tr>
                   <th>会员</th>
                   <th>联系方式</th>
                   <th>状态</th>
                   <th>运营标签</th>
-                  <th>设备</th>
-                  <th>会话</th>
+                  <th className="members-num">设备</th>
+                  <th className="members-num">会话</th>
                   <th>注册时间</th>
                   <th>最近登录</th>
                   <th aria-label="操作" />
@@ -583,10 +583,12 @@ export function AdminMembersView() {
                     <td className="members-num">{item.sessionCount}</td>
                     <td>{fmtDate(item.createdAt)}</td>
                     <td>{fmtDateTime(item.lastLoginAt)}</td>
-                    <td className="admin-table__actions">
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setDetailId(item.id)}>
-                        详情
-                      </button>
+                    <td>
+                      <div className="admin-table__actions">
+                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => setDetailId(item.id)}>
+                          详情
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

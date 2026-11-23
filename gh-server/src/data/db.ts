@@ -112,8 +112,14 @@ function openSqlite(file: string, driver: 'node' | 'wasm'): SqliteDatabase {
  * v13：新增 wallpaper_themes（壁纸主题实体：名称 / 说明 / 排序 / 启用），供前后台统一管理。
  * v14：users 增加 tags / note（会员运营标签与内部备注）。
  * v15：新增 seo_overrides（静态路由 SEO 标题 / 描述 / 收录开关的后台覆盖）。
+ * v16：device_registrations 增加 anonymized_at（账号注销后设备记录去标识化保留：
+ *      user_id 改为不可逆标记、凭证地址清空，保修期内仍可按 SN 售后）。
+ * v17：device_registrations 增加 receipt_sha256 / claimed_at / claim_hash_match
+ *      （SN 认领防冒领：保留原始凭证指纹，认领时比对新凭证，后台据此识别冒领风险）。
+ * v18：device_registrations 增加 claim_origin_user_id / claim_origin_status
+ *      （认领被驳回时把记录还原为「注销遗留」状态，保留原保修归属与凭证指纹，SN 仍可被真正的机主认领）。
  */
-export const SCHEMA_VERSION = '15'
+export const SCHEMA_VERSION = '18'
 
 /** meta 键：是否已完成「旧 JSON → SQLite」一次性迁移 */
 const META_MIGRATED = 'migrated_json'
@@ -336,7 +342,13 @@ CREATE TABLE IF NOT EXISTS device_registrations (
   reject_reason TEXT,
   reviewed_by   TEXT,
   reviewed_at   TEXT,
-  created_at    TEXT NOT NULL
+  created_at    TEXT NOT NULL,
+  anonymized_at TEXT,
+  receipt_sha256 TEXT,
+  claimed_at    TEXT,
+  claim_hash_match INTEGER,
+  claim_origin_user_id TEXT,
+  claim_origin_status  TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_device_reg_user ON device_registrations(user_id);
 CREATE INDEX IF NOT EXISTS idx_device_reg_status ON device_registrations(status);
@@ -384,6 +396,16 @@ function migrateUsers(db: SqliteDatabase): void {
 /** seo_overrides 的补列：分享图（v15 首版建表已含；兼容先建表的实例） */
 function migrateSeoOverrides(db: SqliteDatabase): void {
   ensureColumn(db, 'seo_overrides', 'image', 'image TEXT')
+}
+
+/** device_registrations 的 v16 / v17 / v18 补列（老库升级；新库由 DDL 直接建好） */
+function migrateDeviceRegistrations(db: SqliteDatabase): void {
+  ensureColumn(db, 'device_registrations', 'anonymized_at', 'anonymized_at TEXT')
+  ensureColumn(db, 'device_registrations', 'receipt_sha256', 'receipt_sha256 TEXT')
+  ensureColumn(db, 'device_registrations', 'claimed_at', 'claimed_at TEXT')
+  ensureColumn(db, 'device_registrations', 'claim_hash_match', 'claim_hash_match INTEGER')
+  ensureColumn(db, 'device_registrations', 'claim_origin_user_id', 'claim_origin_user_id TEXT')
+  ensureColumn(db, 'device_registrations', 'claim_origin_status', 'claim_origin_status TEXT')
 }
 
 /** 读取 meta 值；不存在返回 undefined */
@@ -582,6 +604,7 @@ export function getDb(): SqliteDatabase {
     migrateUploadMeta(db)
     migrateUsers(db)
     migrateSeoOverrides(db)
+    migrateDeviceRegistrations(db)
     migrateFromLegacyJson(db)
     // 每次打开都把 meta 的 schema 版本同步为当前版本（建表为幂等 DDL；版本号用于排障与未来迁移判断）
     if (getMeta(db, META_SCHEMA) !== SCHEMA_VERSION) setMeta(db, META_SCHEMA, SCHEMA_VERSION)

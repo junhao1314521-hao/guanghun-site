@@ -376,12 +376,15 @@ export function MeSettingsPage() {
                   注销账号
                 </h2>
                 <p className="section__desc">
-                  注销后账号数据将按隐私政策处理，且不可恢复。
+                  注销后账号、登录会话、收藏与设置将立即删除且不可恢复。
                 </p>
               </div>
             </div>
             <div className="card reveal">
-              <p className="card__desc">注销前请确认已导出所需资料；绑定关系与历史工单将一并处理。</p>
+              <p className="card__desc">
+                注销前请确认已导出所需资料。注销会立即删除账号、登录会话、收藏与设置及购买凭证图片；
+                为履行售后与纠纷举证义务，咨询工单将去除称呼与联系方式后保留 24 个月，设备保修记录保留至保修期结束后 6 个月。
+              </p>
               <div className="row" style={{ marginTop: 'var(--gh-space-4)' }}>
                 {confirmDelete ? (
                   <>

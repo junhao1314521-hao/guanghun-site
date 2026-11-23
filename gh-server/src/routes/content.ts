@@ -6,6 +6,7 @@ import * as home from '../data/home'
 import * as support from '../data/support'
 import { withModelNames } from '../data/support-extra'
 import { listCollection } from '../data/collectionStore'
+import { publicLadderMetrics } from '../data/ladder'
 import { presentProducts } from '../data/products'
 import { readLocale } from '../data/locale'
 import {
@@ -37,7 +38,7 @@ export const contentRouter = Router()
 contentRouter.get('/home', (req, res) => {
   const collections = {
     products: presentProducts(listCollection('products', readLocale(req))),
-    rankings: listCollection('rankings', readLocale(req)),
+    rankings: publicLadderMetrics(listCollection('rankings', readLocale(req))),
     articles: listCollection('articles', readLocale(req)),
   }
   res.json({

@@ -1,7 +1,8 @@
 /**
  * 备份 / 恢复存储（阶段 5b，零外部依赖）。
  *
- * - 落盘目录：`gh-server/data/backups`（`BACKUP_DIR` 可覆盖，便于测试隔离）。
+ * - 落盘目录：默认跟随数据库文件（`DB_PATH` 所在目录下的 `backups/`），未设置 `DB_PATH` 时回退
+ *   `gh-server/data/backups`；`BACKUP_DIR` 可显式覆盖（便于测试隔离）。
  * - 备份文件：JSON 快照 `backup-<时间戳>[-<label>].json`，内容为四类数据的原始行：
  *   `content_pages` / `site_config` / `collections` / `admin_resources`（含生成时间与版本号）。
  * - 恢复：以备份**覆盖**现有四张表（单事务）；恢复前自动生成一份 `pre-restore` 快照以便回退。
@@ -51,9 +52,18 @@ export type BackupSnapshot = {
 /** 默认落盘目录：gh-server/data/backups */
 const DEFAULT_DIR = fileURLToPath(new URL('../../data/backups', import.meta.url))
 
-/** 解析当前备份目录（每次读取，保证测试可在初始化前注入 BACKUP_DIR） */
+/**
+ * 解析当前备份目录：
+ * 1. `BACKUP_DIR` 显式指定优先；
+ * 2. 设置了 `DB_PATH` 时，放在数据库同目录的 `backups/`（部署环境应用目录只读，
+ *    而数据库目录必然可写，避免 `mkdir /opt/...` ENOENT 导致备份 500）；
+ * 3. 否则回退仓库内 `gh-server/data/backups`。
+ */
 export function resolveBackupDir(): string {
-  return process.env.BACKUP_DIR ? path.resolve(process.env.BACKUP_DIR) : DEFAULT_DIR
+  if (process.env.BACKUP_DIR) return path.resolve(process.env.BACKUP_DIR)
+  const dbPath = (process.env.DB_PATH ?? '').trim()
+  if (dbPath) return path.join(path.dirname(path.resolve(dbPath)), 'backups')
+  return DEFAULT_DIR
 }
 
 /** 确保目录存在并返回其绝对路径 */

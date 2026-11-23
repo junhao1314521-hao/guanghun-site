@@ -80,11 +80,16 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
     assert.ok(products.length > 0, '产品集合应非空')
     assert.equal(products.length, seed.products.length, '产品数量应与 seed 一致')
     assert.equal(products.length, 9, 'seed 产品应为 9 条')
-    // 每个集合都应有记录且均带稳定 id
-    for (const key of ['products', 'rankings', 'articles', 'downloads', 'faqs', 'biz-content', 'biz-cases', 'biz-venues', 'inquiries'] as const) {
+    // 业务内容集合均应有记录且带稳定 id
+    for (const key of ['products', 'rankings', 'articles', 'downloads', 'faqs', 'biz-content', 'biz-cases', 'biz-venues'] as const) {
       const items = listCollection(key)
       assert.ok(items.length > 0, `${key} 集合应非空`)
       for (const item of items) assert.equal(typeof item.id, 'string', `${key} 每条记录应含字符串 id`)
+    }
+    // 客户数据集合不预置演示记录（避免以假乱真的占位客户）
+    for (const key of ['inquiries', 'reservations', 'subscribers'] as const) {
+      assert.equal(seed[key].length, 0, `${key} 不应预置演示数据`)
+      assert.equal(listCollection(key).length, 0, `${key} 初始化后应为空`)
     }
   })
 
@@ -227,11 +232,8 @@ describe('结构化数据集合存储（单一数据源 / 持久化 / 重置）'
     assert.equal(hit.model, 'GH-M900 PRO', '型号应持久化')
     assert.equal(hit.message, '无法完成配对', '问题描述应持久化')
 
-    // seed 记录同样补齐三字段（形状向后兼容）
-    const seed = buildCollectionSeed().inquiries[0]
-    assert.equal(typeof seed.contact, 'string')
-    assert.equal(typeof seed.model, 'string')
-    assert.equal(typeof seed.message, 'string')
+    // 工单集合初始为空：全部来自真实提交，不预置演示工单
+    assert.equal(buildCollectionSeed().inquiries.length, 0, '不应预置演示工单')
   })
 
   it('模板集合：从页面快照创建 → 列表可见 → 删除生效（契约 §11 扩展）', async () => {

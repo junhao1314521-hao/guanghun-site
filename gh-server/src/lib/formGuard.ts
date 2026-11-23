@@ -32,13 +32,14 @@ function clientKey(req: Request | undefined, purpose: string): string {
   return `${purpose}:${ip}`
 }
 
-/** 当前验证码策略：后台配置优先，缺省按 captcha 开关推导 */
+/** 当前验证码策略：后台配置优先；未配置时仅在开启验证码的前提下按「失败 3 次后出现」生效 */
 export function captchaMode(): 'off' | 'always' | 'after3' {
   const auth = getSiteConfig().auth
   if (auth?.captchaMode === 'off' || auth?.captchaMode === 'always' || auth?.captchaMode === 'after3') {
     return auth.captchaMode
   }
-  return auth?.captcha === false ? 'off' : 'always'
+  // 未显式选择策略时的缺省：开启验证码 + after3（正常用户前几次无感，连续失败后才要求验证）
+  return auth?.captcha === false ? 'off' : 'after3'
 }
 
 /** 本次提交是否需要验证码（after3：同一来源 10 分钟内失败满 3 次后需要） */

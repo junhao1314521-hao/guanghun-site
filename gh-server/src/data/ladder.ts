@@ -19,6 +19,8 @@ export type LadderRow = {
   inf?: boolean
   /** 关联产品 id（可点进产品详情；无详情页的型号省略） */
   productId?: string
+  /** 后台维护：开启后该行不在前台展示（缺省视为展示） */
+  hidden?: boolean
 }
 
 export type LadderMetric = {
@@ -32,6 +34,10 @@ export type LadderMetric = {
   digits: number
   /** 未完成测试的型号数（沿用旧字段，空状态文案使用） */
   pending: number
+  /** 后台维护：指标排序（数字越小越靠前；留空保持集合原顺序并排在已排序项之后） */
+  order?: number
+  /** 后台维护：开启后该指标不在前台展示（缺省视为展示） */
+  hidden?: boolean
   rows: LadderRow[]
 }
 
@@ -1039,6 +1045,25 @@ export const LADDER_META = {
   sample: '全行业实测',
   updatedAt: '2026-11-07',
   note: '数据抓取自小雪人官网天梯图，综合分为本站按各指标归一分值计算。',
+}
+
+/**
+ * 前台可见的榜单：过滤掉后台标记隐藏的指标 / 行，并按 `order` 升序（未填 order 保持集合原顺序、排在已排序项之后）。
+ * 后台编辑保存后前台立即生效——两者读同一份 `rankings` 集合。
+ */
+export function publicLadderMetrics(metrics: LadderMetric[]): LadderMetric[] {
+  return metrics
+    .map((metric, index) => ({ metric, index }))
+    .filter(({ metric }) => metric.hidden !== true)
+    .sort((a, b) => {
+      const ao = typeof a.metric.order === 'number' ? a.metric.order : Number.MAX_SAFE_INTEGER
+      const bo = typeof b.metric.order === 'number' ? b.metric.order : Number.MAX_SAFE_INTEGER
+      return ao - bo || a.index - b.index
+    })
+    .map(({ metric }) => ({
+      ...metric,
+      rows: (metric.rows ?? []).filter((row) => row.hidden !== true),
+    }))
 }
 
 /**

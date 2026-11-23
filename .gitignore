@@ -43,6 +43,7 @@ gh-server/*.sqlite-*
 /.trae-attachments/
 /guanghun-manual/
 /验收证据/
+/交付验收/
 /*方案.html
 /光魂Center-软件介绍.html
 /*白底图*标注.png
