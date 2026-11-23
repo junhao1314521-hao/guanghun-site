@@ -285,11 +285,12 @@ curl -s -D - -o /dev/null -H 'X-Request-Id: smoke-1' "$BASE/healthz" | grep -i '
 | 素材（`/uploads/*`） | **不打包**，服务端代理回源生产（`UPLOADS_FALLBACK_ORIGIN`） | 下载链接可用；后台「素材库」列表为空属预期 |
 | 静态图 WebP | 构建期生成，服务端按 `Accept` 内容协商 | 实测 `hero-3.jpg`：174,656 B → **85,712 B** |
 | 管理员账号 | `admin`，口令由部署脚本运行时注入（不写入仓库） | 首次打开空 `admin_users` 时按 `ADMIN_PASSWORD` 播种 |
+| 后台登录方式 | **免登录**：走查包构建时 `VITE_ADMIN_AUTO_LOGIN=on`，自动填充并登录后直达工作台 | 仅走查包；仓库 `build:prod` 仍为 `VITE_ADMIN_AUTO_LOGIN=off`，生产不受影响 |
 
 ### 10.3 构建/部署要点
 
 1. **部署包结构**：根 `package.json` + `build.sh` + `run.sh` + `gh-web/` + `gh-server/`，输出 `dist/`（前端产物 + 后端 `src` + 生产 `node_modules` + `data/gh.sqlite` + `public/`）。
-2. **构建脚本**：`npm ci`（官方 registry）→ 前端 `npm run build:prod`（`VITE_API_BASE=` 同源）→ 构建期执行 `gh-server/scripts/generate-static-webp.ts` 生成 WebP → 后端 `npm ci` + `npm prune --omit=dev`。
+2. **构建脚本**：`npm ci`（官方 registry）→ 前端 `tsc -b` + `vite build`（`VITE_API_BASE=` 同源、`VITE_ADMIN_AUTO_LOGIN=on` 免登录、演示账号/口令与运行时 `ADMIN_PASSWORD` 一致）→ 构建期执行 `gh-server/scripts/generate-static-webp.ts` 生成 WebP → 后端 `npm ci` + `npm prune --omit=dev`。
 3. **启动脚本**：`SQLITE_DRIVER=wasm`、`DB_PATH`/`UPLOAD_DIR` 指向 `$TMPDIR`（应用目录只读）、`STATIC_DIR=$PWD/public`、`COOKIE_SECURE=1`、`TRUST_PROXY=1`、`ADMIN_PASSWORD`；冷启动清理残留的 `*.sqlite.lock` 目录。
 4. **执行配置**：FunctionWeb 仅支持单个 Node 20 进程；**不要**在部署源内放 `.env` 文件（平台校验会拒绝），构建期变量写入 `build.sh`，运行期变量写入 `run.sh`。
 5. **重新部署**：执行 `trae-deploy deployments create`（新部署，不覆盖线上版本）→ `deployments wait` 至 `status=9` → 验证后站点自动切换到新版本。
@@ -302,9 +303,11 @@ curl -s -D - -o /dev/null -H 'X-Request-Id: smoke-1' "$BASE/healthz" | grep -i '
 | 首页 / SPA 深链 | 200，浏览器实测首屏、导航、产品区、页脚完整渲染 |
 | `/api/content/pages`、`/api/business/venues` | 200 |
 | 管理员登录 + 后台概览 | 200 / 200 |
+| 后台免登录 | 打开 `/admin` 自动登录并直达工作台（浏览器实测，无需输入） |
 | 后台编辑体验点 → 公开接口读回 | 写入 200，读回一致（测试值已清空） |
 | `/uploads/Center-1.3.4-win64-setup.exe` 回源 | 200，4,777,999 B |
 | WebP 内容协商 | `Accept: image/webp` → `image/webp` 85,712 B；无 Accept → `image/jpeg` 174,656 B |
 | 自动化测试 | `gh-server` 默认驱动 267/267、`SQLITE_DRIVER=wasm` 267/267 |
 
 > 已知限制：单实例、无持久写入、素材库不完整；仅用于走查与联调，不作为生产或压测环境。
+> ⚠️ 免登录仅适用于走查包：站点必须保持**私有**，一旦切为公开，等同于把后台一并公开。
