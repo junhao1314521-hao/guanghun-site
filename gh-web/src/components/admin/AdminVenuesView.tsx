@@ -25,6 +25,19 @@ const TYPE_LABELS: Record<string, string> = {
   service: '服务点',
 }
 
+/** 资料完整度：记录缺失的可选字段（电话 / 营业时间 / 图片 / 坐标） */
+function missingVenueFields(row: AdminRow): string[] {
+  const missing: string[] = []
+  if (!String(row.phone ?? '').trim()) missing.push('电话')
+  if (!String(row.hours ?? '').trim()) missing.push('营业时间')
+  const gallery = Array.isArray(row.gallery) ? row.gallery : []
+  if (!String(row.cover ?? '').trim() && gallery.length === 0) missing.push('图片')
+  const lat = typeof row.lat === 'number' ? row.lat : Number(row.lat)
+  const lng = typeof row.lng === 'number' ? row.lng : Number(row.lng)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat === 0 || lng === 0) missing.push('坐标')
+  return missing
+}
+
 export function AdminVenuesView() {
   const [reloadKey, setReloadKey] = useState(0)
   const { data, loading, error } = useApi((signal) => fetchAdminResource('biz-venues', signal), [reloadKey])
@@ -33,6 +46,7 @@ export function AdminVenuesView() {
   const [city, setCity] = useState('')
   const [type, setType] = useState('')
   const [layout, setLayout] = useState<Layout>('list')
+  const [onlyIncomplete, setOnlyIncomplete] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const rows: AdminRow[] = data?.items ?? []
@@ -66,7 +80,7 @@ export function AdminVenuesView() {
     return list.sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
   }, [rows, province])
 
-  const filtered = rows.filter((row) => {
+  const baseFiltered = rows.filter((row) => {
     const text = `${String(row.name ?? '')}${String(row.address ?? '')}${String(row.city ?? '')}`.toLowerCase()
     if (keyword.trim() && !text.includes(keyword.trim().toLowerCase())) return false
     if (province && String(row.province ?? '') !== province) return false
@@ -74,6 +88,8 @@ export function AdminVenuesView() {
     if (type && String(row.type ?? '') !== type) return false
     return true
   })
+  const incompleteCount = baseFiltered.filter((row) => missingVenueFields(row).length > 0).length
+  const filtered = onlyIncomplete ? baseFiltered.filter((row) => missingVenueFields(row).length > 0) : baseFiltered
 
   const mapPoints: AdminVenuePoint[] = filtered.map((row) => ({
     id: String(row.id ?? ''),
@@ -138,6 +154,15 @@ export function AdminVenuesView() {
           ]}
         />
         <span className="admin-toolbar__spacer" />
+        <button
+          type="button"
+          className={`admin-chip${onlyIncomplete ? ' is-active' : ''}`}
+          aria-pressed={onlyIncomplete}
+          onClick={() => setOnlyIncomplete((value) => !value)}
+          title="仅显示缺少电话 / 营业时间 / 图片 / 坐标的体验点"
+        >
+          只看资料待补（{incompleteCount}）
+        </button>
         <div className="venues-layout" role="group" aria-label="布局切换">
           <button
             type="button"
@@ -162,7 +187,7 @@ export function AdminVenuesView() {
       {error ? (
         <ErrorState message={error.message} onRetry={() => setReloadKey((key) => key + 1)} />
       ) : loading && rows.length === 0 ? (
-        <SkeletonTable columns={6} rows={8} />
+        <SkeletonTable columns={7} rows={8} />
       ) : filtered.length === 0 ? (
         <EmptyState title="没有匹配的体验点" desc="调整搜索或筛选条件，或新建一个体验点。" />
       ) : layout === 'list' ? (
@@ -177,6 +202,7 @@ export function AdminVenuesView() {
                   <th scope="col">状态</th>
                   <th scope="col">地址</th>
                   <th scope="col">坐标</th>
+                  <th scope="col">资料</th>
                   <th scope="col" style={{ textAlign: 'right' }}>
                     操作
                   </th>
@@ -199,6 +225,17 @@ export function AdminVenuesView() {
                     </td>
                     <td className="mono" data-label="坐标">
                       {typeof row.lat === 'number' && typeof row.lng === 'number' ? `${row.lat}, ${row.lng}` : '—'}
+                    </td>
+                    <td data-label="资料">
+                      {(() => {
+                        const missing = missingVenueFields(row)
+                        if (missing.length === 0) return <span className="admin-cell--muted">完整</span>
+                        return (
+                          <span className="admin-cell--muted" title={`缺失：${missing.join('、')}`}>
+                            待补：{missing.join('、')}
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <Link className="btn btn--ghost btn--sm" to={`/admin/biz-venues/${String(row.id)}`}>

@@ -299,18 +299,46 @@ export function createApp(): Express {
   const staticDir = process.env.STATIC_DIR ? path.resolve(process.env.STATIC_DIR) : undefined
   if (staticDir && existsSync(staticDir)) {
     const indexFile = path.join(staticDir, 'index.html')
+    /** 前端静态资源缓存策略：带 hash 的 assets 长缓存，站点内容图协商，其余 1 小时 */
+    const staticCacheControl = (filePath: string): string => {
+      if (filePath.endsWith('index.html')) return 'no-cache'
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) return 'public, max-age=31536000, immutable'
+      // 站点内容图（未带 hash，可能被运营/素材替换）：每次带 ETag 协商，保证改动即时可见
+      if (filePath.includes(`${path.sep}media${path.sep}`)) return 'no-cache'
+      return 'public, max-age=3600'
+    }
+
+    // WebP 内容协商：构建期已为 JPG / PNG 生成同名 .webp（见 scripts/generate-static-webp.ts）。
+    // 浏览器声明支持 WebP 时返回体积更小的 `.webp`，否则回退原图；地址与已存内容无需改动。
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+      if (!/\.(jpe?g|png)$/i.test(req.path)) return next()
+      // 同一地址存在两种表示，必须声明 Vary，避免 CDN / 代理缓存串味
+      res.vary('Accept')
+      const accept = req.get('accept') ?? ''
+      if (!accept.includes('image/webp')) return next()
+      let decoded = ''
+      try {
+        decoded = decodeURIComponent(req.path)
+      } catch {
+        return next()
+      }
+      const original = path.resolve(staticDir, `.${decoded}`)
+      if (original !== staticDir && !original.startsWith(staticDir + path.sep)) return next()
+      const webp = original.replace(/\.(jpe?g|png)$/i, '.webp')
+      if (!existsSync(webp)) return next()
+      res.setHeader('Cache-Control', staticCacheControl(original))
+      res.sendFile(webp, (error) => {
+        if (error && !res.headersSent) next(error)
+      })
+    })
+
     // 带 hash 的资源长缓存；index.html 不缓存（保证发版即时生效）
     app.use(
       express.static(staticDir, {
         index: false,
         setHeaders: (res, filePath) => {
-          if (filePath.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache')
-          else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-          } else if (filePath.includes(`${path.sep}media${path.sep}`)) {
-            // 站点内容图（未带 hash，可能被运营/素材替换）：每次带 ETag 协商，保证改动即时可见
-            res.setHeader('Cache-Control', 'no-cache')
-          } else res.setHeader('Cache-Control', 'public, max-age=3600')
+          res.setHeader('Cache-Control', staticCacheControl(filePath))
         },
       }),
     )

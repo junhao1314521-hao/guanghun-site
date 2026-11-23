@@ -12,6 +12,9 @@ OUT="$OUT_DIR/website-$STAMP.tar.gz"
 echo "[1/4] 构建前端（生产参数）"
 (cd "$ROOT/gh-web" && npm run build:prod)
 
+echo "[1.5/4] 生成静态图 WebP（原图保留为兜底）"
+(cd "$ROOT/gh-server" && npx tsx scripts/generate-static-webp.ts "$ROOT/gh-web/dist")
+
 echo "[2/4] 组装部署包"
 mkdir -p "$WORK/website/app/gh-server" "$WORK/website/app/gh-web"
 cp -a "$ROOT/gh-server/src" "$ROOT/gh-server/scripts" "$ROOT/gh-server/package.json" "$ROOT/gh-server/package-lock.json" "$ROOT/gh-server/tsconfig.json" "$WORK/website/app/gh-server/"
