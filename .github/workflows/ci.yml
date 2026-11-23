@@ -36,6 +36,9 @@ jobs:
     defaults:
       run:
         working-directory: gh-web
+    env:
+      # client.ts 要求显式配置：同源部署为空字符串，缺失会直接抛错
+      VITE_API_BASE: ''
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
