@@ -100,7 +100,7 @@ export function CarouselBlock({ props }: { props: Record<string, unknown> }) {
       style={heightStyleValue}
       tabIndex={0}
       role="region"
-      aria-label="首屏轮播，可用左右方向键切换"
+      aria-label={total > 1 ? '首屏轮播，可用左右方向键切换' : '首屏海报'}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onKeyDown={(event) => {
