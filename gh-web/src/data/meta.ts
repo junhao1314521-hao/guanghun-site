@@ -23,6 +23,10 @@ export const BRAND = '光魂'
 export const DEFAULT_TITLE = '光魂 · OLED 电竞显示器官网'
 export const DEFAULT_DESCRIPTION = '光魂 OLED 电竞显示器：2K 540Hz 与 4K 双模，参数、测试方法与固件版本可查。'
 
+/** 英文站默认描述（结构化数据与分享卡片使用，与中文口径一致） */
+export const DEFAULT_DESCRIPTION_EN =
+  'Guanghun OLED gaming monitors: 2K 540Hz and 4K dual-mode, with public specs, test methods and firmware versions.'
+
 /**
  * 默认分享图（Open Graph / Twitter 卡片）。
  *
@@ -421,14 +425,17 @@ export function pageMetaFor(pathname: string, lang: string = 'zh-CN'): PageMeta 
 }
 
 /** 面包屑（首页 → 各级），用于 BreadcrumbList 结构化数据 */
-function breadcrumbItems(pathname: string): Array<{ name: string; url: string }> {
-  const items = [{ name: BRAND, url: canonicalUrl('/') }]
+function breadcrumbItems(pathname: string, lang: string): Array<{ name: string; url: string }> {
+  const brand = lang === 'en' ? 'Guanghun' : BRAND
+  const suffix = ` · ${brand}`
+  const items = [{ name: brand, url: canonicalUrl('/') }]
   const segments = pathname.split('/').filter(Boolean)
   let acc = ''
   for (const seg of segments) {
     acc += `/${seg}`
-    const meta = PAGE_META.find((m) => m.path === acc)
-    items.push({ name: meta ? meta.title.replace(` · ${BRAND}`, '') : seg, url: canonicalUrl(acc) })
+    const zhMeta = PAGE_META.find((m) => m.path === acc)
+    const title = (lang === 'en' ? EN_META[acc]?.title : undefined) ?? zhMeta?.title
+    items.push({ name: title ? title.replace(suffix, '') : seg, url: canonicalUrl(acc) })
   }
   return items
 }
@@ -437,25 +444,27 @@ function breadcrumbItems(pathname: string): Array<{ name: string; url: string }>
  * 结构化数据（JSON-LD @graph）。
  * 仅使用站点自有、可公开的字段，不臆造评分 / 库存等未确认信息。
  */
-export function buildJsonLd(pathname: string): Record<string, unknown>[] {
-  const meta = pageMetaFor(pathname)
+export function buildJsonLd(pathname: string, lang: string = 'zh-CN'): Record<string, unknown>[] {
+  const meta = pageMetaFor(pathname, lang)
   const url = canonicalUrl(pathname)
   const origin = siteOrigin()
+  const isEn = lang === 'en'
+  const brand = isEn ? 'Guanghun' : BRAND
 
   const organization = {
     '@type': 'Organization',
     '@id': `${origin}/#organization`,
-    name: BRAND,
+    name: brand,
     url: origin,
-    slogan: DEFAULT_DESCRIPTION,
+    slogan: isEn ? DEFAULT_DESCRIPTION_EN : DEFAULT_DESCRIPTION,
   }
 
   const website = {
     '@type': 'WebSite',
     '@id': `${origin}/#website`,
-    name: BRAND,
+    name: brand,
     url: origin,
-    inLanguage: 'zh-CN',
+    inLanguage: isEn ? 'en' : 'zh-CN',
     publisher: { '@id': `${origin}/#organization` },
     potentialAction: {
       '@type': 'SearchAction',
@@ -475,7 +484,7 @@ export function buildJsonLd(pathname: string): Record<string, unknown>[] {
 
   const breadcrumb = {
     '@type': 'BreadcrumbList',
-    itemListElement: breadcrumbItems(pathname).map((item, index) => ({
+    itemListElement: breadcrumbItems(pathname, lang).map((item, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,

@@ -37,7 +37,7 @@ function socialIcon(label: string, size = 22) {
 function platformLabel(t: (key: string, vars?: Record<string, string | number>) => string, label: string): string {
   if (label.includes('微信')) return t('footer.platform.wechat')
   if (label.includes('小红书')) return t('footer.platform.rednote')
-  if (label.includes('B站') || label.toLowerCase().includes('bilibili')) return t('footer.platform.bilibili')
+  if (label.includes('B站') || label.replace(/\s+/g, '').includes('B站') || label.toLowerCase().includes('bilibili')) return t('footer.platform.bilibili')
   if (label.includes('抖音')) return t('footer.platform.douyin')
   if (label.includes('微博') || label.toLowerCase().includes('weibo')) return t('footer.platform.weibo')
   return label

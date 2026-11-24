@@ -5,10 +5,10 @@ import { buildJsonLd } from '../../data/meta'
  * 站点级结构化数据注入（JSON-LD @graph：Organization / WebSite / WebPage / BreadcrumbList）。
  * 随路由变化更新；字段全部取自 `data/meta.ts`，不臆造未确认信息。
  */
-export function JsonLd({ pathname }: { pathname: string }) {
+export function JsonLd({ pathname, lang }: { pathname: string; lang: string }) {
   const json = useMemo(
-    () => JSON.stringify({ '@context': 'https://schema.org', '@graph': buildJsonLd(pathname) }),
-    [pathname],
+    () => JSON.stringify({ '@context': 'https://schema.org', '@graph': buildJsonLd(pathname, lang) }),
+    [pathname, lang],
   )
   // eslint-disable-next-line react/no-danger -- JSON-LD 必须以内联脚本注入
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />

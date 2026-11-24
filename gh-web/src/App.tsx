@@ -264,7 +264,7 @@ function AppShell() {
         <SiteHeader lang={lang} onLangChange={setLang} onOpenDrawer={() => setDrawerOpen(true)} />
       </div>
 
-      <JsonLd pathname={pathname} />
+      <JsonLd pathname={pathname} lang={lang} />
 
       {notice && (
         <div className="container">

@@ -130,4 +130,17 @@ describe('结构化数据 JSON-LD', () => {
     }
     expect(crumb.itemListElement.map((i) => i.position)).toEqual([1, 2, 3])
   })
+
+  it('英文站输出英文品牌名、页面标题与面包屑', () => {
+    const nodes = buildJsonLd('/products', 'en')
+    const site = nodes.find((n) => n['@type'] === 'WebSite') as { name: string; inLanguage: string }
+    const page = nodes.find((n) => n['@type'] === 'WebPage') as { name: string }
+    const crumb = nodes.find((n) => n['@type'] === 'BreadcrumbList') as {
+      itemListElement: Array<{ name: string }>
+    }
+    expect(site.name).toBe('Guanghun')
+    expect(site.inLanguage).toBe('en')
+    expect(page.name).toBe('All products · Guanghun')
+    expect(crumb.itemListElement.map((i) => i.name)).toEqual(['Guanghun', 'All products'])
+  })
 })
