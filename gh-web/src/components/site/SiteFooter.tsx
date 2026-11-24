@@ -6,7 +6,7 @@ import { useI18n } from '../../i18n'
 import { useTheme } from '../../lib/useTheme'
 import { BrandMark } from './BrandMark'
 import { CodeBackdrop } from './CodeBackdrop'
-import { IconBilibili, IconDouyin, IconWeChat, IconXiaohongshu } from '../ui/Icon'
+import { IconBilibili, IconDouyin, IconWeChat, IconWeibo, IconXiaohongshu } from '../ui/Icon'
 import type { SiteSocialItem } from '../../data/contentTypes'
 
 /** 未知平台的兜底字符标：取平台名首字（如「小宇宙」→「小」） */
@@ -30,6 +30,7 @@ function socialIcon(label: string, size = 22) {
 
   if (key.includes('b站') || key.includes('b 站') || key.includes('哔哩') || key.includes('bilibili')) return <IconBilibili size={size} />
   if (key.includes('抖音') || key.includes('douyin') || key.includes('tiktok')) return <IconDouyin size={size} />
+  if (key.includes('微博') || key.includes('weibo')) return <IconWeibo size={size} />
   return <span>{socialShort(label)}</span>
 }
 
