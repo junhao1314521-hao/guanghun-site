@@ -24,6 +24,7 @@ import {
   type ProductConnection,
 } from '../data/products'
 import { useApi } from '../hooks/useApi'
+import { useI18n } from '../i18n'
 import { trackEvent } from '../lib/track'
 import { MediaImg } from '../components/ui/MediaImg'
 import { SectionHeadFromProps } from '../components/home/SectionHead'
@@ -46,12 +47,90 @@ const SCENE_CATEGORY_MAP: Record<string, string[]> = {
   'scene-04': ['OLED旗舰', '双模高刷'], // 沉浸 · 影音
 }
 
-/** 系列入口文案（按类别）：后台新增类别时缺省只显示名称与型号数量 */
-const SERIES_DESC: Record<string, string> = {
-  'OLED旗舰': '540Hz 满速刷新，为极限竞技准备。',
-  '双模高刷': '4K 与高刷一机两用，一屏通吃。',
-  '电竞IPS': '稳定、耐用、护眼，日常与竞技兼顾。',
-  '周边': '支架、配件与桌面装备，把体验补齐。',
+/**
+ * 展示层本地化映射：URL 参数与接口返回仍是中文内部值（如 `?category=双模高刷`），
+ * 这里只把「展示文案」换成当前语言；未收录的值（后台新增类别等）原样显示。
+ */
+type TFn = (key: string, vars?: Record<string, string | number>) => string
+
+const CATEGORY_KEYS: Record<string, string> = {
+  'OLED旗舰': 'product.cat.oled',
+  '双模高刷': 'product.cat.dual',
+  '电竞IPS': 'product.cat.ips',
+  '周边': 'product.cat.acc',
+}
+
+const STATUS_KEYS: Record<string, string> = {
+  '在售': 'product.status.instock',
+  '缺货': 'product.status.oos',
+}
+
+const SORT_KEYS: Record<string, string> = {
+  '综合排序': 'product.sort.default',
+  '价格从低到高': 'product.sort.asc',
+  '价格从高到低': 'product.sort.desc',
+  '上新时间': 'product.sort.newest',
+}
+
+const PRICE_KEYS: Record<string, string> = {
+  all: 'product.price.any',
+  lt1000: 'product.price.lt1000',
+  '1000-3000': 'product.price.mid',
+  gt3000: 'product.price.gt3000',
+}
+
+const FLAG_KEYS: Record<string, string> = {
+  '热销': 'product.flag.hot',
+  '双模': 'product.flag.dual',
+  '入门': 'product.flag.entry',
+  '旗舰': 'product.flag.flagship',
+  '4K': 'product.flag.4k',
+  '高刷': 'product.flag.highRefresh',
+}
+
+/** 系列入口文案（按类别）：后台新增类别时回退通用描述 */
+const SERIES_DESC_KEYS: Record<string, string> = {
+  'OLED旗舰': 'product.seriesDesc.oled',
+  '双模高刷': 'product.seriesDesc.dual',
+  '电竞IPS': 'product.seriesDesc.ips',
+  '周边': 'product.seriesDesc.acc',
+}
+
+function categoryLabel(name: string, t: TFn): string {
+  if (name === '全部') return t('product.all')
+  const key = CATEGORY_KEYS[name]
+  return key ? t(key) : name
+}
+
+function statusLabel(value: string, t: TFn): string {
+  if (value === '全部') return t('product.all')
+  const key = STATUS_KEYS[value]
+  return key ? t(key) : value
+}
+
+function sortLabel(option: string, t: TFn): string {
+  const key = SORT_KEYS[option]
+  return key ? t(key) : option
+}
+
+function priceLabel(range: { id: string; label: string }, t: TFn): string {
+  const key = PRICE_KEYS[range.id]
+  return key ? t(key) : range.label
+}
+
+function flagLabel(flag: string, t: TFn): string {
+  const key = FLAG_KEYS[flag]
+  return key ? t(key) : flag
+}
+
+function sceneLabel(scene: { id: string; title: string }, t: TFn): string {
+  const index = /^scene-0(\d)$/.exec(scene.id)?.[1]
+  return index && ['1', '2', '3', '4'].includes(index) ? t(`product.scene.0${index}`) : scene.title
+}
+
+function seriesDesc(name: string, t: TFn): string {
+  const key = SERIES_DESC_KEYS[name]
+  return key ? t(key) : t('product.seriesDefaultDesc')
 }
 
 /** 角标配色：热销 / 双模 / 入门 有专属色，其余（旗舰 / 4K / 高刷…）统一品牌蓝 */
@@ -63,10 +142,12 @@ function flagClass(flag: string): string {
 }
 
 /** 价格文案：后台填了 price 优先；否则用结构化价格；两者皆空显示「询价」 */
-function priceText(item: Product): string {
+function priceText(item: Product, t: TFn, lang: string): string {
   if (item.price) return item.price
-  if (item.priceValue > 0) return `¥${item.priceValue.toLocaleString('zh-CN')}`
-  return '询价'
+  if (item.priceValue > 0) {
+    return `¥${item.priceValue.toLocaleString(lang === 'en' ? 'en-US' : 'zh-CN')}`
+  }
+  return t('product.askPrice')
 }
 
 /** 按所选排序方式排序；「综合排序」保持接口返回的原始顺序 */
@@ -78,9 +159,9 @@ function sortProducts(list: Product[], sortBy: string): Product[] {
 }
 
 /** 产品网格骨架 */
-function GridSkeleton({ count }: { count: number }) {
+function GridSkeleton({ count, label }: { count: number; label: string }) {
   return (
-    <div className="p-grid" aria-busy="true" aria-label="产品加载中">
+    <div className="p-grid" aria-busy="true" aria-label={label}>
       {Array.from({ length: Math.min(count || 4, 8) }).map((_, index) => (
         <div className="pcard pcard--auto" key={index}>
           <div className="pcard__media skeleton" style={{ borderRadius: 17 }} />
@@ -100,6 +181,7 @@ function GridSkeleton({ count }: { count: number }) {
 
 /** 产品网格区块：按范围 / 分类 / 手动挑选取数，支持筛选、排序、分页与网格 / 横滑布局 */
 export function ProductGridBlock({ props }: { props: Record<string, unknown> }) {
+  const { lang, t } = useI18n()
   // 范围 scope：all | featured | series | category | manual（旧 source 字段作回退）
   const source = asString(props.source, 'all')
   const seriesId = asString(props.seriesId)
@@ -217,7 +299,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
     .map((name) => ({
       name,
       count: all.filter((item) => item.category === name).length,
-      desc: SERIES_DESC[name] ?? '按类别查看该系列的全部型号。',
+      desc: seriesDesc(name, t),
       href: `/products?category=${encodeURIComponent(name)}`,
     }))
     .filter((entry) => entry.count > 0)
@@ -248,7 +330,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       return
     }
     if (picked.length >= MAX_COMPARE) {
-      setHint(`对比最多 ${MAX_COMPARE} 款，请先移除已选产品`)
+      setHint(t('product.compareMax', { n: MAX_COMPARE }))
       return
     }
     setPicked([...picked, id])
@@ -265,14 +347,38 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
   const clearAll = () => writeParams({ category: '', conn: '', price: '', status: '', scene: '' })
 
   const activeChips = [
-    scene ? { key: `scene-${scene.id}`, label: `场景：${scene.title}`, clear: () => writeParams({ scene: '' }) } : null,
-    category !== '全部' ? { key: `cat-${category}`, label: `类别：${category}`, clear: () => writeParams({ category: '' }) } : null,
-    ...connections.map((value) => ({ key: `conn-${value}`, label: `连接：${value}`, clear: () => toggleConnection(value) })),
+    scene
+      ? {
+          key: `scene-${scene.id}`,
+          label: t('product.chipScene', { name: sceneLabel(scene, t) }),
+          clear: () => writeParams({ scene: '' }),
+        }
+      : null,
+    category !== '全部'
+      ? {
+          key: `cat-${category}`,
+          label: t('product.chipCategory', { name: categoryLabel(category, t) }),
+          clear: () => writeParams({ category: '' }),
+        }
+      : null,
+    ...connections.map((value) => ({
+      key: `conn-${value}`,
+      label: t('product.chipConn', { name: value }),
+      clear: () => toggleConnection(value),
+    })),
     price.id !== PRICE_RANGES[0].id
-      ? { key: `price-${price.id}`, label: `价格：${price.label}`, clear: () => writeParams({ price: '' }) }
+      ? {
+          key: `price-${price.id}`,
+          label: t('product.chipPrice', { name: priceLabel(price, t) }),
+          clear: () => writeParams({ price: '' }),
+        }
       : null,
     status !== '全部'
-      ? { key: `status-${status}`, label: `状态：${status}`, clear: () => writeParams({ status: '' }) }
+      ? {
+          key: `status-${status}`,
+          label: t('product.chipStatus', { name: statusLabel(status, t) }),
+          clear: () => writeParams({ status: '' }),
+        }
       : null,
   ].filter((chip): chip is { key: string; label: string; clear: () => void } => chip !== null)
 
@@ -291,7 +397,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
         onPointerDown={() => flushSync(() => setVtId(item.id))}
       >
         {showFilter && (
-          <label className="pcard__pick" aria-label={`加入对比 ${item.model}`}>
+          <label className="pcard__pick" aria-label={t('product.addCompare', { model: item.model })}>
             <input type="checkbox" checked={isPicked} onChange={() => togglePick(item.id)} />
           </label>
         )}
@@ -306,7 +412,11 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 item.flag ? ` ${flagClass(item.flag)}` : ' pcard__badge--oos'
               }`}
             >
-              {item.flag || item.status.text || '缺货'}
+              {item.flag
+                ? flagLabel(item.flag, t)
+                : item.status.text
+                  ? statusLabel(item.status.text, t)
+                  : t('product.status.oos')}
             </span>
           )}
         </div>
@@ -319,12 +429,12 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
         </div>
         <div className="pcard__foot">
           {showStatus && (
-            <span className={`pcard__status pcard__status--${item.status.level}`}>{item.status.text}</span>
+            <span className={`pcard__status pcard__status--${item.status.level}`}>{statusLabel(item.status.text, t)}</span>
           )}
-          {showPrice && <span className="pcard__price">{priceText(item)}</span>}
+          {showPrice && <span className="pcard__price">{priceText(item, t, lang)}</span>}
           {showCta && (
             <span className="pcard__cta" aria-hidden="true">
-              查看详情
+              {t('product.cta')}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14m-5-5 5 5-5 5" />
               </svg>
@@ -337,7 +447,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             to={`/products/${item.id}`}
             viewTransition
             className="pcard__overlay"
-            aria-label={`查看 ${item.model} ${item.name} 详情`}
+            aria-label={t('product.viewDetail', { model: item.model, name: item.name })}
           />
         )}
       </article>
@@ -349,14 +459,14 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
       <SectionHeadFromProps props={props} />
       {error ? (
         <div className="empty">
-          <div className="empty__title">产品加载失败</div>
-          <p className="empty__desc">{error.message}。请检查网络后重试。</p>
+          <div className="empty__title">{t('product.errorTitle')}</div>
+          <p className="empty__desc">{t('product.errorDesc', { msg: error.message })}</p>
           <button className="btn btn--secondary btn--sm" type="button" onClick={() => setReloadKey((key) => key + 1)}>
-            重新加载
+            {t('product.errorRetry')}
           </button>
         </div>
       ) : loading ? (
-        <GridSkeleton count={limit} />
+        <GridSkeleton count={limit} label={t('product.loading')} />
       ) : (
         <>
           {/* 列表页：左侧筛选栏 + 右侧大图卡片 */}
@@ -365,11 +475,11 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
               {/* 通栏工具条：数量贴页面左脊线、排序贴产品区右缘，下一行左右两栏同顶 */}
               <div className="catalog__toolbar">
                 <p className="catalog__count">
-                  共 <strong>{shown.length}</strong> 款产品
-                  {scene && <span className="catalog__scene">场景：{scene.title}</span>}
+                  {t('product.count', { n: shown.length })}
+                  {scene && <span className="catalog__scene">{t('product.chipScene', { name: sceneLabel(scene, t) })}</span>}
                 </p>
                 <label className="sr-only" htmlFor="sort-products">
-                  排序方式
+                  {t('product.sort')}
                 </label>
                 <select
                   className="select catalog__sort"
@@ -380,7 +490,9 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                   }
                 >
                   {SORT_OPTIONS.map((option) => (
-                    <option key={option}>{option}</option>
+                    <option key={option} value={option}>
+                      {sortLabel(option, t)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -393,8 +505,8 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 onClick={() => setFiltersOpen((open) => !open)}
               >
                 <span>
-                  筛选
-                  {activeChips.length > 0 ? ` · 已选 ${activeChips.length}` : ''}
+                  {t('product.filter')}
+                  {activeChips.length > 0 ? t('product.filterSelected', { n: activeChips.length }) : ''}
                 </span>
                 <span className={`catalog__filter-caret${filtersOpen ? ' is-open' : ''}`} aria-hidden="true">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -405,19 +517,19 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
               <aside
                 className={`catalog__aside${filtersOpen ? '' : ' is-collapsed'}`}
                 id="catalog-filter-panel"
-                aria-label="产品筛选"
+                aria-label={t('product.filter')}
               >
                 <div className="catalog__aside-head">
-                  <h2 className="catalog__aside-title">筛选</h2>
+                  <h2 className="catalog__aside-title">{t('product.filter')}</h2>
                   {activeChips.length > 0 && (
                     <button className="catalog__reset" type="button" onClick={clearAll}>
-                      清空
+                      {t('product.clear')}
                     </button>
                   )}
                 </div>
 
                 <div className="catalog__group">
-                  <span className="catalog__group-title">类别</span>
+                  <span className="catalog__group-title">{t('product.category')}</span>
                   <div className="catalog__opts">
                     {categoryOptions.map((option) => (
                       <button
@@ -427,14 +539,14 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                         aria-pressed={category === option}
                         onClick={() => writeParams({ category: option === '全部' ? '' : option })}
                       >
-                        <span>{option}</span>
+                        <span>{categoryLabel(option, t)}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="catalog__group">
-                  <span className="catalog__group-title">接口</span>
+                  <span className="catalog__group-title">{t('product.connection')}</span>
                   <div className="catalog__opts">
                     {CONNECTION_FILTERS.map((option) => (
                       <button
@@ -454,7 +566,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 </div>
 
                 <div className="catalog__group">
-                  <span className="catalog__group-title">价格</span>
+                  <span className="catalog__group-title">{t('product.price')}</span>
                   <div className="catalog__opts">
                     {PRICE_RANGES.map((option) => (
                       <button
@@ -464,14 +576,14 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                         aria-pressed={priceId === option.id}
                         onClick={() => writeParams({ price: option.id === PRICE_RANGES[0].id ? '' : option.id })}
                       >
-                        <span>{option.label}</span>
+                        <span>{priceLabel(option, t)}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="catalog__group">
-                  <span className="catalog__group-title">库存</span>
+                  <span className="catalog__group-title">{t('product.stock')}</span>
                   <div className="catalog__opts">
                     {STATUS_FILTERS.map((option) => (
                       <button
@@ -481,7 +593,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                         aria-pressed={status === option}
                         onClick={() => writeParams({ status: option === '全部' ? '' : option })}
                       >
-                        <span>{option}</span>
+                        <span>{statusLabel(option, t)}</span>
                       </button>
                     ))}
                   </div>
@@ -494,7 +606,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                     {activeChips.map((chip) => (
                       <span className="chip chip--removable" key={chip.key}>
                         {chip.label}
-                        <button aria-label={`移除 ${chip.label}`} type="button" onClick={chip.clear}>
+                        <button aria-label={t('product.removeChip', { label: chip.label })} type="button" onClick={chip.clear}>
                           ×
                         </button>
                       </span>
@@ -503,7 +615,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 )}
 
                 {shown.length === 0 ? (
-                  <p className="catalog__empty">没有符合当前筛选条件的产品，试试调整筛选。</p>
+                  <p className="catalog__empty">{t('product.empty')}</p>
                 ) : (
                   <div className="p-grid catalog__grid">
                     {paged.map(renderCard)}
@@ -511,10 +623,10 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                     {paged.length % columns === columns - 1 && (
                       <Link className="p-guide" to="/compare">
                         <span className="p-guide__k">COMPARE</span>
-                        <p className="p-guide__t">不确定选哪款？</p>
-                        <p className="p-guide__d">把候选机型加入对比，逐项看清刷新率、尺寸与接口差异。</p>
+                        <p className="p-guide__t">{t('product.compareGuideTitle')}</p>
+                        <p className="p-guide__d">{t('product.compareGuideDesc')}</p>
                         <span className="p-guide__go">
-                          开始对比
+                          {t('product.compareStart')}
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14m-5-5 5 5-5 5" />
                           </svg>
@@ -527,7 +639,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 {totalPages > 1 && (
                   <div className="catalog__pager">
                     <div className="pagination">
-                      <button aria-label="上一页" type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
+                      <button aria-label={t('product.pagePrev')} type="button" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
                         ‹
                       </button>
                       {Array.from({ length: totalPages }, (_, index) => index + 1).map((n) => (
@@ -542,7 +654,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                         </button>
                       ))}
                       <button
-                        aria-label="下一页"
+                        aria-label={t('product.pageNext')}
                         type="button"
                         disabled={safePage >= totalPages}
                         onClick={() => setPage(safePage + 1)}
@@ -556,7 +668,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             </div>
           ) : shown.length === 0 ? (
             <p className="section__desc" style={{ padding: 'var(--gh-space-6) 0' }}>
-              暂无可展示的产品。
+              {t('product.none')}
             </p>
           ) : (
             <div className={layout === 'rail' ? 'p-grid-rail' : gridClassName}>{paged.map(renderCard)}</div>
@@ -567,18 +679,18 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
             <div className="p-series">
               <div className="p-series__head">
                 <div>
-                  <h2 className="p-series__title">按系列浏览</h2>
-                  <p className="p-series__desc">从产品线进入，快速收敛到你关心的区间。</p>
+                  <h2 className="p-series__title">{t('product.seriesTitle')}</h2>
+                  <p className="p-series__desc">{t('product.seriesDesc')}</p>
                 </div>
               </div>
               <div className="p-series__grid">
                 {seriesEntries.map((entry, index) => (
                   <Link className="p-series__card" to={entry.href} key={entry.name}>
                     <span className="p-series__k">SERIES {String(index + 1).padStart(2, '0')}</span>
-                    <span className="p-series__t">{entry.name}</span>
+                    <span className="p-series__t">{categoryLabel(entry.name, t)}</span>
                     <span className="p-series__d">{entry.desc}</span>
                     <span className="p-series__n">
-                      {entry.count} 款型号
+                      {t('product.seriesCount', { n: entry.count })}
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 12h14m-5-5 5 5-5 5" />
                       </svg>
@@ -595,13 +707,13 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gh-space-2)' }}>
                 <div className="row">
                   <strong style={{ fontSize: 'var(--gh-font-size-body-sm)' }}>
-                    已选 {picked.length} / {MAX_COMPARE} 款
+                    {t('product.compareSelected', { n: picked.length, max: MAX_COMPARE })}
                   </strong>
                   <div className="compare-bar__list">
                     {pickedItems.map((item) => (
                       <span className="compare-bar__item" key={item.id}>
                         {item.model}
-                        <button type="button" aria-label={`移除 ${item.model}`} onClick={() => togglePick(item.id)}>
+                        <button type="button" aria-label={t('product.removeChip', { label: item.model })} onClick={() => togglePick(item.id)}>
                           ×
                         </button>
                       </span>
@@ -610,22 +722,22 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                 </div>
                 {incompatible ? (
                   <p className="field__hint" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--gh-space-2)' }}>
-                    <span className="status status--warning">不可直接比较</span>
-                    所选产品属不同类别，请仅保留同一类别的产品。
+                    <span className="status status--warning">{t('product.compareIncompatible')}</span>
+                    {t('product.compareIncompatibleDesc')}
                   </p>
                 ) : picked.length === 1 ? (
                   <p className="field__hint" style={{ margin: 0 }}>
-                    再选 1 款即可开始对比。
+                    {t('product.compareNeedOne')}
                   </p>
                 ) : picked.length >= MAX_COMPARE ? (
                   <p className="field__hint" style={{ margin: 0 }}>
-                    已达对比上限 {MAX_COMPARE} 款，如需替换请先移除已选产品。
+                    {t('product.compareAtMax', { max: MAX_COMPARE })}
                   </p>
                 ) : null}
               </div>
               <div className="row">
                 <button className="btn btn--ghost btn--sm" type="button" onClick={() => setPicked([])}>
-                  清空
+                  {t('product.clear')}
                 </button>
                 <button
                   className="btn btn--primary btn--sm is-magnetic"
@@ -633,7 +745,7 @@ export function ProductGridBlock({ props }: { props: Record<string, unknown> }) 
                   disabled={!canCompare}
                   onClick={() => navigate(`/compare?ids=${picked.join(',')}`)}
                 >
-                  开始对比
+                  {t('product.compareStart')}
                 </button>
               </div>
             </div>

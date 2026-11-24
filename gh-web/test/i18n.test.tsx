@@ -5,6 +5,79 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_LANG, I18nProvider, READY_LANGS, useI18n } from '../src/i18n'
 
+/** 产品列表页（ProductGridBlock）用到的展示文案键；英文缺译会回退中文，由用例拦截 */
+const PRODUCT_KEYS = [
+  'product.count',
+  'product.sort',
+  'product.filter',
+  'product.filterSelected',
+  'product.clear',
+  'product.category',
+  'product.connection',
+  'product.price',
+  'product.stock',
+  'product.all',
+  'product.cat.oled',
+  'product.cat.dual',
+  'product.cat.ips',
+  'product.cat.acc',
+  'product.price.any',
+  'product.price.lt1000',
+  'product.price.mid',
+  'product.price.gt3000',
+  'product.status.instock',
+  'product.status.oos',
+  'product.sort.default',
+  'product.sort.asc',
+  'product.sort.desc',
+  'product.sort.newest',
+  'product.empty',
+  'product.askPrice',
+  'product.cta',
+  'product.addCompare',
+  'product.viewDetail',
+  'product.compareMax',
+  'product.chipScene',
+  'product.chipCategory',
+  'product.chipConn',
+  'product.chipPrice',
+  'product.chipStatus',
+  'product.removeChip',
+  'product.compareGuideTitle',
+  'product.compareGuideDesc',
+  'product.compareStart',
+  'product.errorTitle',
+  'product.errorDesc',
+  'product.errorRetry',
+  'product.pagePrev',
+  'product.pageNext',
+  'product.none',
+  'product.seriesTitle',
+  'product.seriesDesc',
+  'product.seriesCount',
+  'product.seriesDefaultDesc',
+  'product.seriesDesc.oled',
+  'product.seriesDesc.dual',
+  'product.seriesDesc.ips',
+  'product.seriesDesc.acc',
+  'product.compareSelected',
+  'product.compareIncompatible',
+  'product.compareIncompatibleDesc',
+  'product.compareNeedOne',
+  'product.compareAtMax',
+  'product.loading',
+  'product.flag.hot',
+  'product.flag.dual',
+  'product.flag.entry',
+  'product.flag.flagship',
+  'product.flag.4k',
+  'product.flag.highRefresh',
+  'product.scene.01',
+  'product.scene.02',
+  'product.scene.03',
+  'product.scene.04',
+]
+
 function Probe() {
   const { lang, t, setLang, notice, dismissNotice } = useI18n()
   return (
@@ -13,6 +86,11 @@ function Probe() {
       <span data-testid="title">{t('notFound.title')}</span>
       <span data-testid="interp">{t('lang.notice', { lang: 'English' })}</span>
       <span data-testid="fallback">{t('__nope__')}</span>
+      <span data-testid="products">
+        {PRODUCT_KEYS.map((key) =>
+          t(key, { n: 1, max: 4, model: 'M', name: 'N', label: 'L', msg: 'E' }),
+        ).join(' | ')}
+      </span>
       <span data-testid="notice">{notice ?? 'none'}</span>
       <button type="button" onClick={() => setLang('en')}>
         to-en
@@ -57,6 +135,17 @@ describe('i18n', () => {
     expect(screen.getByTestId('lang').textContent).toBe('en')
     expect(screen.getByTestId('title').textContent).toBe('Page not found')
     expect(screen.getByTestId('notice').textContent).toBe('none')
+  })
+
+  it('英文产品列表文案全部就绪（无中文回退残留）', () => {
+    setup()
+    fireEvent.click(screen.getByText('to-en'))
+    const text = screen.getByTestId('products').textContent ?? ''
+    // 任一键缺英文译文都会回退中文，这里直接拦截中文残留
+    expect(text).not.toMatch(/[\u4e00-\u9fff]/)
+    expect(text).toContain('Dual-mode high refresh')
+    expect(text).toContain('In stock')
+    expect(text).toContain('Compare')
   })
 
   it('英文选择持久化到 localStorage', () => {
