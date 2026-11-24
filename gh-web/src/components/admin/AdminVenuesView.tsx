@@ -187,21 +187,19 @@ export function AdminVenuesView() {
       {error ? (
         <ErrorState message={error.message} onRetry={() => setReloadKey((key) => key + 1)} />
       ) : loading && rows.length === 0 ? (
-        <SkeletonTable columns={7} rows={8} />
+        <SkeletonTable columns={4} rows={8} />
       ) : filtered.length === 0 ? (
         <EmptyState title="没有匹配的体验点" desc="调整搜索或筛选条件，或新建一个体验点。" />
       ) : layout === 'list' ? (
-        <div className="admin-table-wrap">
+        // 四列布局：主信息合并进「体验点」与「位置」两列，资料以标签展示，
+        // 避免 8 列宽表在窄屏出现横向滚动、每格文字被截断。
+        <div className="admin-table-wrap admin-table-wrap--venues">
           <div className="admin-table-scroll">
-            <table className="table admin-table">
+            <table className="table admin-table venues-table">
               <thead>
                 <tr>
                   <th scope="col">体验点</th>
-                  <th scope="col">省市</th>
-                  <th scope="col">类型</th>
-                  <th scope="col">状态</th>
-                  <th scope="col">地址</th>
-                  <th scope="col">坐标</th>
+                  <th scope="col">位置</th>
                   <th scope="col">资料</th>
                   <th scope="col" style={{ textAlign: 'right' }}>
                     操作
@@ -209,41 +207,62 @@ export function AdminVenuesView() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row) => (
-                  <tr key={String(row.id)} className={activeId === String(row.id) ? 'is-active' : undefined}>
-                    <td className="admin-cell--title" data-label="体验点">
-                      <strong>{String(row.name ?? '未命名')}</strong>
-                      <span className="admin-cell--muted mono">（{String(row.id ?? '')}）</span>
-                    </td>
-                    <td data-label="省市">
-                      {[row.province, row.city, row.area].filter(Boolean).join(' · ') || '—'}
-                    </td>
-                    <td data-label="类型">{TYPE_LABELS[String(row.type ?? '')] ?? String(row.type ?? '—')}</td>
-                    <td data-label="状态">{String(row.status ?? '—')}</td>
-                    <td className="admin-cell--muted" data-label="地址">
-                      {String(row.address ?? '—')}
-                    </td>
-                    <td className="mono" data-label="坐标">
-                      {typeof row.lat === 'number' && typeof row.lng === 'number' ? `${row.lat}, ${row.lng}` : '—'}
-                    </td>
-                    <td data-label="资料">
-                      {(() => {
-                        const missing = missingVenueFields(row)
-                        if (missing.length === 0) return <span className="admin-cell--muted">完整</span>
-                        return (
-                          <span className="admin-cell--muted" title={`缺失：${missing.join('、')}`}>
-                            待补：{missing.join('、')}
+                {filtered.map((row) => {
+                  const missing = missingVenueFields(row)
+                  const address = String(row.address ?? '').trim()
+                  const region = [row.province, row.city, row.area].filter(Boolean).join(' · ')
+                  const coordinate =
+                    typeof row.lat === 'number' && typeof row.lng === 'number' ? `${row.lat}, ${row.lng}` : ''
+                  const status = String(row.status ?? '')
+                  return (
+                    <tr key={String(row.id)} className={activeId === String(row.id) ? 'is-active' : undefined}>
+                      <td className="admin-cell--title venue-cell--main" data-label="体验点">
+                        <div className="venue-line">
+                          <strong className="venue-name">{String(row.name ?? '未命名')}</strong>
+                          <span className="venue-tag">
+                            {TYPE_LABELS[String(row.type ?? '')] ?? String(row.type ?? '—')}
                           </span>
-                        )
-                      })()}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <Link className="btn btn--ghost btn--sm" to={`/admin/biz-venues/${String(row.id)}`}>
-                        编辑
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                          {status && (
+                            <span className={`venue-tag venue-tag--status${status === '营业中' ? ' is-open' : ''}`}>
+                              {status}
+                            </span>
+                          )}
+                        </div>
+                        <span className="venue-sub mono">{String(row.id ?? '')}</span>
+                      </td>
+                      <td data-label="位置">
+                        <div className="venue-place">
+                          <span className={`venue-addr${address ? '' : ' is-empty'}`} title={address || undefined}>
+                            {address || '未填写地址'}
+                          </span>
+                          <span className="venue-sub">
+                            <span>{region || '省市未定'}</span>
+                            {coordinate ? <span className="mono"> · {coordinate}</span> : <span> · 坐标待补</span>}
+                          </span>
+                        </div>
+                      </td>
+                      <td data-label="资料">
+                        {missing.length === 0 ? (
+                          <span className="venue-ok">完整</span>
+                        ) : (
+                          <div className="venue-missing" title={`缺失：${missing.join('、')}`}>
+                            <span className="venue-missing__label">待补</span>
+                            {missing.map((item) => (
+                              <span className="venue-missing__item" key={item}>
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="venue-cell--actions">
+                        <Link className="btn btn--ghost btn--sm" to={`/admin/biz-venues/${String(row.id)}`}>
+                          编辑
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

@@ -715,24 +715,35 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .spec-editor__add { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-2); }
 .spec-editor__add .admin-select { min-width: 260px; }
 .spec-editor__count { margin-left: auto; font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
-.spec-editor__groups { display: flex; flex-direction: column; gap: var(--gh-space-3); }
+.spec-editor__groups { display: flex; flex-direction: column; gap: var(--gh-space-2); }
 .spec-group {
   border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-md);
   background: var(--color-bg-surface); overflow: hidden;
 }
+/* 分组标题即折叠开关：收起后只保留进度摘要，减少几十项参数带来的纵向长度 */
 .spec-group__head {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--gh-space-2);
+  display: flex; align-items: center; gap: 6px; width: 100%;
   padding: 6px var(--gh-space-3);
-  background: var(--color-bg-subtle); border-bottom: 1px solid var(--color-border-default);
+  border: 0; background: var(--color-bg-subtle);
+  font: inherit; color: inherit; text-align: left;
+  cursor: pointer;
 }
+.spec-group__head:hover { background: var(--color-bg-muted); }
+.spec-group__head[aria-expanded='true'] { border-bottom: 1px solid var(--color-border-default); }
+.spec-group__caret {
+  flex: none; display: inline-flex;
+  font-size: 10px; color: var(--color-text-tertiary);
+  transition: transform var(--gh-duration-base) var(--gh-ease-standard);
+}
+.spec-group__head[aria-expanded='false'] .spec-group__caret { transform: rotate(-90deg); }
 .spec-group__title { font-size: var(--gh-font-size-caption); font-weight: var(--gh-weight-semibold); color: var(--color-text-secondary); }
-.spec-group__count { font-size: 11px; color: var(--color-text-tertiary); }
+.spec-group__count { margin-left: auto; font-size: 11px; color: var(--color-text-tertiary); }
 .spec-group__count.is-warn { color: var(--color-warning-text); }
 /* 默认单列：表单内容区实测仅约 620px，两列会把下拉挤到 150px 以下 */
 .spec-group__grid {
   display: grid; grid-template-columns: minmax(0, 1fr);
-  gap: 2px var(--gh-space-4);
-  padding: var(--gh-space-2) var(--gh-space-3);
+  gap: 0 var(--gh-space-3);
+  padding: var(--gh-space-1) var(--gh-space-2);
 }
 /* 内容区足够宽时才恢复两列（容器查询，跟随表单实际宽度而非视口） */
 @container (min-width: 760px) {
@@ -741,7 +752,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .spec-cell {
   display: grid; grid-template-columns: minmax(84px, 112px) minmax(0, 1fr) 24px;
   align-items: center; gap: var(--gh-space-2);
-  min-width: 0; padding: 4px 6px; border-radius: var(--gh-radius-sm);
+  min-width: 0; padding: 3px 6px; border-radius: var(--gh-radius-sm);
 }
 .spec-cell:hover { background: var(--color-bg-subtle); }
 .spec-cell.is-wide { grid-column: 1 / -1; }
@@ -756,7 +767,7 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 /* 未填参数：名称后加一个小黄点，避免一屏参数里漏填项看不出来 */
 .spec-cell.is-empty .spec-cell__name::after {
   content: ''; display: inline-block; width: 5px; height: 5px; margin-left: 6px;
-  border-radius: 50%; background: var(--color-warning); vertical-align: middle; opacity: 0.75;
+  border-radius: 50%; background: var(--color-warning); vertical-align: middle; opacity: 0.6;
 }
 .spec-cell__del {
   width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--gh-radius-sm);
@@ -769,9 +780,18 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .spec-value { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gh-space-2); }
 .spec-value > .admin-select { flex: 1 1 140px; }
 .spec-value > .input { flex: 1 1 140px; min-width: 120px; }
-@media (max-width: 1100px) {
-  .spec-group__grid { grid-template-columns: 1fr; }
+/* 参数取值控件统一收紧到小尺寸：33 项参数时视觉噪音明显更低 */
+.admin-root .spec-cell .input,
+html[data-admin] .spec-cell .input,
+.admin-root .spec-cell .admin-select__trigger,
+html[data-admin] .spec-cell .admin-select__trigger {
+  height: var(--adm-control-h-sm);
+  font-size: var(--gh-font-size-caption);
+  padding-inline: var(--gh-space-2);
 }
+.spec-cell .admin-select__trigger .admin-select__caret { width: 12px; height: 12px; }
+.admin-root .spec-cell .btn--sm,
+html[data-admin] .spec-cell .btn--sm { height: var(--adm-control-h-sm); }
 @media (max-width: 767px) {
   .spec-editor__add .admin-select { min-width: 0; width: 100%; }
   .spec-editor__add .btn { width: 100%; }
@@ -3734,6 +3754,52 @@ html[data-admin] .admin-table-scroll::-webkit-scrollbar-thumb {
 .venues-map-list__item span { font-size: 11px; color: var(--color-text-tertiary); }
 .venues-map-list__item.is-active { border-color: var(--color-accent-solid); background: var(--color-accent-subtle); }
 .admin-table tr.is-active td { background: var(--color-accent-subtle); }
+
+/* 四列排版：把 8 列宽表合并为「体验点 / 位置 / 资料 / 操作」，
+   行内允许换行、不设横向滚动，长地址最多两行，鼠标悬浮看全文。 */
+.admin-table-wrap--venues .admin-table-scroll { max-height: none; overflow: visible; }
+.venues-table { width: 100%; min-width: 0; table-layout: fixed; }
+.venues-table thead th { position: static; }
+.venues-table th:nth-child(1) { width: 32%; }
+.venues-table th:nth-child(2) { width: 40%; }
+.venues-table th:nth-child(3) { width: 17%; }
+.venues-table th:nth-child(4) { width: 11%; }
+.venues-table td { height: auto; padding-block: var(--gh-space-2); white-space: normal; vertical-align: middle; }
+.venues-table td:first-child { position: static; background: transparent; }
+.venues-table tbody tr:hover td:first-child { background: var(--color-bg-subtle); }
+.venues-table tr.is-active td:first-child { background: var(--color-accent-subtle); }
+.venues-table .venue-cell--actions { text-align: right; white-space: nowrap; }
+.venue-line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.venue-name { font-size: var(--gh-font-size-body-sm); font-weight: var(--gh-weight-semibold); color: var(--color-text-primary); }
+.venue-tag {
+  display: inline-flex; align-items: center;
+  padding: 0 6px; height: 18px;
+  border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-full);
+  font-size: 11px; color: var(--color-text-tertiary); white-space: nowrap;
+}
+.venue-tag--status.is-open {
+  border-color: transparent;
+  background: var(--color-success-bg); color: var(--color-success);
+}
+.venue-sub { display: block; margin-top: 2px; font-size: 11px; line-height: 1.5; color: var(--color-text-tertiary); }
+.venue-place { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.venue-addr {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--gh-font-size-body-sm); line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+.venue-addr.is-empty { color: var(--color-text-tertiary); }
+.venue-missing { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.venue-missing__label { font-size: 11px; color: var(--color-warning-text); }
+.venue-missing__item {
+  padding: 0 6px; height: 18px; display: inline-flex; align-items: center;
+  border-radius: var(--gh-radius-full);
+  background: var(--color-warning-bg); color: var(--color-warning-text);
+  font-size: 11px;
+}
+.venue-ok { font-size: 11px; color: var(--color-success); }
+
 @media (max-width: 1000px) {
   .venues-map-layout { grid-template-columns: minmax(0, 1fr); }
   .venues-map-list { flex-direction: row; max-height: none; overflow-x: auto; }

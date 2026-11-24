@@ -59,6 +59,18 @@ export function ProductSpecEditor({
   const defs = new Map(catalog.params.map((param) => [param.label, param]))
   // 「其他（手动填写）」的行：按参数名记录；删除 / 排序不影响其它行
   const [customRows, setCustomRows] = useState<Set<string>>(() => new Set())
+  // 参数多时只看未填项，避免一屏几十个「请选择」难以定位遗漏
+  const [unfilledOnly, setUnfilledOnly] = useState(false)
+  // 分组折叠：收起后只保留标题与已填进度，页面长度可控
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set())
+
+  const toggleGroup = (group: string) =>
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(group)) next.delete(group)
+      else next.add(group)
+      return next
+    })
 
   const emit = (next: AttributeRow[]) => onChange(next)
   const setRow = (index: number, patch: Partial<AttributeRow>) =>
@@ -198,6 +210,8 @@ export function ProductSpecEditor({
     ...[...grouped.keys()].filter((group) => !PARAM_GROUPS.includes(group)),
   ]
 
+  const missingTotal = rows.filter((row) => !row.value.trim()).length
+
   return (
     <div className="spec-editor">
       <div className="spec-editor__add">
@@ -214,84 +228,111 @@ export function ProductSpecEditor({
         <button type="button" className="btn btn--secondary btn--sm" onClick={addCustomRow}>
           ＋ 自定义参数
         </button>
+        <button
+          type="button"
+          className={`admin-chip${unfilledOnly ? ' is-active' : ''}`}
+          aria-pressed={unfilledOnly}
+          onClick={() => setUnfilledOnly((value) => !value)}
+          title="只显示还没有填写的参数"
+        >
+          仅看未填（{missingTotal}）
+        </button>
         <span className="spec-editor__count">共 {rows.length} 项</span>
       </div>
 
       {rows.length === 0 ? (
         <p className="admin-records__empty">还没有参数。可先点上方「添加常用参数」，或使用上方「常用参数模板」一键带入。</p>
+      ) : unfilledOnly && missingTotal === 0 ? (
+        <p className="admin-records__empty">所有参数都已填写。</p>
       ) : (
         <div className="spec-editor__groups">
           {groupKeys.map((group) => {
-            const items = grouped.get(group) ?? []
-            const emptyCount = items.filter((item) => !item.row.value.trim()).length
+            const allItems = grouped.get(group) ?? []
+            const items = unfilledOnly ? allItems.filter((item) => !item.row.value.trim()) : allItems
+            if (items.length === 0) return null
+            const emptyCount = allItems.filter((item) => !item.row.value.trim()).length
+            const filledCount = allItems.length - emptyCount
+            // 筛选模式下强制展开，避免「筛了却看不到」
+            const collapsed = !unfilledOnly && collapsedGroups.has(group)
             return (
               <section className="spec-group" key={group} aria-label={`${group}参数`}>
-                <div className="spec-group__head">
+                <button
+                  type="button"
+                  className="spec-group__head"
+                  aria-expanded={!collapsed}
+                  onClick={() => toggleGroup(group)}
+                >
+                  <span className="spec-group__caret" aria-hidden="true">
+                    ▾
+                  </span>
                   <span className="spec-group__title">{group}</span>
                   <span className={`spec-group__count${emptyCount ? ' is-warn' : ''}`}>
-                    {items.length} 项{emptyCount ? ` · ${emptyCount} 项未填` : ''}
+                    已填 {filledCount}/{allItems.length}
+                    {emptyCount ? ` · 缺 ${emptyCount}` : ' · 已完整'}
                   </span>
-                </div>
-                <div className="spec-group__grid">
-                  {items.map(({ row, index }) => {
-                    const def = defs.get(row.label)
-                    const key = keyOf(row, index)
-                    // 组合参数（两个下拉）与自定义参数占满一行，其余参数两列并排
-                    const wide = !def || Boolean(def.parts)
-                    return (
-                      <div
-                        className={`spec-cell${wide ? ' is-wide' : ''}${def ? '' : ' spec-cell--custom'}${row.value.trim() ? '' : ' is-empty'}`}
-                        key={`${key}-${index}`}
-                      >
-                        {def ? (
-                          <span className="spec-cell__name" title={row.label}>
-                            {row.label}
-                          </span>
-                        ) : (
-                          <div className="spec-cell__name">
-                            <Select
-                              aria-label="参数分组"
-                              value={row.group}
-                              onChange={(next) => setRow(index, { group: next })}
-                              options={PARAM_GROUPS.map((item) => ({ value: item, label: item }))}
-                            />
-                            <input
-                              className="input"
-                              aria-label="参数名"
-                              value={row.label}
-                              placeholder="如：响应时间"
-                              onChange={(event) => setRow(index, { label: event.target.value })}
-                            />
-                          </div>
-                        )}
-                        <div className="spec-cell__value">
+                </button>
+                {!collapsed && (
+                  <div className="spec-group__grid">
+                    {items.map(({ row, index }) => {
+                      const def = defs.get(row.label)
+                      const key = keyOf(row, index)
+                      // 组合参数（两个下拉）与自定义参数占满一行，其余参数两列并排
+                      const wide = !def || Boolean(def.parts)
+                      return (
+                        <div
+                          className={`spec-cell${wide ? ' is-wide' : ''}${def ? '' : ' spec-cell--custom'}${row.value.trim() ? '' : ' is-empty'}`}
+                          key={`${key}-${index}`}
+                        >
                           {def ? (
-                            renderValue(row, index, def)
+                            <span className="spec-cell__name" title={row.label}>
+                              {row.label}
+                            </span>
                           ) : (
-                            <div className="spec-value">
+                            <div className="spec-cell__name">
+                              <Select
+                                aria-label="参数分组"
+                                value={row.group}
+                                onChange={(next) => setRow(index, { group: next })}
+                                options={PARAM_GROUPS.map((item) => ({ value: item, label: item }))}
+                              />
                               <input
                                 className="input"
-                                aria-label="参数取值"
-                                value={row.value}
-                                placeholder="填写取值"
-                                onChange={(event) => setRow(index, { value: event.target.value })}
+                                aria-label="参数名"
+                                value={row.label}
+                                placeholder="如：响应时间"
+                                onChange={(event) => setRow(index, { label: event.target.value })}
                               />
                             </div>
                           )}
+                          <div className="spec-cell__value">
+                            {def ? (
+                              renderValue(row, index, def)
+                            ) : (
+                              <div className="spec-value">
+                                <input
+                                  className="input"
+                                  aria-label="参数取值"
+                                  value={row.value}
+                                  placeholder="填写取值"
+                                  onChange={(event) => setRow(index, { value: event.target.value })}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            className="spec-cell__del"
+                            title={`删除${row.label || '参数'}`}
+                            aria-label={`删除${row.label || '参数'}`}
+                            onClick={() => removeRow(index)}
+                          >
+                            ×
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          className="spec-cell__del"
-                          title={`删除${row.label || '参数'}`}
-                          aria-label={`删除${row.label || '参数'}`}
-                          onClick={() => removeRow(index)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
+                )}
               </section>
             )
           })}
