@@ -38,8 +38,8 @@ export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 's0',
     media: { kind: 'image' },
-    // 首屏第一张固定展示静态主视觉；代码动画由后台「轮播 → 代码动画」开关控制
-    poster: '/media/home/hero-1.jpg',
+    // 首屏固定展示静态主视觉（2026 品牌视觉），代码动画由后台「轮播 → 代码动画」开关控制
+    poster: '/media/home/hero-01-2026.jpg',
     // 深色主视觉配浅色文案；关闭压暗遮罩，保留海报原始亮度
     theme: 'dark',
     scrim: false,
@@ -55,43 +55,6 @@ export const HERO_SLIDES: HeroSlide[] = [
       { value: '540 Hz', label: '最高刷新率' },
       { value: '0.03 ms', label: 'GTG 响应' },
       { value: '80 Gbps', label: 'DP 2.1 带宽' },
-    ],
-  },
-  {
-    // 21:9 宽屏主视觉：图片由运营提供，文案放左侧空白区，避免压住产品
-    id: 'poster-21x9',
-    media: { kind: 'image' },
-    mediaTag: '21:9 场景视觉',
-    poster: '/media/home/hero-2.jpg',
-    eyebrow: 'ULTRAWIDE / 21:9',
-    title: ['21:9 创作视野'],
-    desc: '宽屏比例下并排查看时间线与素材，减少窗口切换。',
-    primary: '浏览全部产品',
-    secondary: '',
-    primaryTo: '/products',
-    stats: [],
-    position: { x: 50, y: 16 },
-    scrim: false,
-    theme: 'dark',
-  },
-  {
-    id: 's1',
-    media: { kind: 'image' },
-    mediaTag: '旗舰主视觉',
-    poster: '/media/home/hero-3.jpg',
-    scrim: false,
-    theme: 'dark',
-    eyebrow: 'FLAGSHIP / 27X1QE-W54',
-    title: ['2K@540Hz 闪电旗舰'],
-    desc: '第四代 W-OLED，0.03 ms 响应，DP 2.1 一线跑满 540Hz。',
-    primary: '查看产品详情',
-    secondary: '加入对比',
-    primaryTo: '/products/gh-54027x1qe',
-    secondaryTo: '/compare',
-    stats: [
-      { value: '2K 540Hz', label: '分辨率 / 刷新率' },
-      { value: '0.03 ms', label: 'GTG 响应' },
-      { value: '1500 nit', label: 'HDR 峰值亮度' },
     ],
   },
 ]
