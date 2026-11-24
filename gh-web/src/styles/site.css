@@ -420,16 +420,10 @@ main.main--flush + .site-footer { margin-top: 0; }
 /* 小红书（横排三字字标）：单独更宽的槽位，避免 46px 字标被 38px 热区压扁 */
 .site-footer__social-item.is-wide { width: 48px; }
 
-/* 二维码（QrPlaceholder，仍供角落悬浮按钮组复用；页脚社交已改为图标浮层） */
-.qr { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--gh-space-2); }
-.qr__box { width: 96px; height: 96px; padding: 8px; background: #fff; border: 1px solid var(--color-border-default); border-radius: var(--gh-radius-lg); }
-.qr__box svg { width: 100%; height: 100%; display: block; }
-.qr__label { font-size: var(--gh-font-size-caption); color: var(--color-text-tertiary); }
 @media (max-width: 767px) {
   /* 手机端：社交图标加大命中区，避免信息「细碎」（桌面端不受影响） */
   .site-footer__social-item { width: 42px; height: 42px; font-size: var(--gh-font-size-body-sm); }
   .site-footer__social-item.is-wide { width: 52px; }
-  .qr__label { font-size: var(--gh-font-size-body-sm); }
 }
 
 /* ---------- 页脚背景：与首屏海报同款「流动方块」代码动画 ----------
@@ -469,8 +463,7 @@ main.main--flush + .site-footer { margin-top: 0; }
 [data-theme="dark"] .site-footer__bottom a:hover { color: #fff; }
 [data-theme="dark"] .site-footer__social-item { color: rgba(255, 255, 255, .72); }
 [data-theme="dark"] .site-footer__social-item:hover { color: var(--color-accent-text); }
-[data-theme="dark"] .qr__label { color: rgba(255, 255, 255, .6); }
-[data-theme="dark"] .qr__box { border-color: rgba(255, 255, 255, .18); }
+[data-theme="dark"] .fab__panel-qr { border-color: rgba(255, 255, 255, .18); }
 
 /* ============================================================
    皮肤层（仅产品展示区 / 榜单区 / 首屏）—— 禁止在骨架层复用
@@ -798,25 +791,6 @@ main.main--flush + .site-footer { margin-top: 0; }
   line-height: 1.5;
   color: var(--color-text-tertiary);
 }
-.fab__panel-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: var(--gh-radius-full);
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
-  font-size: 12px;
-  font-weight: var(--gh-weight-medium);
-}
-.fab__panel-live i {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--gh-radius-full);
-  background: var(--color-accent-solid);
-}
 .fab__panel-qr {
   display: flex;
   align-items: center;
@@ -827,13 +801,14 @@ main.main--flush + .site-footer { margin-top: 0; }
   border-radius: 16px;
   background: var(--color-bg-subtle);
 }
-.fab__panel-qr .qr__box {
+.fab__panel-qr-img {
   flex: none;
   width: 88px;
   height: 88px;
   padding: 5px;
   border-radius: 10px;
   background: #fff;
+  object-fit: contain;
 }
 .fab__panel-qrcopy {
   display: flex;
@@ -904,7 +879,7 @@ main.main--flush + .site-footer { margin-top: 0; }
     width: min(304px, calc(100vw - 88px));
     padding: 16px;
   }
-  .fab__panel-qr .qr__box { width: 76px; height: 76px; }
+  .fab__panel-qr-img { width: 76px; height: 76px; }
 }
 
 /* 榜单 */

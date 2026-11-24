@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../../i18n'
+import { normalizeSocial } from '../../data/site'
+import { useSiteSocial } from '../../hooks/useSiteConfig'
 import { IconArrowUp, IconChat, IconChevronRight, IconPhone, IconSupport } from '../ui/Icon'
-import { QrBox } from './QrPlaceholder'
 
 /**
  * 右下角悬浮按钮组：返回顶部 / 联系客服。
@@ -16,6 +17,10 @@ export function FloatingActions() {
   const [showTop, setShowTop] = useState(false)
   const [open, setOpen] = useState(false)
   const contactRef = useRef<HTMLDivElement | null>(null)
+  // 微信入口：只用后台配置的真实二维码 / 账号；都没有则不渲染该行（不展示无法扫码的仿真码）
+  const social = useSiteSocial()
+  const wechat = useMemo(() => normalizeSocial(social).find((item) => item.label.includes('微信')), [social])
+  const hotline = t('fab.hotlineValue')
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 400)
@@ -71,21 +76,30 @@ export function FloatingActions() {
               <p className="fab__panel-title">{t('fab.panelTitle')}</p>
               <p className="fab__panel-sub">{t('fab.panelSub')}</p>
             </div>
-            <span className="fab__panel-live">
-              <i />
-              {t('fab.online')}
-            </span>
           </div>
 
-          <div className="fab__panel-qr">
-            <QrBox label={t('footer.wechat')} />
-            <div className="fab__panel-qrcopy">
-              <b>{t('fab.wechat')}</b>
-              <span>{t('fab.wechatHint')}</span>
+          {wechat && (wechat.qr || wechat.account) ? (
+            <div className="fab__panel-qr">
+              {wechat.qr ? (
+                <img
+                  className="fab__panel-qr-img"
+                  src={wechat.qr}
+                  alt={t('footer.qrAria', { label: t('fab.wechat') })}
+                  loading="lazy"
+                />
+              ) : null}
+              <div className="fab__panel-qrcopy">
+                <b>{t('fab.wechat')}</b>
+                <span>
+                  {wechat.qr
+                    ? t('fab.wechatHint')
+                    : t('footer.accountLine', { label: t('footer.accountWechat'), account: wechat.account ?? '' })}
+                </span>
+              </div>
             </div>
-          </div>
+          ) : null}
 
-          <a className="fab__panel-row" href="tel:4000000000">
+          <a className="fab__panel-row" href={`tel:${hotline}`}>
             <IconPhone />
             <span>{t('fab.hotline')}</span>
             <b>{t('fab.hotlineValue')}</b>
