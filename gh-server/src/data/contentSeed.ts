@@ -118,10 +118,10 @@ const SITE: SiteConfig = {
   // —— 页脚社交（§1.9）：每个平台一条（二维码 / 账号 / 链接三项选填），账号取自官网对外公布信息 ——
   social: {
     items: [
-      { label: '微信', account: 'xxrsm001', qr: '/media/site/wechat-qr-placeholder.svg' },
+      { label: '微信', account: 'xxrsm001' },
       { label: '小红书', href: 'https://www.xiaohongshu.com/' },
       { label: 'B 站', href: 'https://space.bilibili.com/51365206' },
-      { label: '抖音', account: '光魂官方旗舰店', qr: '/media/site/douyin-qr-placeholder.svg' },
+      { label: '抖音', account: '光魂官方旗舰店' },
     ],
   },
   // —— 合作案例：暂无可公开的真实案例，关闭列表，前台显示「案例整理中」引导卡 ——

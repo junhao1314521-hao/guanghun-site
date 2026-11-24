@@ -324,8 +324,8 @@ export type SiteConfig = {
   /** 页脚流动方块动画开关（扩展字段；缺省 false = 纯色干净页脚，后台可开） */
   footerMotion?: boolean
   /**
-   * 页脚「微信小程序」二维码图片地址（扩展字段；缺省 / 空串 = 使用内置素材
-   * `/media/site/miniprogram-qr.png`）。由后台「站点配置 · 页脚」上传。
+   * 页脚「微信小程序」二维码图片地址（扩展字段；缺省 / 空串 = 不渲染该卡片，
+   * 不展示无法扫码的占位码）。由后台「站点配置 · 页脚」上传后生效。
    */
   miniprogramQr?: string
   /**

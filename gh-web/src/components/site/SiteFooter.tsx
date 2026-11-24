@@ -287,19 +287,21 @@ export function SiteFooter() {
             ))}
           </nav>
 
-          {/* 小程序商城：白卡 + 微信绿角标，悬停轻微上浮；二维码可在后台「站点配置 · 页脚」上传 */}
-          <div className="site-footer__qr">
-            <span className="site-footer__qr-frame">
-              <img
-                src={site?.miniprogramQr?.trim() || '/media/site/miniprogram-qr.png'}
-                alt={t('footer.qrAria', { label: t('footer.miniappTitle') })}
-                loading="lazy"
-              />
-              <i className="site-footer__qr-badge" aria-hidden="true"><IconWeChat size={13} /></i>
-            </span>
-            <b>{t('footer.miniappTitle')}</b>
-            <span>{t('footer.miniappHint')}</span>
-          </div>
+          {/* 小程序商城：二维码由后台「站点配置 · 页脚」维护；未上传时不渲染，避免展示无法扫码的占位码 */}
+          {site?.miniprogramQr?.trim() ? (
+            <div className="site-footer__qr">
+              <span className="site-footer__qr-frame">
+                <img
+                  src={site.miniprogramQr.trim()}
+                  alt={t('footer.qrAria', { label: t('footer.miniappTitle') })}
+                  loading="lazy"
+                />
+                <i className="site-footer__qr-badge" aria-hidden="true"><IconWeChat size={13} /></i>
+              </span>
+              <b>{t('footer.miniappTitle')}</b>
+              <span>{t('footer.miniappHint')}</span>
+            </div>
+          ) : null}
         </div>
 
         {/* 底部：左 = Copyright + 用户协议 | 用户隐私；右 = ICP 备案号 */}

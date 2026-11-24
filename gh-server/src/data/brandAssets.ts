@@ -4,7 +4,8 @@
  * 与 C 端「下载中心」（`downloads` 集合）**数据完全分开**：受众不同（渠道 / 媒体 / 合作方 vs 终端用户），
  * 独立集合 `brand-assets` 承载，互不混类。字段与前台「品牌资料」区块一一对应。
  *
- * 名称、格式与体积均为占位示例，上线前由运营替换为真实文件 / 外链地址。
+ * 当前四项资料尚在筹备（源站文件不存在）：`fileUrl` 留空、体积标注「待更新」；
+ * 前台据此展示「资料筹备中 · 申请获取」，不出现可下载按钮。运营上传真实文件或填外链后自动恢复下载。
  */
 export type BrandAssetItem = {
   id: string
@@ -35,9 +36,9 @@ export const BRAND_ASSET_ITEMS: BrandAssetItem[] = [
     name: '品牌视觉手册（VI）',
     desc: '含 Logo 使用规范、安全边距、配色与字体规范。',
     category: '规范',
-    fileUrl: '/uploads/brand-vi-manual.pdf',
+    fileUrl: '',
     format: 'PDF',
-    size: '12.4 MB',
+    size: '待更新',
     date: '2026-09-10',
     requireLead: false,
   },
@@ -46,9 +47,9 @@ export const BRAND_ASSET_ITEMS: BrandAssetItem[] = [
     name: '品牌 Logo 矢量包',
     desc: 'SVG / AI 双格式，含深浅两版与反白版。',
     category: 'Logo',
-    fileUrl: '/uploads/brand-logo-pack.zip',
+    fileUrl: '',
     format: 'ZIP',
-    size: '8.6 MB',
+    size: '待更新',
     date: '2026-09-10',
     requireLead: false,
   },
@@ -57,9 +58,9 @@ export const BRAND_ASSET_ITEMS: BrandAssetItem[] = [
     name: '高清产品图包',
     desc: '透明底 PNG 产品图，含多机位；需授权后使用。',
     category: '图片',
-    fileUrl: '/uploads/brand-product-photos.zip',
+    fileUrl: '',
     format: 'ZIP',
-    size: '120 MB',
+    size: '待更新',
     date: '2026-08-28',
     requireLead: true,
   },
@@ -68,9 +69,9 @@ export const BRAND_ASSET_ITEMS: BrandAssetItem[] = [
     name: '媒体送测说明与方法对照表',
     desc: '送测流程、测试方法版本与素材使用范围说明。',
     category: '送测',
-    fileUrl: '/uploads/brand-media-kit.pdf',
+    fileUrl: '',
     format: 'PDF',
-    size: '3.2 MB',
+    size: '待更新',
     date: '2026-09-18',
     requireLead: true,
   },

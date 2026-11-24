@@ -16,7 +16,7 @@ import { readLocale } from '../data/locale'
 import { checkCaptcha, honeypotHit } from '../lib/formGuard'
 import { recordMetric } from '../data/metricsStore'
 import { readCookie } from '../middleware/adminAuth'
-import { fileStatusOf } from '../lib/fileStatus'
+import { fileStatusOfAsync } from '../lib/fileStatus'
 import { sha256OfUpload } from '../lib/fileChecksum'
 
 /**
@@ -36,15 +36,13 @@ export const supportExtraRouter = Router()
 
 /** 下载列表 + 型号显示名 + 文件状态与真实 SHA-256（仅本地可用文件计算，带缓存） */
 async function downloadItems(locale: ReturnType<typeof readLocale>) {
-  const base = withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale).map((item) => ({
-    ...item,
-    ...fileStatusOf(item.fileUrl),
-  }))
+  const items = withModelNames(listCollection('downloads', locale), listCollection('models', locale), locale)
   return Promise.all(
-    base.map(async (item) => {
-      if (item.fileStatus !== 'ok') return item
-      const sha256 = await sha256OfUpload(item.fileUrl)
-      return sha256 ? { ...item, sha256 } : item
+    items.map(async (item) => {
+      const status = await fileStatusOfAsync(item.fileUrl)
+      // 本地可用文件以服务端实际计算结果为准；外部 / 源站文件沿用资料库已录入的真实校验值
+      const sha256 = status.fileStatus === 'ok' ? (await sha256OfUpload(item.fileUrl)) || item.sha256 : item.sha256
+      return { ...item, ...status, sha256 }
     }),
   )
 }

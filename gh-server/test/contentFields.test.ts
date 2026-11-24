@@ -72,13 +72,21 @@ describe('内容字段扩展 · articles.body', () => {
 
 describe('内容字段扩展 · downloads.fileUrl', () => {
   it('GET /api/downloads/:id 返回非空 fileUrl', async () => {
-    const id = buildCollectionSeed().downloads[0].id
+    // 资料库中确有尚未上传文件的条目（fileUrl 为空、前台显示待更新），此处取一条已提供文件的
+    const id = buildCollectionSeed().downloads.find((item) => item.fileUrl)!.id
     const res = await get(`/api/downloads/${encodeURIComponent(id)}`)
     assert.equal(res.status, 200)
     const detail = (await res.json()) as { id: string; fileUrl?: string }
     assert.equal(detail.id, id)
     assert.equal(typeof detail.fileUrl, 'string', 'downloads 详情应含 fileUrl 字段')
     assert.ok((detail.fileUrl ?? '').length > 0, 'fileUrl 应非空')
+  })
+
+  it('下载资料库对齐原官网真实资源（含文件与校验值）', () => {
+    const downloads = buildCollectionSeed().downloads
+    assert.ok(downloads.length >= 50, '应为原官网全量资料库')
+    assert.ok(downloads.filter((item) => item.fileUrl).length >= 40, '多数条目应提供真实文件地址')
+    assert.ok(downloads.filter((item) => item.sha256).length >= 40, '应带真实 SHA-256')
   })
 
   it('GET /api/downloads 列表项亦带 fileUrl', async () => {

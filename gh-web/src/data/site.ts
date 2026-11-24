@@ -55,10 +55,10 @@ export const FOOTER_LEGAL = [
 /** 页脚社交兜底（后台未配置时使用）：每平台一条，无二维码则展示账号提示 */
 export const FALLBACK_SOCIAL: SiteSocialConfig = {
   items: [
-    { label: '微信', account: 'xxrsm001', qr: '/media/site/wechat-qr-placeholder.svg' },
+    { label: '微信', account: 'xxrsm001' },
     { label: '小红书', href: 'https://www.xiaohongshu.com/' },
     { label: 'B 站', href: 'https://space.bilibili.com/51365206' },
-    { label: '抖音', account: '光魂官方旗舰店', qr: '/media/site/douyin-qr-placeholder.svg' },
+    { label: '抖音', account: '光魂官方旗舰店' },
   ],
 }
 

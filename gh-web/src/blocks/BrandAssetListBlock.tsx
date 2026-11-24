@@ -79,16 +79,21 @@ export function BrandAssetListBlock({ props }: { props: Record<string, unknown> 
                     下载
                   </a>
                 ) : (
-                  <span className="btn btn--sm btn--ghost" role="note" title="该资料尚未上传文件" style={{ opacity: 0.6, cursor: 'not-allowed' }}>
-                    暂不可下载
-                  </span>
+                  // 缺文件不是死路：给出「筹备中」事实说明，并提供申请获取入口（由商务人工提供）
+                  <SafeLink className="btn btn--sm btn--secondary" to={leadHref} title="该资料筹备中，可提交申请获取">
+                    申请获取
+                  </SafeLink>
                 )}
               </div>
-              {item.requireLead && (
+              {item.requireLead ? (
                 <p className="field__hint" style={{ marginTop: 'var(--gh-space-2)' }}>
                   该资料需留资 / 授权后提供，点击「申请下载」提交咨询即可。
                 </p>
-              )}
+              ) : !isDownloadable(item) ? (
+                <p className="field__hint" style={{ marginTop: 'var(--gh-space-2)' }}>
+                  资料筹备中，暂未提供下载；可点击「申请获取」提交需求。
+                </p>
+              ) : null}
             </div>
           ))}
         </div>
