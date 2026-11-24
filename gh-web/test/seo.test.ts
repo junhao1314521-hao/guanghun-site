@@ -90,6 +90,21 @@ describe('英文站元信息（lang=en）', () => {
     expect(meta.indexable).toBe(false)
   })
 
+  it('首页输出英文标题且保持收录', () => {
+    const meta = pageMetaFor('/', 'en')
+    expect(meta.title).toBe('Home · Guanghun')
+    expect(meta.indexable).toBe(true)
+  })
+
+  it('所有收录路由都有英文元信息（不落到英文 404）', () => {
+    for (const m of PAGE_META.filter((x) => x.indexable)) {
+      const en = pageMetaFor(m.path, 'en')
+      expect(en.title).not.toBe('Page not found · Guanghun')
+      expect(en.title).toContain('Guanghun')
+      expect(en.indexable).toBe(true)
+    }
+  })
+
   it('中文站保持原口径', () => {
     expect(pageMetaFor('/products').title).toBe('全部产品 · 光魂')
   })

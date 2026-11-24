@@ -340,6 +340,7 @@ function pageMetaForZh(pathname: string): PageMeta {
 
 /** 英文站静态路由元信息（内容库页面加载后由 PageView 用英文页面标题覆盖） */
 const EN_META: Record<string, { title: string; description: string }> = {
+  '/': { title: 'Home · Guanghun', description: DEFAULT_DESCRIPTION_EN },
   '/products': { title: 'All products · Guanghun', description: 'Guanghun OLED gaming monitors — specs, panels and buying links.' },
   '/articles': { title: 'Articles & reviews · Guanghun', description: 'Guanghun reviews, guides and industry notes.' },
   '/news': { title: 'News · Guanghun', description: 'Guanghun announcements and product news.' },
