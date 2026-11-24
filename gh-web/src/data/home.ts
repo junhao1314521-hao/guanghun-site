@@ -39,7 +39,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: 's0',
     media: { kind: 'image' },
     // 首屏第一张固定展示静态主视觉；代码动画由后台「轮播 → 代码动画」开关控制
-    poster: '/media/home/hero-1.jpg',
+    poster: '/media/home/hero-01-2026.jpg',
     // 深色主视觉配浅色文案；关闭压暗遮罩，保留海报原始亮度
     theme: 'dark',
     scrim: false,
