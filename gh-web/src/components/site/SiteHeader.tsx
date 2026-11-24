@@ -475,7 +475,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
       <header
         ref={headerRef}
         onBlur={closeMegaOnBlur}
-        className={`site-header${overHero ? ' site-header--over-hero' : ''}${overHero && posterTheme ? ` site-header--poster-${posterTheme}` : ''}${isHome ? ' site-header--home' : ''}${pathname === '/center' ? ' site-header--dark' : ''}`}
+        className={`site-header${overHero ? ' site-header--over-hero' : ''}${overHero && posterTheme ? ` site-header--poster-${posterTheme}` : ''}${isHome ? ' site-header--home' : ''}${pathname === '/center' || pathname === '/wallpapers' ? ' site-header--dark' : ''}`}
       >
       <div className="container site-header__inner" style={{ position: 'relative' }}>
         <Link className="logo" to="/">
