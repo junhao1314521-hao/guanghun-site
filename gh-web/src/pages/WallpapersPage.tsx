@@ -17,7 +17,16 @@ import {
   type WallpaperVariant,
 } from '../api/wallpapers'
 import { useApi } from '../hooks/useApi'
+import { StarfieldBackdrop } from '../components/site/StarfieldBackdrop'
 import '../styles/wallpapers.css'
+
+/** 授权条款：逐条滚动进场，故提到数据层 */
+const LICENSE_TERMS = [
+  '个人非商业：可用于个人桌面、手机与平板壁纸，允许自行裁剪。',
+  '不得二次售卖、不得作为模板或素材包再分发。',
+  '商用（广告、影视、实体印刷）需书面授权，请通过下方入口联系。',
+  '转载保留署名「光魂 GHOSTLIGHT」与原文链接。',
+]
 
 /** 筛选值：「全部」/「原生 4K」/ 某个主题 */
 const ALL = 'all' as const
@@ -203,6 +212,8 @@ export function WallpapersPage() {
   const flipPending = useRef(false)
   const userFiltered = useRef(false)
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null)
+  const railDrag = useRef<{ el: HTMLDivElement; id: number; x: number; left: number } | null>(null)
+  const railMoved = useRef(false)
 
   const showToast = useCallback((message: string) => {
     window.clearTimeout(toastTimer.current)
@@ -368,8 +379,12 @@ export function WallpapersPage() {
     let raf = 0
     const update = () => {
       raf = 0
-      const y = Math.min(window.scrollY, hero.offsetHeight * 1.2)
-      bg.style.transform = `translate3d(0, ${(y * 0.12).toFixed(2)}px, 0) scale(1.06)`
+      const height = hero.offsetHeight || 1
+      const y = Math.min(window.scrollY, height * 1.2)
+      const p = Math.min(1, y / height)
+      // Apple 式：图片缓慢下沉并轻微放大，文字更早淡出上移（由 CSS 读取 --wp-p）
+      bg.style.transform = `translate3d(0, ${(y * 0.18).toFixed(2)}px, 0) scale(${(1.04 + p * 0.1).toFixed(3)})`
+      hero.style.setProperty('--wp-p', p.toFixed(4))
     }
     const onScroll = () => {
       if (raf) return
@@ -465,6 +480,41 @@ export function WallpapersPage() {
     }
   }
 
+  /** 轨道拖拽：按住空白/卡片横向拖动，超过 4px 才接管，松手后吞掉这次点击 */
+  const onRailDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return
+    railDrag.current = {
+      el: event.currentTarget,
+      id: event.pointerId,
+      x: event.clientX,
+      left: event.currentTarget.scrollLeft,
+    }
+  }
+
+  const onRailMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = railDrag.current
+    if (!drag || drag.id !== event.pointerId) return
+    const dx = event.clientX - drag.x
+    if (!railMoved.current && Math.abs(dx) > 4) {
+      railMoved.current = true
+      drag.el.setPointerCapture(event.pointerId)
+      drag.el.classList.add('is-dragging')
+    }
+    if (railMoved.current) drag.el.scrollLeft = drag.left - dx
+  }
+
+  const onRailUp = () => {
+    const drag = railDrag.current
+    railDrag.current = null
+    if (!drag) return
+    drag.el.classList.remove('is-dragging')
+    if (!railMoved.current) return
+    // 拖拽结束时浏览器仍会派发 click，延后一帧再解除抑制
+    window.setTimeout(() => {
+      railMoved.current = false
+    }, 0)
+  }
+
   const onStageDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest('a, button')) return
     swipe.current = { x: event.clientX, y: event.clientY, id: event.pointerId }
@@ -491,8 +541,6 @@ export function WallpapersPage() {
   }))
 
   const heroUrl = featured ? featured.previewUrl || featured.fileUrl : ''
-  const heroNo = featured ? serialOf.get(featured.id) : undefined
-  const heroSize = featured ? topVariant(featured) : null
   const filterOptions: Array<{ key: Filter; label: string; count: number }> = [
     { key: ALL, label: '全部', count: items.length },
     ...chapters.map((chapter) => ({ key: chapter.key as Filter, label: chapter.label, count: chapter.entries.length })),
@@ -513,35 +561,22 @@ export function WallpapersPage() {
             ref={heroBgRef}
             style={heroUrl ? { backgroundImage: `url(${heroUrl})` } : undefined}
           />
-          <div className="wp-hero__shade" />
         </div>
 
-        {featured && (
-          <div className="wp-hero__slip" aria-hidden="true">
-            <span>本期精选 · {featured.title}</span>
-            <span className="wp-hero__slip-no">Nº {heroNo}</span>
-          </div>
-        )}
-
-        <p className="wp-kicker">VOL.01 — 2026 / 共 {pad2(items.length)} 张</p>
         <h1 className="wp-hero__title" id="wp-hero-title">
-          把夜空
-          <br />
-          设成<em>日常</em>
+          <span className="wp-hero__line">
+            <span>把银河</span>
+          </span>
+          <span className="wp-hero__line">
+            <span>
+              装进<em>日常</em>
+            </span>
+          </span>
         </h1>
-        <div className="wp-hero__row">
-          <p className="wp-hero__meta">
-            {heroSize ? `${heroSize.width} × ${heroSize.height} · ${ratioLabel(featured!)}` : '16:9'}
-            <span className="wp-hero__dot">/</span>
-            {chapters.map((chapter) => chapter.label).join(' · ')}
-            <span className="wp-hero__dot">/</span>
-            个人非商业
-          </p>
-          <a className="wp-hero__cta" href="#wp-collection">
-            查看全部 {pad2(items.length)} 张 <span aria-hidden="true">↓</span>
-          </a>
-        </div>
+        <span className="wp-hero__cue" aria-hidden="true" />
       </section>
+
+      <StarfieldBackdrop />
 
       <div className="wp-filter" ref={filterRef}>
         <div className="wp-filter__inner">
@@ -590,20 +625,30 @@ export function WallpapersPage() {
             hidden={chapter.shown.length === 0}
             aria-labelledby={`wp-ch-${chapter.key}-title`}
           >
-            <header className="wp-chapter__head wp-rv">
-              <span className="wp-chapter__no" aria-hidden="true">
+            <header className="wp-chapter__head">
+              <span className="wp-chapter__no wp-rv" aria-hidden="true" style={{ ['--rv-d' as string]: '0ms' }}>
                 {pad2(chapterIndex + 1)}
               </span>
               <div className="wp-chapter__intro">
-                <h2 id={`wp-ch-${chapter.key}-title`}>{chapter.label}</h2>
-                <p>{chapter.desc}</p>
+                <h2 className="wp-rv" id={`wp-ch-${chapter.key}-title`} style={{ ['--rv-d' as string]: '90ms' }}>
+                  {chapter.label}
+                </h2>
+                <p className="wp-rv" style={{ ['--rv-d' as string]: '170ms' }}>
+                  {chapter.desc}
+                </p>
               </div>
-              <span className="wp-chapter__count">
+              <span className="wp-chapter__count wp-rv" style={{ ['--rv-d' as string]: '240ms' }}>
                 {pad2(chapter.shown.length)} / {pad2(chapter.entries.length)} 张
               </span>
             </header>
 
-            <div className="wp-grid">
+            <div
+              className="wp-rail"
+              onPointerDown={onRailDown}
+              onPointerMove={onRailMove}
+              onPointerUp={onRailUp}
+              onPointerCancel={onRailUp}
+            >
               {chapter.entries.map((entry) => {
                 const shown = matches(entry.item)
                 const thumb = entry.item.thumbUrl || entry.item.previewUrl || entry.item.fileUrl
@@ -615,6 +660,10 @@ export function WallpapersPage() {
                     data-wp-id={entry.item.id}
                     hidden={!shown}
                     onClick={() => {
+                      if (railMoved.current) {
+                        railMoved.current = false
+                        return
+                      }
                       const list = chapter.shown.map((visible) => visible.item)
                       const at = Math.max(0, list.findIndex((item) => item.id === entry.item.id))
                       openItem(list, at)
@@ -633,9 +682,13 @@ export function WallpapersPage() {
                       />
                     </div>
                     <div className="wp-figure__cap">
-                      <span className="wp-figure__no">Nº {entry.no}</span>
-                      <span className="wp-figure__title">{entry.item.title}</span>
-                      <span className="wp-figure__size">{entry.item.size}</span>
+                      <span className="wp-figure__no wp-rv">Nº {entry.no}</span>
+                      <span className="wp-figure__title wp-rv" style={{ ['--rv-d' as string]: '60ms' }}>
+                        {entry.item.title}
+                      </span>
+                      <span className="wp-figure__size wp-rv" style={{ ['--rv-d' as string]: '120ms' }}>
+                        {entry.item.size}
+                      </span>
                     </div>
                   </button>
                 )
@@ -645,21 +698,26 @@ export function WallpapersPage() {
         ))}
       </div>
 
-      <section className="wp-license wp-rv" aria-labelledby="wp-license-title">
+      <section className="wp-license" aria-labelledby="wp-license-title">
         <div className="wp-license__head">
-          <h2 id="wp-license-title">授权与使用</h2>
-          <span className="wp-license__mark">DL</span>
+          <h2 className="wp-rv" id="wp-license-title">授权与使用</h2>
+          <span className="wp-license__mark wp-rv" aria-hidden="true" style={{ ['--rv-d' as string]: '80ms' }}>
+            DL
+          </span>
         </div>
         <div className="wp-license__body">
           <ul>
-            <li>个人非商业：可用于个人桌面、手机与平板壁纸，允许自行裁剪。</li>
-            <li>不得二次售卖、不得作为模板或素材包再分发。</li>
-            <li>商用（广告、影视、实体印刷）需书面授权，请通过下方入口联系。</li>
-            <li>转载保留署名「光魂 GHOSTLIGHT」与原文链接。</li>
+            {LICENSE_TERMS.map((term, index) => (
+              <li key={term} className="wp-rv" style={{ ['--rv-d' as string]: `${index * 80}ms` }}>
+                {term}
+              </li>
+            ))}
           </ul>
           <div className="wp-license__sign">
-            <p>© 2026 光魂 GHOSTLIGHT — ALL WALLPAPERS CLEARED FOR PERSONAL USE</p>
-            <Link to="/inquiry">获取商用授权 →</Link>
+            <p className="wp-rv">© 2026 光魂 GHOSTLIGHT — ALL WALLPAPERS CLEARED FOR PERSONAL USE</p>
+            <Link className="wp-rv" to="/inquiry" style={{ ['--rv-d' as string]: '90ms' }}>
+              获取商用授权 →
+            </Link>
           </div>
         </div>
       </section>

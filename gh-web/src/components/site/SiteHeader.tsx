@@ -329,6 +329,10 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
         }
       } else if (isDarkPage) {
         over = true
+      } else if (pathname === '/wallpapers') {
+        // 壁纸页：首屏海报未滚出时顶栏完全透在海报上（不压灰条），滚出后回落深色磨砂
+        const hero = document.querySelector('.wp-hero')
+        over = !!hero && hero.getBoundingClientRect().bottom > HEADER_HEIGHT
       }
       setOverHero(over)
       setPosterTheme(theme)
@@ -475,7 +479,7 @@ export function SiteHeader({ lang, onLangChange, onOpenDrawer }: Props) {
       <header
         ref={headerRef}
         onBlur={closeMegaOnBlur}
-        className={`site-header${overHero ? ' site-header--over-hero' : ''}${overHero && posterTheme ? ` site-header--poster-${posterTheme}` : ''}${isHome ? ' site-header--home' : ''}${pathname === '/center' || pathname === '/wallpapers' ? ' site-header--dark' : ''}`}
+        className={`site-header${overHero ? ' site-header--over-hero' : ''}${overHero && posterTheme ? ` site-header--poster-${posterTheme}` : ''}${isHome ? ' site-header--home' : ''}${pathname === '/center' || (pathname === '/wallpapers' && !overHero) ? ' site-header--dark' : ''}${pathname === '/wallpapers' && overHero ? ' site-header--wp-over' : ''}`}
       >
       <div className="container site-header__inner" style={{ position: 'relative' }}>
         <Link className="logo" to="/">

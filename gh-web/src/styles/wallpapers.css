@@ -73,15 +73,15 @@
 .site-header--dark .search__input::placeholder { color: rgba(255, 255, 255, 0.4); }
 .site-header--dark .site-navzone { color: rgba(255, 255, 255, 0.72); }
 
-/* ---------- 首屏 ---------- */
+/* ---------- 首屏：整幅海报 + 大标题（不压暗，只在下缘接回底色） ---------- */
 .wp-hero {
   position: relative;
   z-index: 1;
-  min-height: calc(100svh - var(--wp-stack, var(--gh-header-h)));
+  min-height: clamp(500px, 74svh, 760px);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: clamp(44px, 9vh, 112px) var(--wp-pad) clamp(34px, 6vh, 72px);
+  padding: clamp(96px, 14vh, 150px) var(--wp-pad) clamp(56px, 9vh, 96px);
   overflow: hidden;
   isolation: isolate;
 }
@@ -89,103 +89,145 @@
 .wp-hero__media {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: -2;
   overflow: hidden;
+  animation: wp-media-in 1.6s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+@keyframes wp-media-in {
+  from { opacity: 0; transform: scale(1.07); }
+  to { opacity: 1; transform: none; }
 }
 
 .wp-hero__bg {
   position: absolute;
-  inset: -12% -2% -6%;
-  background-color: #101426;
+  inset: -6% 0 -2%;
+  background-color: #0a0c14;
   background-position: center;
   background-size: cover;
-  transform: scale(1.06);
+  transform: scale(1.04);
   will-change: transform;
 }
 
-.wp-hero__shade {
+/* 只在底部压一层窄渐变把海报接回页面底色，不再整幅压暗 */
+.wp-hero::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(8, 9, 13, 0.72) 0%, rgba(8, 9, 13, 0.28) 34%, rgba(8, 9, 13, 0.9) 88%, #08090d 100%),
-    linear-gradient(90deg, rgba(6, 7, 11, 0.72) 0%, transparent 58%);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(8, 9, 13, 0.55) 62%, var(--wp-bg) 100%);
 }
 
-.wp-hero__slip {
-  position: absolute;
-  top: clamp(20px, 3vh, 34px);
-  right: var(--wp-pad);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  font-family: var(--gh-font-mono);
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.48);
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-}
-.wp-hero__slip-no { color: rgba(255, 255, 255, 0.8); }
-
-.wp-kicker {
-  margin: 0 0 clamp(16px, 2.4vh, 26px);
-  font-family: var(--gh-font-mono);
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-}
-
+/* 标题两行遮罩上升；滚动时整体上移淡出（--wp-p 由脚本写入 0…1） */
 .wp-hero__title {
   margin: 0;
   font-family: "MiSans VF", var(--gh-font-sans, sans-serif);
-  font-size: clamp(52px, 8.4vw, 118px);
-  line-height: 1.02;
+  font-size: clamp(38px, 5.4vw, 76px);
+  line-height: 1.06;
   font-weight: 600;
   letter-spacing: -0.03em;
   text-wrap: balance;
+  transform: translate3d(0, calc(var(--wp-p, 0) * -60px), 0);
+  opacity: calc(1 - var(--wp-p, 0) * 1.2);
+}
+.wp-hero__line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.04em;
+}
+.wp-hero__line > span {
+  display: block;
+  opacity: 0;
+  transform: translate3d(0, 112%, 0);
+  animation: wp-line-in 1.05s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+.wp-hero__line:nth-child(1) > span { animation-delay: 0.18s; }
+.wp-hero__line:nth-child(2) > span { animation-delay: 0.32s; }
+@keyframes wp-line-in {
+  to { opacity: 1; transform: none; }
 }
 .wp-hero__title em {
   font-style: normal;
   color: var(--wp-accent);
 }
 
-.wp-hero__row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 28px;
-  margin-top: clamp(24px, 4vh, 46px);
-  padding-top: clamp(18px, 3vh, 28px);
-  border-top: 1px solid var(--wp-line-soft);
+/* 右下角一条 1px 下滑光：只做视觉提示，不写字 */
+.wp-hero__cue {
+  position: absolute;
+  right: var(--wp-pad);
+  bottom: clamp(20px, 3.4vh, 34px);
+  width: 1px;
+  height: 46px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.wp-hero__cue::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -60%;
+  width: 1px;
+  height: 60%;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.85));
+  animation: wp-cue 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes wp-cue {
+  0% { transform: translateY(0); }
+  70%, 100% { transform: translateY(280%); }
 }
 
-.wp-hero__meta {
-  margin: 0;
-  font-family: var(--gh-font-mono);
-  font-size: 10px;
-  line-height: 1.7;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+/* 首屏期顶栏完全透在海报上：不压灰底、不模糊、文字转白。
+   site.css 里「浅色主题下 over-hero 用浅磨砂 + 深字」的规则权重更高（:root 前缀），
+   故这里用同前缀 + 多一个类把壁纸页单独拉回深色方案。 */
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over,
+:root[data-theme="dark"] .site-header.site-header--wp-over {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
-.wp-hero__dot { margin: 0 0.7em; color: rgba(255, 255, 255, 0.24); }
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .logo,
+:root[data-theme="dark"] .site-header.site-header--wp-over .logo { color: #f2f3f6; }
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .site-nav a,
+:root[data-theme="dark"] .site-header.site-header--wp-over .site-nav a { color: rgba(255, 255, 255, 0.92); }
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .site-nav a:hover,
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .site-nav a.is-active,
+:root[data-theme="dark"] .site-header.site-header--wp-over .site-nav a:hover,
+:root[data-theme="dark"] .site-header.site-header--wp-over .site-nav a.is-active { color: #fff; }
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .icon-btn,
+:root[data-theme="dark"] .site-header.site-header--wp-over .icon-btn {
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .icon-btn:hover,
+:root[data-theme="dark"] .site-header.site-header--wp-over .icon-btn:hover { background: rgba(255, 255, 255, 0.08); }
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .lang__toggle,
+:root[data-theme="dark"] .site-header.site-header--wp-over .lang__toggle { color: rgba(255, 255, 255, 0.7); }
+:root:not([data-theme="dark"]) .site-header.site-header--wp-over .site-search .input,
+:root[data-theme="dark"] .site-header.site-header--wp-over .site-search .input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f2f3f6;
+}
 
-.wp-hero__cta {
-  flex: none;
-  padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.36);
-  color: var(--wp-ink);
-  font-size: 14px;
-  line-height: 1.4;
-  text-decoration: none;
-  transition: color 0.25s ease, border-color 0.25s ease;
+/* ---------- 星空背景（Canvas，取自 Center 页画法） ---------- */
+.wp-starfield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: min(190vh, 1800px);
+  z-index: 0;
+  pointer-events: none;
 }
-.wp-hero__cta:hover { color: var(--wp-accent); border-color: var(--wp-accent); }
+.wp-starfield canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /* ---------- 筛选条（吸顶在页头之下） ---------- */
 .wp-filter {
@@ -336,16 +378,32 @@
   white-space: nowrap;
 }
 
-/* 章内 3 列不等高混排：靠空白分栏，不用 1px 沟槽把图连成一片 */
-.wp-grid {
-  column-count: 3;
-  column-gap: clamp(16px, 2vw, 30px);
+/* 每章一条横向展陈轨道：按住可拖，触控板可横滑，卡片统一 16:9 */
+.wp-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(222px, 25vw, 356px);
+  gap: clamp(14px, 1.6vw, 24px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  padding-bottom: 2px;
+  touch-action: pan-x pan-y;
+}
+.wp-rail::-webkit-scrollbar { display: none; }
+.wp-rail.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
 }
 
 .wp-figure {
   display: block;
   width: 100%;
-  margin: 0 0 clamp(20px, 2.6vw, 36px);
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -353,18 +411,17 @@
   text-align: left;
   font: inherit;
   cursor: pointer;
-  break-inside: avoid;
+  scroll-snap-align: start;
 }
 .wp-figure[hidden] { display: none; }
+.wp-figure img { -webkit-user-drag: none; }
 
 .wp-figure__media {
   position: relative;
   overflow: hidden;
   background: #0d0f16;
+  aspect-ratio: 16 / 9;
 }
-.wp-figure:nth-child(3n + 1) .wp-figure__media { aspect-ratio: 16 / 9; }
-.wp-figure:nth-child(3n + 2) .wp-figure__media { aspect-ratio: 2 / 1; }
-.wp-figure:nth-child(3n) .wp-figure__media { aspect-ratio: 1.86 / 1; }
 
 .wp-figure__media img {
   display: block;
@@ -796,11 +853,13 @@
   pointer-events: none;
 }
 
-/* ---------- 出场 ---------- */
+/* ---------- 出场：全页文字/文字块统一滚动进场（--rv-d 控制同组错峰） ---------- */
 .wp-rv {
   opacity: 0;
-  transform: translateY(3px);
-  transition: opacity 0.72s var(--gh-ease-standard, ease), transform 0.72s var(--gh-ease-standard, ease);
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1) var(--rv-d, 0ms),
+    transform 0.8s cubic-bezier(0.19, 1, 0.22, 1) var(--rv-d, 0ms);
 }
 .wp-rv.is-in { opacity: 1; transform: none; }
 
@@ -814,14 +873,10 @@
 
 /* ---------- 响应式 ---------- */
 @media (max-width: 1099px) {
-  .wp-grid { column-count: 2; }
-  .wp-figure:nth-child(n) .wp-figure__media { aspect-ratio: 16 / 9; }
-  .wp-figure:nth-child(4n + 2) .wp-figure__media { aspect-ratio: 2 / 1; }
+  .wp-rail { grid-auto-columns: clamp(210px, 44vw, 320px); }
 }
 
 @media (max-width: 900px) {
-  .wp-hero__slip { display: none; }
-  .wp-hero__row { align-items: flex-start; flex-direction: column; gap: 18px; }
   .wp-filter__sum { display: none; }
   .wp-chapter__head { grid-template-columns: auto minmax(0, 1fr); }
   .wp-chapter__count { grid-column: 2; }
@@ -829,11 +884,9 @@
 }
 
 @media (max-width: 767px) {
-  .wp-grid { column-count: 1; column-rule: 0; }
-  .wp-figure:nth-child(n) .wp-figure__media { aspect-ratio: 16 / 9; }
-  .wp-figure:nth-child(2n) .wp-figure__media { aspect-ratio: 2 / 1; }
-  .wp-hero { min-height: calc(100svh - var(--wp-stack, var(--gh-header-h))); }
-  .wp-hero__title { font-size: clamp(42px, 11.6vw, 64px); }
+  .wp-rail { grid-auto-columns: 78vw; }
+  .wp-hero { min-height: clamp(440px, 68svh, 600px); }
+  .wp-hero__title { font-size: clamp(36px, 10.4vw, 56px); }
   .wp-detail__panel { grid-template-columns: 1fr; grid-template-rows: 44svh minmax(0, 1fr); }
   .wp-detail__meta { border-left: 0; border-top: 1px solid var(--wp-line-soft); }
   .wp-detail__nav { width: 38px; height: 38px; }
