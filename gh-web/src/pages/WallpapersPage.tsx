@@ -581,16 +581,17 @@ export function WallpapersPage() {
       <div className="wp-filter" ref={filterRef}>
         <div className="wp-filter__inner">
           <div className="wp-chips" role="group" aria-label="壁纸筛选">
-            {filterOptions.map((option) => (
+            {filterOptions.map((option, index) => (
               <button
                 key={option.key}
                 type="button"
                 className={`wp-chip${filter === option.key ? ' is-on' : ''}`}
+                style={{ ['--rv-d' as string]: `${index * 55}ms` }}
                 aria-pressed={filter === option.key}
                 onClick={() => changeFilter(option.key)}
               >
-                <span>{option.label}</span>
-                <span className="wp-chip__count">{pad2(option.count)}</span>
+                <span className="wp-rv">{option.label}</span>
+                <span className="wp-chip__count wp-rv">{pad2(option.count)}</span>
               </button>
             ))}
           </div>
@@ -739,8 +740,10 @@ export function WallpapersPage() {
                 })
               }}
             >
-              <span className="wp-cidx__no">{pad2(index + 1)}</span>
-              <span className="wp-cidx__label">{chapter.label}</span>
+              <span className="wp-cidx__no wp-rv">{pad2(index + 1)}</span>
+              <span className="wp-cidx__label wp-rv" style={{ ['--rv-d' as string]: '70ms' }}>
+                {chapter.label}
+              </span>
             </a>
           ))}
       </nav>
