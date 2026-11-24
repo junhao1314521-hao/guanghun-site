@@ -39,6 +39,7 @@ function platformLabel(t: (key: string, vars?: Record<string, string | number>) 
   if (label.includes('小红书')) return t('footer.platform.rednote')
   if (label.includes('B站') || label.toLowerCase().includes('bilibili')) return t('footer.platform.bilibili')
   if (label.includes('抖音')) return t('footer.platform.douyin')
+  if (label.includes('微博') || label.toLowerCase().includes('weibo')) return t('footer.platform.weibo')
   return label
 }
 
@@ -68,7 +69,8 @@ function SocialEntry({ item, open, onEnter, onLeave, onToggle, onFocusOpen, onBl
   // 浮层对齐：shift = 相对居中位置的横向偏移（px）；arrow = 箭头距浮层左边缘（px）
   const [align, setAlign] = useState<{ shift: number; arrow: number }>({ shift: 0, arrow: 0 })
 
-  const icon = socialIcon(item.label)
+  // 图标按「当前语言展示名」匹配：英文站未映射的平台回退首字母（W），不再露出中文字符
+  const icon = socialIcon(name)
   // 小红书字标较宽，单独给更宽的热区，避免图标被 38px 槽位压缩
   const wide = isXhsLabel(item.label)
 

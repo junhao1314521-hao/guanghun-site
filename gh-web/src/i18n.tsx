@@ -95,6 +95,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'footer.platform.rednote': '小红书',
     'footer.platform.bilibili': 'B站',
     'footer.platform.douyin': '抖音',
+    'footer.platform.weibo': '微博',
 
     // —— 右下角悬浮按钮组 ——
     'fab.top': '返回顶部',
@@ -407,6 +408,7 @@ const MESSAGES: Record<LangCode, Record<string, string>> = {
     'footer.platform.rednote': 'Xiaohongshu',
     'footer.platform.bilibili': 'Bilibili',
     'footer.platform.douyin': 'Douyin',
+    'footer.platform.weibo': 'Weibo',
 
     // —— Floating action buttons (bottom-right) ——
     'fab.top': 'Back to top',
