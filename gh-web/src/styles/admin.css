@@ -3805,3 +3805,59 @@ html[data-admin] .spec-cell .btn--sm { height: var(--adm-control-h-sm); }
   .venues-map-list { flex-direction: row; max-height: none; overflow-x: auto; }
   .venues-map-list__item { min-width: 180px; }
 }
+
+/* ---------- 天梯与测评 · 型号图片 ---------- */
+.ladder-images {
+  display: grid;
+  gap: 16px;
+}
+.ladder-images__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--line, #e6e6ea);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+}
+.ladder-images__head label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.ladder-images__head select { min-width: 220px; }
+.ladder-images__head p { margin: 0; font-size: 12px; color: var(--muted, #6b6b76); }
+.ladder-images__state { margin: 0; font-size: 13px; color: var(--muted, #6b6b76); }
+.ladder-images__state.is-error { color: #c0392b; }
+.ladder-images__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border: 1px solid var(--line, #e6e6ea); border-radius: 10px; overflow: hidden; background: var(--surface, #fff); }
+.ladder-images__row {
+  display: grid;
+  grid-template-columns: 72px minmax(120px, 180px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft, #efeff3);
+  position: relative;
+}
+.ladder-images__row:last-child { border-bottom: 0; }
+.ladder-images__thumb {
+  width: 72px; height: 46px;
+  display: grid; place-items: center;
+  background: #10131c;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ladder-images__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ladder-images__thumb em { font-style: normal; font-size: 11px; color: #7e8496; }
+.ladder-images__meta { display: grid; gap: 2px; min-width: 0; }
+.ladder-images__meta strong { font-size: 13px; }
+.ladder-images__meta small { font-size: 11px; color: var(--muted, #6b6b76); }
+.ladder-images__input { width: 100%; min-width: 0; }
+.ladder-images__actions { display: flex; gap: 8px; }
+.ladder-images__actions button { font-size: 12px; padding: 5px 10px; }
+.ladder-images__actions button.is-ghost { background: transparent; }
+.ladder-images__error { grid-column: 2 / -1; font-size: 11px; color: #c0392b; }
+.ladder-images__ok { position: absolute; right: 14px; bottom: 6px; font-size: 11px; color: #1f8a4c; }
+@media (max-width: 860px) {
+  .ladder-images__row { grid-template-columns: 56px minmax(0, 1fr); }
+  .ladder-images__thumb { width: 56px; height: 36px; }
+  .ladder-images__input { grid-column: 1 / -1; }
+  .ladder-images__actions { grid-column: 1 / -1; }
+}

@@ -10,13 +10,15 @@ import { adminResource } from '../../data/adminResources'
 import { AdminPageHead } from '../../components/admin/AdminPageHead'
 import { ResourceListBody } from '../../pages/admin/AdminResourceListPage'
 import { AdminRankingsImportPage } from '../../pages/admin/AdminRankingsImportPage'
+import { AdminRankingsImagesView } from './AdminRankingsImagesView'
 
-type RankingsTab = 'rankings' | 'test-records' | 'methods' | 'import'
+type RankingsTab = 'rankings' | 'test-records' | 'methods' | 'images' | 'import'
 
 const TABS: Array<{ key: RankingsTab; label: string }> = [
   { key: 'rankings', label: '天梯榜' },
   { key: 'test-records', label: '测试记录' },
   { key: 'methods', label: '测评方法' },
+  { key: 'images', label: '型号图片' },
   { key: 'import', label: '数据导入' },
 ]
 
@@ -49,6 +51,8 @@ export function AdminRankingsHubView() {
 
       {tab === 'import' ? (
         <AdminRankingsImportPage embedded />
+      ) : tab === 'images' ? (
+        <AdminRankingsImagesView />
       ) : resource ? (
         <ResourceListBody key={resource.key} resource={resource} embedded />
       ) : null}

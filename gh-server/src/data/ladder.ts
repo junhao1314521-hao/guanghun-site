@@ -19,6 +19,8 @@ export type LadderRow = {
   inf?: boolean
   /** 关联产品 id（可点进产品详情；无详情页的型号省略） */
   productId?: string
+  /** 后台维护：型号产品图（站内路径或 http(s)；缺省时回落到关联产品的封面） */
+  imageUrl?: string
   /** 后台维护：开启后该行不在前台展示（缺省视为展示） */
   hidden?: boolean
 }

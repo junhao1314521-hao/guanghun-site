@@ -77,11 +77,16 @@
 .wp-hero {
   position: relative;
   z-index: 1;
-  min-height: clamp(500px, 74svh, 760px);
+  /* 向上顶进公告条 + 顶栏，让海报真正铺到页面最顶部（顶栏只是浮在上面） */
+  margin-top: calc(-1 * var(--wp-stack, 0px));
+  padding-top: calc(var(--wp-stack, 0px) + clamp(96px, 14vh, 150px));
+  min-height: calc(var(--wp-stack, 0px) + clamp(500px, 74svh, 760px));
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: clamp(96px, 14vh, 150px) var(--wp-pad) clamp(56px, 9vh, 96px);
+  padding-right: var(--wp-pad);
+  padding-bottom: clamp(56px, 9vh, 96px);
+  padding-left: var(--wp-pad);
   overflow: hidden;
   isolation: isolate;
 }

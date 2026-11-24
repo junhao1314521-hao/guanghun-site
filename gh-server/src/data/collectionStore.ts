@@ -260,7 +260,18 @@ export function isCollectionKey(key: string): key is CollectionKey {
 function applyEnOverlay(key: CollectionKey, record: Record<string, unknown>, locale: Locale): Record<string, unknown> {
   if (locale !== 'en') return record
   const overlay = enOverlays()[key]?.[String(record.id)]
-  return overlay ? { ...record, ...overlay } : record
+  if (!overlay) return record
+  const merged: Record<string, unknown> = { ...record, ...overlay }
+  // 天梯榜的产品图是运营维护项、与语言无关：英文覆盖层只翻了文案，图片按型号从原始行回填
+  if (key === 'rankings') {
+    const baseRows = (record.rows as Array<{ model: string; imageUrl?: string }> | undefined) ?? []
+    const rows = (merged.rows as Array<{ model: string; imageUrl?: string }> | undefined) ?? []
+    const images = new Map(baseRows.filter((row) => row.imageUrl).map((row) => [row.model, row.imageUrl as string]))
+    if (images.size > 0) {
+      merged.rows = rows.map((row) => (images.has(row.model) ? { ...row, imageUrl: images.get(row.model) } : row))
+    }
+  }
+  return merged
 }
 
 /** 列出某集合全部记录（规范形状；按 sort 升序，sort 越小越靠前 / 越新）。

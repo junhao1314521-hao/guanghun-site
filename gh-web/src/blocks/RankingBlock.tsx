@@ -50,6 +50,32 @@ function rankWithinScope(rows: LadderRow[]): { row: LadderRow; rank: string; tie
   return rows.map((row, index) => ({ row, rank: String(index + 1).padStart(2, '0'), tied: false }))
 }
 
+/** 行缩略图：后台配的型号图优先，其次关联产品封面，最后交给 MediaImg 的占位兜底 */
+function rowThumb(row: LadderRow): string {
+  return row.imageUrl || (row.productId ? MEDIA.product[row.productId] ?? '' : '')
+}
+
+/**
+ * 榜单缩略图：有真实图（后台配置或产品封面）就显示图片；
+ * 没有素材时用「品牌首字 + 品牌名」的深色铭牌兜底，避免出现空白 / 动画占位块。
+ * 真实图片由后台「天梯与测评 → 型号图片」逐型号上传或填地址。
+ */
+function RankThumb({ row, className }: { row: LadderRow; className: string }) {
+  const src = rowThumb(row)
+  return (
+    <span className={className} aria-hidden="true">
+      {src ? (
+        <MediaImg src={src} alt="" />
+      ) : (
+        <span className="rank-ph">
+          <b>{row.name.slice(0, 1).toUpperCase()}</b>
+          <small>{row.name}</small>
+        </span>
+      )}
+    </span>
+  )
+}
+
 /** 领奖台：取前三名（仅已测试），以「2 - 1 - 3」视觉顺序排列，冠军居中抬高 */
 function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
   const { isHrefLive } = useSitePages()
@@ -65,9 +91,7 @@ function Podium({ metric, rows }: { metric: LadderMetric; rows: LadderRow[] }) {
       {order.map(({ row, place }) => (
         <div className={`podium__col podium__col--${place}`} key={row.model}>
           <div className="podium__card">
-            <span className="podium__thumb" aria-hidden="true">
-              <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
-            </span>
+            <RankThumb row={row} className="podium__thumb" />
             {row.productId && isHrefLive(`/products/${row.productId}`) ? (
               <Link className="podium__model" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
                 {row.model}
@@ -130,9 +154,7 @@ function LadderRows({
             key={row.model}
           >
             <span className={`ladder__rank${top ? ' ladder__rank--top' : ''}`}>{rank}</span>
-            <span className="ladder__thumb" aria-hidden="true">
-              <MediaImg src={row.productId ? MEDIA.product[row.productId] ?? '' : ''} alt="" />
-            </span>
+            <RankThumb row={row} className="ladder__thumb" />
             {row.productId && isHrefLive(`/products/${row.productId}`) ? (
               <Link className="ladder__model ladder__model--link" to={`/products/${row.productId}`} title={`查看 ${row.model} 产品详情`}>
                 {row.model}

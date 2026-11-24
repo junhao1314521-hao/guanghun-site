@@ -40,6 +40,8 @@ type CleanRow = {
   score: number | null
   inf: boolean
   productId?: string
+  /** 追加导入时沿用既有行的产品图 */
+  imageUrl?: string
   /** 追加导入时沿用既有行的前台隐藏标记，避免导入后原本隐藏的行重新出现 */
   hidden?: boolean
 }
@@ -169,24 +171,71 @@ rankingsImportRouter.post(
       return
     }
 
-    // 追加模式：保留旧行，同型号以新行覆盖；隐藏是运营标记，不随测量数据导入被重置
+    // 追加模式：保留旧行，同型号以新行覆盖；隐藏与产品图是运营维护项，不随测量数据导入被重置
+    const existing = getCollectionItem('rankings', metric.id)?.rows ?? []
+    const imageBefore = new Map(existing.filter((row) => row.imageUrl).map((row) => [row.model, row.imageUrl as string]))
     let merged = clean
     if (body.mode === 'append') {
-      const existing = getCollectionItem('rankings', metric.id)?.rows ?? []
       const incoming = new Map(clean.map((row) => [row.model, row]))
       const kept: CleanRow[] = existing
         .filter((row) => !incoming.has(row.model))
-        .map((row) => ({ model: row.model, name: row.name, score: row.score, inf: Boolean(row.inf), productId: row.productId, hidden: row.hidden === true }))
+        .map((row) => ({
+          model: row.model,
+          name: row.name,
+          score: row.score,
+          inf: Boolean(row.inf),
+          productId: row.productId,
+          imageUrl: row.imageUrl,
+          hidden: row.hidden === true,
+        }))
       const hiddenBefore = new Map(existing.filter((row) => row.hidden).map((row) => [row.model, true]))
       merged = [...kept, ...clean.map((row) => (hiddenBefore.has(row.model) ? { ...row, hidden: true } : row))]
     }
 
     const rows = rerank(merged, metric.better)
-    updateCollectionItem('rankings', metric.id, { rows })
+    // 按型号把既有产品图带回到新行（重导数据不应清掉后台配好的图）
+    const withImages = rows.map((row) => (imageBefore.has(row.model) ? { ...row, imageUrl: imageBefore.get(row.model) } : row))
+    updateCollectionItem('rankings', metric.id, { rows: withImages })
     res.json({
       ok: true,
       imported: clean.length,
-      metric: { id: metric.id, label: metric.label, total: rows.length },
+      metric: { id: metric.id, label: metric.label, total: withImages.length },
     })
+  },
+)
+
+/**
+ * 型号产品图：给某榜单里的某个型号设置 / 清除缩略图。
+ * body { metric: string, model: string, imageUrl?: string }；imageUrl 为空即清除，前台回落到关联产品封面。
+ */
+rankingsImportRouter.patch(
+  '/rankings/rows/image',
+  requireSession,
+  requireScope('content'),
+  auditWrite('update-rankings-image', (req) => String((req.body as { model?: unknown })?.model ?? '')),
+  (req, res) => {
+    const body = (req.body ?? {}) as { metric?: unknown; model?: unknown; imageUrl?: unknown }
+    const metric = findMetric(listCollection('rankings'), text(body.metric))
+    if (!metric) {
+      res.status(400).json({ error: '请选择有效的榜单指标' })
+      return
+    }
+    const model = text(body.model)
+    if (!model) {
+      res.status(400).json({ error: '缺少型号' })
+      return
+    }
+    if (!metric.rows.some((row) => row.model === model)) {
+      res.status(404).json({ error: '该榜单中没有这个型号' })
+      return
+    }
+    const imageUrl = text(body.imageUrl)
+    if (imageUrl && !/^(https?:\/\/|\/)/.test(imageUrl)) {
+      res.status(400).json({ error: '图片地址需为站内路径（/uploads/…）或 http(s) 链接' })
+      return
+    }
+    const rows = metric.rows.map((row) => (row.model === model ? { ...row, imageUrl: imageUrl || undefined } : row))
+    updateCollectionItem('rankings', metric.id, { rows })
+    res.json({ ok: true, rows })
   },
 )

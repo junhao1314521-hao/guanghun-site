@@ -88,8 +88,8 @@ const SITE: SiteConfig = {
   // —— 顶栏公告条（后台可改文案 / 链接 / 定时 / 是否可关闭）——
   announcement: {
     enabled: true,
-    text: '27X1QE 第四代 W-OLED 旗舰上市 · 预约到店体验新品',
-    href: '/business/venues',
+    text: '27X1QE-W54 闪电 540Hz W-OLED 旗舰 · 官网与授权电商平台在售',
+    href: '/products/gh-54027x1qe',
     dismissible: true,
   },
   // —— 顶栏右侧行动按钮：按反馈默认不放 CTA（顶栏更干净）；
