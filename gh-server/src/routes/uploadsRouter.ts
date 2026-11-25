@@ -1,7 +1,7 @@
 import express, { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express'
 import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload, uploadPipeline, type SaveUploadResult } from '../data/uploadStore'
 import { CHUNK_SIZE, assembleChunks, chunkUploadMeta, chunkUploadStatus, initChunkUpload, putChunk, removeChunkUpload } from '../data/chunkStore'
-import { IMAGE_PIPELINE_VERSION, generateImageVariants, normalizeOversizeImage } from '../data/imageVariants'
+import { IMAGE_PIPELINE_VERSION, convertImageToExtension, generateImageVariants, normalizeOversizeImage } from '../data/imageVariants'
 import { mediaReferenceCounts, referencesToUrl } from '../data/pageRefs'
 import {
   createFolder,
@@ -125,6 +125,12 @@ function fileExt(value: string): string {
   return idx > 0 ? value.slice(idx + 1).toLowerCase() : ''
 }
 
+/** 去掉扩展名的基名（同名替换按基名匹配，兼容 jpg / png / webp 换格式重传） */
+function fileBase(value: string): string {
+  const idx = value.lastIndexOf('.')
+  return idx > 0 ? value.slice(0, idx) : value
+}
+
 /**
  * 在已有素材的原地址上重建主图与变体（URL 不变，所有引用自动生效）。
  * 用于「参数升级后重新上传」：不新增重复素材，也不继续复用旧画质的成品。
@@ -183,13 +189,25 @@ async function finishUpload(
       return
     }
   }
-  // 同名同扩展名：运营重新上传新版文件（如原图替换早前被压小的成品），原地更新而不是新增副本
+  // 同名（忽略扩展名）：运营重新上传新版文件（如原图替换早前被压小的成品），原地更新而不是新增副本。
+  // 扩展名不同时先转成旧素材的格式，保证原 URL 后缀与内容一致。
   const sameName = listUploads()
-    .filter((entry) => entry.id !== item.id && entry.name === item.name)
+    .filter((entry) => entry.id !== item.id && fileBase(entry.name) === fileBase(item.name))
     .map((entry) => mediaItem(entry))
-    .find((entry) => entry.folderId === item.folderId && fileExt(entry.id) === fileExt(item.id))
+    .find((entry) => entry.folderId === item.folderId)
   if (sameName) {
-    const upgraded = await upgradeExistingAsset(sameName.id, uploadBytes, uploadMime)
+    let replaceBytes = uploadBytes
+    let replaceMime = uploadMime
+    if (fileExt(sameName.id) !== fileExt(item.id)) {
+      const converted = await convertImageToExtension(uploadBytes, item.name, fileExt(sameName.id))
+      if (converted?.ok) {
+        replaceBytes = converted.bytes
+        replaceMime = converted.mime
+      }
+    }
+    const upgraded = replaceBytes === uploadBytes && fileExt(sameName.id) !== fileExt(item.id)
+      ? null
+      : await upgradeExistingAsset(sameName.id, replaceBytes, replaceMime)
     if (upgraded) {
       deleteUpload(item.id)
       res.status(201).json({ item: upgraded, reused: true, replaced: true, duplicateOf: upgraded.name })

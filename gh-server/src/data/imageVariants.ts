@@ -114,6 +114,46 @@ export async function generateImageVariants(item: UploadItem): Promise<MediaVari
   }
 }
 
+/**
+ * 把图片转成指定扩展名的格式（用于「同名上传但扩展名不同」的原地替换）。
+ * 目标格式仅支持 webp / jpg / jpeg / png；失败或非位图返回 null。
+ */
+export async function convertImageToExtension(
+  bytes: Buffer,
+  name: string,
+  targetExt: string,
+): Promise<NormalizedImage | null> {
+  const ext = targetExt.toLowerCase()
+  if (!BITMAP_EXTS.has(ext) || ext === 'gif') return null
+  try {
+    const sharp = (await import('sharp')).default
+    const metadata = await sharp(bytes).metadata()
+    const width = metadata.width ?? 0
+    const height = metadata.height ?? 0
+    if (width > 0 && height > 0 && width * height > MAX_PIXELS) {
+      return { ok: false, status: 413, error: `图片分辨率过大（${width}×${height}），请先缩小后再上传` }
+    }
+    if ((metadata.pages ?? 1) > 1) return null
+    const pipeline = sharp(bytes).resize({
+      width: NORMALIZE_MAX_EDGE,
+      height: NORMALIZE_MAX_EDGE,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    const output =
+      ext === 'webp'
+        ? await pipeline.webp({ quality: NORMALIZE_QUALITY }).toBuffer()
+        : ext === 'png'
+          ? await pipeline.png({ compressionLevel: 9 }).toBuffer()
+          : await pipeline.jpeg({ quality: 92, mozjpeg: true }).toBuffer()
+    const mime = ext === 'webp' ? 'image/webp' : ext === 'png' ? 'image/png' : 'image/jpeg'
+    return { ok: true, bytes: output, name: `${stripExt(name)}.${ext}`, mime, compressed: true }
+  } catch (error) {
+    logger.warn('同名素材格式转换失败：保留新文件', { name, targetExt, error: String(error) })
+    return null
+  }
+}
+
 /** 归一化结果：压缩成功返回新字节/文件名，无需压缩或失败时保留原样 */
 export type NormalizedImage =
   | { ok: true; bytes: Buffer; name: string; mime: string; compressed: boolean }
