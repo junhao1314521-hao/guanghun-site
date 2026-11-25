@@ -12,7 +12,8 @@
   --wp-line: rgba(255, 255, 255, 0.16);
   --wp-line-soft: rgba(255, 255, 255, 0.08);
   --wp-accent: #8f9bff;
-  --wp-pad: clamp(20px, 4.2vw, 72px);
+  /* 与站点顶栏 .container 完全同一套左右留白，首屏文案才能和导航左边缘对齐 */
+  --wp-pad: var(--gh-space-4);
   --wp-max: 1440px;
   position: relative;
   background: var(--wp-bg);
@@ -20,6 +21,10 @@
   overflow-x: clip;
   /* 页面级基色：噪点与两束冷光，均由伪元素铺满整页 */
 }
+
+/* 左右留白严格跟随顶栏容器（16 / 32 / 48），保证文案与 LOGO、导航同一列起步 */
+@media (min-width: 768px) { .wp-page { --wp-pad: var(--gh-space-6); } }
+@media (min-width: 1024px) { .wp-page { --wp-pad: var(--gh-space-7); } }
 
 .wp-page::before {
   content: "";
@@ -126,14 +131,21 @@
   background: linear-gradient(180deg, transparent 0%, rgba(8, 9, 13, 0.55) 62%, var(--wp-bg) 100%);
 }
 
-/* 标题两行遮罩上升；滚动时整体上移淡出（--wp-p 由脚本写入 0…1） */
+/* 首屏内容与顶栏共用 1440 容器：扣除左右留白后居中，宽屏下与 LOGO 左边缘严格同列 */
+.wp-hero__inner {
+  width: 100%;
+  max-width: calc(var(--wp-max) - var(--wp-pad) * 2);
+  margin: 0 auto;
+}
+
+/* 标题一行遮罩上升；滚动时整体上移淡出（--wp-p 由脚本写入 0…1） */
 .wp-hero__title {
   margin: 0;
   font-family: "MiSans VF", var(--gh-font-sans, sans-serif);
-  font-size: clamp(38px, 5.4vw, 76px);
-  line-height: 1.06;
+  font-size: clamp(42px, 9vw, 104px);
+  line-height: 0.98;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.045em;
   text-wrap: balance;
   transform: translate3d(0, calc(var(--wp-p, 0) * -60px), 0);
   opacity: calc(1 - var(--wp-p, 0) * 1.2);
@@ -252,7 +264,6 @@
   padding: 0 var(--wp-pad);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
   min-height: 54px;
 }
@@ -287,22 +298,6 @@
 }
 .wp-chip:hover { color: rgba(255, 255, 255, 0.82); }
 .wp-chip.is-on { color: var(--wp-ink); border-bottom-color: var(--wp-accent); }
-.wp-chip__count {
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.32);
-}
-.wp-chip.is-on .wp-chip__count { color: var(--wp-accent); }
-
-.wp-filter__sum {
-  flex: none;
-  margin: 0;
-  font-family: var(--gh-font-mono);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.34);
-}
 
 /* ---------- 集合（章节 + 库层网格） ---------- */
 .wp-collection {
@@ -343,21 +338,13 @@
 }
 
 .wp-chapter__head {
-  display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
-  align-items: end;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: clamp(20px, 3vw, 48px);
   padding-bottom: 22px;
   margin-bottom: clamp(20px, 3vh, 34px);
   border-bottom: 1px solid var(--wp-line);
-}
-
-.wp-chapter__no {
-  font-family: var(--gh-font-mono);
-  font-size: clamp(38px, 5.4vw, 74px);
-  line-height: 0.8;
-  letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.2);
 }
 
 .wp-chapter__intro h2 {
@@ -373,15 +360,6 @@
   font-size: 14px;
   line-height: 1.7;
   color: var(--wp-muted);
-}
-
-.wp-chapter__count {
-  font-family: var(--gh-font-mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.36);
-  white-space: nowrap;
 }
 
 /* 每章一条横向展陈轨道：按住可拖，触控板可横滑，卡片统一 16:9 */
@@ -435,27 +413,23 @@
   height: 100%;
   object-fit: cover;
   filter: brightness(0.92);
-  transition: filter 0.5s ease, transform 0.7s var(--gh-ease-standard, ease);
+  transition: filter 0.5s ease, transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 }
-/* 悬停只提亮，不弹跳、不位移 */
+/* 悬停：画面轻微放大并提亮，给出「可点开」的反馈 */
 .wp-figure:hover .wp-figure__media img,
-.wp-figure:focus-visible .wp-figure__media img { filter: brightness(1.08); }
+.wp-figure:focus-visible .wp-figure__media img {
+  filter: brightness(1.08);
+  transform: scale(1.05);
+}
 
 .wp-figure__cap {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 12px;
   margin-top: 12px;
   padding: 9px 0 0;
   border-top: 1px solid var(--wp-line-soft);
-}
-
-.wp-figure__no {
-  font-family: var(--gh-font-mono);
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.36);
 }
 
 .wp-figure__title {
@@ -478,7 +452,7 @@
 .wp-figure.is-feat .wp-figure__cap {
   background: linear-gradient(90deg, rgba(143, 155, 255, 0.08), transparent 62%);
 }
-.wp-figure.is-feat .wp-figure__no { color: var(--wp-accent); }
+.wp-figure.is-feat .wp-figure__title { color: #fff; }
 
 /* ---------- 章节索引 ---------- */
 .wp-cidx {
@@ -511,8 +485,6 @@
 }
 .wp-cidx a:hover { color: rgba(255, 255, 255, 0.72); }
 .wp-cidx a.is-on { color: var(--wp-ink); }
-.wp-cidx a.is-on .wp-cidx__no { color: var(--wp-accent); }
-.wp-cidx__no { font-size: 9px; }
 .wp-cidx__label { white-space: nowrap; }
 
 /* ---------- 授权 ---------- */
@@ -883,16 +855,13 @@
 }
 
 @media (max-width: 900px) {
-  .wp-filter__sum { display: none; }
-  .wp-chapter__head { grid-template-columns: auto minmax(0, 1fr); }
-  .wp-chapter__count { grid-column: 2; }
   .wp-license__body { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 767px) {
   .wp-rail { grid-auto-columns: 78vw; }
   .wp-hero { min-height: clamp(440px, 68svh, 600px); }
-  .wp-hero__title { font-size: clamp(36px, 10.4vw, 56px); }
+  .wp-hero__title { font-size: clamp(40px, 11vw, 56px); }
   .wp-detail__panel { grid-template-columns: 1fr; grid-template-rows: 44svh minmax(0, 1fr); }
   .wp-detail__meta { border-left: 0; border-top: 1px solid var(--wp-line-soft); }
   .wp-detail__nav { width: 38px; height: 38px; }
@@ -911,6 +880,8 @@
   }
   .wp-rv { opacity: 1; transform: none; }
   .wp-hero__bg { transform: none; }
+  .wp-figure:hover .wp-figure__media img,
+  .wp-figure:focus-visible .wp-figure__media img { transform: none; }
 }
 
 /* ---------- 页脚：本页沿用暗场，避免黑白硬切 ---------- */

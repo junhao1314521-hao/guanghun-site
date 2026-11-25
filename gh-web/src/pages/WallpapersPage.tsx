@@ -55,10 +55,6 @@ function onImgError(event: React.SyntheticEvent<HTMLImageElement>) {
   img.src = FALLBACK_IMAGE
 }
 
-function pad2(value: number): string {
-  return String(value).padStart(2, '0')
-}
-
 /** 可用下载尺寸；老数据没有 variants 时回落到原图单档 */
 function variantsOf(item: WallpaperItem): WallpaperVariant[] {
   if (item.variants && item.variants.length > 0) return item.variants
@@ -146,12 +142,12 @@ function DownloadIcon() {
   )
 }
 
-/** 一章 = 一个主题；条目自带全局编号，筛选时编号不重排 */
+/** 一章 = 一个主题 */
 type Chapter = {
   key: WallpaperTheme
   label: string
   desc: string
-  entries: Array<{ item: WallpaperItem; no: string }>
+  entries: WallpaperItem[]
 }
 
 export function WallpapersPage() {
@@ -163,13 +159,12 @@ export function WallpapersPage() {
   const heroBgRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
-  /** 章节：主题顺序由接口下发；章内精选置顶；编号跨章连续 */
+  /** 章节：主题顺序由接口下发；章内精选置顶 */
   const chapters = useMemo<Chapter[]>(() => {
     const metas = payload.data?.themes ?? []
     const keys = metas.filter((meta) => meta.count > 0).map((meta) => meta.key)
     const ordered = keys.length > 0 ? keys : [...new Set(items.map((item) => item.theme))]
 
-    let serial = 0
     return ordered.map((key) => {
       const meta = metas.find((entry) => entry.key === key)
       const list = items
@@ -179,7 +174,7 @@ export function WallpapersPage() {
         key,
         label: meta?.label ?? key,
         desc: meta?.desc ?? '',
-        entries: list.map((item) => ({ item, no: pad2(++serial) })),
+        entries: list,
       }
     })
   }, [items, payload.data])
@@ -188,12 +183,6 @@ export function WallpapersPage() {
     () => items.find((item) => item.featured) ?? items[0] ?? null,
     [items],
   )
-
-  const serialOf = useMemo(() => {
-    const map = new Map<string, string>()
-    chapters.forEach((chapter) => chapter.entries.forEach((entry) => map.set(entry.item.id, entry.no)))
-    return map
-  }, [chapters])
 
   const fourKCount = useMemo(() => items.filter(hasFourK).length, [items])
 
@@ -214,6 +203,8 @@ export function WallpapersPage() {
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null)
   const railDrag = useRef<{ el: HTMLDivElement; id: number; x: number; left: number } | null>(null)
   const railMoved = useRef(false)
+  // 轨道贴边自动滑动：指针停在左右边缘时持续滚动，移开即停
+  const edgeScroll = useRef<{ el: HTMLDivElement; dir: 1 | -1; speed: number; raf: number } | null>(null)
 
   const showToast = useCallback((message: string) => {
     window.clearTimeout(toastTimer.current)
@@ -317,7 +308,7 @@ export function WallpapersPage() {
   // 首屏：当筛选收窄时，把章节索引落到第一个可见章
   useEffect(() => {
     const visible = chapters.filter((chapter) =>
-      chapter.entries.some((entry) => matches(entry.item)),
+      chapter.entries.some((item) => matches(item)),
     )
     if (visible.length > 0 && !visible.some((chapter) => chapter.key === activeChapter)) {
       setActiveChapter(visible[0].key)
@@ -480,9 +471,62 @@ export function WallpapersPage() {
     }
   }
 
+  /** 停止贴边自动滑动 */
+  const stopEdgeScroll = () => {
+    const state = edgeScroll.current
+    if (!state) return
+    window.cancelAnimationFrame(state.raf)
+    edgeScroll.current = null
+  }
+
+  /** 贴边滑动的逐帧推进；到头即停，避免空转 */
+  const tickEdgeScroll = () => {
+    const state = edgeScroll.current
+    if (!state) return
+    const max = state.el.scrollWidth - state.el.clientWidth
+    const next = Math.min(max, Math.max(0, state.el.scrollLeft + state.dir * state.speed))
+    state.el.scrollLeft = next
+    if ((state.dir < 0 && next <= 0) || (state.dir > 0 && next >= max)) {
+      stopEdgeScroll()
+      return
+    }
+    state.raf = window.requestAnimationFrame(tickEdgeScroll)
+  }
+
+  /** 指针进入轨道左右边缘区时持续滑动，越靠边越快；离开边缘区即停 */
+  const updateEdgeScroll = (el: HTMLDivElement, clientX: number) => {
+    const rect = el.getBoundingClientRect()
+    const zone = Math.min(96, rect.width * 0.16)
+    const x = clientX - rect.left
+    const max = el.scrollWidth - el.clientWidth
+    let dir: 1 | -1 | 0 = 0
+    if (x >= 0 && x < zone && el.scrollLeft > 0) dir = -1
+    else if (x <= rect.width && x > rect.width - zone && el.scrollLeft < max - 1) dir = 1
+    if (dir === 0) {
+      stopEdgeScroll()
+      return
+    }
+    const depth =
+      dir === -1 ? 1 - Math.min(zone, Math.max(0, x)) / zone : 1 - Math.min(zone, Math.max(0, rect.width - x)) / zone
+    const speed = 3 + Math.min(1, Math.max(0, depth)) * 11
+    const state = edgeScroll.current
+    if (state && state.el === el && state.dir === dir) {
+      state.speed = speed
+      return
+    }
+    stopEdgeScroll()
+    const next = { el, dir, speed, raf: 0 }
+    edgeScroll.current = next
+    next.raf = window.requestAnimationFrame(tickEdgeScroll)
+  }
+
+  // 卸载 / 路由离开时停掉贴边滚动
+  useEffect(() => () => stopEdgeScroll(), [])
+
   /** 轨道拖拽：按住空白/卡片横向拖动，超过 4px 才接管，松手后吞掉这次点击 */
   const onRailDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
+    stopEdgeScroll()
     railDrag.current = {
       el: event.currentTarget,
       id: event.pointerId,
@@ -493,7 +537,10 @@ export function WallpapersPage() {
 
   const onRailMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const drag = railDrag.current
-    if (!drag || drag.id !== event.pointerId) return
+    if (!drag || drag.id !== event.pointerId) {
+      if (event.pointerType === 'mouse') updateEdgeScroll(event.currentTarget, event.clientX)
+      return
+    }
     const dx = event.clientX - drag.x
     if (!railMoved.current && Math.abs(dx) > 4) {
       railMoved.current = true
@@ -537,14 +584,14 @@ export function WallpapersPage() {
 
   const visibleChapters = chapters.map((chapter) => ({
     ...chapter,
-    shown: chapter.entries.filter((entry) => matches(entry.item)),
+    shown: chapter.entries.filter((item) => matches(item)),
   }))
 
   const heroUrl = featured ? featured.previewUrl || featured.fileUrl : ''
-  const filterOptions: Array<{ key: Filter; label: string; count: number }> = [
-    { key: ALL, label: '全部', count: items.length },
-    ...chapters.map((chapter) => ({ key: chapter.key as Filter, label: chapter.label, count: chapter.entries.length })),
-    ...(fourKCount > 0 ? [{ key: FOUR_K as Filter, label: '原生 4K', count: fourKCount }] : []),
+  const filterOptions: Array<{ key: Filter; label: string }> = [
+    { key: ALL, label: '全部' },
+    ...chapters.map((chapter) => ({ key: chapter.key as Filter, label: chapter.label })),
+    ...(fourKCount > 0 ? [{ key: FOUR_K as Filter, label: '原生 4K' }] : []),
   ]
 
   return (
@@ -563,16 +610,15 @@ export function WallpapersPage() {
           />
         </div>
 
-        <h1 className="wp-hero__title" id="wp-hero-title">
-          <span className="wp-hero__line">
-            <span>把银河</span>
-          </span>
-          <span className="wp-hero__line">
-            <span>
-              装进<em>日常</em>
+        <div className="wp-hero__inner">
+          <h1 className="wp-hero__title" id="wp-hero-title">
+            <span className="wp-hero__line">
+              <span>
+                光魂<em>壁纸</em>
+              </span>
             </span>
-          </span>
-        </h1>
+          </h1>
+        </div>
         <span className="wp-hero__cue" aria-hidden="true" />
       </section>
 
@@ -591,13 +637,9 @@ export function WallpapersPage() {
                 onClick={() => changeFilter(option.key)}
               >
                 <span className="wp-rv">{option.label}</span>
-                <span className="wp-chip__count wp-rv">{pad2(option.count)}</span>
               </button>
             ))}
           </div>
-          <p className="wp-filter__sum" aria-live="polite">
-            {filter === ALL ? 'ALL' : filter === FOUR_K ? 'NATIVE 4K' : filter} · {pad2(items.length)}
-          </p>
         </div>
       </div>
 
@@ -617,7 +659,7 @@ export function WallpapersPage() {
           <p className="wp-state">本期藏品整理中，稍后再来。</p>
         )}
 
-        {visibleChapters.map((chapter, chapterIndex) => (
+        {visibleChapters.map((chapter) => (
           <section
             key={chapter.key}
             id={`wp-ch-${chapter.key}`}
@@ -627,9 +669,6 @@ export function WallpapersPage() {
             aria-labelledby={`wp-ch-${chapter.key}-title`}
           >
             <header className="wp-chapter__head">
-              <span className="wp-chapter__no wp-rv" aria-hidden="true" style={{ ['--rv-d' as string]: '0ms' }}>
-                {pad2(chapterIndex + 1)}
-              </span>
               <div className="wp-chapter__intro">
                 <h2 className="wp-rv" id={`wp-ch-${chapter.key}-title`} style={{ ['--rv-d' as string]: '90ms' }}>
                   {chapter.label}
@@ -638,9 +677,6 @@ export function WallpapersPage() {
                   {chapter.desc}
                 </p>
               </div>
-              <span className="wp-chapter__count wp-rv" style={{ ['--rv-d' as string]: '240ms' }}>
-                {pad2(chapter.shown.length)} / {pad2(chapter.entries.length)} 张
-              </span>
             </header>
 
             <div
@@ -649,46 +685,47 @@ export function WallpapersPage() {
               onPointerMove={onRailMove}
               onPointerUp={onRailUp}
               onPointerCancel={onRailUp}
+              onPointerEnter={(event) => {
+                if (event.pointerType === 'mouse') updateEdgeScroll(event.currentTarget, event.clientX)
+              }}
+              onPointerLeave={stopEdgeScroll}
             >
-              {chapter.entries.map((entry) => {
-                const shown = matches(entry.item)
-                const thumb = entry.item.thumbUrl || entry.item.previewUrl || entry.item.fileUrl
+              {chapter.entries.map((item) => {
+                const shown = matches(item)
+                const thumb = item.thumbUrl || item.previewUrl || item.fileUrl
                 return (
                   <button
-                    key={entry.item.id}
+                    key={item.id}
                     type="button"
-                    className={`wp-figure${entry.item.featured ? ' is-feat' : ''}`}
-                    data-wp-id={entry.item.id}
+                    className={`wp-figure${item.featured ? ' is-feat' : ''}`}
+                    data-wp-id={item.id}
                     hidden={!shown}
                     onClick={() => {
                       if (railMoved.current) {
                         railMoved.current = false
                         return
                       }
-                      const list = chapter.shown.map((visible) => visible.item)
-                      const at = Math.max(0, list.findIndex((item) => item.id === entry.item.id))
+                      const list = chapter.shown
+                      const at = Math.max(0, list.findIndex((visible) => visible.id === item.id))
                       openItem(list, at)
                     }}
-                    aria-label={`查看 ${entry.item.title}，${topVariant(entry.item).width} × ${
-                      topVariant(entry.item).height
-                    }，可下载`}
+                    aria-label={`查看 ${item.title}，${topVariant(item).width} × ${topVariant(item).height}，可下载`}
                   >
                     <div className="wp-figure__media">
                       <img
                         src={thumb}
-                        alt={`${entry.item.title} 壁纸缩略图`}
+                        alt={`${item.title} 壁纸缩略图`}
                         loading="lazy"
                         decoding="async"
                         onError={onImgError}
                       />
                     </div>
                     <div className="wp-figure__cap">
-                      <span className="wp-figure__no wp-rv">Nº {entry.no}</span>
                       <span className="wp-figure__title wp-rv" style={{ ['--rv-d' as string]: '60ms' }}>
-                        {entry.item.title}
+                        {item.title}
                       </span>
                       <span className="wp-figure__size wp-rv" style={{ ['--rv-d' as string]: '120ms' }}>
-                        {entry.item.size}
+                        {item.size}
                       </span>
                     </div>
                   </button>
@@ -726,7 +763,7 @@ export function WallpapersPage() {
       <nav className="wp-cidx" aria-label="章节索引">
         {visibleChapters
           .filter((chapter) => chapter.shown.length > 0)
-          .map((chapter, index) => (
+          .map((chapter) => (
             <a
               key={chapter.key}
               href={`#wp-ch-${chapter.key}`}
@@ -740,10 +777,7 @@ export function WallpapersPage() {
                 })
               }}
             >
-              <span className="wp-cidx__no wp-rv">{pad2(index + 1)}</span>
-              <span className="wp-cidx__label wp-rv" style={{ ['--rv-d' as string]: '70ms' }}>
-                {chapter.label}
-              </span>
+              <span className="wp-cidx__label wp-rv">{chapter.label}</span>
             </a>
           ))}
       </nav>
@@ -797,16 +831,11 @@ export function WallpapersPage() {
               )}
               <div className="wp-detail__plate">
                 <span>PREVIEW · {ratioLabel(current)}</span>
-                {view && (
-                  <span>
-                    {pad2(view.index + 1)} / {pad2(view.list.length)}
-                  </span>
-                )}
               </div>
             </div>
 
             <aside className="wp-detail__meta">
-              <p className="wp-detail__no">COLLECTION · Nº {serialOf.get(current.id)}</p>
+              <p className="wp-detail__no">COLLECTION</p>
               <h2>{current.title}</h2>
               <p className="wp-detail__desc">{current.desc}</p>
 
