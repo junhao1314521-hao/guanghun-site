@@ -21,6 +21,7 @@
  */
 import { ApiError, transport } from './client'
 import { getAdminToken } from '../lib/adminAuth'
+import { prepareImageForUpload } from '../lib/compressImage'
 
 /** 素材分类键（与后端 mediaStore.MEDIA_CATEGORIES 一致） */
 export type MediaCategory = 'image' | 'icon' | 'doc' | 'video' | 'other'
@@ -170,7 +171,12 @@ type UploadResponsePayload = {
 }
 
 /** 以原始字节流 POST 文件（XHR：只有它能拿到上传进度）；返回素材条目或抛 ApiError */
-function postFile(path: string, file: File, onProgress?: (percent: number) => void): Promise<UploadItem> {
+function postFile(
+  path: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+  extraHeaders?: Record<string, string>,
+): Promise<UploadItem> {
   const token = getAdminToken()
   return new Promise<UploadItem>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
@@ -178,6 +184,9 @@ function postFile(path: string, file: File, onProgress?: (percent: number) => vo
     xhr.withCredentials = true
     xhr.setRequestHeader('X-File-Name', encodeURIComponent(file.name))
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+    if (extraHeaders) {
+      for (const [key, value] of Object.entries(extraHeaders)) xhr.setRequestHeader(key, value)
+    }
     if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable && onProgress) onProgress(Math.round((event.loaded / event.total) * 100))
@@ -364,16 +373,26 @@ async function uploadFileChunked(
  * 成功返回素材条目（含公开地址 url / 归属文件夹 / 分类）。
  * `folderId` 省略表示上传到「未分类」。
  * `onProgress` 回调上传百分比（0–100），用于大文件进度显示。
+ * `options.keepOriginal` 为 true 时不做前端压缩、绕过分片并带 `X-Keep-Original` 头，
+ * 供壁纸等需要保留原始画质的场景使用（服务端仍会放宽到图片上限内接收）。
  */
-export function uploadFile(
+export async function uploadFile(
   file: File,
   folderId?: string | null,
   onProgress?: (percent: number) => void,
+  options?: { keepOriginal?: boolean },
 ): Promise<UploadItem> {
-  // 大文件走分片（可续传）；小文件保持单请求，避免为 1KB 图片创建分片任务
-  if (file.size > CHUNK_THRESHOLD) return uploadFileChunked(file, folderId, onProgress)
+  const keepOriginal = options?.keepOriginal === true
+  // 静态位图先在浏览器里缩放转码；失败/非位图/保留原图时原样返回
+  const prepared = keepOriginal ? file : await prepareImageForUpload(file)
   const query = folderId ? `?folderId=${encodeURIComponent(folderId)}` : ''
-  return postFile(`/api/admin/uploads${query}`, file, onProgress)
+  // 保留原图的场景通常是大尺寸壁纸：走单请求，避免分片链路丢掉「保留原图」语义
+  if (keepOriginal) {
+    return postFile(`/api/admin/uploads${query}`, prepared, onProgress, { 'X-Keep-Original': '1' })
+  }
+  // 大文件走分片（可续传）；小文件保持单请求，避免为 1KB 图片创建分片任务
+  if (prepared.size > CHUNK_THRESHOLD) return uploadFileChunked(prepared, folderId, onProgress)
+  return postFile(`/api/admin/uploads${query}`, prepared, onProgress)
 }
 
 /**

@@ -1,7 +1,7 @@
 import express, { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express'
 import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload, type SaveUploadResult } from '../data/uploadStore'
 import { CHUNK_SIZE, assembleChunks, chunkUploadMeta, chunkUploadStatus, initChunkUpload, putChunk, removeChunkUpload } from '../data/chunkStore'
-import { generateImageVariants } from '../data/imageVariants'
+import { generateImageVariants, normalizeOversizeImage } from '../data/imageVariants'
 import { mediaReferenceCounts, referencesToUrl } from '../data/pageRefs'
 import {
   createFolder,
@@ -161,7 +161,23 @@ uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWri
     res.status(400).json({ error: '文件内容为空' })
     return
   }
-  const result = saveUpload(body, name, req.headers['content-type'])
+  // 壁纸等「保留原图」场景：跳过压缩，但仍受图片 30MB 限额约束
+  const keepOriginal = req.headers['x-keep-original'] === '1'
+  const contentType = typeof req.headers['content-type'] === 'string' ? req.headers['content-type'] : undefined
+  let uploadBytes = body
+  let uploadName = name
+  let uploadMime = contentType
+  if (!keepOriginal) {
+    const normalized = await normalizeOversizeImage(body, name, contentType)
+    if (!normalized.ok) {
+      res.status(normalized.status).json({ error: normalized.error })
+      return
+    }
+    uploadBytes = normalized.bytes
+    uploadName = normalized.name
+    uploadMime = normalized.mime
+  }
+  const result = saveUpload(uploadBytes, uploadName, uploadMime)
   if (!result.ok) {
     res.status(result.status).json({ error: result.error })
     return
@@ -264,7 +280,13 @@ uploadsRouter.post(
       res.status(assembled.status).json({ error: assembled.error, missing: assembled.missing })
       return
     }
-    const saved = saveUpload(assembled.bytes, meta.name, meta.mime)
+    // 分片合并后同样兜底压缩（覆盖绕过前端压缩的直传场景）
+    const normalized = await normalizeOversizeImage(assembled.bytes, meta.name, meta.mime)
+    if (!normalized.ok) {
+      res.status(normalized.status).json({ error: normalized.error })
+      return
+    }
+    const saved = saveUpload(normalized.bytes, normalized.name, normalized.mime)
     if (!saved.ok) {
       // 保留分片，客户端补齐条件（如清理配额）后可重试 complete
       res.status(saved.status).json({ error: saved.error })

@@ -29,6 +29,16 @@ const BITMAP_EXTS = new Set(['png', 'jpg', 'jpeg', 'webp'])
 /** 变体输出格式与质量 */
 const WEBP_QUALITY = 80
 
+/** 服务端兜底压缩：超过该体积才归一化（与前端 4MB 触发线配合，覆盖绕过前端的直传） */
+const NORMALIZE_TRIGGER = 10 * 1024 * 1024
+
+/** 归一化后的长边上限与 WebP 质量 */
+const NORMALIZE_MAX_EDGE = 2560
+const NORMALIZE_QUALITY = 82
+
+/** 像素数保护：超大图解码可能耗尽内存，直接拒绝 */
+const MAX_PIXELS = 80_000_000
+
 /** 取小写扩展名（不含点）；无扩展名返回空串 */
 function extOf(name: string): string {
   const idx = name.lastIndexOf('.')
@@ -93,5 +103,48 @@ export async function generateImageVariants(item: UploadItem): Promise<MediaVari
   } catch (error) {
     logger.warn('图片变体生成失败：保留单张原图', { id: item.id, error: String(error) })
     return []
+  }
+}
+
+/** 归一化结果：压缩成功返回新字节/文件名，无需压缩或失败时保留原样 */
+export type NormalizedImage =
+  | { ok: true; bytes: Buffer; name: string; mime: string; compressed: boolean }
+  | { ok: false; error: string; status: number }
+
+/**
+ * 服务端兜底压缩：位图超过 10MB 时缩到长边 2560 并转 WebP。
+ *
+ * 覆盖「前端压缩被绕过 / 浏览器无法解码」的情况；GIF（可能动图）、SVG 与
+ * 非位图原样返回。sharp 不可用或解码失败时同样原样返回，保持后台上传可用。
+ * 像素数超过保护阈值时拒绝（413），避免超大图拖垮进程。
+ */
+export async function normalizeOversizeImage(bytes: Buffer, name: string, mime: string | undefined): Promise<NormalizedImage> {
+  const unchanged: NormalizedImage = { ok: true, bytes, name, mime: mime || 'application/octet-stream', compressed: false }
+  if (!BITMAP_EXTS.has(extOf(name)) || bytes.length <= NORMALIZE_TRIGGER) return unchanged
+  try {
+    const sharp = (await import('sharp')).default
+    const metadata = await sharp(bytes).metadata()
+    const width = metadata.width ?? 0
+    const height = metadata.height ?? 0
+    if (width > 0 && height > 0 && width * height > MAX_PIXELS) {
+      return { ok: false, status: 413, error: `图片分辨率过大（${width}×${height}），请先缩小后再上传` }
+    }
+    // 动图（多帧）不做单帧转码，避免丢帧
+    if ((metadata.pages ?? 1) > 1) return unchanged
+    const output = await sharp(bytes)
+      .resize({ width: NORMALIZE_MAX_EDGE, height: NORMALIZE_MAX_EDGE, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: NORMALIZE_QUALITY })
+      .toBuffer()
+    if (output.length === 0 || output.length >= bytes.length) return unchanged
+    return {
+      ok: true,
+      bytes: output,
+      name: `${stripExt(name)}.webp`,
+      mime: 'image/webp',
+      compressed: true,
+    }
+  } catch (error) {
+    logger.warn('图片兜底压缩失败：保留原图', { name, error: String(error) })
+    return unchanged
   }
 }

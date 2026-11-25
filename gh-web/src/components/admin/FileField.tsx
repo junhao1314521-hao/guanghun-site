@@ -41,9 +41,10 @@ const FILE_ACCEPT =
   'application/x-msdownload,application/x-msi,application/x-apple-diskimage,application/x-newton-compatible-pkg,' +
   '.glb,.bin,.exe,.msi,.dmg,.pkg,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rar,.7z'
 
-/** 与服务端上传分档一致（图片 10MB / 文档 50MB / 视频 200MB / 安装包 300MB / 3D 30MB）：上传前先拦，避免大文件白传一趟 */
+/** 与服务端上传分档一致（图片 30MB / 文档 50MB / 视频 200MB / 安装包 300MB / 3D 30MB）：上传前先拦，避免大文件白传一趟。
+ *  图片超过 10MB 会先在浏览器压缩，这里的 30MB 是压缩/兜底后的硬上限。 */
 const SIZE_MB = 1024 * 1024
-const SIZE_LIMIT = { image: 10 * SIZE_MB, doc: 50 * SIZE_MB, video: 200 * SIZE_MB, installer: 300 * SIZE_MB, model: 30 * SIZE_MB }
+const SIZE_LIMIT = { image: 30 * SIZE_MB, doc: 50 * SIZE_MB, video: 200 * SIZE_MB, installer: 300 * SIZE_MB, model: 30 * SIZE_MB }
 
 /** 安装包与 3D 模型的扩展名（服务端按此分档限额） */
 const INSTALLER_EXT = /\.(exe|msi|dmg|pkg)$/i
@@ -470,10 +471,10 @@ export function FileField({
       ) : hideDefaultHint ? null : (
         <span className="field__hint">
           {isImageMode
-            ? '支持格式：png / jpg / jpeg / webp / gif / svg；单张 ≤10MB。填写地址、上传或从素材库选择后显示预览。'
+            ? '支持格式：png / jpg / jpeg / webp / gif / svg；单张 ≤30MB，超过 10MB 会自动压缩。填写地址、上传或从素材库选择后显示预览。'
             : isMediaMode
-              ? '支持格式：图片（png / jpg / webp / gif）与视频（mp4 / webm / mov）；图片 ≤10MB，视频 ≤200MB。'
-              : '支持图片、PDF、Office、ZIP / RAR / 7Z、固件 .bin 与安装包（exe / msi / dmg / pkg）；图片 ≤10MB，文档 ≤50MB，视频 ≤200MB，安装包 ≤300MB。'}
+              ? '支持格式：图片（png / jpg / webp / gif）与视频（mp4 / webm / mov）；图片 ≤30MB（超过 10MB 自动压缩），视频 ≤200MB。'
+              : '支持图片、PDF、Office、ZIP / RAR / 7Z、固件 .bin 与安装包（exe / msi / dmg / pkg）；图片 ≤30MB（自动压缩），文档 ≤50MB，视频 ≤200MB，安装包 ≤300MB。'}
         </span>
       )}
 
