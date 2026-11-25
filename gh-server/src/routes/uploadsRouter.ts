@@ -191,10 +191,13 @@ async function finishUpload(
   }
   // 同名（忽略扩展名）：运营重新上传新版文件（如原图替换早前被压小的成品），原地更新而不是新增副本。
   // 扩展名不同时先转成旧素材的格式，保证原 URL 后缀与内容一致。
+  const refCounts = mediaReferenceCounts()
   const sameName = listUploads()
     .filter((entry) => entry.id !== item.id && fileBase(entry.name) === fileBase(item.name))
     .map((entry) => mediaItem(entry))
-    .find((entry) => entry.folderId === item.folderId)
+    .filter((entry) => entry.folderId === item.folderId)
+    // 历史重复素材可能同名：优先升级页面正在引用的那一条，其次按上传时间取最早
+    .sort((a, b) => (refCounts[b.url] ?? 0) - (refCounts[a.url] ?? 0) || a.uploadedAt.localeCompare(b.uploadedAt))[0]
   if (sameName) {
     let replaceBytes = uploadBytes
     let replaceMime = uploadMime
