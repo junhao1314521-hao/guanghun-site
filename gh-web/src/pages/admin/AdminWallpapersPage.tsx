@@ -12,7 +12,7 @@ import { useConfirm, useToast } from '../../components/admin/feedback'
 import { EmptyState, ErrorState, SkeletonTable } from '../../components/admin/states'
 import '../../styles/admin-wallpapers.css'
 
-const MAX_FILE = 30 * 1024 * 1024
+const MAX_FILE = 50 * 1024 * 1024
 
 /** 字节数 → 展示文本 */
 function formatSize(bytes: number): string {
@@ -43,10 +43,10 @@ function readImageSize(file: File): Promise<{ width: number; height: number }> {
   })
 }
 
-/** 只接受图片且 ≤ 30MB（壁纸保留原图，不走前端压缩） */
+/** 只接受图片且 ≤ 50MB（壁纸保留原图，不做压缩） */
 function validateFile(file: File): string | null {
   if (!file.type.startsWith('image/')) return `${file.name} 不是图片文件`
-  if (file.size > MAX_FILE) return `${file.name} 超过 30MB`
+  if (file.size > MAX_FILE) return `${file.name} 超过 50MB`
   return null
 }
 
@@ -259,7 +259,7 @@ function BatchUploadDialog({
             <button type="button" className="btn btn--secondary btn--sm" onClick={() => inputRef.current?.click()}>
               选择图片
             </button>
-            <span>支持 JPG / PNG / WebP，单张 ≤ 30MB（保留原图画质）；16:9 / 21:9 / 竖屏 / 4:3 均可，前台按实际比例自动归组</span>
+            <span>支持 JPG / PNG / WebP，单张 ≤ 50MB（保留原图画质，不做压缩）；16:9 / 21:9 / 竖屏 / 4:3 均可，前台按实际比例自动归组</span>
             <input
               ref={inputRef}
               type="file"

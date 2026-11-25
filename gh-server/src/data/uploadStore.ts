@@ -179,9 +179,9 @@ const MB = 1024 * 1024
 export type SizeKind = 'image' | 'video' | 'doc' | 'installer' | 'model'
 
 /** 各分类默认限额（字节）：3D 模型单独一档，避免与百兆视频共用解析上限。
- *  图片 30MB：超过 10MB 的图片会先压缩，这里保留接收原图的余量（壁纸保留原图）。 */
+ *  图片 50MB：接收上限放宽，超过 10MB 的位图会先压缩到合规体积再落盘（壁纸保留原图）。 */
 const DEFAULT_LIMITS: Record<SizeKind, number> = {
-  image: 30 * MB,
+  image: 50 * MB,
   doc: 50 * MB,
   video: 200 * MB,
   installer: 300 * MB,

@@ -141,7 +141,7 @@ export function ProductMediaField({ values, onChange }: ProductMediaFieldProps) 
     if (!file.type.startsWith('image/') && !IMAGE_EXT.test(file.name)) {
       return '请选择 png / jpg / webp / gif 图片'
     }
-    if (file.size > 30 * MB) return `图片最大 30MB，当前 ${sizeText(file.size)}`
+    if (file.size > 50 * MB) return `图片最大 50MB（超过 10MB 会自动压缩），当前 ${sizeText(file.size)}`
     return null
   }
 

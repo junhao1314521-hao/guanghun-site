@@ -161,11 +161,27 @@ export function PosterMedia({ data, src, eager }: { data: PosterData; src: strin
     return (
       <picture>
         <source media="(max-width: 900px)" srcSet={data.imageMobile} />
-        <MediaImg src={src} alt={data.mediaTag} loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : undefined} />
+        <MediaImg
+          src={src}
+          alt={data.mediaTag}
+          loading={eager ? 'eager' : 'lazy'}
+          fetchPriority={eager ? 'high' : undefined}
+          sizes="100vw"
+        />
       </picture>
     )
   }
-  return <MediaImg src={src} alt={data.mediaTag} loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : undefined} />
+  // 首屏轮播 / 通栏海报始终铺满视口宽度：sizes 必须声明 100vw，
+  // 否则浏览器按默认 50vw 取变体，再用 CSS 放大到全宽，画面发虚像被拉伸。
+  return (
+    <MediaImg
+      src={src}
+      alt={data.mediaTag}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : undefined}
+      sizes="100vw"
+    />
+  )
 }
 
 /**
