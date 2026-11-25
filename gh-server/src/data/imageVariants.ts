@@ -20,21 +20,22 @@ import { logger } from '../lib/logger'
 import { setVariants, type MediaVariant } from './mediaStore'
 import { ensureUploadDir, resolveUploadDir, type UploadItem } from './uploadStore'
 
-/** 变体宽度档位（升序）；仅生成小于原图宽度的档位，不放大 */
-const VARIANT_WIDTHS = [480, 960, 1600]
+/** 变体宽度档位（升序）；仅生成小于原图宽度的档位，不放大。
+ *  增加 2560 档：大屏 / 高分屏下避免只拿到 1600 变体被拉伸。 */
+const VARIANT_WIDTHS = [480, 960, 1600, 2560]
 
 /** 参与变体生成的位图扩展名（SVG / GIF 及其它类型跳过） */
 const BITMAP_EXTS = new Set(['png', 'jpg', 'jpeg', 'webp'])
 
-/** 变体输出格式与质量 */
-const WEBP_QUALITY = 80
+/** 变体输出格式与质量：大屏档位也用较高画质，避免 2560/1600 被拉伸时发虚 */
+const WEBP_QUALITY = 86
 
 /** 服务端兜底压缩：超过该体积才归一化（与前端 4MB 触发线配合，覆盖绕过前端的直传） */
 const NORMALIZE_TRIGGER = 10 * 1024 * 1024
 
-/** 归一化后的长边上限与 WebP 质量 */
-const NORMALIZE_MAX_EDGE = 2560
-const NORMALIZE_QUALITY = 82
+/** 归一化后的长边上限与 WebP 质量：质量优先（肉眼接近原图），兼顾体积 */
+const NORMALIZE_MAX_EDGE = 3200
+const NORMALIZE_QUALITY = 90
 
 /** 像素数保护：超大图解码可能耗尽内存，直接拒绝 */
 const MAX_PIXELS = 80_000_000
