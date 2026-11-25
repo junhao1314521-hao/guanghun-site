@@ -21,7 +21,7 @@
  */
 import { ApiError, transport } from './client'
 import { getAdminToken } from '../lib/adminAuth'
-import { prepareImageForUpload } from '../lib/compressImage'
+
 
 /** 素材分类键（与后端 mediaStore.MEDIA_CATEGORIES 一致） */
 export type MediaCategory = 'image' | 'icon' | 'doc' | 'video' | 'other'
@@ -121,6 +121,8 @@ export type UploadItem = {
   refCount?: number
   /** 上传响应附加：同文件夹已有同内容文件，本次已复用（不重复占磁盘） */
   reused?: boolean
+  /** 上传响应附加：同名 / 同内容素材已在原地址重新生成（画质按当前参数升级） */
+  replaced?: boolean
   /** 上传响应附加：复用的已有文件名 */
   duplicateOf?: string
   /** 上传响应附加：其他文件夹存在同内容文件（仅提示，不阻断） */
@@ -166,6 +168,7 @@ type UploadResponsePayload = {
   item?: UploadItem
   error?: string
   reused?: boolean
+  replaced?: boolean
   duplicateOf?: string
   duplicates?: Array<{ id: string; name: string; url: string }>
 }
@@ -202,6 +205,7 @@ function postFile(
         resolve({
           ...payload.item,
           ...(payload.reused ? { reused: true } : {}),
+          ...(payload.replaced ? { replaced: true } : {}),
           ...(payload.duplicateOf ? { duplicateOf: payload.duplicateOf } : {}),
           ...(payload.duplicates && payload.duplicates.length > 0 ? { duplicates: payload.duplicates } : {}),
         })
@@ -347,6 +351,7 @@ async function uploadFileChunked(
   const res = await transport<{
     item: UploadItem
     reused?: boolean
+    replaced?: boolean
     duplicateOf?: string
     duplicates?: Array<{ id: string; name: string; url: string }>
   }>(
@@ -363,6 +368,7 @@ async function uploadFileChunked(
   return {
     ...res.item,
     ...(res.reused ? { reused: true } : {}),
+    ...(res.replaced ? { replaced: true } : {}),
     ...(res.duplicateOf ? { duplicateOf: res.duplicateOf } : {}),
     ...(res.duplicates && res.duplicates.length > 0 ? { duplicates: res.duplicates } : {}),
   }
@@ -373,8 +379,9 @@ async function uploadFileChunked(
  * 成功返回素材条目（含公开地址 url / 归属文件夹 / 分类）。
  * `folderId` 省略表示上传到「未分类」。
  * `onProgress` 回调上传百分比（0–100），用于大文件进度显示。
- * `options.keepOriginal` 为 true 时不做前端压缩、绕过分片并带 `X-Keep-Original` 头，
- * 供壁纸等需要保留原始画质的场景使用（服务端仍会放宽到图片上限内接收）。
+ * 原图直传：浏览器不再做有损预压缩，由服务端按当前画质参数统一归一化并生成展示变体，
+ * 避免「前端压缩 + 服务端再压缩」叠加损失，也让参数升级后可以重新处理同一张原图。
+ * `options.keepOriginal` 为 true 时带 `X-Keep-Original` 头，服务端完全不转码（壁纸场景）。
  */
 export async function uploadFile(
   file: File,
@@ -383,16 +390,14 @@ export async function uploadFile(
   options?: { keepOriginal?: boolean },
 ): Promise<UploadItem> {
   const keepOriginal = options?.keepOriginal === true
-  // 静态位图先在浏览器里缩放转码；失败/非位图/保留原图时原样返回
-  const prepared = keepOriginal ? file : await prepareImageForUpload(file)
   const query = folderId ? `?folderId=${encodeURIComponent(folderId)}` : ''
   // 保留原图的场景通常是大尺寸壁纸：走单请求，避免分片链路丢掉「保留原图」语义
   if (keepOriginal) {
-    return postFile(`/api/admin/uploads${query}`, prepared, onProgress, { 'X-Keep-Original': '1' })
+    return postFile(`/api/admin/uploads${query}`, file, onProgress, { 'X-Keep-Original': '1' })
   }
   // 大文件走分片（可续传）；小文件保持单请求，避免为 1KB 图片创建分片任务
-  if (prepared.size > CHUNK_THRESHOLD) return uploadFileChunked(prepared, folderId, onProgress)
-  return postFile(`/api/admin/uploads${query}`, prepared, onProgress)
+  if (file.size > CHUNK_THRESHOLD) return uploadFileChunked(file, folderId, onProgress)
+  return postFile(`/api/admin/uploads${query}`, file, onProgress)
 }
 
 /**

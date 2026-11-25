@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS upload_meta (
   size_bytes INTEGER,
   sha256     TEXT,
   mime       TEXT,
+  image_pipeline TEXT,
   visibility TEXT DEFAULT 'public',
   status     TEXT DEFAULT 'active',
   updated_at TEXT
@@ -380,6 +381,7 @@ function migrateUploadMeta(db: SqliteDatabase): void {
   ensureColumn(db, 'upload_meta', 'size_bytes', 'size_bytes INTEGER')
   ensureColumn(db, 'upload_meta', 'sha256', 'sha256 TEXT')
   ensureColumn(db, 'upload_meta', 'mime', 'mime TEXT')
+  ensureColumn(db, 'upload_meta', 'image_pipeline', 'image_pipeline TEXT')
   ensureColumn(db, 'upload_meta', 'visibility', "visibility TEXT DEFAULT 'public'")
   ensureColumn(db, 'upload_meta', 'status', "status TEXT DEFAULT 'active'")
 }

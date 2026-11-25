@@ -24,15 +24,15 @@ beforeEach(() => {
 })
 
 describe('FileField 上传预检', () => {
-  it('11MB 图片在本地被拦下，不上传，并说明类型与上限', async () => {
+  it('31MB 图片在本地被拦下，不上传，并说明类型与上限', async () => {
     renderField()
-    const file = new File([new Uint8Array(11 * 1024 * 1024)], 'big.png', { type: '' })
+    const file = new File([new Uint8Array(31 * 1024 * 1024)], 'big.png', { type: '' })
     fireEvent.change(document.querySelector('input[type=file]') as HTMLInputElement, {
       target: { files: [file] },
     })
 
     expect(uploadImage).not.toHaveBeenCalled()
-    const messages = await screen.findAllByText(/图片最大 10\.0MB，当前 11\.0MB/)
+    const messages = await screen.findAllByText(/图片最大 30\.0MB，当前 31\.0MB/)
     expect(messages.length).toBeGreaterThan(0)
   })
 

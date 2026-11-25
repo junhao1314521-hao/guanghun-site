@@ -1,7 +1,7 @@
 /**
  * 服务端图片多尺寸变体生成（T1.5）。
  * ============================================================
- * 位图（png / jpg / jpeg / webp）上传成功后，自动按宽度档位 [480, 960, 1600] 生成 webp 变体：
+ * 位图（png / jpg / jpeg / webp）上传成功后，自动按宽度档位 [480, 960, 1600, 2560] 生成 webp 变体：
  * - **不放大**：原图宽度不大于某档时跳过该档；
  * - 变体文件写入与主图相同的上传目录，沿用既有命名约定 `<时间戳>-<随机hex>-<基名>-<宽度>.webp`
  *   （与 uploadStore 的命名保持同构，`listUploads` / `nameFromFile` 可正常解析）；
@@ -30,12 +30,19 @@ const BITMAP_EXTS = new Set(['png', 'jpg', 'jpeg', 'webp'])
 /** 变体输出格式与质量：大屏档位也用较高画质，避免 2560/1600 被拉伸时发虚 */
 const WEBP_QUALITY = 86
 
-/** 服务端兜底压缩：超过该体积才归一化（与前端 4MB 触发线配合，覆盖绕过前端的直传） */
+/** 服务端归一化触发体积：超过 10MB 才转码，避免对正常体积图片做无谓的有损重编码 */
 const NORMALIZE_TRIGGER = 10 * 1024 * 1024
 
 /** 归一化后的长边上限与 WebP 质量：质量优先（肉眼接近原图），兼顾体积 */
 const NORMALIZE_MAX_EDGE = 3200
 const NORMALIZE_QUALITY = 90
+
+/**
+ * 图片处理管线版本：主图归一化参数 + 展示变体参数共同决定。
+ * 素材元数据会记录该版本；参数升级后，同名 / 同内容重新上传会在原地址上重新生成，
+ * 不会因为「已存在」而继续复用旧画质的成品。
+ */
+export const IMAGE_PIPELINE_VERSION = 'v3-3200-q90-variants86'
 
 /** 像素数保护：超大图解码可能耗尽内存，直接拒绝 */
 const MAX_PIXELS = 80_000_000
@@ -113,15 +120,18 @@ export type NormalizedImage =
   | { ok: false; error: string; status: number }
 
 /**
- * 服务端兜底压缩：位图超过 10MB 时缩到长边 2560 并转 WebP。
+ * 服务端图片归一化：位图超过长边 3200 或体积超过 10MB 时，缩到长边 3200 并转 WebP 90。
  *
- * 覆盖「前端压缩被绕过 / 浏览器无法解码」的情况；GIF（可能动图）、SVG 与
- * 非位图原样返回。sharp 不可用或解码失败时同样原样返回，保持后台上传可用。
+ * 浏览器端不再做有损预压缩，原图直传到这里，由服务端统一按「画质优先」参数处理：
+ * - 尺寸 / 体积都在阈值内：原样保存，不做任何重编码；
+ * - 超限：只做一次高质量转码，避免前端压缩 + 服务端二次压缩的叠加损失。
+ *
+ * GIF（可能动图）、SVG 与非位图原样返回；sharp 不可用或解码失败时同样原样返回。
  * 像素数超过保护阈值时拒绝（413），避免超大图拖垮进程。
  */
 export async function normalizeOversizeImage(bytes: Buffer, name: string, mime: string | undefined): Promise<NormalizedImage> {
   const unchanged: NormalizedImage = { ok: true, bytes, name, mime: mime || 'application/octet-stream', compressed: false }
-  if (!BITMAP_EXTS.has(extOf(name)) || bytes.length <= NORMALIZE_TRIGGER) return unchanged
+  if (!BITMAP_EXTS.has(extOf(name))) return unchanged
   try {
     const sharp = (await import('sharp')).default
     const metadata = await sharp(bytes).metadata()
@@ -132,6 +142,9 @@ export async function normalizeOversizeImage(bytes: Buffer, name: string, mime: 
     }
     // 动图（多帧）不做单帧转码，避免丢帧
     if ((metadata.pages ?? 1) > 1) return unchanged
+    // 尺寸未超长边且体积未超阈值：保留原图，避免不必要的画质损失
+    const oversize = bytes.length > NORMALIZE_TRIGGER || width > NORMALIZE_MAX_EDGE || height > NORMALIZE_MAX_EDGE
+    if (!oversize) return unchanged
     const output = await sharp(bytes)
       .resize({ width: NORMALIZE_MAX_EDGE, height: NORMALIZE_MAX_EDGE, fit: 'inside', withoutEnlargement: true })
       .webp({ quality: NORMALIZE_QUALITY })

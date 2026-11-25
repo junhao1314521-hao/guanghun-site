@@ -331,20 +331,27 @@ export function sha256Of(bytes: Buffer): string {
 /** 写入 / 更新素材元数据；不覆盖已有 folder_id / category / 手工 kind */
 function upsertUploadMeta(
   id: string,
-  meta: { sizeBytes: number; sha256: string; mime: string; kind: UploadKind },
+  meta: { sizeBytes: number; sha256: string; mime: string; kind: UploadKind; imagePipeline?: string | null },
 ): void {
   getDb()
     .prepare(
-      `INSERT INTO upload_meta(id, kind, size_bytes, sha256, mime, visibility, status, updated_at)
-       VALUES(?, ?, ?, ?, ?, 'public', 'active', ?)
+      `INSERT INTO upload_meta(id, kind, size_bytes, sha256, mime, image_pipeline, visibility, status, updated_at)
+       VALUES(?, ?, ?, ?, ?, ?, 'public', 'active', ?)
        ON CONFLICT(id) DO UPDATE SET
          kind = COALESCE(upload_meta.kind, excluded.kind),
          size_bytes = excluded.size_bytes,
          sha256 = excluded.sha256,
          mime = excluded.mime,
+         image_pipeline = excluded.image_pipeline,
          updated_at = excluded.updated_at`,
     )
-    .run(id, meta.kind, meta.sizeBytes, meta.sha256, meta.mime, new Date().toISOString())
+    .run(id, meta.kind, meta.sizeBytes, meta.sha256, meta.mime, meta.imagePipeline ?? null, new Date().toISOString())
+}
+
+/** 读取素材的图片处理管线版本；老素材 / 非图片返回 null（视为需要重新处理） */
+export function uploadPipeline(id: string): string | null {
+  const row = getDb().prepare('SELECT image_pipeline FROM upload_meta WHERE id = ?').get(id) as { image_pipeline?: string | null } | undefined
+  return row?.image_pipeline ?? null
 }
 
 /** 公开访问 URL：文件名做百分号编码，确保含非 ASCII 文件名时也可直接请求 */
@@ -395,6 +402,7 @@ export function saveUpload(
   bytes: Buffer,
   originalName: string,
   contentType: string | undefined,
+  imagePipeline?: string | null,
 ): SaveUploadResult {
   const check = precheckUpload(originalName, bytes.length, contentType)
   if (!check.ok) return check
@@ -413,6 +421,7 @@ export function saveUpload(
     sha256: sha256Of(bytes),
     mime: check.mime,
     kind: kindOfFile(filename),
+    imagePipeline,
   })
   return {
     ok: true,
@@ -434,7 +443,12 @@ export function saveUpload(
  * - 类型 / 大小校验与 `saveUpload` 同规格；
  * - 先写临时文件再 `rename`，避免替换中途失败把原文件写坏。
  */
-export function replaceUpload(id: string, bytes: Buffer, contentType: string | undefined): SaveUploadResult {
+export function replaceUpload(
+  id: string,
+  bytes: Buffer,
+  contentType: string | undefined,
+  imagePipeline?: string | null,
+): SaveUploadResult {
   if (!id || id !== path.basename(id) || id.startsWith('.')) {
     return { ok: false, status: 400, error: '素材 id 不合法' }
   }
@@ -480,6 +494,7 @@ export function replaceUpload(id: string, bytes: Buffer, contentType: string | u
     sha256: sha256Of(bytes),
     mime: mimeType,
     kind: kindOfFile(id),
+    imagePipeline,
   })
   return {
     ok: true,

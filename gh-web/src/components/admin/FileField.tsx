@@ -268,8 +268,10 @@ export function FileField({
       const item = await uploadImage(file, null, setUploadPercent)
       onChange(item.url)
       onSelectItem?.(item)
-      // P2：同内容去重提示（同文件夹复用 / 其他文件夹存在同内容）
-      if (item.reused) {
+      // P2：同内容去重提示（同文件夹复用 / 同名升级 / 其他文件夹存在同内容）
+      if (item.replaced) {
+        toast.toast(`已更新「${item.duplicateOf ?? '同名素材'}」并按当前画质重新生成`, 'success')
+      } else if (item.reused) {
         toast.toast(`检测到相同文件，已复用「${item.duplicateOf ?? '已有素材'}」`, 'info')
       } else if (item.duplicates && item.duplicates.length > 0) {
         toast.toast(`素材库已有相同文件「${item.duplicates[0].name}」，本次仍新增一份`, 'info')

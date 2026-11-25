@@ -1,7 +1,7 @@
 import express, { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express'
-import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload, type SaveUploadResult } from '../data/uploadStore'
+import { deleteUpload, listUploads, maxUploadLimit, replaceUpload, saveUpload, uploadPipeline, type SaveUploadResult } from '../data/uploadStore'
 import { CHUNK_SIZE, assembleChunks, chunkUploadMeta, chunkUploadStatus, initChunkUpload, putChunk, removeChunkUpload } from '../data/chunkStore'
-import { generateImageVariants, normalizeOversizeImage } from '../data/imageVariants'
+import { IMAGE_PIPELINE_VERSION, generateImageVariants, normalizeOversizeImage } from '../data/imageVariants'
 import { mediaReferenceCounts, referencesToUrl } from '../data/pageRefs'
 import {
   createFolder,
@@ -119,14 +119,47 @@ function rawChunkBody(req: Request, res: Response, next: NextFunction): void {
   chunkParser(req, res, next)
 }
 
+/** 文件扩展名（小写，不含点）；无扩展名返回空串 */
+function fileExt(value: string): string {
+  const idx = value.lastIndexOf('.')
+  return idx > 0 ? value.slice(idx + 1).toLowerCase() : ''
+}
+
+/**
+ * 在已有素材的原地址上重建主图与变体（URL 不变，所有引用自动生效）。
+ * 用于「参数升级后重新上传」：不新增重复素材，也不继续复用旧画质的成品。
+ */
+async function upgradeExistingAsset(
+  targetId: string,
+  bytes: Buffer,
+  mime: string | undefined,
+): Promise<ReturnType<typeof mediaItem> | null> {
+  const staleVariants = variantFileIds(targetId)
+  const replaced = replaceUpload(targetId, bytes, mime, IMAGE_PIPELINE_VERSION)
+  if (!replaced.ok) return null
+  await generateImageVariants(replaced.item)
+  const fresh = new Set(variantFileIds(targetId))
+  for (const variantId of staleVariants) {
+    if (!fresh.has(variantId)) deleteUpload(variantId)
+  }
+  return mediaItem(replaced.item)
+}
+
 /**
  * 上传收尾（单文件 / 分片共用）：
  * 1) 目标文件夹归属（调用方已校验存在性）；
- * 2) SHA-256 去重：同文件夹已有同内容素材 → 丢弃新文件并复用已有素材；
- * 3) 其他文件夹存在同内容 → 保留新文件，但返回 duplicates 供前端提示；
- * 4) 位图生成变体。
+ * 2) 同文件夹同内容：处理管线版本一致才复用；版本落后则原地重生成，避免旧画质被永久复用；
+ * 3) 同文件夹同名同扩展名：视为「上传新版替换旧图」，原地更新并保留 URL；
+ * 4) 其他文件夹存在同内容 → 保留新文件，但返回 duplicates 供前端提示；
+ * 5) 位图生成变体。
  */
-async function finishUpload(res: Response, saved: SaveUploadResult, folderId: string | null): Promise<void> {
+async function finishUpload(
+  res: Response,
+  saved: SaveUploadResult,
+  folderId: string | null,
+  uploadBytes: Buffer,
+  uploadMime: string | undefined,
+): Promise<void> {
   if (!saved.ok) {
     res.status(saved.status).json({ error: saved.error })
     return
@@ -137,10 +170,31 @@ async function finishUpload(res: Response, saved: SaveUploadResult, folderId: st
   const duplicates = sha ? mediaBySha(sha, item.sizeBytes ?? item.size).filter((entry) => entry.id !== item.id) : []
   const sameFolder = duplicates.find((entry) => entry.folderId === item.folderId)
   if (sameFolder) {
-    // 同文件夹同内容：不重复占用磁盘，直接复用已有素材
-    deleteUpload(item.id)
-    res.status(201).json({ item: sameFolder, reused: true, duplicateOf: sameFolder.name })
-    return
+    if (uploadPipeline(sameFolder.id) === IMAGE_PIPELINE_VERSION) {
+      // 同文件夹、同内容、同处理参数：不重复占用磁盘，直接复用已有素材
+      deleteUpload(item.id)
+      res.status(201).json({ item: sameFolder, reused: true, duplicateOf: sameFolder.name })
+      return
+    }
+    const upgraded = await upgradeExistingAsset(sameFolder.id, uploadBytes, uploadMime)
+    if (upgraded) {
+      deleteUpload(item.id)
+      res.status(201).json({ item: upgraded, reused: true, replaced: true, duplicateOf: upgraded.name })
+      return
+    }
+  }
+  // 同名同扩展名：运营重新上传新版文件（如原图替换早前被压小的成品），原地更新而不是新增副本
+  const sameName = listUploads()
+    .filter((entry) => entry.id !== item.id && entry.name === item.name)
+    .map((entry) => mediaItem(entry))
+    .find((entry) => entry.folderId === item.folderId && fileExt(entry.id) === fileExt(item.id))
+  if (sameName) {
+    const upgraded = await upgradeExistingAsset(sameName.id, uploadBytes, uploadMime)
+    if (upgraded) {
+      deleteUpload(item.id)
+      res.status(201).json({ item: upgraded, reused: true, replaced: true, duplicateOf: upgraded.name })
+      return
+    }
   }
   // 位图：服务端自动生成多尺寸 webp 变体并登记；失败仅记日志、保持单张原图（不抛出）
   await generateImageVariants(saved.item)
@@ -177,7 +231,7 @@ uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWri
     uploadName = normalized.name
     uploadMime = normalized.mime
   }
-  const result = saveUpload(uploadBytes, uploadName, uploadMime)
+  const result = saveUpload(uploadBytes, uploadName, uploadMime, keepOriginal ? 'original' : IMAGE_PIPELINE_VERSION)
   if (!result.ok) {
     res.status(result.status).json({ error: result.error })
     return
@@ -189,7 +243,7 @@ uploadsRouter.post('/uploads', requireSession, requireScope('content'), auditWri
     res.status(400).json({ error: '目标文件夹不存在' })
     return
   }
-  await finishUpload(res, result, folderId ?? null)
+  await finishUpload(res, result, folderId ?? null, uploadBytes, uploadMime)
 })
 
 /* ---------------- 大文件分片上传（P2） ---------------- */
@@ -286,13 +340,13 @@ uploadsRouter.post(
       res.status(normalized.status).json({ error: normalized.error })
       return
     }
-    const saved = saveUpload(normalized.bytes, normalized.name, normalized.mime)
+    const saved = saveUpload(normalized.bytes, normalized.name, normalized.mime, IMAGE_PIPELINE_VERSION)
     if (!saved.ok) {
       // 保留分片，客户端补齐条件（如清理配额）后可重试 complete
       res.status(saved.status).json({ error: saved.error })
       return
     }
-    await finishUpload(res, saved, meta.folderId)
+    await finishUpload(res, saved, meta.folderId, normalized.bytes, normalized.mime)
     removeChunkUpload(uploadId)
   },
 )
@@ -353,7 +407,7 @@ uploadsRouter.post(
     }
     // 记录旧变体：换图后只清理不再被新变体引用的文件，避免磁盘残留孤儿
     const staleVariants = variantFileIds(id)
-    const result = replaceUpload(id, body, req.headers['content-type'])
+    const result = replaceUpload(id, body, req.headers['content-type'], 'original')
     if (!result.ok) {
       res.status(result.status).json({ error: result.error })
       return
