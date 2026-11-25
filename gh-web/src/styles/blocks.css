@@ -550,6 +550,31 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
 .hero__content--pos .hero__desc,
 .hero__content--pos .hero__points { margin-left: auto; margin-right: auto; }
 .hero__content--pos .hero__cta { justify-content: center; }
+
+/* —— 首页 21:9 单张通栏海报：文案移到左侧安全区 ——
+   这几张海报的产品都在画面中央且占比很大，居中文案会压在产品上。
+   桌面端把文案块整体放到左侧留白区（x ≈ 5%，垂直居中），横向始终不进入产品区域；
+   移动端（≤767px）沿用下方既有「顶部居中」规则，不在此处覆盖。 */
+@media (min-width: 768px) {
+  .mk-page[data-page="home"] [data-block="hero"] .hero__content--pos {
+    left: clamp(24px, 5vw, 96px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: min(300px, 20vw);
+    max-width: none;
+    text-align: left;
+  }
+  .mk-page[data-page="home"] [data-block="hero"] .hero__content--pos .hero__title {
+    margin: 0 0 8px;
+    font-size: clamp(24px, 2.05vw, 32px);
+  }
+  .mk-page[data-page="home"] [data-block="hero"] .hero__content--pos .hero__desc {
+    margin: 0 0 var(--gh-space-5);
+  }
+  .mk-page[data-page="home"] [data-block="hero"] .hero__content--pos .hero__cta {
+    justify-content: flex-start;
+  }
+}
 /* 海报文案与按钮一律不投影（含后台配置了文案色 / 强调色的情形） */
 .blk-hero .hero__content,
 .blk-hero .hero__content * { text-shadow: none; }
