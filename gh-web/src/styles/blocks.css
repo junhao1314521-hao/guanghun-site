@@ -570,6 +570,8 @@ a.hero__dl:focus-visible { outline: 2px solid var(--color-accent-solid); outline
   }
   .mk-page[data-page="home"] [data-block="hero"] .hero__content--pos .hero__desc {
     margin: 0 0 var(--gh-space-5);
+    /* 窄栏下避免末行只剩一两个字（如「度」单独成行） */
+    text-wrap: balance;
   }
   .mk-page[data-page="home"] [data-block="hero"] .hero__content--pos .hero__cta {
     justify-content: flex-start;
